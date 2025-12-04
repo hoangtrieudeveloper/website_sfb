@@ -3,6 +3,8 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const usersRoutes = require('./routes/users.routes');
+const rolesRoutes = require('./routes/roles.routes');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
 const errorHandler = require('./middlewares/error.middleware');
@@ -31,6 +33,10 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // RESTful routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+// Users for admin area
+app.use('/api/admin/users', usersRoutes);
+// Roles for admin area
+app.use('/api/admin/roles', rolesRoutes);
 
 // 404 & error handlers
 app.use(notFound);
