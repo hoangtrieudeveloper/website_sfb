@@ -1,0 +1,274 @@
+# SFB Website - Coding Guidelines for AI Assistants
+
+## Project Overview
+This is a Next.js 14 website using App Router with Server-Side Rendering (SSR). The project follows a clear separation:
+- **Routes**: `app/[route]/page.tsx` - Server Components that import page components
+- **Page Components**: `pages/*Page.tsx` - Main UI components (can be Server or Client)
+- **Reusable Components**: `components/*.tsx` - Shared components
+- **Layout**: `app/layout.tsx` - Root layout with Header and Footer
+
+## Architecture & Rendering Rules
+
+### Server Components First (CRITICAL)
+- **Default**: All components are Server Components (NO "use client")
+- **Only add "use client" when**:
+  - Using React hooks: useState, useEffect, useCallback, useMemo
+  - Using browser APIs: window, document, localStorage, sessionStorage
+  - Using event handlers: onClick, onChange, onSubmit
+  - Using Next.js client hooks: usePathname, useRouter, useSearchParams
+
+### Current Client Components (for reference):
+- `components/Header.tsx` - uses useState, useEffect, usePathname
+- `components/figma/ImageWithFallback.tsx` - uses useState for error handling
+- `pages/ProductsPage.tsx` - uses useState for filtering
+- `pages/NewsPage.tsx` - uses useState for filtering/search
+- `pages/ContactPage.tsx` - uses useState for form state
+- `pages/NewsDetailPage.tsx` - uses useState/useEffect for interactivity
+
+### All Other Components Are Server Components:
+- `components/HeroBanner.tsx`, `Features.tsx`, `Solutions.tsx`, `Industries.tsx`, `AboutCompany.tsx`, `Testimonials.tsx`
+- `pages/SolutionsPage.tsx`, `AboutPage.tsx`, `IndustriesPage.tsx`, `CareersPage.tsx`
+- `app/layout.tsx`, `app/page.tsx`, all route pages in `app/`
+
+## File Structure & Naming
+
+### Routes (app/ directory)
+- Pattern: `app/[route]/page.tsx` (lowercase, kebab-case)
+- Export: `export default function RouteNameRoute()`
+- Import page component: `import { PageNamePage } from "../../pages/PageNamePage"`
+- Example:
+```tsx
+// app/services/page.tsx
+import { ServicesPage } from "../../pages/ServicesPage";
+
+export default function ServicesRoute() {
+  return <ServicesPage />;
+}
+```
+
+### Page Components (pages/ directory)
+- Pattern: `pages/*Page.tsx` (PascalCase with "Page" suffix)
+- Export: `export function PageNamePage()`
+- Can be Server or Client Component (add "use client" only if needed)
+
+### Reusable Components (components/ directory)
+- Pattern: `components/ComponentName.tsx` (PascalCase)
+- Export: `export function ComponentName()`
+- Most are Server Components
+
+## Import Patterns
+
+### Relative Imports (ALWAYS use relative paths)
+- From `app/` to `components/`: `"../components/ComponentName"`
+- From `app/[route]/` to `pages/`: `"../../pages/PageNamePage"`
+- From `pages/` to `components/`: `"../components/ComponentName"`
+- From `components/` to `components/figma/`: `"./figma/ImageWithFallback"`
+
+### External Imports Order
+1. React/Next.js imports
+2. Third-party libraries (lucide-react)
+3. Local components
+4. Types/interfaces
+
+Example:
+```tsx
+import { ArrowRight, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+```
+
+## Design System & Styling
+
+### Brand Colors (MUST USE EXACT VALUES)
+- **Primary**: `#006FB3` → use `from-[#006FB3]` or `bg-[#006FB3]` or `text-[#006FB3]`
+- **Secondary**: `#0088D9` → use `to-[#0088D9]` or `bg-[#0088D9]` or `text-[#0088D9]`
+- **Light Background**: `#E6F4FF` → use `bg-[#E6F4FF]` or `via-[#E6F4FF]`
+- **Lighter Background**: `#D6EEFF` → use `to-[#D6EEFF]`
+- **NEVER use generic Tailwind colors** like `blue-600`, `cyan-500` - always use brand colors
+
+### Button Patterns
+- **Primary Button**:
+```tsx
+<Link
+  href="/path"
+  className="px-8 py-4 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl hover:shadow-2xl hover:shadow-[#006FB3]/50 transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
+>
+  Button Text
+  <ArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
+</Link>
+```
+
+- **Secondary Button**:
+```tsx
+<Link
+  href="/path"
+  className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white hover:text-gray-900 hover:border-white transition-all inline-flex items-center justify-center gap-3 font-semibold"
+>
+  Button Text
+</Link>
+```
+
+### Section Structure Pattern
+```tsx
+<section className="relative py-28 overflow-hidden bg-gradient-to-br from-gray-50 via-[#E6F4FF] to-[#D6EEFF]">
+  {/* Background Pattern */}
+  <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
+  
+  {/* Animated Orbs (optional) */}
+  <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#006FB3]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+  </div>
+  
+  <div className="container mx-auto px-6 relative z-10">
+    {/* Content */}
+  </div>
+</section>
+```
+
+### Typography
+- **Font**: Inter (already set in globals.css)
+- **Headings**: Use semantic HTML (h1, h2, h3) with Tailwind classes
+- **Base size**: 16px (default)
+
+## Component Patterns
+
+### Image Handling (MANDATORY)
+- **ALWAYS** use `ImageWithFallback` instead of `<img>`
+- Import: `import { ImageWithFallback } from "../components/figma/ImageWithFallback"`
+- Usage:
+```tsx
+<ImageWithFallback
+  src="https://example.com/image.jpg"
+  alt="Description"
+  className="w-full h-auto object-cover"
+/>
+```
+
+### Navigation Links (MANDATORY)
+- **Internal links**: Use Next.js `Link` component
+- **External links**: Can use `<a>` with `target="_blank" rel="noopener noreferrer"`
+- Pattern:
+```tsx
+import Link from "next/link";
+
+<Link href="/about" className="...">
+  About
+</Link>
+```
+
+### Data Organization
+- Define data arrays/objects at the top of component (before return)
+- Use TypeScript types for complex data
+- Example:
+```tsx
+export function MyComponent() {
+  const items = [
+    { id: 1, title: "Item 1", icon: SomeIcon },
+    { id: 2, title: "Item 2", icon: AnotherIcon },
+  ];
+  
+  return (
+    <section>
+      {items.map((item) => (
+        <div key={item.id}>...</div>
+      ))}
+    </section>
+  );
+}
+```
+
+## Animation Classes
+- Use classes from `styles/animations.css`:
+  - `animate-blob` - floating blob animation
+  - `animation-delay-2000` - delay 2s
+  - `animation-delay-4000` - delay 4s
+  - `fade-in-up` - fade in from bottom
+  - `animate-gradient` - gradient animation
+  - `animate-partner-marquee` - marquee animation
+  - `animate-pulse-glow` - pulse glow effect
+
+## Code Quality Rules
+
+1. **No styled-jsx**: Use Tailwind CSS classes only
+2. **Responsive Design**: Use Tailwind responsive prefixes (sm:, md:, lg:, xl:)
+3. **Accessibility**: Include alt text for images, semantic HTML
+4. **TypeScript**: Use proper types, avoid `any`
+5. **Component Size**: Keep components focused, extract large sections
+6. **Comments**: Use Vietnamese comments for business logic, English for technical
+
+## Common Patterns to Follow
+
+### Section Header Pattern
+```tsx
+<div className="text-center mb-16 max-w-4xl mx-auto">
+  <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6">
+    <Sparkles className="text-cyan-400" size={20} />
+    <span className="text-white font-semibold uppercase tracking-wider text-xs">
+      SECTION LABEL
+    </span>
+  </div>
+  <h2 className="text-white mb-4">Main Heading</h2>
+  <p className="text-base md:text-lg text-blue-100 leading-relaxed">
+    Description text
+  </p>
+</div>
+```
+
+### Card Pattern
+```tsx
+<div className="group relative bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 hover:bg-white hover:border-white transition-all duration-700 hover:scale-[1.02] hover:shadow-2xl overflow-hidden">
+  {/* Content */}
+</div>
+```
+
+## Examples
+
+### ✅ Correct Server Component:
+```tsx
+import { ArrowRight, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+
+export function NewFeature() {
+  const features = [
+    { id: 1, title: "Feature 1", icon: Sparkles },
+  ];
+  
+  return (
+    <section className="relative py-28 overflow-hidden bg-gradient-to-br from-gray-50 via-[#E6F4FF] to-[#D6EEFF]">
+      <div className="container mx-auto px-6">
+        <ImageWithFallback src="/image.jpg" alt="Description" />
+        <Link 
+          href="/about" 
+          className="px-8 py-4 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl"
+        >
+          Learn More
+          <ArrowRight size={20} />
+        </Link>
+      </div>
+    </section>
+  );
+}
+```
+
+### ❌ Wrong Patterns to Avoid:
+```tsx
+// ❌ Unnecessary "use client"
+"use client";
+export function StaticComponent() {
+  return <div>Static</div>;
+}
+
+// ❌ Wrong image tag
+<img src="/image.jpg" alt="test" />
+
+// ❌ Wrong color
+<button className="bg-blue-600">Click</button>
+
+// ❌ Wrong link
+<a href="/about">About</a>
+
+// ❌ Wrong import path
+import { Component } from "@/components/Component"
+```
+
