@@ -5,6 +5,8 @@ const {
   createRole,
   updateRole,
   deleteRole,
+  getRolePermissions,
+  updateRolePermissions,
 } = require('../controllers/roles.controller');
 
 const router = express.Router();
@@ -226,6 +228,94 @@ router.put('/:id', updateRole);
  *         description: Không tìm thấy role
  */
 router.delete('/:id', deleteRole);
+
+/**
+ * @openapi
+ * /api/admin/roles/{id}/permissions:
+ *   get:
+ *     tags:
+ *       - Roles
+ *     summary: Lấy danh sách quyền được gán cho role
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Thông tin role và danh sách quyền
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     role:
+ *                       $ref: '#/components/schemas/Role'
+ *                     permissions:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Permission'
+ *       404:
+ *         description: Không tìm thấy role
+ */
+router.get('/:id/permissions', getRolePermissions);
+
+/**
+ * @openapi
+ * /api/admin/roles/{id}/permissions:
+ *   put:
+ *     tags:
+ *       - Roles
+ *     summary: Cập nhật danh sách quyền cho role
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               permissionIds:
+ *                 type: array
+ *                 description: Danh sách ID quyền sẽ được gán cho role (toàn bộ danh sách mới)
+ *                 items:
+ *                   type: integer
+ *     responses:
+ *       200:
+ *         description: Cập nhật quyền cho role thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     role:
+ *                       $ref: '#/components/schemas/Role'
+ *                     permissions:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Permission'
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ *       404:
+ *         description: Không tìm thấy role
+ */
+router.put('/:id/permissions', updateRolePermissions);
 
 module.exports = router;
 

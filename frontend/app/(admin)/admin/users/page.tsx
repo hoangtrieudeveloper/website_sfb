@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, Edit, Trash2, User, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,87 +22,288 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+const API_BASE_URL =
+  process.env.API_SFB_URL ||
+  process.env.NEXT_PUBLIC_API_SFB_URL ||
+  "http://localhost:4000";
+
+type UserStatus = "active" | "inactive";
+
+type CmsUser = {
+  permissions?: string[];
+};
+
+interface Role {
+  id: number;
+  code: string;
+  name: string;
+  description?: string | null;
+  isActive: boolean;
+  isDefault: boolean;
+}
 
 interface AdminUser {
   id: number;
   name: string;
   email: string;
-  role: "admin" | "editor" | "viewer";
-  status: "active" | "inactive";
+  roleId: number;
+  roleCode: string;
+  roleName: string;
+  status: UserStatus;
 }
 
-const initialUsers: AdminUser[] = [
-  {
-    id: 1,
-    name: "Nguyễn Văn Admin",
-    email: "admin@sfb.local",
-    role: "admin",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Trần Thị Biên Tập",
-    email: "editor@sfb.local",
-    role: "editor",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Lê Văn Xem",
-    email: "viewer@sfb.local",
-    role: "viewer",
-    status: "inactive",
-  },
-];
+type UserFormState = {
+  name: string;
+  email: string;
+  roleId: number | null;
+  status: UserStatus;
+};
+
+const EMPTY_FORM: UserFormState = {
+  name: "",
+  email: "",
+  roleId: null,
+  status: "active",
+};
+
+function getUserPermissionsFromCookie(): Set<string> {
+  if (typeof document === "undefined") return new Set();
+  try {
+    const cookie = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("cms_sfb_user="));
+    if (!cookie) return new Set();
+    const value = decodeURIComponent(cookie.split("=")[1] || "");
+    const parsed = JSON.parse(value) as CmsUser;
+    return new Set(parsed.permissions ?? []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>(initialUsers);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [search, setSearch] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
-  const [formData, setFormData] = useState<{
-    name: string;
-    email: string;
-    role: AdminUser["role"];
-    status: AdminUser["status"];
-  }>({
-    name: "",
-    email: "",
-    role: "editor",
-    status: "active",
-  });
+  const [formData, setFormData] = useState<UserFormState>(EMPTY_FORM);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()),
+  const permissions = useMemo(getUserPermissionsFromCookie, []);
+  const canViewUsers =
+    permissions.has("users.view") ||
+    permissions.has("users.manage") ||
+    permissions.has("admin");
+  const canManageUsers =
+    permissions.has("users.manage") || permissions.has("admin");
+
+  const defaultRoleId = useMemo(
+    () => roles.find((r) => r.isDefault && r.isActive)?.id ?? null,
+    [roles],
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const loadData = async () => {
+    try {
+      setLoading(true);
 
-    if (editingUser) {
-      setUsers(
-        users.map((user) =>
-          user.id === editingUser.id ? { ...user, ...formData } : user,
-        ),
-      );
-    } else {
-      const newUser: AdminUser = {
-        id: Math.max(...users.map((u) => u.id)) + 1,
-        ...formData,
+      const [rolesRes, usersRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/admin/roles`),
+        fetch(`${API_BASE_URL}/api/admin/users`),
+      ]);
+
+      if (!rolesRes.ok) {
+        throw new Error("Không tải được danh sách roles");
+      }
+      if (!usersRes.ok) {
+        throw new Error("Không tải được danh sách users");
+      }
+
+      const rolesData = (await rolesRes.json()) as {
+        success: boolean;
+        data?: Role[];
       };
-      setUsers([...users, newUser]);
-    }
+      const usersData = (await usersRes.json()) as {
+        success: boolean;
+        data?: any[];
+      };
 
-    setIsDialogOpen(false);
+      if (!rolesData.success || !rolesData.data) {
+        throw new Error("Không tải được danh sách roles");
+      }
+      if (!usersData.success || !usersData.data) {
+        throw new Error("Không tải được danh sách users");
+      }
+
+      setRoles(
+        rolesData.data.map((r) => ({
+          ...r,
+          description: r.description ?? null,
+        })),
+      );
+
+      setUsers(
+        usersData.data.map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          roleId: u.roleId ?? u.role_id,
+          roleCode: u.roleCode ?? u.role_code,
+          roleName: u.roleName ?? u.role_name ?? u.roleCode ?? u.role,
+          status: u.status as UserStatus,
+        })),
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Không tải được dữ liệu người dùng / roles");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadData();
+  }, []);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!canViewUsers) {
+      router.replace("/admin/forbidden");
+    }
+  }, [canViewUsers, router]);
+
+  const filteredUsers = users.filter((user) => {
+    const query = search.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.roleName.toLowerCase().includes(query)
+    );
+  });
+
+  const openCreateDialog = () => {
+    if (!canManageUsers) {
+      toast.error("Bạn không có quyền tạo người dùng (users.manage).");
+      return;
+    }
     setEditingUser(null);
     setFormData({
-      name: "",
-      email: "",
-      role: "editor",
-      status: "active",
+      ...EMPTY_FORM,
+      roleId: defaultRoleId,
     });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canManageUsers) {
+      toast.error("Bạn không có quyền quản lý người dùng (users.manage).");
+      return;
+    }
+    if (!formData.roleId) {
+      toast.error("Vui lòng chọn vai trò cho người dùng");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      if (editingUser) {
+        const res = await fetch(
+          `${API_BASE_URL}/api/admin/users/${editingUser.id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: formData.email,
+              name: formData.name,
+              status: formData.status,
+              roleId: formData.roleId,
+            }),
+          },
+        );
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          toast.error(
+            data?.message || "Cập nhật người dùng thất bại. Vui lòng thử lại.",
+          );
+          return;
+        }
+
+        const data = (await res.json()) as { success: boolean; data?: any };
+        if (data.success && data.data) {
+          const updated = {
+            id: data.data.id,
+            name: data.data.name,
+            email: data.data.email,
+            roleId: data.data.roleId ?? data.data.role_id,
+            roleCode: data.data.roleCode ?? data.data.role_code,
+            roleName:
+              data.data.roleName ?? data.data.role_name ?? data.data.roleCode,
+            status: data.data.status as UserStatus,
+          };
+          setUsers((prev) =>
+            prev.map((u) => (u.id === updated.id ? updated : u)),
+          );
+          toast.success("Đã cập nhật người dùng");
+        }
+      } else {
+        // Demo: đặt mật khẩu mặc định, sau này có thể thêm form nhập password
+        const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: "admin123",
+            name: formData.name,
+            status: formData.status,
+            roleId: formData.roleId,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          toast.error(
+            data?.message || "Tạo người dùng thất bại. Vui lòng thử lại.",
+          );
+          return;
+        }
+
+        const data = (await res.json()) as { success: boolean; data?: any };
+        if (data.success && data.data) {
+          const created = {
+            id: data.data.id,
+            name: data.data.name,
+            email: data.data.email,
+            roleId: data.data.roleId ?? data.data.role_id,
+            roleCode: data.data.roleCode ?? data.data.role_code,
+            roleName:
+              data.data.roleName ?? data.data.role_name ?? data.data.roleCode,
+            status: data.data.status as UserStatus,
+          };
+          setUsers((prev) => [...prev, created]);
+          toast.success("Đã tạo người dùng mới");
+        }
+      }
+
+      setIsDialogOpen(false);
+      setEditingUser(null);
+      setFormData({
+        ...EMPTY_FORM,
+        roleId: defaultRoleId,
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi hệ thống khi lưu người dùng");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEdit = (user: AdminUser) => {
@@ -110,33 +311,80 @@ export default function AdminUsersPage() {
     setFormData({
       name: user.name,
       email: user.email,
-      role: user.role,
+      roleId: user.roleId,
       status: user.status,
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
-      setUsers(users.filter((user) => user.id !== id));
+  const handleDelete = async (id: number) => {
+    if (!canManageUsers) {
+      toast.error("Bạn không có quyền xóa người dùng (users.manage).");
+      return;
+    }
+    if (!window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(
+          data?.message || "Xóa người dùng thất bại. Vui lòng thử lại.",
+        );
+        return;
+      }
+
+      setUsers((prev) => prev.filter((user) => user.id !== id));
+      toast.success("Đã xóa người dùng");
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi hệ thống khi xóa người dùng");
     }
   };
 
-  const toggleStatus = (id: number) => {
-    setUsers(
-      users.map((user) =>
-        user.id === id
-          ? {
-              ...user,
-              status: user.status === "active" ? "inactive" : "active",
-            }
-          : user,
-      ),
-    );
+  const toggleStatus = async (id: number) => {
+    const user = users.find((u) => u.id === id);
+    if (!user) return;
+
+    const newStatus: UserStatus =
+      user.status === "active" ? "inactive" : "active";
+
+    if (!canManageUsers) {
+      toast.error("Bạn không có quyền cập nhật trạng thái (users.manage).");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(
+          data?.message || "Cập nhật trạng thái thất bại. Vui lòng thử lại.",
+        );
+        return;
+      }
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, status: newStatus } : u)),
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi hệ thống khi cập nhật trạng thái");
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl text-gray-900">Quản lý người dùng</h1>
@@ -149,15 +397,8 @@ export default function AdminUsersPage() {
           <DialogTrigger asChild>
             <Button
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-              onClick={() => {
-                setEditingUser(null);
-                setFormData({
-                  name: "",
-                  email: "",
-                  role: "editor",
-                  status: "active",
-                });
-              }}
+              onClick={openCreateDialog}
+              disabled={!canManageUsers}
             >
               <Plus className="w-4 h-4 mr-2" />
               Thêm người dùng
@@ -205,18 +446,23 @@ export default function AdminUsersPage() {
                 <div className="space-y-2">
                   <Label>Vai trò</Label>
                   <Select
-                    value={formData.role}
-                    onValueChange={(value: AdminUser["role"]) =>
-                      setFormData({ ...formData, role: value })
+                    value={formData.roleId ? String(formData.roleId) : ""}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, roleId: Number(value) })
                     }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn vai trò" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="editor">Biên tập viên</SelectItem>
-                      <SelectItem value="viewer">Chỉ xem</SelectItem>
+                      {roles
+                        .filter((r) => r.isActive)
+                        .map((role) => (
+                          <SelectItem key={role.id} value={String(role.id)}>
+                            {role.name}
+                            {role.isDefault ? " (mặc định)" : ""}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -250,9 +496,14 @@ export default function AdminUsersPage() {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={saving}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
-                  {editingUser ? "Cập nhật" : "Tạo mới"}
+                  {saving
+                    ? "Đang lưu..."
+                    : editingUser
+                    ? "Cập nhật"
+                    : "Tạo mới"}
                 </Button>
               </div>
             </form>
@@ -260,7 +511,7 @@ export default function AdminUsersPage() {
         </Dialog>
       </div>
 
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 shadow-lg w-full">
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle>Danh sách người dùng</CardTitle>
           <div className="relative w-full max-w-xs">
@@ -275,7 +526,7 @@ export default function AdminUsersPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+            <table className="w-full table-auto text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-100">
                   <th className="py-3 px-4 font-medium">Người dùng</th>
@@ -286,7 +537,19 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {loading && (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-6 text-center text-gray-500 text-sm"
+                    >
+                      Đang tải danh sách người dùng...
+                    </td>
+                  </tr>
+                )}
+
+                {!loading &&
+                  filteredUsers.map((user) => (
                   <tr
                     key={user.id}
                     className="border-b border-gray-50 hover:bg-gray-50"
@@ -311,22 +574,9 @@ export default function AdminUsersPage() {
                       <span className="text-gray-700">{user.email}</span>
                     </td>
                     <td className="py-3 px-4">
-                      <Badge
-                        variant="outline"
-                        className={
-                          user.role === "admin"
-                            ? "border-red-200 bg-red-50 text-red-700"
-                            : user.role === "editor"
-                            ? "border-blue-200 bg-blue-50 text-blue-700"
-                            : "border-gray-200 bg-gray-50 text-gray-700"
-                        }
-                      >
+                      <Badge variant="outline" className="bg-gray-50">
                         <ShieldCheck className="w-3 h-3 mr-1" />
-                        {user.role === "admin"
-                          ? "Admin"
-                          : user.role === "editor"
-                          ? "Biên tập"
-                          : "Chỉ xem"}
+                        {user.roleName}
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
@@ -375,7 +625,7 @@ export default function AdminUsersPage() {
               </tbody>
             </table>
 
-            {filteredUsers.length === 0 && (
+            {!loading && filteredUsers.length === 0 && (
               <div className="py-10 text-center text-gray-500">
                 Không tìm thấy người dùng phù hợp
               </div>

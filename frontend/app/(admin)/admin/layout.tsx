@@ -14,6 +14,7 @@ import {
   Search,
   User,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +32,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "users" | "settings";
+  id: "dashboard" | "news" | "category" | "users" | "roles" | "permissions" | "settings";
   label: string;
   href: string;
   icon: ComponentType<{ className?: string }>;
@@ -42,6 +43,8 @@ const menuItems: AdminNavItem[] = [
   { id: "news", label: "Tin tức", href: "/admin/news", icon: Newspaper },
   { id: "category", label: "Danh mục", href: "/admin/categories", icon: FolderTree },
   { id: "users", label: "Người dùng", href: "/admin/users", icon: Users },
+  { id: "roles", label: "Phân quyền", href: "/admin/roles", icon: ShieldCheck },
+  { id: "permissions", label: "Quyền chi tiết", href: "/admin/permissions", icon: ShieldCheck },
   { id: "settings", label: "Cài đặt", href: "/admin/settings", icon: Settings },
 ];
 

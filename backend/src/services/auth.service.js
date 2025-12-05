@@ -1,20 +1,77 @@
-const DEMO_USER = {
-  email: 'admin@sfb.local',
-  password: 'admin123',
-  name: 'Admin SFB',
-};
+const { pool } = require('../config/database');
 
-exports.authenticateDemoUser = ({ email, password }) => {
-  if (email === DEMO_USER.email && password === DEMO_USER.password) {
-    return {
-      token: 'demo-token-123',
-      user: {
-        name: DEMO_USER.name,
-        email: DEMO_USER.email,
-      },
-    };
+/**
+ * Xác thực user bằng database (bảng users / roles / role_permissions).
+ * Lưu ý: hiện tại đang so sánh password dạng plain-text cho môi trường demo.
+ * Khi triển khai thật, cần thay bằng password hash (bcrypt).
+ */
+exports.authenticateDemoUser = async ({ email, password }) => {
+  if (!email || !password) return null;
+
+  // Tìm user theo email
+  const { rows } = await pool.query(
+    `
+    SELECT
+      u.id,
+      u.email,
+      u.name,
+      u.password,
+      u.status,
+      u.role_id,
+      r.code AS role_code,
+      r.name AS role_name
+    FROM users u
+    JOIN roles r ON u.role_id = r.id
+    WHERE u.email = $1
+    LIMIT 1
+  `,
+    [email],
+  );
+
+  if (rows.length === 0) {
+    return null;
   }
-  return null;
-};
 
+  const user = rows[0];
+
+  // Chỉ cho phép user đang active
+  if (user.status !== 'active') {
+    return null;
+  }
+
+  // So sánh password (plain-text cho demo)
+  if (user.password !== password) {
+    return null;
+  }
+
+  // Lấy danh sách quyền theo role
+  const { rows: permRows } = await pool.query(
+    `
+    SELECT p.code
+    FROM role_permissions rp
+    JOIN permissions p ON p.id = rp.permission_id
+    WHERE rp.role_id = $1
+      AND p.is_active = TRUE
+  `,
+    [user.role_id],
+  );
+
+  const permissions = permRows.map((p) => p.code);
+
+  return {
+    token: 'demo-token-123',
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roleId: user.role_id,
+      roleCode: user.role_code,
+      roleName: user.role_name,
+      status: user.status,
+      permissions,
+    },
+    // thời gian sống token (giống phía Next dùng set cookie)
+    expiresIn: 60 * 60 * 24 * 7,
+  };
+};
 

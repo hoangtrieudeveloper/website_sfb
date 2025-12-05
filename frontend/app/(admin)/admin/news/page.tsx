@@ -152,7 +152,7 @@ export default function AdminNewsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl text-gray-900">Quản lý tin tức</h1>
@@ -313,7 +313,7 @@ export default function AdminNewsPage() {
         </Dialog>
       </div>
 
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 shadow-lg w-full">
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle>Danh sách bài viết</CardTitle>
           <div className="relative w-full max-w-xs">
@@ -328,7 +328,7 @@ export default function AdminNewsPage() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+            <table className="w-full table-auto text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-100">
                   <th className="py-3 px-4 font-medium">Tiêu đề</th>

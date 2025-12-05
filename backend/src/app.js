@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const usersRoutes = require('./routes/users.routes');
 const rolesRoutes = require('./routes/roles.routes');
+const permissionsRoutes = require('./routes/permissions.routes');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
 const errorHandler = require('./middlewares/error.middleware');
@@ -37,6 +38,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/admin/users', usersRoutes);
 // Roles for admin area
 app.use('/api/admin/roles', rolesRoutes);
+// Permissions for admin area
+app.use('/api/admin/permissions', permissionsRoutes);
 
 // 404 & error handlers
 app.use(notFound);

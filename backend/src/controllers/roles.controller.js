@@ -11,6 +11,17 @@ const mapRole = (row) => ({
   updatedAt: row.updated_at,
 });
 
+const mapPermission = (row) => ({
+  id: row.id,
+  code: row.code,
+  name: row.name,
+  module: row.module,
+  description: row.description,
+  isActive: row.is_active,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
 // GET /api/admin/roles
 exports.getRoles = async (req, res, next) => {
   try {
@@ -243,4 +254,154 @@ exports.deleteRole = async (req, res, next) => {
   }
 };
 
+// GET /api/admin/roles/:id/permissions
+exports.getRolePermissions = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      rows: roleRows,
+    } = await pool.query(
+      'SELECT id, code, name, description, is_active, is_default, created_at, updated_at FROM roles WHERE id = $1',
+      [id],
+    );
+
+    if (roleRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Role not found',
+      });
+    }
+
+    const { rows: permissionRows } = await pool.query(
+      `
+      SELECT p.id,
+             p.code,
+             p.name,
+             p.module,
+             p.description,
+             p.is_active,
+             p.created_at,
+             p.updated_at
+      FROM role_permissions rp
+      JOIN permissions p ON p.id = rp.permission_id
+      WHERE rp.role_id = $1
+      ORDER BY p.module NULLS FIRST, p.code ASC
+    `,
+      [id],
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        role: mapRole(roleRows[0]),
+        permissions: permissionRows.map(mapPermission),
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// PUT /api/admin/roles/:id/permissions
+exports.updateRolePermissions = async (req, res, next) => {
+  const client = await pool.connect();
+
+  try {
+    const { id } = req.params;
+    const { permissionIds } = req.body || {};
+
+    if (!Array.isArray(permissionIds)) {
+      return res.status(400).json({
+        success: false,
+        message: 'permissionIds phải là một mảng id quyền',
+      });
+    }
+
+    // Kiểm tra role tồn tại
+    const {
+      rows: roleRows,
+    } = await client.query(
+      'SELECT id, code, name, description, is_active, is_default, created_at, updated_at FROM roles WHERE id = $1',
+      [id],
+    );
+
+    if (roleRows.length === 0) {
+      client.release();
+      return res.status(404).json({
+        success: false,
+        message: 'Role not found',
+      });
+    }
+
+    await client.query('BEGIN');
+
+    // Xoá toàn bộ mapping cũ
+    await client.query('DELETE FROM role_permissions WHERE role_id = $1', [id]);
+
+    // Thêm mapping mới
+    if (permissionIds.length > 0) {
+      // Lọc trùng & chỉ giữ số
+      const uniqueIds = Array.from(
+        new Set(
+          permissionIds
+            .map((v) => Number(v))
+            .filter((v) => Number.isInteger(v) && v > 0),
+        ),
+      );
+
+      for (const pid of uniqueIds) {
+        // ON CONFLICT để an toàn nếu unique không hoạt động như mong đợi
+        // (dù trong schema đã có UNIQUE(role_id, permission_id))
+        // eslint-disable-next-line no-await-in-loop
+        await client.query(
+          `
+          INSERT INTO role_permissions (role_id, permission_id)
+          VALUES ($1, $2)
+          ON CONFLICT (role_id, permission_id) DO NOTHING
+        `,
+          [id, pid],
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+
+    // Lấy lại danh sách permissions mới
+    const { rows: permissionRows } = await client.query(
+      `
+      SELECT p.id,
+             p.code,
+             p.name,
+             p.module,
+             p.description,
+             p.is_active,
+             p.created_at,
+             p.updated_at
+      FROM role_permissions rp
+      JOIN permissions p ON p.id = rp.permission_id
+      WHERE rp.role_id = $1
+      ORDER BY p.module NULLS FIRST, p.code ASC
+    `,
+      [id],
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        role: mapRole(roleRows[0]),
+        permissions: permissionRows.map(mapPermission),
+      },
+    });
+  } catch (error) {
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      // ignore rollback error
+    }
+    return next(error);
+  } finally {
+    client.release();
+  }
+};
 
