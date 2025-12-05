@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
 type NewsStatus = "draft" | "published";
 type CategoryId = "product" | "company" | "tech";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface NewsItem {
   id: number;
@@ -43,15 +42,10 @@ export default function AdminNewsPage() {
   const fetchNews = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE}/api/admin/news`);
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.message || "Không thể tải danh sách bài viết");
-      }
-      const data = await response.json();
+      const data = await adminApiCall<{ data: NewsItem[] }>(AdminEndpoints.news.list);
       setNews(data?.data || []);
-    } catch (error) {
-      toast.error("Không thể tải danh sách bài viết");
+    } catch (error: any) {
+      toast.error(error?.message || "Không thể tải danh sách bài viết");
       console.error(error);
     } finally {
       setLoading(false);
@@ -73,17 +67,11 @@ export default function AdminNewsPage() {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
     try {
-      const response = await fetch(`${API_BASE}/api/admin/news/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.message || "Không thể xóa bài viết");
-      }
+      await adminApiCall(AdminEndpoints.news.detail(id), { method: "DELETE" });
       toast.success("Đã xóa bài viết");
       fetchNews();
-    } catch (error) {
-      toast.error("Có lỗi khi xóa bài viết");
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi khi xóa bài viết");
       console.error(error);
     }
   };
@@ -91,19 +79,14 @@ export default function AdminNewsPage() {
   const toggleStatus = async (id: number, currentStatus: NewsStatus) => {
     try {
       const nextStatus = currentStatus === "published" ? "draft" : "published";
-      const response = await fetch(`${API_BASE}/api/admin/news/${id}`, {
+      await adminApiCall(AdminEndpoints.news.detail(id), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
       });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.message || "Không thể cập nhật trạng thái");
-      }
       toast.success("Đã cập nhật trạng thái");
       fetchNews();
-    } catch (error) {
-      toast.error("Có lỗi khi cập nhật trạng thái");
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi khi cập nhật trạng thái");
       console.error(error);
     }
   };

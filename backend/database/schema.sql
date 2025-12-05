@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS news (
   seo_title VARCHAR(255),
   seo_description TEXT,
   seo_keywords TEXT,
+  is_featured BOOLEAN DEFAULT FALSE,
   published_date DATE DEFAULT CURRENT_DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -1,6 +1,8 @@
 require('dotenv').config();
 
 const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || 'sfb-demo-secret';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 const DB_CONFIG = {
   host: process.env.DB_HOST || 'localhost',
@@ -13,6 +15,10 @@ const DB_CONFIG = {
 module.exports = {
   port: PORT,
   db: DB_CONFIG,
+  jwt: {
+    secret: JWT_SECRET,
+    expiresIn: JWT_EXPIRES_IN,
+  },
 };
 
 

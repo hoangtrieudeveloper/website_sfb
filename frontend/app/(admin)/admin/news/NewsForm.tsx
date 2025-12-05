@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { ArrowLeft, Save, Clock, User, Link as LinkIcon, FileText, Image as ImageIcon, Settings, Info, Search as SearchIcon, Calendar, Eye, EyeOff, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 type NewsStatus = "draft" | "pending" | "approved" | "rejected" | "published";
@@ -46,6 +47,7 @@ interface NewsFormData {
   categoryId: CategoryId | "";
   content: string;
   status: NewsStatus;
+  isFeatured: boolean;
   imageUrl?: string;
   author: string;
   readTime: string;
@@ -72,6 +74,7 @@ export default function NewsForm({ initialData, onSave, onCancel, isEditing = fa
     categoryId: initialData?.categoryId || "",
     content: initialData?.content || "",
     status: (initialData?.status as NewsStatus) || "draft",
+    isFeatured: initialData?.isFeatured ?? false,
     imageUrl: initialData?.imageUrl,
     author: initialData?.author || "SFB Technology",
     readTime: initialData?.readTime || "5 phút đọc",
@@ -91,9 +94,7 @@ export default function NewsForm({ initialData, onSave, onCancel, isEditing = fa
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
-        const res = await fetch(`${API_BASE}/api/admin/categories`);
-        if (!res.ok) throw new Error("Không thể tải danh mục");
-        const data = await res.json();
+        const data = await adminApiCall<{ data: any[] }>(AdminEndpoints.categories.list);
         const cats = (data?.data || data || []).map((c: any) => ({
           id: c.code,
           name: c.name,
@@ -338,6 +339,22 @@ export default function NewsForm({ initialData, onSave, onCancel, isEditing = fa
                         <p className="text-xs text-gray-500">
                           Ngày hiển thị bài viết trên website (mặc định: hôm nay)
                         </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="isFeatured"
+                          checked={formData.isFeatured}
+                          onCheckedChange={(checked: boolean) =>
+                            setFormData({ ...formData, isFeatured: checked })
+                          }
+                        />
+                        <Label htmlFor="isFeatured" className="text-sm font-semibold">
+                          Bài viết nổi bật
+                        </Label>
+                        <span className="text-xs text-gray-500">
+                          Hiển thị tại khu vực nổi bật nếu bật
+                        </span>
                       </div>
                     </div>
                   </Card>

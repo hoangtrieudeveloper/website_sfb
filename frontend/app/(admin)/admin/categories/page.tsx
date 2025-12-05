@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
 interface Category {
   code: string;
@@ -26,8 +27,6 @@ interface Category {
   createdAt?: string;
   updatedAt?: string;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -48,12 +47,10 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE}/api/admin/categories`);
-      if (!res.ok) throw new Error("Không thể tải danh mục");
-      const data = await res.json();
+      const data = await adminApiCall<{ data: Category[] }>(AdminEndpoints.categories.list);
       setCategories(data?.data || []);
-    } catch (error) {
-      toast.error("Tải danh mục thất bại");
+    } catch (error: any) {
+      toast.error(error?.message || "Tải danh mục thất bại");
       console.error(error);
     } finally {
       setLoading(false);
@@ -78,29 +75,22 @@ export default function AdminCategoriesPage() {
         return;
       }
 
-      const method = editingCategory ? "PUT" : "POST";
-      const url = editingCategory
-        ? `${API_BASE}/api/admin/categories/${editingCategory.code}`
-        : `${API_BASE}/api/admin/categories`;
+      const endpoint = editingCategory
+        ? AdminEndpoints.categories.detail(editingCategory.code)
+        : AdminEndpoints.categories.list;
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
+      await apiCall(endpoint, {
+        method: editingCategory ? "PUT" : "POST",
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message || "Lưu danh mục thất bại");
-      }
 
       toast.success(editingCategory ? "Đã cập nhật danh mục" : "Đã tạo danh mục mới");
       setIsDialogOpen(false);
       setEditingCategory(null);
       resetForm();
       fetchCategories();
-    } catch (error) {
-      toast.error("Có lỗi khi lưu danh mục");
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi khi lưu danh mục");
       console.error(error);
     }
   };
@@ -119,17 +109,11 @@ export default function AdminCategoriesPage() {
   const handleDelete = async (code: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
     try {
-      const res = await fetch(`${API_BASE}/api/admin/categories/${code}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.message || "Không thể xóa danh mục");
-      }
+      await adminApiCall(AdminEndpoints.categories.detail(code), { method: "DELETE" });
       toast.success("Đã xóa danh mục");
       fetchCategories();
-    } catch (error) {
-      toast.error("Có lỗi khi xóa danh mục");
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi khi xóa danh mục");
       console.error(error);
     }
   };

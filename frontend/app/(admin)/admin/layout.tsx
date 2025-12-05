@@ -38,6 +38,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import { removeAuthToken } from "@/lib/auth/token";
 
 type AdminNavItem = {
   id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group";
@@ -227,25 +228,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     } catch {
       // ignore network errors, vẫn redirect
     }
+    // Xóa token khỏi localStorage
+    removeAuthToken();
     router.push("/admin/login");
     router.refresh();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Sidebar */}
       <aside
         className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } bg-white border-r border-gray-200 w-64`}
+        } w-64 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 text-slate-100 shadow-2xl`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="h-16 flex items-center px-6 border-b border-gray-200">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-              <LayoutDashboard className="w-6 h-6 text-white" />
+          <div className="h-16 flex items-center px-6 border-b border-slate-800/60 backdrop-blur">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
+              <LayoutDashboard className="w-6 h-6 text-white drop-shadow" />
             </div>
-            <span className="ml-3 text-xl text-gray-800">SFB Admin</span>
+            <span className="ml-3 text-xl text-slate-100 font-semibold">SFB Admin</span>
           </div>
 
           {/* Navigation */}
@@ -284,8 +287,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     <CollapsibleTrigger
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-sm ${
                         isActive
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200"
-                          : "text-gray-700 hover:bg-gray-100"
+                          ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
+                          : "text-slate-200 hover:bg-white/5"
                       }`}
                     >
                       <div className="flex items-center">
@@ -311,8 +314,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             href={child.href || "#"}
                             className={`w-full flex items-center pl-10 pr-4 py-2.5 rounded-lg transition-all text-sm ${
                               isChildActive
-                                ? "bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-600"
-                                : "text-gray-600 hover:bg-gray-50"
+                                ? "bg-white/10 text-white font-medium border-l-2 border-cyan-400"
+                                : "text-slate-200 hover:bg-white/5"
                             }`}
                           >
                             <ChildIcon className="w-4 h-4" />
@@ -331,8 +334,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   href={item.href || "#"}
                   className={`w-full flex items-center px-4 py-3 rounded-lg transition-all text-sm ${
                     isActive
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
+                      : "text-slate-200 hover:bg-white/5"
                   }`}
                 >
                   <Icon className="w-5 h-5" />

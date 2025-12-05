@@ -50,6 +50,9 @@ const router = express.Router();
  *         gradient:
  *           type: string
  *           example: from-blue-600 to-cyan-600
+ *         isFeatured:
+ *           type: boolean
+ *           example: true
  *         seoTitle:
  *           type: string
  *           example: Tiêu đề SEO cho bài viết

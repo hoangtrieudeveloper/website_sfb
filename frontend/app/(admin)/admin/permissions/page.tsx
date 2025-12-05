@@ -26,11 +26,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-const API_BASE_URL =
-  process.env.API_SFB_URL ||
-  process.env.NEXT_PUBLIC_API_SFB_URL ||
-  "http://localhost:4000";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
 interface Permission {
   id: number;
@@ -107,13 +103,10 @@ export default function AdminPermissionsPage() {
         params.set("search", search);
       }
 
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/permissions${params.toString() ? `?${params.toString()}` : ""}`,
+      const queryString = params.toString() ? `?${params.toString()}` : "";
+      const data = await apiCall<{ success: boolean; data?: Permission[] }>(
+        `${AdminEndpoints.permissions.list}${queryString}`,
       );
-      if (!res.ok) {
-        throw new Error("Không tải được danh sách quyền");
-      }
-      const data = (await res.json()) as { success: boolean; data?: Permission[] };
       if (!data.success || !data.data) {
         throw new Error("Không tải được danh sách quyền");
       }
@@ -124,9 +117,9 @@ export default function AdminPermissionsPage() {
           description: p.description ?? "",
         })),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Không tải được danh sách quyền");
+      toast.error(error?.message || "Không tải được danh sách quyền");
     } finally {
       setLoading(false);
     }
@@ -227,69 +220,60 @@ export default function AdminPermissionsPage() {
       };
 
       if (editingPermission) {
-        const res = await fetch(
-          `${API_BASE_URL}/api/admin/permissions/${editingPermission.id}`,
+        const data = await apiCall<{ success: boolean; data?: Permission }>(
+          AdminEndpoints.permissions.detail(editingPermission.id),
           {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           },
         );
-
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data?.success) {
-          toast.error(data?.message || "Cập nhật quyền thất bại. Vui lòng thử lại.");
-          return;
+        if (data.success && data.data) {
+          setPermissions((prev) =>
+            prev.map((p) =>
+              p.id === editingPermission.id
+                ? {
+                    ...p,
+                    code: data.data!.code,
+                    name: data.data!.name,
+                    module: data.data!.module ?? "",
+                    description: data.data!.description ?? "",
+                    isActive: data.data!.isActive,
+                  }
+                : p,
+            ),
+          );
+          toast.success("Đã cập nhật quyền");
         }
-
-        setPermissions((prev) =>
-          prev.map((p) =>
-            p.id === editingPermission.id
-              ? {
-                  ...p,
-                  code: data.data.code,
-                  name: data.data.name,
-                  module: data.data.module ?? "",
-                  description: data.data.description ?? "",
-                  isActive: data.data.isActive,
-                }
-              : p,
-          ),
-        );
-        toast.success("Đã cập nhật quyền");
       } else {
-        const res = await fetch(`${API_BASE_URL}/api/admin/permissions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data?.success) {
-          toast.error(data?.message || "Tạo quyền thất bại. Vui lòng thử lại.");
-          return;
-        }
-
-        setPermissions((prev) => [
-          ...prev,
+        const data = await apiCall<{ success: boolean; data?: Permission }>(
+          AdminEndpoints.permissions.list,
           {
-            id: data.data.id,
-            code: data.data.code,
-            name: data.data.name,
-            module: data.data.module ?? "",
-            description: data.data.description ?? "",
-            isActive: data.data.isActive,
+            method: "POST",
+            body: JSON.stringify(payload),
           },
-        ]);
-        toast.success("Đã tạo quyền mới");
+        );
+        if (data.success && data.data) {
+          setPermissions((prev) => [
+            ...prev,
+            {
+              id: data.data!.id,
+              code: data.data!.code,
+              name: data.data!.name,
+              module: data.data!.module ?? "",
+              description: data.data!.description ?? "",
+              isActive: data.data!.isActive,
+            },
+          ]);
+          toast.success("Đã tạo quyền mới");
+        }
       }
 
       setIsDialogOpen(false);
       setEditingPermission(null);
       setFormData(EMPTY_FORM);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi lưu quyền");
+      toast.error(error?.message || "Lỗi hệ thống khi lưu quyền");
     } finally {
       setSaving(false);
     }
@@ -310,22 +294,12 @@ export default function AdminPermissionsPage() {
     }
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/permissions/${permission.id}`,
-        { method: "DELETE" },
-      );
-
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.success) {
-        toast.error(data?.message || "Không thể xóa quyền. Vui lòng thử lại.");
-        return;
-      }
-
+      await adminApiCall(AdminEndpoints.permissions.detail(permission.id), { method: "DELETE" });
       setPermissions((prev) => prev.filter((p) => p.id !== permission.id));
       toast.success("Đã xóa quyền");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi xóa quyền");
+      toast.error(error?.message || "Lỗi hệ thống khi xóa quyền");
     }
   };
 
@@ -336,29 +310,23 @@ export default function AdminPermissionsPage() {
     }
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/permissions/${permission.id}`,
+      const data = await apiCall<{ success: boolean; data?: Permission }>(
+        AdminEndpoints.permissions.detail(permission.id),
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ isActive: !permission.isActive }),
         },
       );
-
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.success) {
-        toast.error(data?.message || "Cập nhật trạng thái quyền thất bại.");
-        return;
+      if (data.success && data.data) {
+        setPermissions((prev) =>
+          prev.map((p) =>
+            p.id === permission.id ? { ...p, isActive: !permission.isActive } : p,
+          ),
+        );
       }
-
-      setPermissions((prev) =>
-        prev.map((p) =>
-          p.id === permission.id ? { ...p, isActive: !permission.isActive } : p,
-        ),
-      );
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi cập nhật trạng thái quyền");
+      toast.error(error?.message || "Lỗi hệ thống khi cập nhật trạng thái quyền");
     }
   };
 

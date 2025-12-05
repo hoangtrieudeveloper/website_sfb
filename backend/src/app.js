@@ -8,6 +8,7 @@ const rolesRoutes = require('./routes/roles.routes');
 const permissionsRoutes = require('./routes/permissions.routes');
 const newsRoutes = require('./routes/news.routes');
 const newsCategoriesRoutes = require('./routes/newsCategories.routes');
+const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
 const errorHandler = require('./middlewares/error.middleware');
@@ -36,16 +37,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // RESTful routes
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-// Users for admin area
-app.use('/api/admin/users', usersRoutes);
-// Roles for admin area
-app.use('/api/admin/roles', rolesRoutes);
-// Permissions for admin area
-app.use('/api/admin/permissions', permissionsRoutes);
-// News for admin area
-app.use('/api/admin/news', newsRoutes);
-// News categories for admin area
-app.use('/api/admin/categories', newsCategoriesRoutes);
+// Admin protected routes
+app.use('/api/admin/users', requireAuth, usersRoutes);
+app.use('/api/admin/roles', requireAuth, rolesRoutes);
+app.use('/api/admin/permissions', requireAuth, permissionsRoutes);
+app.use('/api/admin/news', requireAuth, newsRoutes);
+app.use('/api/admin/categories', requireAuth, newsCategoriesRoutes);
 
 // 404 & error handlers
 app.use(notFound);

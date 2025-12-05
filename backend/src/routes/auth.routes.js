@@ -36,7 +36,7 @@ const router = express.Router();
  *                   example: true
  *                 token:
  *                   type: string
- *                   example: demo-token-123
+ *                   example: eyJhbGciOi...
  *                 user:
  *                   type: object
  *                   properties:

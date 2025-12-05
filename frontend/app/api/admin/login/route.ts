@@ -53,7 +53,12 @@ export async function POST(req: Request) {
       ? data.expiresIn
       : 60 * 60 * 24 * 7; // 7 ngày
 
-    const response = NextResponse.json({ success: true, user: data.user });
+    // Trả về token trong response body để client lưu vào localStorage
+    const response = NextResponse.json({ 
+      success: true, 
+      user: data.user,
+      token: data.token, // Trả về token để client lưu vào localStorage
+    });
 
     // Lưu JWT vào cookie httpOnly (chỉ server / middleware đọc được)
     response.cookies.set("cms_sfb_token", data.token, {

@@ -157,6 +157,7 @@ exports.createNews = async (req, res, next) => {
       seoTitle = '',
       seoDescription = '',
       seoKeywords = '',
+      isFeatured = false,
     } = req.body;
 
     if (!title || !title.trim()) {
@@ -170,9 +171,9 @@ exports.createNews = async (req, res, next) => {
       INSERT INTO news (
         title, slug, excerpt, content, category, category_id,
         status, image_url, author, read_time, gradient, published_date,
-        seo_title, seo_description, seo_keywords
+        seo_title, seo_description, seo_keywords, is_featured
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
       RETURNING *
     `;
 
@@ -192,6 +193,7 @@ exports.createNews = async (req, res, next) => {
       seoTitle,
       seoDescription,
       seoKeywords,
+      isFeatured,
     ];
 
     const { rows } = await pool.query(insertQuery, params);
@@ -222,9 +224,10 @@ exports.updateNews = async (req, res, next) => {
       gradient,
       link,
       publishedDate,
-    seoTitle,
-    seoDescription,
-    seoKeywords,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
+      isFeatured,
     } = req.body;
 
     const fields = [];
@@ -250,6 +253,7 @@ exports.updateNews = async (req, res, next) => {
     if (seoDescription !== undefined) addField('seo_description', seoDescription);
     if (seoKeywords !== undefined) addField('seo_keywords', seoKeywords);
     if (publishedDate !== undefined) addField('published_date', publishedDate);
+    if (isFeatured !== undefined) addField('is_featured', isFeatured);
 
     if (fields.length === 0) {
       return res.status(400).json({

@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { setAuthToken } from "@/lib/auth/token";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("admin@sfb.local");
@@ -24,11 +25,16 @@ export default function AdminLoginPage() {
       });
 
       const data = (await res.json().catch(() => null)) as
-        | { success?: boolean; message?: string }
+        | { success?: boolean; message?: string; token?: string }
         | null;
 
       if (!res.ok || !data?.success) {
         throw new Error(data?.message || "Đăng nhập thất bại");
+      }
+
+      // Lưu JWT token vào localStorage để sử dụng cho API calls
+      if (data.token) {
+        setAuthToken(data.token);
       }
 
       // Cookie JWT & user đã được set httpOnly ở API route

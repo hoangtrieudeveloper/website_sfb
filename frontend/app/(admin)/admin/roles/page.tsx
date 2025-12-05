@@ -29,11 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-const API_BASE_URL =
-  process.env.API_SFB_URL ||
-  process.env.NEXT_PUBLIC_API_SFB_URL ||
-  "http://localhost:4000";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
 interface Role {
   id: number;
@@ -120,11 +116,7 @@ export default function AdminRolesPage() {
   const loadRoles = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/api/admin/roles`);
-      if (!res.ok) {
-        throw new Error("Không tải được danh sách roles");
-      }
-      const data = (await res.json()) as { success: boolean; data?: Role[] };
+      const data = await adminApiCall<{ success: boolean; data?: Role[] }>(AdminEndpoints.roles.list);
       if (!data.success || !data.data) {
         throw new Error("Không tải được danh sách roles");
       }
@@ -134,22 +126,18 @@ export default function AdminRolesPage() {
           description: r.description ?? "",
         })),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Không tải được danh sách phân quyền");
+      toast.error(error?.message || "Không tải được danh sách phân quyền");
     } finally {
       setLoading(false);
     }
   };
 
   const loadAllPermissions = async () => {
-    const res = await fetch(
-      `${API_BASE_URL}/api/admin/permissions?active=true`,
+    const data = await apiCall<{ success: boolean; data?: Permission[] }>(
+      `${AdminEndpoints.permissions.list}?active=true`,
     );
-    if (!res.ok) {
-      throw new Error("Không tải được danh sách quyền");
-    }
-    const data = (await res.json()) as { success: boolean; data?: Permission[] };
     if (!data.success || !data.data) {
       throw new Error("Không tải được danh sách quyền");
     }
@@ -248,25 +236,21 @@ export default function AdminRolesPage() {
       await loadAllPermissions();
 
       // load quyền đang gán cho role
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/roles/${role.id}/permissions`,
+      const data = await apiCall<{ success: boolean; data?: { permissions?: Permission[] } }>(
+        AdminEndpoints.roles.permissions(role.id),
       );
-      if (!res.ok) {
-        throw new Error("Không tải được quyền của role");
-      }
-      const data = await res.json();
       if (!data?.success) {
-        throw new Error(data?.message || "Không tải được quyền của role");
+        throw new Error("Không tải được quyền của role");
       }
       const permissionIds =
         (data.data?.permissions as Permission[] | undefined)?.map(
           (p) => p.id,
         ) ?? [];
       setRolePermissionIds(permissionIds);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       // Giữ popup mở để người dùng thấy thông báo, không tự đóng
-      toast.error("Không tải được quyền của role. Vui lòng kiểm tra API backend.");
+      toast.error(error?.message || "Không tải được quyền của role. Vui lòng kiểm tra API backend.");
     } finally {
       setLoadingPermissions(false);
     }
@@ -290,31 +274,17 @@ export default function AdminRolesPage() {
 
     try {
       setSavingPermissions(true);
-      const res = await fetch(
-        `${API_BASE_URL}/api/admin/roles/${selectedRole.id}/permissions`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ permissionIds: rolePermissionIds }),
-        },
-      );
-
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.success) {
-        toast.error(
-          data?.message ||
-            "Cập nhật quyền cho role thất bại. Vui lòng thử lại.",
-        );
-        return;
-      }
-
+      await adminApiCall(AdminEndpoints.roles.permissions(selectedRole.id), {
+        method: "PUT",
+        body: JSON.stringify({ permissionIds: rolePermissionIds }),
+      });
       toast.success("Đã cập nhật quyền cho role");
       setIsPermDialogOpen(false);
       setSelectedRole(null);
       setRolePermissionIds([]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi cập nhật quyền cho role");
+      toast.error(error?.message || "Lỗi hệ thống khi cập nhật quyền cho role");
     } finally {
       setSavingPermissions(false);
     }
@@ -336,24 +306,13 @@ export default function AdminRolesPage() {
       setSaving(true);
 
       if (editingRole) {
-        const res = await fetch(
-          `${API_BASE_URL}/api/admin/roles/${editingRole.id}`,
+        const data = await apiCall<{ success: boolean; data?: Role }>(
+          AdminEndpoints.roles.detail(editingRole.id),
           {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData),
           },
         );
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          toast.error(
-            data?.message || "Cập nhật phân quyền thất bại. Vui lòng thử lại.",
-          );
-          return;
-        }
-
-        const data = (await res.json()) as { success: boolean; data?: Role };
         if (data.success && data.data) {
           setRoles((prev) =>
             prev.map((r) => (r.id === data.data!.id ? data.data! : r)),
@@ -361,21 +320,13 @@ export default function AdminRolesPage() {
           toast.success("Đã cập nhật phân quyền");
         }
       } else {
-        const res = await fetch(`${API_BASE_URL}/api/admin/roles`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          toast.error(
-            data?.message || "Tạo phân quyền thất bại. Vui lòng thử lại.",
-          );
-          return;
-        }
-
-        const data = (await res.json()) as { success: boolean; data?: Role };
+        const data = await apiCall<{ success: boolean; data?: Role }>(
+          AdminEndpoints.roles.list,
+          {
+            method: "POST",
+            body: JSON.stringify(formData),
+          },
+        );
         if (data.success && data.data) {
           setRoles((prev) => [...prev, data.data!]);
           toast.success("Đã tạo phân quyền mới");
@@ -385,9 +336,9 @@ export default function AdminRolesPage() {
       setIsDialogOpen(false);
       setEditingRole(null);
       setFormData(EMPTY_FORM);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi lưu phân quyền");
+      toast.error(error?.message || "Lỗi hệ thống khi lưu phân quyền");
     } finally {
       setSaving(false);
     }
@@ -408,80 +359,51 @@ export default function AdminRolesPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/roles/${role.id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok || !data?.success) {
-        toast.error(
-          data?.message ||
-            "Không thể xóa role (có thể đang được gán cho người dùng).",
-        );
-        return;
-      }
-
+      await adminApiCall(AdminEndpoints.roles.detail(role.id), { method: "DELETE" });
       setRoles((prev) => prev.filter((r) => r.id !== role.id));
       toast.success("Đã xóa phân quyền");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi xóa phân quyền");
+      toast.error(error?.message || "Lỗi hệ thống khi xóa phân quyền");
     }
   };
 
   const toggleActive = async (role: Role) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/roles/${role.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !role.isActive }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        toast.error(
-          data?.message || "Cập nhật trạng thái role thất bại. Vui lòng thử lại.",
-        );
-        return;
-      }
-
-      const data = (await res.json()) as { success: boolean; data?: Role };
+      const data = await apiCall<{ success: boolean; data?: Role }>(
+        AdminEndpoints.roles.detail(role.id),
+        {
+          method: "PUT",
+          body: JSON.stringify({ isActive: !role.isActive }),
+        },
+      );
       if (data.success && data.data) {
         setRoles((prev) =>
           prev.map((r) => (r.id === data.data!.id ? data.data! : r)),
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi cập nhật trạng thái role");
+      toast.error(error?.message || "Lỗi hệ thống khi cập nhật trạng thái role");
     }
   };
 
   const setAsDefault = async (role: Role) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/roles/${role.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isDefault: true }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        toast.error(
-          data?.message || "Cập nhật role mặc định thất bại. Vui lòng thử lại.",
-        );
-        return;
-      }
-
-      const data = (await res.json()) as { success: boolean; data?: Role };
+      const data = await apiCall<{ success: boolean; data?: Role }>(
+        AdminEndpoints.roles.detail(role.id),
+        {
+          method: "PUT",
+          body: JSON.stringify({ isDefault: true }),
+        },
+      );
       if (data.success && data.data) {
         // server đã tự reset is_default, load lại cho chắc chắn
         void loadRoles();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi đặt role mặc định");
+      toast.error(error?.message || "Lỗi hệ thống khi đặt role mặc định");
     }
   };
 

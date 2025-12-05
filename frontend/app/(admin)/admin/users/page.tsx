@@ -24,11 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
-const API_BASE_URL =
-  process.env.API_SFB_URL ||
-  process.env.NEXT_PUBLIC_API_SFB_URL ||
-  "http://localhost:4000";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
 type UserStatus = "active" | "inactive";
 
@@ -113,26 +109,10 @@ export default function AdminUsersPage() {
     try {
       setLoading(true);
 
-      const [rolesRes, usersRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/admin/roles`),
-        fetch(`${API_BASE_URL}/api/admin/users`),
+      const [rolesData, usersData] = await Promise.all([
+        adminApiCall<{ success: boolean; data?: Role[] }>(AdminEndpoints.roles.list),
+        adminApiCall<{ success: boolean; data?: any[] }>(AdminEndpoints.users.list),
       ]);
-
-      if (!rolesRes.ok) {
-        throw new Error("Không tải được danh sách roles");
-      }
-      if (!usersRes.ok) {
-        throw new Error("Không tải được danh sách users");
-      }
-
-      const rolesData = (await rolesRes.json()) as {
-        success: boolean;
-        data?: Role[];
-      };
-      const usersData = (await usersRes.json()) as {
-        success: boolean;
-        data?: any[];
-      };
 
       if (!rolesData.success || !rolesData.data) {
         throw new Error("Không tải được danh sách roles");
@@ -159,9 +139,9 @@ export default function AdminUsersPage() {
           status: u.status as UserStatus,
         })),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Không tải được dữ liệu người dùng / roles");
+      toast.error(error?.message || "Không tải được dữ liệu người dùng / roles");
     } finally {
       setLoading(false);
     }
@@ -232,24 +212,13 @@ export default function AdminUsersPage() {
           updateBody.password = formData.password;
         }
 
-        const res = await fetch(
-          `${API_BASE_URL}/api/admin/users/${editingUser.id}`,
+        const data = await adminApiCall<{ success: boolean; data?: any }>(
+          AdminEndpoints.users.detail(editingUser.id),
           {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(updateBody),
           },
         );
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          toast.error(
-            data?.message || "Cập nhật người dùng thất bại. Vui lòng thử lại.",
-          );
-          return;
-        }
-
-        const data = (await res.json()) as { success: boolean; data?: any };
         if (data.success && data.data) {
           const updated = {
             id: data.data.id,
@@ -267,27 +236,19 @@ export default function AdminUsersPage() {
           toast.success("Đã cập nhật người dùng");
         }
       } else {
-        const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            name: formData.name,
-            status: formData.status,
-            roleId: formData.roleId,
-          }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          toast.error(
-            data?.message || "Tạo người dùng thất bại. Vui lòng thử lại.",
-          );
-          return;
-        }
-
-        const data = (await res.json()) as { success: boolean; data?: any };
+        const data = await adminApiCall<{ success: boolean; data?: any }>(
+          AdminEndpoints.users.list,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              email: formData.email,
+              password: formData.password,
+              name: formData.name,
+              status: formData.status,
+              roleId: formData.roleId,
+            }),
+          },
+        );
         if (data.success && data.data) {
           const created = {
             id: data.data.id,
@@ -310,9 +271,9 @@ export default function AdminUsersPage() {
         ...EMPTY_FORM,
         roleId: defaultRoleId,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi lưu người dùng");
+      toast.error(error?.message || "Lỗi hệ thống khi lưu người dùng");
     } finally {
       setSaving(false);
     }
@@ -340,23 +301,12 @@ export default function AdminUsersPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        toast.error(
-          data?.message || "Xóa người dùng thất bại. Vui lòng thử lại.",
-        );
-        return;
-      }
-
+      await adminApiCall(AdminEndpoints.users.detail(id), { method: "DELETE" });
       setUsers((prev) => prev.filter((user) => user.id !== id));
       toast.success("Đã xóa người dùng");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi xóa người dùng");
+      toast.error(error?.message || "Lỗi hệ thống khi xóa người dùng");
     }
   };
 
@@ -373,26 +323,16 @@ export default function AdminUsersPage() {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+      await adminApiCall(AdminEndpoints.users.detail(id), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        toast.error(
-          data?.message || "Cập nhật trạng thái thất bại. Vui lòng thử lại.",
-        );
-        return;
-      }
-
       setUsers((prev) =>
         prev.map((u) => (u.id === id ? { ...u, status: newStatus } : u)),
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Lỗi hệ thống khi cập nhật trạng thái");
+      toast.error(error?.message || "Lỗi hệ thống khi cập nhật trạng thái");
     }
   };
 

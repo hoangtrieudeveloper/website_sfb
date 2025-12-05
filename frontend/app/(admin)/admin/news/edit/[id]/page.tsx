@@ -4,8 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import NewsForm from "../../NewsForm";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
 export default function EditNewsPage() {
   const router = useRouter();
@@ -17,12 +16,7 @@ export default function EditNewsPage() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const response = await fetch(`${API_BASE}/api/admin/news/${id}`);
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err?.message || "Không thể tải dữ liệu bài viết");
-        }
-        const data = await response.json();
+        const data = await adminApiCall<{ data: any }>(AdminEndpoints.news.detail(Number(id)));
         const news = data?.data || data;
         // Map API fields to formData shape
         setInitialData({
@@ -32,6 +26,7 @@ export default function EditNewsPage() {
           categoryId: news.categoryId || "",
           content: news.content || "",
           status: news.status || "draft",
+          isFeatured: news.isFeatured ?? false,
           imageUrl: news.imageUrl,
           author: news.author || "SFB Technology",
           readTime: news.readTime || "5 phút đọc",
@@ -42,8 +37,8 @@ export default function EditNewsPage() {
           seoDescription: news.seoDescription || "",
           seoKeywords: news.seoKeywords || "",
         });
-      } catch (error) {
-        toast.error("Không thể tải dữ liệu bài viết");
+      } catch (error: any) {
+        toast.error(error?.message || "Không thể tải dữ liệu bài viết");
         router.push("/admin/news");
       } finally {
         setLoading(false);
@@ -57,21 +52,14 @@ export default function EditNewsPage() {
 
   const handleSave = async (formData: any) => {
     try {
-      const response = await fetch(`${API_BASE}/api/admin/news/${id}`, {
+      await adminApiCall(AdminEndpoints.news.detail(Number(id)), {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.message || "Không thể cập nhật bài viết");
-      }
-
       toast.success("Đã cập nhật bài viết");
       router.push("/admin/news");
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi cập nhật bài viết");
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi xảy ra khi cập nhật bài viết");
       console.error(error);
     }
   };
