@@ -6,6 +6,8 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const usersRoutes = require('./routes/users.routes');
 const rolesRoutes = require('./routes/roles.routes');
 const permissionsRoutes = require('./routes/permissions.routes');
+const newsRoutes = require('./routes/news.routes');
+const newsCategoriesRoutes = require('./routes/newsCategories.routes');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
 const errorHandler = require('./middlewares/error.middleware');
@@ -40,6 +42,10 @@ app.use('/api/admin/users', usersRoutes);
 app.use('/api/admin/roles', rolesRoutes);
 // Permissions for admin area
 app.use('/api/admin/permissions', permissionsRoutes);
+// News for admin area
+app.use('/api/admin/news', newsRoutes);
+// News categories for admin area
+app.use('/api/admin/categories', newsCategoriesRoutes);
 
 // 404 & error handlers
 app.use(notFound);

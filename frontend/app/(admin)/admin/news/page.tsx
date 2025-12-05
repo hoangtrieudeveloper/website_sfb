@@ -1,154 +1,111 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Search, Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import RichTextEditor from "@/components/admin/RichTextEditor";
-import ImageUpload from "@/components/admin/ImageUpload";
+import { toast } from "sonner";
 
 type NewsStatus = "draft" | "published";
+type CategoryId = "product" | "company" | "tech";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface NewsItem {
   id: number;
   title: string;
+  excerpt?: string;
   category: string;
+  categoryId?: CategoryId;
   status: NewsStatus;
   views: number;
   createdAt: string;
+  image?: string;
+  author?: string;
+  readTime?: string;
+  gradient?: string;
+  link?: string;
 }
 
-const initialNews: NewsItem[] = [
-  {
-    id: 1,
-    title: "Ra mắt nền tảng SFB Cloud mới",
-    category: "Công nghệ",
-    status: "published",
-    views: 1234,
-    createdAt: "2025-12-01",
-  },
-  {
-    id: 2,
-    title: "SFB ký kết hợp tác chuyển đổi số với đối tác A",
-    category: "Kinh doanh",
-    status: "published",
-    views: 987,
-    createdAt: "2025-11-28",
-  },
-  {
-    id: 3,
-    title: "Hướng dẫn triển khai hệ thống CRM hiệu quả",
-    category: "Hướng dẫn",
-    status: "draft",
-    views: 321,
-    createdAt: "2025-11-20",
-  },
-];
-
 export default function AdminNewsPage() {
-  const [news, setNews] = useState<NewsItem[]>(initialNews);
+  const router = useRouter();
+  const [news, setNews] = useState<NewsItem[]>([]);
   const [search, setSearch] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
-
-  const [formData, setFormData] = useState<{
-    title: string;
-    category: string;
-    content: string;
-    status: NewsStatus;
-    imageUrl?: string;
-  }>({
-    title: "",
-    category: "",
-    content: "",
-    status: "draft",
-    imageUrl: undefined,
-  });
+  const [loading, setLoading] = useState(false);
 
   const filteredNews = news.filter((item) =>
     item.title.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (editingNews) {
-      setNews(
-        news.map((item) =>
-          item.id === editingNews.id
-            ? {
-                ...item,
-                title: formData.title,
-                category: formData.category || item.category,
-                status: formData.status,
-              }
-            : item,
-        ),
-      );
-    } else {
-      const newItem: NewsItem = {
-        id: Math.max(...news.map((n) => n.id)) + 1,
-        title: formData.title,
-        category: formData.category || "Tin tức",
-        status: formData.status,
-        views: 0,
-        createdAt: new Date().toISOString().slice(0, 10),
-      };
-      setNews([newItem, ...news]);
+  const fetchNews = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE}/api/admin/news`);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.message || "Không thể tải danh sách bài viết");
+      }
+      const data = await response.json();
+      setNews(data?.data || []);
+    } catch (error) {
+      toast.error("Không thể tải danh sách bài viết");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setIsDialogOpen(false);
-    setEditingNews(null);
-    setFormData({
-      title: "",
-      category: "",
-      content: "",
-      status: "draft",
-      imageUrl: undefined,
-    });
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const handleCreateNew = () => {
+    router.push("/admin/news/create");
   };
 
   const handleEdit = (item: NewsItem) => {
-    setEditingNews(item);
-    setFormData({
-      title: item.title,
-      category: item.category,
-      content: "",
-      status: item.status,
-      imageUrl: undefined,
-    });
-    setIsDialogOpen(true);
+    router.push(`/admin/news/edit/${item.id}`);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
-      setNews(news.filter((item) => item.id !== id));
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/admin/news/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.message || "Không thể xóa bài viết");
+      }
+      toast.success("Đã xóa bài viết");
+      fetchNews();
+    } catch (error) {
+      toast.error("Có lỗi khi xóa bài viết");
+      console.error(error);
     }
   };
 
-  const toggleStatus = (id: number) => {
-    setNews(
-      news.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: item.status === "published" ? "draft" : "published",
-            }
-          : item,
-      ),
-    );
+  const toggleStatus = async (id: number, currentStatus: NewsStatus) => {
+    try {
+      const nextStatus = currentStatus === "published" ? "draft" : "published";
+      const response = await fetch(`${API_BASE}/api/admin/news/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.message || "Không thể cập nhật trạng thái");
+      }
+      toast.success("Đã cập nhật trạng thái");
+      fetchNews();
+    } catch (error) {
+      toast.error("Có lỗi khi cập nhật trạng thái");
+      console.error(error);
+    }
   };
 
   return (
@@ -161,156 +118,13 @@ export default function AdminNewsPage() {
           </p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-              onClick={() => {
-                setEditingNews(null);
-                setFormData({
-                  title: "",
-                  category: "",
-                  content: "",
-                  status: "draft",
-                  imageUrl: undefined,
-                });
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Viết bài mới
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingNews ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
-              </DialogTitle>
-              <DialogDescription>
-                Nội dung bài viết sẽ được hiển thị trên trang tin tức của
-                website
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Tiêu đề</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Nhập tiêu đề bài viết"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Danh mục</Label>
-                  <Input
-                    id="category"
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                    placeholder="VD: Công nghệ, Kinh doanh..."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Trạng thái</Label>
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant={
-                        formData.status === "draft" ? "default" : "outline"
-                      }
-                      className={
-                        formData.status === "draft"
-                          ? "bg-gray-900 hover:bg-gray-800"
-                          : ""
-                      }
-                      onClick={() =>
-                        setFormData({ ...formData, status: "draft" })
-                      }
-                    >
-                      <EyeOff className="w-4 h-4 mr-2" />
-                      Bản nháp
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={
-                        formData.status === "published" ? "default" : "outline"
-                      }
-                      className={
-                        formData.status === "published"
-                          ? "bg-green-600 hover:bg-green-700"
-                          : ""
-                      }
-                      onClick={() =>
-                        setFormData({ ...formData, status: "published" })
-                      }
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Xuất bản
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Nội dung</Label>
-                <RichTextEditor
-                  value={formData.content}
-                  onChange={(value) =>
-                    setFormData({ ...formData, content: value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Ảnh đại diện</Label>
-                <ImageUpload
-                  currentImage={formData.imageUrl}
-                  onImageSelect={(url) =>
-                    setFormData({
-                      ...formData,
-                      imageUrl: url ? url : undefined,
-                    })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Ghi chú nội bộ (không hiển thị)</Label>
-                <Textarea rows={3} placeholder="Nhập ghi chú nếu cần" />
-              </div>
-
-              <div className="flex justify-between items-center pt-4 gap-3">
-                <p className="text-xs text-gray-500">
-                  Lưu ý: Bài viết ở trạng thái "Bản nháp" sẽ không hiển thị với
-                  người dùng.
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                  >
-                    {editingNews ? "Lưu thay đổi" : "Tạo bài viết"}
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+          onClick={handleCreateNew}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Viết bài mới
+        </Button>
       </div>
 
       <Card className="border-0 shadow-lg w-full">
@@ -375,7 +189,7 @@ export default function AdminNewsPage() {
                     <td className="py-3 px-4 hidden md:table-cell">
                       <div className="flex items-center gap-1 text-gray-600">
                         <Eye className="w-4 h-4" />
-                        <span>{item.views.toLocaleString()}</span>
+                        <span>{(item.views || 0).toLocaleString()}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 hidden md:table-cell">
@@ -386,7 +200,7 @@ export default function AdminNewsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => toggleStatus(item.id)}
+                        onClick={() => toggleStatus(item.id, item.status)}
                         >
                           {item.status === "published"
                             ? "Chuyển nháp"

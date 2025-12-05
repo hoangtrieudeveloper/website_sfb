@@ -15,6 +15,9 @@ import {
   User,
   Users,
   ShieldCheck,
+  ChevronDown,
+  ChevronRight,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,16 +30,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "users" | "roles" | "permissions" | "settings";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group";
   label: string;
-  href: string;
+  href?: string;
   icon: ComponentType<{ className?: string }>;
   requiredPermissions?: string[]; // Array of permission codes (user needs at least one)
+  children?: AdminNavItem[]; // Submenu items
 };
 
 const menuItems: AdminNavItem[] = [
@@ -48,39 +57,62 @@ const menuItems: AdminNavItem[] = [
     requiredPermissions: ["dashboard.view", "admin"],
   },
   {
-    id: "news",
+    id: "news-group",
     label: "Tin tức",
-    href: "/admin/news",
     icon: Newspaper,
-    requiredPermissions: ["news.view", "news.manage", "admin"],
+    requiredPermissions: ["news.view", "news.manage", "categories.view", "categories.manage", "admin"],
+    children: [
+      {
+        id: "news",
+        label: "Bài viết",
+        href: "/admin/news",
+        icon: Newspaper,
+        requiredPermissions: ["news.view", "news.manage", "admin"],
+      },
+      {
+        id: "category",
+        label: "Danh mục",
+        href: "/admin/categories",
+        icon: FolderTree,
+        requiredPermissions: ["categories.view", "categories.manage", "admin"],
+      },
+    ],
   },
   {
-    id: "category",
-    label: "Danh mục",
-    href: "/admin/categories",
-    icon: FolderTree,
-    requiredPermissions: ["categories.view", "categories.manage", "admin"],
-  },
-  {
-    id: "users",
-    label: "Người dùng",
-    href: "/admin/users",
-    icon: Users,
-    requiredPermissions: ["users.view", "users.manage", "admin"],
-  },
-  {
-    id: "roles",
-    label: "Phân quyền",
-    href: "/admin/roles",
-    icon: ShieldCheck,
-    requiredPermissions: ["roles.view", "roles.manage", "admin"],
-  },
-  {
-    id: "permissions",
-    label: "Quyền chi tiết",
-    href: "/admin/permissions",
-    icon: ShieldCheck,
-    requiredPermissions: ["roles.manage", "permissions.manage", "admin"],
+    id: "system",
+    label: "Hệ thống",
+    icon: Settings2,
+    requiredPermissions: [
+      "users.view",
+      "users.manage",
+      "roles.view",
+      "roles.manage",
+      "permissions.manage",
+      "admin",
+    ],
+    children: [
+      {
+        id: "users",
+        label: "Người dùng",
+        href: "/admin/users",
+        icon: Users,
+        requiredPermissions: ["users.view", "users.manage", "admin"],
+      },
+      {
+        id: "roles",
+        label: "Phân quyền",
+        href: "/admin/roles",
+        icon: ShieldCheck,
+        requiredPermissions: ["roles.view", "roles.manage", "admin"],
+      },
+      {
+        id: "permissions",
+        label: "Quyền chi tiết",
+        href: "/admin/permissions",
+        icon: ShieldCheck,
+        requiredPermissions: ["roles.manage", "permissions.manage", "admin"],
+      },
+    ],
   },
   {
     id: "settings",
@@ -123,17 +155,54 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   // Đọc permissions từ cookie
   const userPermissions = useMemo(getUserPermissionsFromCookie, []);
 
-  // Filter menu items based on permissions
+  // State để quản lý submenu mở/đóng
+  const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(new Set());
+
+  // Filter menu items based on permissions (bao gồm cả submenu)
   const visibleMenuItems = useMemo(() => {
-    return menuItems.filter((item) => {
-      // Nếu không có requiredPermissions, luôn hiển thị (fallback)
-      if (!item.requiredPermissions || item.requiredPermissions.length === 0) {
-        return true;
-      }
-      // Kiểm tra xem user có ít nhất một permission trong danh sách không
-      return item.requiredPermissions.some((perm) => userPermissions.has(perm));
-    });
+    return menuItems
+      .map((item) => {
+        // Kiểm tra permission cho item chính
+        const hasPermission =
+          !item.requiredPermissions ||
+          item.requiredPermissions.length === 0 ||
+          item.requiredPermissions.some((perm) => userPermissions.has(perm));
+
+        if (!hasPermission) return null;
+
+        // Nếu có submenu, filter submenu items
+        if (item.children && item.children.length > 0) {
+          const visibleChildren = item.children.filter((child) => {
+            return (
+              !child.requiredPermissions ||
+              child.requiredPermissions.length === 0 ||
+              child.requiredPermissions.some((perm) => userPermissions.has(perm))
+            );
+          });
+
+          // Chỉ hiển thị menu cha nếu có ít nhất 1 submenu item visible
+          if (visibleChildren.length === 0) return null;
+
+          return {
+            ...item,
+            children: visibleChildren,
+          };
+        }
+
+        return item;
+      })
+      .filter((item): item is AdminNavItem => item !== null);
   }, [userPermissions]);
+
+  // Auto-expand submenu nếu đang ở trang con
+  useEffect(() => {
+    const currentSubmenu = visibleMenuItems.find((item) =>
+      item.children?.some((child) => pathname === child.href || (child.href && pathname.startsWith(child.href)))
+    );
+    if (currentSubmenu) {
+      setOpenSubmenus((prev) => new Set(prev).add(currentSubmenu.id));
+    }
+  }, [pathname, visibleMenuItems]);
 
   // Đọc thông tin user từ cookie (được set khi login) ở client
   useEffect(() => {
@@ -183,14 +252,83 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <nav className="flex-1 px-4 py-6 space-y-2">
             {visibleMenuItems.map((item) => {
               const Icon = item.icon;
+              const hasSubmenu = item.children && item.children.length > 0;
+              const isSubmenuOpen = openSubmenus.has(item.id);
               const isActive =
                 pathname === item.href ||
-                (item.href !== "/admin" && pathname.startsWith(item.href));
+                (item.href && item.href !== "/admin" && pathname.startsWith(item.href)) ||
+                (hasSubmenu &&
+                  item.children?.some(
+                    (child) =>
+                      pathname === child.href ||
+                      (child.href && pathname.startsWith(child.href))
+                  ));
+
+              if (hasSubmenu) {
+                return (
+                  <Collapsible
+                    key={item.id}
+                    open={isSubmenuOpen}
+                    onOpenChange={(open) => {
+                      setOpenSubmenus((prev) => {
+                        const next = new Set(prev);
+                        if (open) {
+                          next.add(item.id);
+                        } else {
+                          next.delete(item.id);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    <CollapsibleTrigger
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-sm ${
+                        isActive
+                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <Icon className="w-5 h-5" />
+                        <span className="ml-3">{item.label}</span>
+                      </div>
+                      {isSubmenuOpen ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-1 space-y-1">
+                      {item.children?.map((child) => {
+                        const ChildIcon = child.icon;
+                        const isChildActive =
+                          pathname === child.href ||
+                          (child.href && pathname.startsWith(child.href));
+
+                        return (
+                          <Link
+                            key={child.id}
+                            href={child.href || "#"}
+                            className={`w-full flex items-center pl-10 pr-4 py-2.5 rounded-lg transition-all text-sm ${
+                              isChildActive
+                                ? "bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-600"
+                                : "text-gray-600 hover:bg-gray-50"
+                            }`}
+                          >
+                            <ChildIcon className="w-4 h-4" />
+                            <span className="ml-3">{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              }
 
               return (
                 <Link
                   key={item.id}
-                  href={item.href}
+                  href={item.href || "#"}
                   className={`w-full flex items-center px-4 py-3 rounded-lg transition-all text-sm ${
                     isActive
                       ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200"

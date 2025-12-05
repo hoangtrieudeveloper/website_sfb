@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Edit, Trash2, FolderTree } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus, Edit, Trash2, Check, X, FolderTree } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,125 +15,122 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 interface Category {
-  id: number;
+  code: string;
   name: string;
   description: string;
-  postCount: number;
-  color: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-const initialCategories: Category[] = [
-  {
-    id: 1,
-    name: "Công nghệ",
-    description: "Tin tức về công nghệ, AI, phần mềm",
-    postCount: 45,
-    color: "from-blue-600 to-indigo-600",
-  },
-  {
-    id: 2,
-    name: "Kinh doanh",
-    description: "Kinh tế, doanh nghiệp, khởi nghiệp",
-    postCount: 32,
-    color: "from-purple-600 to-pink-600",
-  },
-  {
-    id: 3,
-    name: "Giải trí",
-    description: "Phim ảnh, âm nhạc, nghệ thuật",
-    postCount: 28,
-    color: "from-green-600 to-emerald-600",
-  },
-  {
-    id: 4,
-    name: "Thể thao",
-    description: "Bóng đá, thể thao điện tử, Olympic",
-    postCount: 19,
-    color: "from-orange-600 to-red-600",
-  },
-  {
-    id: 5,
-    name: "Ẩm thực",
-    description: "Công thức nấu ăn, review nhà hàng",
-    postCount: 15,
-    color: "from-pink-600 to-rose-600",
-  },
-  {
-    id: 6,
-    name: "Du lịch",
-    description: "Địa điểm du lịch, kinh nghiệm",
-    postCount: 23,
-    color: "from-cyan-600 to-blue-600",
-  },
-];
-
-const colorOptions = [
-  { value: "from-blue-600 to-indigo-600", label: "Xanh dương" },
-  { value: "from-purple-600 to-pink-600", label: "Tím hồng" },
-  { value: "from-green-600 to-emerald-600", label: "Xanh lá" },
-  { value: "from-orange-600 to-red-600", label: "Cam đỏ" },
-  { value: "from-pink-600 to-rose-600", label: "Hồng" },
-  { value: "from-cyan-600 to-blue-600", label: "Xanh ngọc" },
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] =
-    useState<Category[]>(initialCategories);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(
-    null,
-  );
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const [formData, setFormData] = useState({
+    code: "",
     name: "",
     description: "",
-    color: colorOptions[0]?.value ?? "from-blue-600 to-indigo-600",
+    isActive: true,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const resetForm = () =>
+    setFormData({ code: "", name: "", description: "", isActive: true });
 
-    if (editingCategory) {
-      setCategories(
-        categories.map((cat) =>
-          cat.id === editingCategory.id ? { ...cat, ...formData } : cat,
-        ),
-      );
-    } else {
-      const newCategory: Category = {
-        id: Math.max(...categories.map((c) => c.id)) + 1,
-        name: formData.name,
-        description: formData.description,
-        color: formData.color,
-        postCount: 0,
-      };
-      setCategories([...categories, newCategory]);
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/admin/categories`);
+      if (!res.ok) throw new Error("Không thể tải danh mục");
+      const data = await res.json();
+      setCategories(data?.data || []);
+    } catch (error) {
+      toast.error("Tải danh mục thất bại");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    setIsDialogOpen(false);
-    setEditingCategory(null);
-    setFormData({
-      name: "",
-      description: "",
-      color: colorOptions[0]?.value ?? "from-blue-600 to-indigo-600",
-    });
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        code: formData.code.trim(),
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        isActive: formData.isActive,
+      };
+      if (!payload.code || !payload.name) {
+        toast.error("Mã và tên danh mục là bắt buộc");
+        return;
+      }
+
+      const method = editingCategory ? "PUT" : "POST";
+      const url = editingCategory
+        ? `${API_BASE}/api/admin/categories/${editingCategory.code}`
+        : `${API_BASE}/api/admin/categories`;
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.message || "Lưu danh mục thất bại");
+      }
+
+      toast.success(editingCategory ? "Đã cập nhật danh mục" : "Đã tạo danh mục mới");
+      setIsDialogOpen(false);
+      setEditingCategory(null);
+      resetForm();
+      fetchCategories();
+    } catch (error) {
+      toast.error("Có lỗi khi lưu danh mục");
+      console.error(error);
+    }
   };
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
     setFormData({
+      code: category.code,
       name: category.name,
-      description: category.description,
-      color: category.color,
+      description: category.description || "",
+      isActive: category.isActive,
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
-      setCategories(categories.filter((cat) => cat.id !== id));
+  const handleDelete = async (code: string) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/categories/${code}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.message || "Không thể xóa danh mục");
+      }
+      toast.success("Đã xóa danh mục");
+      fetchCategories();
+    } catch (error) {
+      toast.error("Có lỗi khi xóa danh mục");
+      console.error(error);
     }
   };
 
@@ -142,9 +139,7 @@ export default function AdminCategoriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl text-gray-900">Quản lý danh mục</h1>
-          <p className="text-gray-500 mt-1">
-            Tổ chức nội dung theo danh mục
-          </p>
+          <p className="text-gray-500 mt-1">Tổ chức nội dung theo danh mục</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -152,11 +147,7 @@ export default function AdminCategoriesPage() {
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               onClick={() => {
                 setEditingCategory(null);
-                setFormData({
-                  name: "",
-                  description: "",
-                  color: colorOptions[0]?.value ?? "from-blue-600 to-indigo-600",
-                });
+                resetForm();
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -166,26 +157,33 @@ export default function AdminCategoriesPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingCategory
-                  ? "Chỉnh sửa danh mục"
-                  : "Thêm danh mục mới"}
+                {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
               </DialogTitle>
-              <DialogDescription>
-                Tạo danh mục để phân loại bài viết
-              </DialogDescription>
+              <DialogDescription>Tạo danh mục để phân loại bài viết</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Tên danh mục</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="Nhập tên danh mục"
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="code">Mã danh mục</Label>
+                  <Input
+                    id="code"
+                    value={formData.code}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    placeholder="tech, product, company..."
+                    required
+                    disabled={!!editingCategory}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Tên danh mục</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Nhập tên danh mục"
+                    required
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -201,43 +199,35 @@ export default function AdminCategoriesPage() {
                   }
                   placeholder="Mô tả về danh mục"
                   rows={3}
-                  required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Màu sắc</Label>
-                <div className="grid grid-cols-3 gap-3">
-                  {colorOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() =>
-                        setFormData({ ...formData, color: option.value })
-                      }
-                      className={`h-12 rounded-lg bg-gradient-to-r ${option.value} flex items-center justify-center text-white text-sm border-2 transition-all ${
-                        formData.color === option.value
-                          ? "border-gray-900 scale-105"
-                          : "border-transparent"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+              <div className="flex items-center justify-between space-y-0">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="isActive"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, isActive: checked })
+                    }
+                  />
+                  <Label htmlFor="isActive">Kích hoạt</Label>
                 </div>
+                {editingCategory && (
+                  <p className="text-xs text-gray-500">
+                    Mã danh mục: <span className="font-medium">{editingCategory.code}</span>
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Hủy
                 </Button>
                 <Button
                   type="submit"
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  disabled={loading}
                 >
                   {editingCategory ? "Cập nhật" : "Tạo mới"}
                 </Button>
@@ -250,24 +240,28 @@ export default function AdminCategoriesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((category) => (
           <Card
-            key={category.id}
-            className="border-0 shadow-lg hover:shadow-xl transition-all group"
+            key={category.code}
+            className="border border-gray-100 shadow hover:shadow-lg transition-all group"
           >
-            <CardContent className="p-6">
-              <div
-                className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 shadow-lg`}
-              >
-                <FolderTree className="w-7 h-7 text-white" />
+            <CardContent className="p-5">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mb-4 shadow-md">
+                <FolderTree className="w-6 h-6 text-white" />
               </div>
 
-              <h3 className="text-xl text-gray-900 mb-2">{category.name}</h3>
-              <p className="text-gray-500 text-sm mb-4 line-clamp-2">
-                {category.description}
+              <h3 className="text-lg text-gray-900 mb-1">{category.name}</h3>
+              <p className="text-xs text-gray-500 mb-2">Mã: {category.code}</p>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                {category.description || "Chưa có mô tả"}
               </p>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <span className="text-sm text-gray-500">
-                  {category.postCount} bài viết
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <span
+                  className={`flex items-center gap-1 text-xs ${
+                    category.isActive ? "text-green-600" : "text-gray-400"
+                  }`}
+                >
+                  {category.isActive ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  {category.isActive ? "Đang kích hoạt" : "Tạm tắt"}
                 </span>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
@@ -281,7 +275,7 @@ export default function AdminCategoriesPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDelete(category.id)}
+                    onClick={() => handleDelete(category.code)}
                     className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4" />
