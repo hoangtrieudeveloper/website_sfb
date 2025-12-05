@@ -156,14 +156,14 @@ JOIN permissions p ON p.code IN (
 WHERE r.code = 'user'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
--- Insert user admin mặc định (password: admin123 - cần hash thật sau)
--- Lưu ý: Đây là password hash mẫu, nên thay bằng hash thật từ bcrypt
+-- Insert user admin mặc định (password: admin123 - đã được hash bằng bcrypt)
+-- Hash được tạo bằng: node scripts/generate-password-hash.js admin123
+-- Password gốc: admin123
+-- Hash: $2b$10$J6ePXVfM.f99Lhtpm0vT6.fsGrznheZFzklihxadYerXLAYRIqZh2
 INSERT INTO users (email, password, name, role_id, status)
 VALUES (
   'admin@sfb.local',
-  -- Mật khẩu demo dạng plain-text để khớp với logic auth hiện tại (so sánh trực tiếp).
-  -- Khi triển khai thật: hãy đổi sang password hash và cập nhật lại hàm xác thực.
-  'admin123',
+  '$2b$10$J6ePXVfM.f99Lhtpm0vT6.fsGrznheZFzklihxadYerXLAYRIqZh2',
   'Admin SFB',
   (SELECT id FROM roles WHERE code = 'admin' LIMIT 1),
   'active'

@@ -1,9 +1,9 @@
 const { pool } = require('../config/database');
+const bcrypt = require('bcrypt');
 
 /**
  * Xác thực user bằng database (bảng users / roles / role_permissions).
- * Lưu ý: hiện tại đang so sánh password dạng plain-text cho môi trường demo.
- * Khi triển khai thật, cần thay bằng password hash (bcrypt).
+ * Password được hash bằng bcrypt và so sánh an toàn.
  */
 exports.authenticateDemoUser = async ({ email, password }) => {
   if (!email || !password) return null;
@@ -39,8 +39,11 @@ exports.authenticateDemoUser = async ({ email, password }) => {
     return null;
   }
 
-  // So sánh password (plain-text cho demo)
-  if (user.password !== password) {
+  // So sánh password với bcrypt hash
+  // Tất cả password trong DB đã được hash bằng bcrypt
+  const isPasswordValid = await bcrypt.compare(password, user.password).catch(() => false);
+
+  if (!isPasswordValid) {
     return null;
   }
 

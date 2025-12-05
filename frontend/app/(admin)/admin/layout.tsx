@@ -29,24 +29,88 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 type AdminNavItem = {
   id: "dashboard" | "news" | "category" | "users" | "roles" | "permissions" | "settings";
   label: string;
   href: string;
   icon: ComponentType<{ className?: string }>;
+  requiredPermissions?: string[]; // Array of permission codes (user needs at least one)
 };
 
 const menuItems: AdminNavItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { id: "news", label: "Tin tức", href: "/admin/news", icon: Newspaper },
-  { id: "category", label: "Danh mục", href: "/admin/categories", icon: FolderTree },
-  { id: "users", label: "Người dùng", href: "/admin/users", icon: Users },
-  { id: "roles", label: "Phân quyền", href: "/admin/roles", icon: ShieldCheck },
-  { id: "permissions", label: "Quyền chi tiết", href: "/admin/permissions", icon: ShieldCheck },
-  { id: "settings", label: "Cài đặt", href: "/admin/settings", icon: Settings },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    href: "/admin",
+    icon: LayoutDashboard,
+    requiredPermissions: ["dashboard.view", "admin"],
+  },
+  {
+    id: "news",
+    label: "Tin tức",
+    href: "/admin/news",
+    icon: Newspaper,
+    requiredPermissions: ["news.view", "news.manage", "admin"],
+  },
+  {
+    id: "category",
+    label: "Danh mục",
+    href: "/admin/categories",
+    icon: FolderTree,
+    requiredPermissions: ["categories.view", "categories.manage", "admin"],
+  },
+  {
+    id: "users",
+    label: "Người dùng",
+    href: "/admin/users",
+    icon: Users,
+    requiredPermissions: ["users.view", "users.manage", "admin"],
+  },
+  {
+    id: "roles",
+    label: "Phân quyền",
+    href: "/admin/roles",
+    icon: ShieldCheck,
+    requiredPermissions: ["roles.view", "roles.manage", "admin"],
+  },
+  {
+    id: "permissions",
+    label: "Quyền chi tiết",
+    href: "/admin/permissions",
+    icon: ShieldCheck,
+    requiredPermissions: ["roles.manage", "permissions.manage", "admin"],
+  },
+  {
+    id: "settings",
+    label: "Cài đặt",
+    href: "/admin/settings",
+    icon: Settings,
+    requiredPermissions: ["settings.view", "settings.manage", "admin"],
+  },
 ];
+
+type CmsUser = {
+  name?: string;
+  email?: string;
+  permissions?: string[];
+};
+
+function getUserPermissionsFromCookie(): Set<string> {
+  if (typeof document === "undefined") return new Set();
+  try {
+    const cookie = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("cms_sfb_user="));
+    if (!cookie) return new Set();
+    const value = decodeURIComponent(cookie.split("=")[1] || "");
+    const parsed = JSON.parse(value) as CmsUser;
+    return new Set(parsed.permissions ?? []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -56,6 +120,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/admin";
   const router = useRouter();
 
+  // Đọc permissions từ cookie
+  const userPermissions = useMemo(getUserPermissionsFromCookie, []);
+
+  // Filter menu items based on permissions
+  const visibleMenuItems = useMemo(() => {
+    return menuItems.filter((item) => {
+      // Nếu không có requiredPermissions, luôn hiển thị (fallback)
+      if (!item.requiredPermissions || item.requiredPermissions.length === 0) {
+        return true;
+      }
+      // Kiểm tra xem user có ít nhất một permission trong danh sách không
+      return item.requiredPermissions.some((perm) => userPermissions.has(perm));
+    });
+  }, [userPermissions]);
+
   // Đọc thông tin user từ cookie (được set khi login) ở client
   useEffect(() => {
     try {
@@ -64,7 +143,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         .find((c) => c.startsWith("cms_sfb_user="));
       if (cookie) {
         const value = decodeURIComponent(cookie.split("=")[1] || "");
-        const parsed = JSON.parse(value) as { name?: string; email?: string };
+        const parsed = JSON.parse(value) as CmsUser;
         if (parsed.name) setUserName(parsed.name);
         if (parsed.email) setUserEmail(parsed.email);
       }
@@ -102,7 +181,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive =
                 pathname === item.href ||

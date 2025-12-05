@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const bcrypt = require('bcrypt');
 
 // Helper to map DB row to API shape (ẩn password, chuẩn hoá role)
 const mapUser = (row) => ({
@@ -155,6 +156,9 @@ exports.createUser = async (req, res, next) => {
       resolvedRoleId = roleRows[0].id;
     }
 
+    // Hash password trước khi lưu vào DB
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const insertQuery = `
       INSERT INTO users (email, password, name, role_id, status)
       VALUES ($1, $2, $3, $4, $5)
@@ -170,7 +174,7 @@ exports.createUser = async (req, res, next) => {
 
     const { rows } = await pool.query(insertQuery, [
       email,
-      password,
+      hashedPassword,
       name,
       resolvedRoleId,
       status,
@@ -227,8 +231,10 @@ exports.updateUser = async (req, res, next) => {
       params.push(email);
       fields.push(`email = $${params.length}`);
     }
-    if (password !== undefined) {
-      params.push(password);
+    if (password !== undefined && password !== null && password !== '') {
+      // Hash password trước khi cập nhật
+      const hashedPassword = await bcrypt.hash(password, 10);
+      params.push(hashedPassword);
       fields.push(`password = $${params.length}`);
     }
     if (name !== undefined) {

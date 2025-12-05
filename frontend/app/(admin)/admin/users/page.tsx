@@ -58,6 +58,7 @@ interface AdminUser {
 type UserFormState = {
   name: string;
   email: string;
+  password: string;
   roleId: number | null;
   status: UserStatus;
 };
@@ -65,6 +66,7 @@ type UserFormState = {
 const EMPTY_FORM: UserFormState = {
   name: "",
   email: "",
+  password: "",
   roleId: null,
   status: "active",
 };
@@ -209,22 +211,33 @@ export default function AdminUsersPage() {
       toast.error("Vui lòng chọn vai trò cho người dùng");
       return;
     }
+    // Password bắt buộc khi tạo mới
+    if (!editingUser && !formData.password) {
+      toast.error("Vui lòng nhập mật khẩu cho người dùng");
+      return;
+    }
 
     try {
       setSaving(true);
 
       if (editingUser) {
+        // Khi cập nhật, chỉ gửi password nếu có nhập
+        const updateBody: any = {
+          email: formData.email,
+          name: formData.name,
+          status: formData.status,
+          roleId: formData.roleId,
+        };
+        if (formData.password && formData.password.trim() !== "") {
+          updateBody.password = formData.password;
+        }
+
         const res = await fetch(
           `${API_BASE_URL}/api/admin/users/${editingUser.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: formData.email,
-              name: formData.name,
-              status: formData.status,
-              roleId: formData.roleId,
-            }),
+            body: JSON.stringify(updateBody),
           },
         );
 
@@ -254,13 +267,12 @@ export default function AdminUsersPage() {
           toast.success("Đã cập nhật người dùng");
         }
       } else {
-        // Demo: đặt mật khẩu mặc định, sau này có thể thêm form nhập password
         const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: formData.email,
-            password: "admin123",
+            password: formData.password,
             name: formData.name,
             status: formData.status,
             roleId: formData.roleId,
@@ -311,6 +323,7 @@ export default function AdminUsersPage() {
     setFormData({
       name: user.name,
       email: user.email,
+      password: "", // Không hiển thị password cũ, để trống để user nhập mới nếu muốn
       roleId: user.roleId,
       status: user.status,
     });
@@ -440,6 +453,33 @@ export default function AdminUsersPage() {
                   placeholder="nhanvien@sfb.local"
                   required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  Mật khẩu
+                  {!editingUser && <span className="text-red-500 ml-1">*</span>}
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  placeholder={
+                    editingUser
+                      ? "Để trống nếu không đổi mật khẩu"
+                      : "Nhập mật khẩu"
+                  }
+                  required={!editingUser}
+                  minLength={editingUser ? 0 : 6}
+                />
+                {editingUser && (
+                  <p className="text-xs text-gray-500">
+                    Chỉ nhập mật khẩu mới nếu muốn thay đổi
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
