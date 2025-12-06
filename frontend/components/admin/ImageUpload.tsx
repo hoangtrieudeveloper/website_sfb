@@ -1,31 +1,85 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { uploadImage } from "@/lib/api/admin";
+import { buildUrl } from "@/lib/api/base";
+import { toast } from "sonner";
 
 interface ImageUploadProps {
   onImageSelect: (imageUrl: string) => void;
   currentImage?: string;
 }
 
+// Helper để normalize image URL (convert relative path thành full URL nếu cần)
+function normalizeImageUrl(url?: string): string {
+  if (!url) return "";
+  // Nếu đã là full URL (http/https) hoặc data URL, giữ nguyên
+  if (url.startsWith("http") || url.startsWith("data:")) {
+    return url;
+  }
+  // Nếu là relative path, convert thành full URL
+  if (url.startsWith("/")) {
+    return buildUrl(url);
+  }
+  return url;
+}
+
 export default function ImageUpload({
   onImageSelect,
   currentImage,
 }: ImageUploadProps) {
-  const [preview, setPreview] = useState<string>(currentImage || "");
+  const [preview, setPreview] = useState<string>(normalizeImageUrl(currentImage));
+  
+  // Update preview khi currentImage thay đổi
+  useEffect(() => {
+    setPreview(normalizeImageUrl(currentImage));
+  }, [currentImage]);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File quá lớn. Kích thước tối đa là 5MB');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      
+      // Show preview immediately
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string;
-        setPreview(result);
-        onImageSelect(result);
+        setPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Upload file to server
+      const imageUrl = await uploadImage(file);
+      setPreview(imageUrl);
+      onImageSelect(imageUrl);
+      toast.success('Upload ảnh thành công');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error?.message || 'Có lỗi xảy ra khi upload ảnh');
+      // Reset preview on error
+      setPreview(currentImage || "");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -54,12 +108,21 @@ export default function ImageUpload({
             alt="Preview"
             className="w-full h-64 object-cover rounded-lg border border-gray-200"
           />
+          {uploading && (
+            <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2 text-white">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="text-sm">Đang upload...</span>
+              </div>
+            </div>
+          )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-lg flex items-center justify-center">
             <Button
               type="button"
               variant="destructive"
               size="icon"
               onClick={handleRemove}
+              disabled={uploading}
               className="opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <X className="w-4 h-4" />
@@ -75,11 +138,26 @@ export default function ImageUpload({
               type="button"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Chọn file
+              {uploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang upload...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Chọn file
+                </>
+              )}
             </Button>
-            <Button type="button" variant="outline" onClick={handleUrlInput}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleUrlInput}
+              disabled={uploading}
+            >
               Nhập URL
             </Button>
           </div>
@@ -88,6 +166,7 @@ export default function ImageUpload({
             type="file"
             accept="image/*"
             onChange={handleFileChange}
+            disabled={uploading}
             className="hidden"
           />
         </div>

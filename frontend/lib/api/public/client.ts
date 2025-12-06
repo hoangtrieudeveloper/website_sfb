@@ -4,7 +4,7 @@
  * No authentication required, suitable for public-facing features
  */
 
-import { baseFetch } from "../base";
+import { buildUrl, parseErrorResponse } from "../base";
 
 /**
  * Make an unauthenticated API call for public section
@@ -14,14 +14,22 @@ export async function publicApiCall<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const url = buildUrl(endpoint);
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     ...(options.headers || {}),
   };
 
-  return baseFetch<T>(endpoint, {
+  const response = await fetch(url, {
     ...options,
     headers,
   });
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(response);
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
 }
 

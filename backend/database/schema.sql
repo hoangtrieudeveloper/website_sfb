@@ -132,20 +132,21 @@ CREATE TRIGGER update_news_updated_at
 -- Seed mẫu cho news (10 bản ghi)
 INSERT INTO news (
   title, slug, excerpt, content, category, category_id, status, image_url,
-  author, read_time, gradient, published_date,
+  author, read_time, gradient, published_date, is_featured,
   seo_title, seo_description, seo_keywords
 )
 VALUES
-  ('SFB ra mắt nền tảng Cloud thế hệ mới', 'sfb-cloud-gen-2', 'Nâng cấp hiệu năng và bảo mật cho doanh nghiệp', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'published', NULL, 'SFB Technology', '5 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '1 day', 'SFB Cloud thế hệ mới', 'Hiệu năng và bảo mật vượt trội cho doanh nghiệp', 'sfb cloud, hiệu năng, bảo mật'),
-  ('Ký kết hợp tác chuyển đổi số với đối tác A', 'chuyen-doi-so-doi-tac-a', 'Hợp tác chiến lược nâng cao năng lực số', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'approved', NULL, 'SFB Technology', '4 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '2 day', 'Hợp tác chuyển đổi số', 'Đối tác A cùng SFB chuyển đổi số', 'chuyển đổi số, hợp tác, đối tác A'),
-  ('Hướng dẫn triển khai CRM hiệu quả', 'huong-dan-trien-khai-crm', 'Các bước triển khai hệ thống CRM cho SME', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', NULL, 'SFB Technology', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE, 'Triển khai CRM hiệu quả', 'Hướng dẫn các bước triển khai CRM cho SME', 'crm, hướng dẫn, sme'),
-  ('Cập nhật bảo mật quý này', 'cap-nhat-bao-mat-q1', 'Tổng hợp bản vá và khuyến nghị bảo mật', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'pending', NULL, 'Security Team', '3 phút đọc', 'from-red-600 to-rose-600', CURRENT_DATE - INTERVAL '5 day', 'Cập nhật bảo mật', 'Bản vá và khuyến nghị bảo mật mới nhất', 'bảo mật, patch, khuyến nghị'),
-  ('Case study: Thành công với SFB Cloud', 'case-study-sfb-cloud', 'Khách hàng tăng 40% hiệu suất vận hành', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', NULL, 'SFB Technology', '7 phút đọc', 'from-orange-600 to-amber-600', CURRENT_DATE - INTERVAL '7 day', 'Case study SFB Cloud', 'Tăng 40% hiệu suất vận hành với SFB Cloud', 'case study, sfb cloud, hiệu suất'),
-  ('Checklist go-live hệ thống mới', 'checklist-go-live', 'Những việc cần làm trước khi go-live', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', NULL, 'SFB Technology', '4 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '3 day', 'Checklist go-live', 'Chuẩn bị go-live hệ thống mới', 'go-live, checklist, triển khai'),
-  ('Roadmap sản phẩm 2025', 'roadmap-san-pham-2025', 'Các mốc phát hành tính năng chính', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'approved', NULL, 'Product Team', '5 phút đọc', 'from-purple-600 to-pink-600', CURRENT_DATE - INTERVAL '10 day', 'Roadmap sản phẩm 2025', 'Các mốc phát hành chính năm 2025', 'roadmap, sản phẩm, 2025'),
-  ('Tối ưu chi phí hạ tầng', 'toi-uu-chi-phi-ha-tang', 'Kinh nghiệm giảm 25% chi phí cloud', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', NULL, 'FinOps Team', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE - INTERVAL '4 day', 'Tối ưu chi phí cloud', 'Giảm 25% chi phí hạ tầng cloud', 'finops, chi phí, cloud'),
-  ('Best practices bảo mật API', 'best-practices-bao-mat-api', 'Hướng dẫn bảo vệ API an toàn', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'rejected', NULL, 'Security Team', '8 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '8 day', 'Best practices API security', 'Hướng dẫn bảo mật API an toàn', 'api security, best practices'),
-  ('Template SEO cho bài viết', 'template-seo-bai-viet', 'Mẫu cấu trúc SEO hiệu quả cho content', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'published', NULL, 'Content Team', '5 phút đọc', 'from-cyan-600 to-blue-600', CURRENT_DATE - INTERVAL '6 day', 'Template SEO', 'Mẫu cấu trúc SEO hiệu quả', 'seo, template, content')
+  ('Hệ thống tuyển sinh đầu cấp', 'he-thong-tuyen-sinh-dau-cap', 'Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh: tổ chức tuyển sinh đúng quy chế, minh bạch, tra cứu kết quả trực tuyến mọi lúc mọi nơi.', '<p>Nội dung bài viết về hệ thống tuyển sinh đầu cấp...</p>', 'Sản phẩm & giải pháp', 'product', 'published', 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80', 'SFB Technology', '10 phút đọc', 'from-blue-600 to-cyan-600', '2025-08-07', true, 'Hệ thống tuyển sinh đầu cấp', 'Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh', 'tuyển sinh, giáo dục, phần mềm'),
+  ('SFB ra mắt nền tảng Cloud thế hệ mới', 'sfb-cloud-gen-2', 'Nâng cấp hiệu năng và bảo mật cho doanh nghiệp', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'published', NULL, 'SFB Technology', '5 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '1 day', false, 'SFB Cloud thế hệ mới', 'Hiệu năng và bảo mật vượt trội cho doanh nghiệp', 'sfb cloud, hiệu năng, bảo mật'),
+  ('Ký kết hợp tác chuyển đổi số với đối tác A', 'chuyen-doi-so-doi-tac-a', 'Hợp tác chiến lược nâng cao năng lực số', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'approved', NULL, 'SFB Technology', '4 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '2 day', false, 'Hợp tác chuyển đổi số', 'Đối tác A cùng SFB chuyển đổi số', 'chuyển đổi số, hợp tác, đối tác A'),
+  ('Hướng dẫn triển khai CRM hiệu quả', 'huong-dan-trien-khai-crm', 'Các bước triển khai hệ thống CRM cho SME', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', NULL, 'SFB Technology', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE, false, 'Triển khai CRM hiệu quả', 'Hướng dẫn các bước triển khai CRM cho SME', 'crm, hướng dẫn, sme'),
+  ('Cập nhật bảo mật quý này', 'cap-nhat-bao-mat-q1', 'Tổng hợp bản vá và khuyến nghị bảo mật', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'pending', NULL, 'Security Team', '3 phút đọc', 'from-red-600 to-rose-600', CURRENT_DATE - INTERVAL '5 day', false, 'Cập nhật bảo mật', 'Bản vá và khuyến nghị bảo mật mới nhất', 'bảo mật, patch, khuyến nghị'),
+  ('Case study: Thành công với SFB Cloud', 'case-study-sfb-cloud', 'Khách hàng tăng 40% hiệu suất vận hành', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', NULL, 'SFB Technology', '7 phút đọc', 'from-orange-600 to-amber-600', CURRENT_DATE - INTERVAL '7 day', false, 'Case study SFB Cloud', 'Tăng 40% hiệu suất vận hành với SFB Cloud', 'case study, sfb cloud, hiệu suất'),
+  ('Checklist go-live hệ thống mới', 'checklist-go-live', 'Những việc cần làm trước khi go-live', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', NULL, 'SFB Technology', '4 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '3 day', false, 'Checklist go-live', 'Chuẩn bị go-live hệ thống mới', 'go-live, checklist, triển khai'),
+  ('Roadmap sản phẩm 2025', 'roadmap-san-pham-2025', 'Các mốc phát hành tính năng chính', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'approved', NULL, 'Product Team', '5 phút đọc', 'from-purple-600 to-pink-600', CURRENT_DATE - INTERVAL '10 day', false, 'Roadmap sản phẩm 2025', 'Các mốc phát hành chính năm 2025', 'roadmap, sản phẩm, 2025'),
+  ('Tối ưu chi phí hạ tầng', 'toi-uu-chi-phi-ha-tang', 'Kinh nghiệm giảm 25% chi phí cloud', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', NULL, 'FinOps Team', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE - INTERVAL '4 day', false, 'Tối ưu chi phí cloud', 'Giảm 25% chi phí hạ tầng cloud', 'finops, chi phí, cloud'),
+  ('Best practices bảo mật API', 'best-practices-bao-mat-api', 'Hướng dẫn bảo vệ API an toàn', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'rejected', NULL, 'Security Team', '8 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '8 day', false, 'Best practices API security', 'Hướng dẫn bảo mật API an toàn', 'api security, best practices'),
+  ('Template SEO cho bài viết', 'template-seo-bai-viet', 'Mẫu cấu trúc SEO hiệu quả cho content', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'published', NULL, 'Content Team', '5 phút đọc', 'from-cyan-600 to-blue-600', CURRENT_DATE - INTERVAL '6 day', false, 'Template SEO', 'Mẫu cấu trúc SEO hiệu quả', 'seo, template, content')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Bảng sessions (phiên đăng nhập - nếu cần)
@@ -190,8 +191,73 @@ VALUES
   ('categories.manage', 'Quản lý danh mục', 'categories', 'Thêm, sửa, xóa danh mục nội dung', TRUE),
   -- Cài đặt hệ thống
   ('settings.view', 'Xem cấu hình hệ thống', 'settings', 'Truy cập trang cấu hình / cài đặt', TRUE),
-  ('settings.manage', 'Quản lý cấu hình hệ thống', 'settings', 'Thay đổi các cấu hình quản trị', TRUE)
+  ('settings.manage', 'Quản lý cấu hình hệ thống', 'settings', 'Thay đổi các cấu hình quản trị', TRUE),
+  -- Media Library
+  ('media.view', 'Xem thư viện Media', 'media', 'Truy cập và xem thư viện media', TRUE),
+  ('media.manage', 'Quản lý thư viện Media', 'media', 'Upload, xóa, quản lý file và thư mục media', TRUE)
 ON CONFLICT (code) DO NOTHING;
+
+-- Media Library Tables
+-- Bảng media_folders (thư mục media)
+CREATE TABLE IF NOT EXISTS media_folders (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  parent_id INTEGER REFERENCES media_folders(id) ON DELETE CASCADE,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_folders_parent_id ON media_folders(parent_id);
+CREATE INDEX IF NOT EXISTS idx_media_folders_slug ON media_folders(slug);
+
+DROP TRIGGER IF EXISTS update_media_folders_updated_at ON media_folders;
+CREATE TRIGGER update_media_folders_updated_at
+    BEFORE UPDATE ON media_folders
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng media_files (file media)
+CREATE TABLE IF NOT EXISTS media_files (
+  id SERIAL PRIMARY KEY,
+  folder_id INTEGER REFERENCES media_folders(id) ON DELETE SET NULL,
+  filename VARCHAR(255) NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  file_path VARCHAR(500) NOT NULL,
+  file_url VARCHAR(500) NOT NULL,
+  file_type VARCHAR(50) NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  file_size BIGINT NOT NULL,
+  width INTEGER,
+  height INTEGER,
+  alt_text TEXT,
+  description TEXT,
+  uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_files_folder_id ON media_files(folder_id);
+CREATE INDEX IF NOT EXISTS idx_media_files_file_type ON media_files(file_type);
+CREATE INDEX IF NOT EXISTS idx_media_files_uploaded_by ON media_files(uploaded_by);
+CREATE INDEX IF NOT EXISTS idx_media_files_created_at ON media_files(created_at);
+
+DROP TRIGGER IF EXISTS update_media_files_updated_at ON media_files;
+CREATE TRIGGER update_media_files_updated_at
+    BEFORE UPDATE ON media_files
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert thư mục mặc định cho media
+INSERT INTO media_folders (name, slug, parent_id, description)
+VALUES
+  ('Root', 'root', NULL, 'Thư mục gốc'),
+  ('Images', 'images', NULL, 'Thư mục chứa hình ảnh'),
+  ('Documents', 'documents', NULL, 'Thư mục chứa tài liệu'),
+  ('Icons', 'icons', NULL, 'Thư mục chứa icons'),
+  ('Projects', 'projects', NULL, 'Thư mục dự án')
+ON CONFLICT (slug) DO NOTHING;
 
 -- Gán toàn bộ quyền cho role admin
 INSERT INTO role_permissions (role_id, permission_id)
@@ -202,7 +268,7 @@ WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
 -- Gán quyền mặc định cho các role khác (editor, user)
--- Biên tập viên: quản lý nội dung (tin tức, danh mục) + xem dashboard
+-- Biên tập viên: quản lý nội dung (tin tức, danh mục) + xem dashboard + xem media
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
@@ -211,9 +277,18 @@ JOIN permissions p ON p.code IN (
   'news.view',
   'news.manage',
   'categories.view',
-  'categories.manage'
+  'categories.manage',
+  'media.view'
 )
 WHERE r.code = 'editor'
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- Gán quyền media cho role admin (nếu chưa có)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON p.code IN ('media.view', 'media.manage')
+WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
 -- Người dùng thường: chỉ xem dashboard (có thể mở rộng thêm sau)

@@ -2,6 +2,21 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  // Performance optimizations
+  swcMinify: true,
+  compress: true,
+  
+  // Image optimization
+  images: {
+    domains: ['images.unsplash.com', 'sfb.vn'],
+    formats: ['image/avif', 'image/webp'],
+  },
+  
+  // Experimental features for better performance
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
+  
   // Rewrite API requests to backend (optional - for same domain deployment)
   // Uncomment if you want to use Next.js rewrites instead of Nginx
   // async rewrites() {

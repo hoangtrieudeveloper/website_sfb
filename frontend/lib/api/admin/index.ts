@@ -3,7 +3,7 @@
  * Centralized exports for admin API functionality
  */
 
-export { adminApiCall } from "./client";
+export { adminApiCall, uploadImage, uploadFile, uploadFiles } from "./client";
 export { AdminEndpoints } from "./endpoints";
 
 // Re-export for backward compatibility

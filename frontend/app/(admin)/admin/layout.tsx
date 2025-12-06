@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   Settings2,
+  Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,6 +117,13 @@ const menuItems: AdminNavItem[] = [
     ],
   },
   {
+    id: "media",
+    label: "Quản lý Media",
+    href: "/admin/media",
+    icon: Image,
+    requiredPermissions: ["media.view", "media.manage", "admin"],
+  },
+  {
     id: "settings",
     label: "Cài đặt",
     href: "/admin/settings",
@@ -149,61 +157,42 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userName, setUserName] = useState("Admin SFB");
   const [userEmail, setUserEmail] = useState("admin@sfb.local");
+  const [userPermissions, setUserPermissions] = useState<Set<string>>(new Set());
+  const [mounted, setMounted] = useState(false);
 
   const pathname = usePathname() || "/admin";
   const router = useRouter();
 
-  // Đọc permissions từ cookie
-  const userPermissions = useMemo(getUserPermissionsFromCookie, []);
-
   // State để quản lý submenu mở/đóng
   const [openSubmenus, setOpenSubmenus] = useState<Set<string>>(new Set());
 
-  // Filter menu items based on permissions (bao gồm cả submenu)
-  const visibleMenuItems = useMemo(() => {
-    return menuItems
-      .map((item) => {
-        // Kiểm tra permission cho item chính
-        const hasPermission =
-          !item.requiredPermissions ||
-          item.requiredPermissions.length === 0 ||
-          item.requiredPermissions.some((perm) => userPermissions.has(perm));
+  // Đọc permissions từ cookie chỉ ở client-side sau khi mount
+  useEffect(() => {
+    setMounted(true);
+    const permissions = getUserPermissionsFromCookie();
+    setUserPermissions(permissions);
+  }, []);
 
-        if (!hasPermission) return null;
-
-        // Nếu có submenu, filter submenu items
-        if (item.children && item.children.length > 0) {
-          const visibleChildren = item.children.filter((child) => {
-            return (
-              !child.requiredPermissions ||
-              child.requiredPermissions.length === 0 ||
-              child.requiredPermissions.some((perm) => userPermissions.has(perm))
-            );
-          });
-
-          // Chỉ hiển thị menu cha nếu có ít nhất 1 submenu item visible
-          if (visibleChildren.length === 0) return null;
-
-          return {
-            ...item,
-            children: visibleChildren,
-          };
-        }
-
-        return item;
-      })
-      .filter((item): item is AdminNavItem => item !== null);
-  }, [userPermissions]);
+  // Không filter menu items trong useMemo để tránh hydration mismatch
+  // Filter sẽ được thực hiện trong quá trình render dựa trên mounted state
+  // Điều này đảm bảo server và client render giống nhau ban đầu
 
   // Auto-expand submenu nếu đang ở trang con
   useEffect(() => {
-    const currentSubmenu = visibleMenuItems.find((item) =>
-      item.children?.some((child) => pathname === child.href || (child.href && pathname.startsWith(child.href)))
+    if (!mounted) return;
+    const currentSubmenu = menuItems.find((item) =>
+      item.children?.some((child) => {
+        const childHasPermission = !child.requiredPermissions ||
+          child.requiredPermissions.length === 0 ||
+          child.requiredPermissions.some((perm) => userPermissions.has(perm));
+        if (!childHasPermission) return false;
+        return pathname === child.href || (child.href && pathname.startsWith(child.href));
+      })
     );
     if (currentSubmenu) {
       setOpenSubmenus((prev) => new Set(prev).add(currentSubmenu.id));
     }
-  }, [pathname, visibleMenuItems]);
+  }, [pathname, userPermissions, mounted]);
 
   // Đọc thông tin user từ cookie (được set khi login) ở client
   useEffect(() => {
@@ -253,10 +242,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
-            {visibleMenuItems.map((item) => {
+            {menuItems.map((item) => {
               const Icon = item.icon;
               const hasSubmenu = item.children && item.children.length > 0;
               const isSubmenuOpen = openSubmenus.has(item.id);
+              
+              // Kiểm tra permission - ẩn item nếu không có quyền (sau khi đã mount)
+              // Trên server hoặc chưa mount, hiển thị tất cả để tránh hydration mismatch
+              const hasPermission = !mounted || userPermissions.size === 0
+                ? true
+                : !item.requiredPermissions ||
+                  item.requiredPermissions.length === 0 ||
+                  item.requiredPermissions.some((perm) => userPermissions.has(perm));
+              
+              if (!hasPermission) return null;
+              
               const isActive =
                 pathname === item.href ||
                 (item.href && item.href !== "/admin" && pathname.startsWith(item.href)) ||
@@ -307,6 +307,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         const isChildActive =
                           pathname === child.href ||
                           (child.href && pathname.startsWith(child.href));
+                        
+                        // Kiểm tra permission cho child - ẩn nếu không có quyền (sau khi đã mount)
+                        // Trên server hoặc chưa mount, hiển thị tất cả để tránh hydration mismatch
+                        const childHasPermission = !mounted || userPermissions.size === 0
+                          ? true
+                          : !child.requiredPermissions ||
+                            child.requiredPermissions.length === 0 ||
+                            child.requiredPermissions.some((perm) => userPermissions.has(perm));
+                        
+                        if (!childHasPermission) return null;
 
                         return (
                           <Link

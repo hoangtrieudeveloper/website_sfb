@@ -59,3 +59,134 @@ export async function adminApiCall<T = any>(
   return response.json();
 }
 
+/**
+ * Upload an image file
+ * Returns the URL of the uploaded image
+ */
+export async function uploadImage(file: File): Promise<string> {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const url = buildUrl('/api/admin/upload/image');
+  
+  const headers: HeadersInit = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  // Don't set Content-Type for FormData, browser will set it with boundary
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  // Handle 401 Unauthorized
+  if (response.status === 401) {
+    removeAuthToken();
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login";
+    }
+    throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(response);
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json();
+  // Return full URL if it's a relative path
+  const imageUrl = result.data?.url || result.url;
+  if (imageUrl && imageUrl.startsWith('/')) {
+    return buildUrl(imageUrl);
+  }
+  return imageUrl;
+}
+
+/**
+ * Upload a file to media library
+ * Returns the uploaded file data
+ */
+export async function uploadFile(file: File, folderId?: number): Promise<any> {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  if (folderId !== undefined) {
+    formData.append('folder_id', folderId.toString());
+  }
+
+  const url = buildUrl('/api/admin/upload/file');
+  
+  const headers: HeadersInit = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (response.status === 401) {
+    removeAuthToken();
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login";
+    }
+    throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(response);
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json();
+  return result.data;
+}
+
+/**
+ * Upload multiple files to media library
+ */
+export async function uploadFiles(files: File[], folderId?: number): Promise<any[]> {
+  const token = getAuthToken();
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+  if (folderId !== undefined) {
+    formData.append('folder_id', folderId.toString());
+  }
+
+  const url = buildUrl('/api/admin/upload/files');
+  
+  const headers: HeadersInit = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (response.status === 401) {
+    removeAuthToken();
+    if (typeof window !== "undefined") {
+      window.location.href = "/admin/login";
+    }
+    throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  }
+
+  if (!response.ok) {
+    const errorMessage = await parseErrorResponse(response);
+    throw new Error(errorMessage);
+  }
+
+  const result = await response.json();
+  return result.data;
+}
+
