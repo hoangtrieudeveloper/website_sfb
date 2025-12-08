@@ -44,13 +44,13 @@ Lệnh này sẽ tự động cài đặt dependencies cho cả `backend` và `f
 
 Tạo file `backend/.env` (có thể copy từ `backend/.env.example`):
 
-```env
+  ```env
 # Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=your_password
-DB_NAME=sfb_db
+  DB_HOST=localhost
+  DB_PORT=5432
+  DB_USER=postgres
+  DB_PASSWORD=your_password
+  DB_NAME=sfb_db
 
 # JWT Authentication
 JWT_SECRET=your-secret-key-change-this-in-production
@@ -59,15 +59,15 @@ JWT_EXPIRES_IN=7d
 # Server
 PORT=4000
 NODE_ENV=development
-```
+  ```
 
 ### Frontend Environment Variables
 
 Tạo file `frontend/.env.local`:
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:4000
-```
+  ```env
+  NEXT_PUBLIC_API_URL=http://localhost:4000
+  ```
 
 ## 🗄️ Setup Database
 

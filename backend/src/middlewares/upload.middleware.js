@@ -4,12 +4,20 @@ const fs = require('fs');
 
 // Đảm bảo thư mục uploads tồn tại
 const baseUploadsDir = path.join(__dirname, '../../uploads');
+
+// Thư mục cho media library (có folder)
 const mediaUploadsDir = path.join(baseUploadsDir, 'media');
 if (!fs.existsSync(mediaUploadsDir)) {
   fs.mkdirSync(mediaUploadsDir, { recursive: true });
 }
 
-// Cấu hình storage với hỗ trợ folder
+// Thư mục riêng cho ảnh tin tức (backward compatibility)
+const newsUploadsDir = path.join(baseUploadsDir, 'news');
+if (!fs.existsSync(newsUploadsDir)) {
+  fs.mkdirSync(newsUploadsDir, { recursive: true });
+}
+
+// Cấu hình storage với hỗ trợ folder cho media library
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     try {
@@ -59,18 +67,42 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Cấu hình multer
+// Cấu hình multer cho media library
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB (tăng lên để hỗ trợ video)
+    fileSize: 10 * 1024 * 1024, // 10MB
   },
   fileFilter: fileFilter,
 });
 
-// Middleware upload single file
+// Cấu hình storage riêng cho ảnh news (không phân folder)
+const newsStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, newsUploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '-');
+    cb(null, `${name}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const newsUpload = multer({
+  storage: newsStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+  fileFilter: fileFilter,
+});
+
+// Middleware upload cho media library
 const uploadSingle = upload.single('file'); // Đổi từ 'image' thành 'file' để hỗ trợ nhiều loại
 const uploadMultiple = upload.array('files', 10); // Upload nhiều file cùng lúc
+
+// Middleware upload riêng cho ảnh news (API /upload/image)
+const uploadNewsSingle = newsUpload.single('file');
 
 // Middleware xử lý lỗi upload
 const handleUploadError = (err, req, res, next) => {
@@ -78,7 +110,7 @@ const handleUploadError = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File quá lớn. Kích thước tối đa là 5MB',
+        message: 'File quá lớn. Kích thước tối đa là 10MB',
       });
     }
     return res.status(400).json({
@@ -98,5 +130,6 @@ const handleUploadError = (err, req, res, next) => {
 module.exports = {
   uploadSingle,
   uploadMultiple,
+  uploadNewsSingle,
   handleUploadError,
 };

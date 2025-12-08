@@ -66,7 +66,8 @@ export async function adminApiCall<T = any>(
 export async function uploadImage(file: File): Promise<string> {
   const token = getAuthToken();
   const formData = new FormData();
-  formData.append('image', file);
+  // Backend multer đang dùng upload.single('file') nên field phải là 'file'
+  formData.append('file', file);
 
   const url = buildUrl('/api/admin/upload/image');
   
@@ -112,10 +113,11 @@ export async function uploadImage(file: File): Promise<string> {
 export async function uploadFile(file: File, folderId?: number): Promise<any> {
   const token = getAuthToken();
   const formData = new FormData();
-  formData.append('file', file);
+  // Quan trọng: append folder_id TRƯỚC file để multer đọc được trong destination()
   if (folderId !== undefined) {
     formData.append('folder_id', folderId.toString());
   }
+  formData.append('file', file);
 
   const url = buildUrl('/api/admin/upload/file');
   
@@ -153,12 +155,13 @@ export async function uploadFile(file: File, folderId?: number): Promise<any> {
 export async function uploadFiles(files: File[], folderId?: number): Promise<any[]> {
   const token = getAuthToken();
   const formData = new FormData();
-  files.forEach(file => {
-    formData.append('files', file);
-  });
+  // Quan trọng: append folder_id TRƯỚC files để multer đọc được trong destination()
   if (folderId !== undefined) {
     formData.append('folder_id', folderId.toString());
   }
+  files.forEach(file => {
+    formData.append('files', file);
+  });
 
   const url = buildUrl('/api/admin/upload/files');
   

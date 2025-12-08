@@ -49,9 +49,9 @@ export default function ImageUpload({
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File quá lớn. Kích thước tối đa là 5MB');
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File quá lớn. Kích thước tối đa là 10MB');
       return;
     }
 
@@ -100,9 +100,9 @@ export default function ImageUpload({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-4">
       {preview ? (
-        <div className="relative group">
+        <div className="relative group w-full">
           <img
             src={preview}
             alt="Preview"
@@ -174,5 +174,3 @@ export default function ImageUpload({
     </div>
   );
 }
-
-

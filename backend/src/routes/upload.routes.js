@@ -1,6 +1,6 @@
 const express = require('express');
 const { uploadImage, uploadFile, uploadFiles, deleteImage } = require('../controllers/upload.controller');
-const { uploadSingle, uploadMultiple, handleUploadError } = require('../middlewares/upload.middleware');
+const { uploadSingle, uploadMultiple, uploadNewsSingle, handleUploadError } = require('../middlewares/upload.middleware');
 const requireAuth = require('../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -55,7 +55,7 @@ const router = express.Router();
 router.post(
   '/image',
   requireAuth,
-  uploadSingle,
+  uploadNewsSingle,
   handleUploadError,
   uploadImage
 );

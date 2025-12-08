@@ -20,6 +20,9 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { buildUrl } from "@/lib/api/base";
+import MediaLibraryPicker from "./MediaLibraryPicker";
 
 type NewsStatus = "draft" | "pending" | "approved" | "rejected" | "published";
 type CategoryId = "product" | "company" | "tech";
@@ -28,6 +31,15 @@ interface NewsCategory {
   id: CategoryId;
   name: string;
   isActive?: boolean;
+}
+
+interface MediaFileItem {
+  id: number;
+  file_url: string;
+  original_name: string;
+  file_size: number;
+  created_at: string;
+  alt_text?: string | null;
 }
 
 const GRADIENT_OPTIONS = [
@@ -87,6 +99,7 @@ export default function NewsForm({ initialData, onSave, onCancel, isEditing = fa
   });
 
   const [saving, setSaving] = useState(false);
+  const [showImageDialog, setShowImageDialog] = useState(false);
   const [categories, setCategories] = useState<NewsCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
 
@@ -397,16 +410,52 @@ export default function NewsForm({ initialData, onSave, onCancel, isEditing = fa
                       </div>
                     </div>
                     <div className="p-4">
-                      <div className="space-y-2">
-                        <ImageUpload
-                          currentImage={formData.imageUrl}
-                          onImageSelect={(url) =>
-                            setFormData({
-                              ...formData,
-                              imageUrl: url ? url : undefined,
-                            })
-                          }
-                        />
+                      <div className="space-y-3">
+                        {formData.imageUrl ? (
+                          <div
+                            className="inline-block relative group cursor-pointer"
+                            onClick={() => setShowImageDialog(true)}
+                          >
+                            <img
+                              src={
+                                formData.imageUrl.startsWith("/")
+                                  ? buildUrl(formData.imageUrl)
+                                  : formData.imageUrl
+                              }
+                              alt="Ảnh đại diện"
+                              className="w-64 h-40 md:w-72 md:h-44 object-cover rounded-lg border border-gray-200"
+                            />
+                            <button
+                              type="button"
+                              className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-white shadow hover:bg-red-700"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFormData({
+                                  ...formData,
+                                  imageUrl: "",
+                                });
+                              }}
+                            >
+                              <span className="text-xs font-semibold">✕</span>
+                            </button>
+                            <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/30 flex items-center justify-center transition-colors">
+                              <span className="text-sm font-medium text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Thay đổi ảnh
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full h-40 flex flex-col items-center justify-center gap-2 border-dashed"
+                            onClick={() => setShowImageDialog(true)}
+                          >
+                            <ImageIcon className="w-8 h-8 text-gray-400" />
+                            <span className="text-sm text-gray-700">Chọn ảnh bìa cho bài viết</span>
+                            <span className="text-xs text-gray-500">Từ thư viện hoặc tải lên từ máy</span>
+                          </Button>
+                        )}
                         <p className="text-xs text-gray-500">
                           Khuyến nghị: 1200x600px
                         </p>
@@ -690,6 +739,66 @@ export default function NewsForm({ initialData, onSave, onCancel, isEditing = fa
           </Tabs>
         </form>
       </div>
+
+      {/* Image picker dialog */}
+      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <DialogContent
+          className="w-full h-[80vh] flex flex-col"
+          style={{ maxWidth: "72rem" }}
+        >
+          <DialogHeader>
+            <DialogTitle>Chọn ảnh bìa cho bài viết</DialogTitle>
+            <DialogDescription>
+              Bạn có thể chọn ảnh từ thư viện Media hoặc tải ảnh mới từ máy tính.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="library" className="flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <TabsList className="bg-gray-100 border rounded-xl p-1 gap-1">
+                <TabsTrigger value="library">Thư viện file</TabsTrigger>
+                <TabsTrigger value="upload">Upload từ máy</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent
+              value="library"
+              className="flex-1 flex flex-col mt-0 overflow-y-auto"
+            >
+              <MediaLibraryPicker
+                onSelectImage={(url) => {
+                  setFormData({
+                    ...formData,
+                    imageUrl: url,
+                  });
+                  setShowImageDialog(false);
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="upload" className="flex-1 mt-0">
+              <div className="w-full">
+                <ImageUpload
+                  currentImage={formData.imageUrl}
+                  onImageSelect={(url) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      imageUrl: url,
+                    }));
+                    // Không đóng popup để người dùng xem thông tin ảnh
+                  }}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowImageDialog(false)}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
