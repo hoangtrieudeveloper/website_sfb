@@ -35,6 +35,7 @@ exports.uploadFile = async (req, res, next) => {
       ? `uploads/media/folder-${folderId}/${req.file.filename}`
       : `uploads/media/${req.file.filename}`;
     
+    // Tạo URL đầy đủ (đảm bảo bắt đầu bằng /uploads)
     const fileUrl = `/${relativePath}`;
     const fileType = getFileType(req.file.mimetype);
     

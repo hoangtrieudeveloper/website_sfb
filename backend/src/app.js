@@ -29,7 +29,36 @@ app.use(express.json());
 app.use(logger);
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Đảm bảo static files được serve trước các routes khác
+const uploadsPath = path.join(__dirname, '../uploads');
+console.log('📁 Static files path:', uploadsPath);
+
+// Serve static files với options tối ưu
+app.use('/uploads', express.static(uploadsPath, {
+  dotfiles: 'ignore',
+  etag: true,
+  index: false,
+  maxAge: '1d',
+  redirect: false,
+  setHeaders: (res, filePath) => {
+    // Set proper content-type headers
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext === '.jpg' || ext === '.jpeg') {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (ext === '.png') {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (ext === '.gif') {
+      res.setHeader('Content-Type', 'image/gif');
+    } else if (ext === '.webp') {
+      res.setHeader('Content-Type', 'image/webp');
+    } else if (ext === '.svg') {
+      res.setHeader('Content-Type', 'image/svg+xml');
+    }
+    // Enable CORS for images
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+  }
+}));
 
 // Test database connection on startup
 testConnection().catch((err) => {

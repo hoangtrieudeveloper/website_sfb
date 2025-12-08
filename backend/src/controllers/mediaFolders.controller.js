@@ -1,5 +1,17 @@
+const fs = require('fs');
+const path = require('path');
 const pool = require('../config/database').pool;
 const { ensureTablesOnce } = require('../utils/ensureMediaTables');
+
+const mediaUploadsDir = path.join(__dirname, '../../uploads/media');
+
+function ensureFolderDirectory(folderId) {
+  const folderPath = path.join(mediaUploadsDir, `folder-${folderId}`);
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+  return folderPath;
+}
 
 // Helper function để tạo slug từ name
 function createSlug(name) {
@@ -189,6 +201,8 @@ exports.createFolder = async (req, res, next) => {
        RETURNING *`,
       [name.trim(), slug, parent_id || null, description || null]
     );
+    
+    ensureFolderDirectory(rows[0].id);
     
     return res.status(201).json({
       success: true,

@@ -1,9 +1,20 @@
+const fs = require('fs');
+const path = require('path');
+
 /**
  * Utility để đảm bảo bảng media đã được tạo
  * Tự động tạo bảng nếu chưa tồn tại
  */
 
 const pool = require('../config/database').pool;
+const mediaUploadsDir = path.join(__dirname, '../../uploads/media');
+
+function ensureMediaFolderDir(id) {
+  const folderPath = path.join(mediaUploadsDir, `folder-${id}`);
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+}
 
 async function ensureMediaTables() {
   const client = await pool.connect();
@@ -105,6 +116,12 @@ async function ensureMediaTables() {
       ON CONFLICT (slug) DO NOTHING;
     `);
     
+    // Ensure directory exists for each folder
+    const foldersResult = await client.query('SELECT id FROM media_folders');
+    foldersResult.rows.forEach((row) => {
+      ensureMediaFolderDir(row.id);
+    });
+
     return true;
   } catch (error) {
     console.error('Error ensuring media tables:', error.message);
