@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { adminApiCall, AdminEndpoints, apiCall } from "@/lib/api/admin";
 
 interface Permission {
   id: number;

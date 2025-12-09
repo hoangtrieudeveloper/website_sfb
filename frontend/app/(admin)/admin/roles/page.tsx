@@ -29,7 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { adminApiCall, AdminEndpoints, apiCall } from "@/lib/api/admin";
 
 interface Role {
   id: number;

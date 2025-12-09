@@ -13,6 +13,7 @@ const mapNews = (row) => ({
   author: row.author || '',
   readTime: row.read_time || '',
   gradient: row.gradient || '',
+  isFeatured: row.is_featured || false,
   link: row.slug || '',
   publishedDate: row.published_date,
   seoTitle: row.seo_title || '',
@@ -26,7 +27,7 @@ const mapNews = (row) => ({
 // GET /api/admin/news
 exports.getNews = async (req, res, next) => {
   try {
-    const { status, category, search } = req.query;
+    const { status, category, search, featured } = req.query;
 
     const conditions = [];
     const params = [];
@@ -44,6 +45,10 @@ exports.getNews = async (req, res, next) => {
     if (search) {
       params.push(`%${search.toLowerCase()}%`);
       conditions.push(`LOWER(title) LIKE $${params.length}`);
+    }
+
+    if (featured === 'true') {
+      conditions.push('n.is_featured = true');
     }
 
     const whereClause =
@@ -64,6 +69,7 @@ exports.getNews = async (req, res, next) => {
         n.author,
         n.read_time,
         n.gradient,
+        n.is_featured,
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
@@ -108,6 +114,7 @@ exports.getNewsById = async (req, res, next) => {
           n.author,
           n.read_time,
           n.gradient,
+          n.is_featured,
           n.seo_title,
           n.seo_description,
           n.seo_keywords,
@@ -121,7 +128,6 @@ exports.getNewsById = async (req, res, next) => {
       `,
       [id],
     );
-
     if (rows.length === 0) {
       return res.status(404).json({
         success: false,

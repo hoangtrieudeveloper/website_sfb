@@ -183,8 +183,7 @@ ws-sfb/
 
 | Script | Mô tả |
 |--------|-------|
-| `npm run setup` | Setup database (tạo DB, tables, permissions) |
-| `npm run setup-db` | Chỉ setup database và schema cơ bản |
+| `npm run setup` | Setup toàn bộ database (tạo DB, chạy `schema.sql`, seed permissions, media, ...) |
 | `npm start` | Start backend server |
 | `npm run generate-password-hash` | Generate password hash cho user |
 

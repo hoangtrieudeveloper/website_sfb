@@ -41,6 +41,7 @@ import RichTextEditor from "@/components/admin/RichTextEditor";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { buildUrl } from "@/lib/api/base";
 import MediaLibraryPicker from "./MediaLibraryPicker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Types
 
@@ -252,109 +253,149 @@ export default function NewsForm({
       {/* Form Content */}
       <div className="max-w-7xl mx-auto px-4 py-4">
         <form onSubmit={handleSubmit}>
-          <div className="w-full space-y-6">
-            {/* Khu vực nội dung & hình ảnh */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-              {/* Cột trái: Nội dung */}
-              <div className="lg:col-span-8 space-y-4 lg:space-y-5">
-                <Card className="border border-gray-100 shadow-sm">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <Info className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        Nội dung bài viết
-                      </h2>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Tạo nội dung cho bài viết tin tức.
-                    </p>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title" className="text-sm font-semibold">
-                        Tiêu đề bài viết <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) =>
-                          setFormData({ ...formData, title: e.target.value })
-                        }
-                        placeholder="Nhập tiêu đề bài viết..."
-                        required
-                        className="text-base"
-                      />
-                    </div>
+          <Tabs
+            defaultValue="content"
+            className="flex flex-col md:flex-row gap-6"
+          >
+            {/* Vertical tabs navigation */}
+            <TabsList className="md:flex-col md:w-56 md:h-auto bg-white border border-gray-200 rounded-2xl p-1 shadow-sm">
+              <TabsTrigger
+                value="content"
+                className="justify-start px-3 py-2 text-sm gap-2"
+              >
+                <Info className="w-4 h-4 text-blue-600" />
+                <span>Nội dung bài viết</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="basic"
+                className="justify-start px-3 py-2 text-sm gap-2"
+              >
+                <Settings className="w-4 h-4 text-sky-600" />
+                <span>Thông tin cơ bản</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="seo"
+                className="justify-start px-3 py-2 text-sm gap-2"
+              >
+                <SearchIcon className="w-4 h-4 text-indigo-600" />
+                <span>SEO & hiển thị nâng cao</span>
+              </TabsTrigger>
+            </TabsList>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="link" className="text-sm font-semibold">
-                        <LinkIcon className="w-3 h-3 inline mr-1" />
-                        Slug / Đường dẫn
-                      </Label>
-                      <Input
-                        id="link"
-                        value={formData.link}
-                        onChange={(e) =>
-                          setFormData({ ...formData, link: e.target.value })
-                        }
-                        placeholder="/tin-tuc-slug"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="excerpt" className="text-sm font-semibold">
-                        Tóm tắt
-                      </Label>
-                      <Textarea
-                        id="excerpt"
-                        value={formData.excerpt}
-                        onChange={(e) =>
-                          setFormData({ ...formData, excerpt: e.target.value })
-                        }
-                        placeholder="Nhập tóm tắt ngắn gọn về tin tức..."
-                        rows={3}
-                        className="resize-none"
-                      />
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500">
-                          Tóm tắt sẽ hiển thị trong danh sách tin tức.
-                        </p>
-                        <span
-                          className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                            formData.excerpt.length > 200
-                              ? "text-red-600 bg-red-50"
-                              : formData.excerpt.length > 150
-                              ? "text-yellow-600 bg-yellow-50"
-                              : "text-gray-400 bg-gray-50"
-                          }`}
-                        >
-                          {formData.excerpt.length}/200
-                        </span>
+            <div className="flex-1 space-y-6">
+              <TabsContent value="content" className="space-y-6">
+                {/* Nội dung bài viết */}
+                <section className="space-y-4 lg:space-y-5">
+                  <Card className="border border-gray-100 shadow-sm">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        <Info className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900">
+                            Nội dung bài viết
+                          </h2>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Phần nội dung chính người dùng sẽ nhìn thấy trên trang tin tức.
+                          </p>
+                        </div>
                       </div>
                     </div>
+                    <div className="p-4 space-y-5">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title" className="text-sm font-semibold">
+                            Tiêu đề bài viết <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            id="title"
+                            value={formData.title}
+                            onChange={(e) =>
+                              setFormData({ ...formData, title: e.target.value })
+                            }
+                            placeholder="Nhập tiêu đề bài viết..."
+                            required
+                            className="text-base"
+                          />
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold">Nội dung</Label>
-                      <div className="border rounded-lg min-h-[360px]">
-                        <RichTextEditor
-                          value={formData.content}
-                          onChange={(value) =>
-                            setFormData({ ...formData, content: value })
+                        <div className="space-y-2">
+                          <Label htmlFor="link" className="text-sm font-semibold">
+                            <LinkIcon className="w-3 h-3 inline mr-1" />
+                            Slug / Đường dẫn
+                          </Label>
+                          <Input
+                            id="link"
+                            value={formData.link}
+                            onChange={(e) =>
+                              setFormData({ ...formData, link: e.target.value })
+                            }
+                            placeholder="/tin-tuc-slug"
+                          />
+                          <p className="text-[11px] text-gray-500">
+                            Dùng tiếng Việt không dấu, cách nhau bằng dấu gạch ngang.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="excerpt" className="text-sm font-semibold">
+                          Tóm tắt
+                        </Label>
+                        <Textarea
+                          id="excerpt"
+                          value={formData.excerpt}
+                          onChange={(e) =>
+                            setFormData({ ...formData, excerpt: e.target.value })
                           }
+                          placeholder="Nhập tóm tắt ngắn gọn về tin tức..."
+                          rows={3}
+                          className="resize-none"
                         />
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-500">
+                            Tóm tắt sẽ hiển thị trong danh sách tin tức và hỗ trợ SEO.
+                          </p>
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                              formData.excerpt.length > 200
+                                ? "text-red-600 bg-red-50"
+                                : formData.excerpt.length > 150
+                                ? "text-yellow-600 bg-yellow-50"
+                                : "text-gray-400 bg-gray-50"
+                            }`}
+                          >
+                            {formData.excerpt.length}/200
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        Sử dụng trình soạn thảo để tạo nội dung bài viết với định dạng phong phú.
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </div>
 
-              {/* Cột phải: Thông tin cơ bản + Ảnh bìa */}
-              <div className="lg:col-span-4 space-y-4 lg:space-y-5">
-                {/* Thông tin cơ bản */}
-                <Card className="border border-gray-100 shadow-sm">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold">
+                          Nội dung chi tiết
+                        </Label>
+                        <div className="border rounded-lg min-h-[360px]">
+                          <RichTextEditor
+                            value={formData.content}
+                            onChange={(value) =>
+                              setFormData({ ...formData, content: value })
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Sử dụng trình soạn thảo để tạo nội dung bài viết với định dạng phong
+                          phú.
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </section>
+              </TabsContent>
+
+              <TabsContent value="basic" className="space-y-6">
+                {/* Thông tin cơ bản & Ảnh bìa */}
+                <section className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
+                  <div className="md:col-span-6 lg:col-span-5 space-y-4 lg:space-y-5">
+                    <Card className="border border-gray-100 shadow-sm">
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                     <div className="flex flex-col gap-1">
                       <h2 className="text-lg font-semibold text-gray-900">
@@ -365,98 +406,104 @@ export default function NewsForm({
                       </p>
                     </div>
                   </div>
-                  <div className="p-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="categoryId" className="text-sm font-semibold">
-                        Danh mục <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={formData.categoryId}
-                        onValueChange={(value: CategoryId) => {
-                          const selectedCategory = categories.find(
-                            (c) => c.id === value && c.isActive !== false,
-                          );
-                          setFormData({
-                            ...formData,
-                            categoryId: value,
-                            category: selectedCategory?.name || "",
-                          });
-                        }}
-                        disabled={loadingCategories}
-                      >
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={
-                              loadingCategories ? "Đang tải..." : "Chọn danh mục"
+                    <div className="p-4 space-y-5">
+                      {/* Nhóm phân loại */}
+                      <div className="space-y-2">
+                        <Label htmlFor="categoryId" className="text-sm font-semibold">
+                          Danh mục <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          value={formData.categoryId}
+                          onValueChange={(value: CategoryId) => {
+                            const selectedCategory = categories.find(
+                              (c) => c.id === value && c.isActive !== false,
+                            );
+                            setFormData({
+                              ...formData,
+                              categoryId: value,
+                              category: selectedCategory?.name || "",
+                            });
+                          }}
+                          disabled={loadingCategories}
+                        >
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={
+                                loadingCategories ? "Đang tải..." : "Chọn danh mục"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories
+                              .filter((cat) => cat.isActive !== false)
+                              .map((cat) => (
+                                <SelectItem key={cat.id} value={cat.id}>
+                                  {cat.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Nhóm trạng thái xuất bản */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-semibold">Trạng thái</Label>
+                          <Select
+                            value={formData.status}
+                            onValueChange={(value: NewsStatus) =>
+                              setFormData({ ...formData, status: value })
                             }
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="draft">Bản nháp</SelectItem>
+                              <SelectItem value="pending">Chờ duyệt</SelectItem>
+                              <SelectItem value="approved">Đã duyệt</SelectItem>
+                              <SelectItem value="rejected">Từ chối</SelectItem>
+                              <SelectItem value="published">Xuất bản</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="publishedDate" className="text-sm font-semibold">
+                            <Calendar className="w-3 h-3 inline mr-1" />
+                            Ngày xuất bản
+                          </Label>
+                          <Input
+                            id="publishedDate"
+                            type="date"
+                            value={formData.publishedDate}
+                            onChange={(e) =>
+                              setFormData({ ...formData, publishedDate: e.target.value })
+                            }
+                            className="w-full"
                           />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories
-                            .filter((cat) => cat.isActive !== false)
-                            .map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                        </div>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold">Trạng thái</Label>
-                      <Select
-                        value={formData.status}
-                        onValueChange={(value: NewsStatus) =>
-                          setFormData({ ...formData, status: value })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="draft">Bản nháp</SelectItem>
-                          <SelectItem value="pending">Chờ duyệt</SelectItem>
-                          <SelectItem value="approved">Đã duyệt</SelectItem>
-                          <SelectItem value="rejected">Từ chối</SelectItem>
-                          <SelectItem value="published">Xuất bản</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Switch
+                          id="isFeatured"
+                          checked={formData.isFeatured}
+                          onCheckedChange={(checked: boolean) =>
+                            setFormData({ ...formData, isFeatured: checked })
+                          }
+                        />
+                        <Label htmlFor="isFeatured" className="text-sm font-semibold">
+                          Bài viết nổi bật
+                        </Label>
+                      </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="publishedDate" className="text-sm font-semibold">
-                        <Calendar className="w-3 h-3 inline mr-1" />
-                        Ngày xuất bản
-                      </Label>
-                      <Input
-                        id="publishedDate"
-                        type="date"
-                        value={formData.publishedDate}
-                        onChange={(e) =>
-                          setFormData({ ...formData, publishedDate: e.target.value })
-                        }
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-1">
-                      <Switch
-                        id="isFeatured"
-                        checked={formData.isFeatured}
-                        onCheckedChange={(checked: boolean) =>
-                          setFormData({ ...formData, isFeatured: checked })
-                        }
-                      />
-                      <Label htmlFor="isFeatured" className="text-sm font-semibold">
-                        Bài viết nổi bật
-                      </Label>
-                    </div>
+                    </Card>
                   </div>
-                </Card>
 
-                {/* Ảnh bìa */}
-                <Card className="border border-gray-100 shadow-sm">
+                  <div className="md:col-span-6 lg:col-span-7 space-y-4 lg:space-y-5">
+                    {/* Ảnh bìa */}
+                    <Card className="border border-gray-100 shadow-sm">
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-blue-600" />
@@ -514,13 +561,15 @@ export default function NewsForm({
                       </p>
                     </div>
                   </div>
-                </Card>
-              </div>
-            </section>
+                    </Card>
+                  </div>
+                </section>
+              </TabsContent>
 
-            {/* Khu vực SEO & Cài đặt nâng cao */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-              <div className="lg:col-span-8 space-y-4 lg:space-y-5">
+              <TabsContent value="seo" className="space-y-6">
+                {/* Khu vực SEO & Cài đặt nâng cao */}
+                <section className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
+                  <div className="md:col-span-7 lg:col-span-8 space-y-4 lg:space-y-5">
                 <Card className="border border-gray-100 shadow-sm">
                   <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
                     <div className="flex items-center gap-2">
@@ -720,7 +769,7 @@ export default function NewsForm({
                 </Card>
               </div>
 
-              <div className="lg:col-span-4 space-y-4 lg:space-y-5">
+                  <div className="md:col-span-5 lg:col-span-4 space-y-4 lg:space-y-5 lg:sticky lg:top-24">
                 <Card className="border border-gray-100 shadow-sm">
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-2">
@@ -731,34 +780,36 @@ export default function NewsForm({
                     </div>
                   </div>
                   <div className="p-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="author" className="text-sm font-semibold">
-                        <User className="w-3 h-3 inline mr-1" />
-                        Tác giả
-                      </Label>
-                      <Input
-                        id="author"
-                        value={formData.author}
-                        onChange={(e) =>
-                          setFormData({ ...formData, author: e.target.value })
-                        }
-                        placeholder="SFB Technology"
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="author" className="text-sm font-semibold">
+                          <User className="w-3 h-3 inline mr-1" />
+                          Tác giả
+                        </Label>
+                        <Input
+                          id="author"
+                          value={formData.author}
+                          onChange={(e) =>
+                            setFormData({ ...formData, author: e.target.value })
+                          }
+                          placeholder="SFB Technology"
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="readTime" className="text-sm font-semibold">
-                        <Clock className="w-3 h-3 inline mr-1" />
-                        Thời gian đọc
-                      </Label>
-                      <Input
-                        id="readTime"
-                        value={formData.readTime}
-                        onChange={(e) =>
-                          setFormData({ ...formData, readTime: e.target.value })
-                        }
-                        placeholder="5 phút đọc"
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="readTime" className="text-sm font-semibold">
+                          <Clock className="w-3 h-3 inline mr-1" />
+                          Thời gian đọc
+                        </Label>
+                        <Input
+                          id="readTime"
+                          value={formData.readTime}
+                          onChange={(e) =>
+                            setFormData({ ...formData, readTime: e.target.value })
+                          }
+                          placeholder="5 phút đọc"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -792,7 +843,9 @@ export default function NewsForm({
                 </Card>
               </div>
             </section>
-          </div>
+              </TabsContent>
+            </div>
+          </Tabs>
         </form>
       </div>
 
