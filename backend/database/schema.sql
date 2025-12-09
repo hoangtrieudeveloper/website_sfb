@@ -83,10 +83,13 @@ CREATE TABLE IF NOT EXISTS news_categories (
   code VARCHAR(100) PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   description TEXT,
+  parent_code VARCHAR(100) REFERENCES news_categories(code) ON UPDATE CASCADE ON DELETE SET NULL,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_news_categories_parent_code ON news_categories(parent_code);
 
 INSERT INTO news_categories (code, name, description, is_active)
 VALUES

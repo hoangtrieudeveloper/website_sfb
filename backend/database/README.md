@@ -21,9 +21,9 @@ Lệnh này sẽ tự động:
 - **`schema.sql`** - Schema tổng hợp (đã bao gồm tất cả: users, roles, news, media, permissions)
 - **`update_featured_news.sql`** - Script update dữ liệu (tùy chọn)
 
-### Files backup (có thể xóa):
-- `media_schema.sql` - Đã được gộp vào schema.sql
-- `add_media_permissions.sql` - Đã được gộp vào schema.sql
+### Files đã loại bỏ:
+- `media_schema.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
+- `add_media_permissions.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
 
 ## 🔄 Auto-Create
 
@@ -45,8 +45,7 @@ psql -U postgres -d sfb_db -f backend/database/schema.sql
 
 ## 🔧 Scripts Available
 
-- `npm run setup` - Setup toàn bộ (khuyến nghị)
-- `npm run setup-db` - Chỉ setup database và schema cơ bản
+- `npm run setup` - Setup toàn bộ database (khuyến nghị)
 - `npm run generate-password-hash` - Generate password hash
 
 ## ⚠️ Troubleshooting

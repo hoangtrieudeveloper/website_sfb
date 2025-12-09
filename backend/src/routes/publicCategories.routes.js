@@ -1,7 +1,7 @@
 const express = require('express');
 const {
-  getPublicCategories,
-  getPublicCategoryByCode,
+  getActiveCategories,
+  getCategoryByCode,
 } = require('../controllers/publicCategories.controller');
 
 const router = express.Router();
@@ -17,7 +17,7 @@ const router = express.Router();
  *       200:
  *         description: Danh sách danh mục
  */
-router.get('/', getPublicCategories);
+router.get('/', getActiveCategories);
 
 /**
  * @openapi
@@ -38,7 +38,7 @@ router.get('/', getPublicCategories);
  *       404:
  *         description: Không tìm thấy danh mục
  */
-router.get('/:code', getPublicCategoryByCode);
+router.get('/:code', getCategoryByCode);
 
 module.exports = router;
 

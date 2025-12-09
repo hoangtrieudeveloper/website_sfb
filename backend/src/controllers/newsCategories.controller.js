@@ -5,6 +5,7 @@ const mapCategory = (row) => ({
   name: row.name,
   description: row.description || '',
   isActive: row.is_active,
+  parentCode: row.parent_code || null,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
@@ -13,7 +14,7 @@ const mapCategory = (row) => ({
 exports.getCategories = async (_req, res, next) => {
   try {
     const { rows } = await pool.query(
-      `SELECT code, name, description, is_active, created_at, updated_at
+      `SELECT code, name, description, parent_code, is_active, created_at, updated_at
        FROM news_categories
        ORDER BY name ASC`,
     );
@@ -28,7 +29,7 @@ exports.getCategoryByCode = async (req, res, next) => {
   try {
     const { code } = req.params;
     const { rows } = await pool.query(
-      `SELECT code, name, description, is_active, created_at, updated_at
+      `SELECT code, name, description, parent_code, is_active, created_at, updated_at
        FROM news_categories
        WHERE code = $1
        LIMIT 1`,
@@ -46,16 +47,18 @@ exports.getCategoryByCode = async (req, res, next) => {
 // POST /api/admin/categories
 exports.createCategory = async (req, res, next) => {
   try {
-    const { code, name, description = '', isActive = true } = req.body;
+    const { code, name, description = '', isActive = true, parentCode = null } = req.body;
     if (!code || !name) {
       return res.status(400).json({ success: false, message: 'code và name là bắt buộc' });
     }
 
+    const normalizedParent = parentCode || null;
+
     const { rows } = await pool.query(
-      `INSERT INTO news_categories (code, name, description, is_active)
-       VALUES ($1, $2, $3, $4)
-       RETURNING code, name, description, is_active, created_at, updated_at`,
-      [code, name, description, isActive],
+      `INSERT INTO news_categories (code, name, description, parent_code, is_active)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING code, name, description, parent_code, is_active, created_at, updated_at`,
+      [code, name, description, normalizedParent, isActive],
     );
 
     return res.status(201).json({ success: true, data: mapCategory(rows[0]) });
@@ -71,7 +74,7 @@ exports.createCategory = async (req, res, next) => {
 exports.updateCategory = async (req, res, next) => {
   try {
     const { code } = req.params;
-    const { name, description, isActive } = req.body;
+    const { name, description, isActive, parentCode } = req.body;
 
     const fields = [];
     const params = [];
@@ -84,6 +87,7 @@ exports.updateCategory = async (req, res, next) => {
     if (name !== undefined) addField('name', name);
     if (description !== undefined) addField('description', description);
     if (isActive !== undefined) addField('is_active', isActive);
+    if (parentCode !== undefined) addField('parent_code', parentCode || null);
 
     if (!fields.length) {
       return res.status(400).json({ success: false, message: 'Không có dữ liệu để cập nhật' });
@@ -95,7 +99,7 @@ exports.updateCategory = async (req, res, next) => {
       `UPDATE news_categories
        SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
        WHERE code = $${params.length}
-       RETURNING code, name, description, is_active, created_at, updated_at`,
+       RETURNING code, name, description, parent_code, is_active, created_at, updated_at`,
       params,
     );
 
@@ -127,4 +131,3 @@ exports.deleteCategory = async (req, res, next) => {
     return next(error);
   }
 };
-

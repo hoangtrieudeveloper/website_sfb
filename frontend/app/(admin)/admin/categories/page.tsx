@@ -24,6 +24,7 @@ interface Category {
   name: string;
   description: string;
   isActive: boolean;
+  parentCode?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -39,15 +40,18 @@ export default function AdminCategoriesPage() {
     name: "",
     description: "",
     isActive: true,
+    parentCode: "",
   });
 
   const resetForm = () =>
-    setFormData({ code: "", name: "", description: "", isActive: true });
+    setFormData({ code: "", name: "", description: "", isActive: true, parentCode: "" });
 
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const data = await adminApiCall<{ data: Category[] }>(AdminEndpoints.categories.list);
+      const data = await adminApiCall<{ data: Category[] }>(
+        AdminEndpoints.categories.list,
+      );
       setCategories(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Tải danh mục thất bại");
@@ -69,6 +73,7 @@ export default function AdminCategoriesPage() {
         name: formData.name.trim(),
         description: formData.description.trim(),
         isActive: formData.isActive,
+        parentCode: formData.parentCode || null,
       };
       if (!payload.code || !payload.name) {
         toast.error("Mã và tên danh mục là bắt buộc");
@@ -79,7 +84,7 @@ export default function AdminCategoriesPage() {
         ? AdminEndpoints.categories.detail(editingCategory.code)
         : AdminEndpoints.categories.list;
 
-      await apiCall(endpoint, {
+      await adminApiCall(endpoint, {
         method: editingCategory ? "PUT" : "POST",
         body: JSON.stringify(payload),
       });
@@ -102,6 +107,7 @@ export default function AdminCategoriesPage() {
       name: category.name,
       description: category.description || "",
       isActive: category.isActive,
+      parentCode: category.parentCode || "",
     });
     setIsDialogOpen(true);
   };
@@ -117,6 +123,10 @@ export default function AdminCategoriesPage() {
       console.error(error);
     }
   };
+
+  const availableParentCategories = categories.filter((cat) =>
+    editingCategory ? cat.code !== editingCategory.code : true,
+  );
 
   return (
     <div className="space-y-6">
@@ -171,6 +181,28 @@ export default function AdminCategoriesPage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="parentCode">Thư mục cha (tuỳ chọn)</Label>
+                <select
+                  id="parentCode"
+                  className="border rounded-md px-3 py-2 text-sm w-full"
+                  value={formData.parentCode}
+                  onChange={(e) =>
+                    setFormData({ ...formData, parentCode: e.target.value || "" })
+                  }
+                >
+                  <option value="">-- Không có --</option>
+                  {availableParentCategories.map((cat) => (
+                    <option key={cat.code} value={cat.code}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                  Chọn danh mục cha để tạo cấu trúc thư mục phân cấp.
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="description">Mô tả</Label>
                 <Textarea
                   id="description"
@@ -205,7 +237,11 @@ export default function AdminCategoriesPage() {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Hủy
                 </Button>
                 <Button
@@ -234,6 +270,11 @@ export default function AdminCategoriesPage() {
 
               <h3 className="text-lg text-gray-900 mb-1">{category.name}</h3>
               <p className="text-xs text-gray-500 mb-2">Mã: {category.code}</p>
+              {category.parentCode && (
+                <p className="text-xs text-gray-500 mb-1">
+                  Thuộc: {category.parentCode}
+                </p>
+              )}
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                 {category.description || "Chưa có mô tả"}
               </p>
@@ -244,7 +285,11 @@ export default function AdminCategoriesPage() {
                     category.isActive ? "text-green-600" : "text-gray-400"
                   }`}
                 >
-                  {category.isActive ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                  {category.isActive ? (
+                    <Check className="w-3 h-3" />
+                  ) : (
+                    <X className="w-3 h-3" />
+                  )}
                   {category.isActive ? "Đang kích hoạt" : "Tạm tắt"}
                 </span>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

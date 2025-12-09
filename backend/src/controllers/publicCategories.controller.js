@@ -1,46 +1,59 @@
 const { pool } = require('../config/database');
 
-const mapCategory = (row) => ({
-  code: row.code,
-  name: row.name,
-  description: row.description,
-  isActive: row.is_active,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-});
-
 // GET /api/public/categories - Chỉ lấy danh mục active
-exports.getPublicCategories = async (_req, res, next) => {
+exports.getActiveCategories = async (_req, res, next) => {
   try {
     const { rows } = await pool.query(
-      `SELECT code, name, description, is_active, created_at, updated_at
+      `SELECT code, name, description, parent_code, is_active
        FROM news_categories
-       WHERE is_active = true
+       WHERE is_active = TRUE
        ORDER BY name ASC`,
     );
-    return res.json({ success: true, data: rows.map(mapCategory) });
+
+    return res.json({
+      success: true,
+      data: rows.map((row) => ({
+        code: row.code,
+        name: row.name,
+        description: row.description || '',
+        parentCode: row.parent_code || null,
+        isActive: row.is_active,
+      })),
+    });
   } catch (error) {
     return next(error);
   }
 };
 
 // GET /api/public/categories/:code
-exports.getPublicCategoryByCode = async (req, res, next) => {
+exports.getCategoryByCode = async (req, res, next) => {
   try {
     const { code } = req.params;
     const { rows } = await pool.query(
-      `SELECT code, name, description, is_active, created_at, updated_at
+      `SELECT code, name, description, parent_code, is_active
        FROM news_categories
-       WHERE code = $1 AND is_active = true
+       WHERE code = $1
        LIMIT 1`,
       [code],
     );
+
     if (!rows.length) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy danh mục' });
     }
-    return res.json({ success: true, data: mapCategory(rows[0]) });
+
+    const row = rows[0];
+
+    return res.json({
+      success: true,
+      data: {
+        code: row.code,
+        name: row.name,
+        description: row.description || '',
+        parentCode: row.parent_code || null,
+        isActive: row.is_active,
+      },
+    });
   } catch (error) {
     return next(error);
   }
 };
-
