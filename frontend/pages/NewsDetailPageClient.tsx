@@ -291,3 +291,5 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
   );
 }
 
+
+export default NewsDetailPageClient;

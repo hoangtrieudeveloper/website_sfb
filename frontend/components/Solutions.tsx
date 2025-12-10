@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Cloud,
   Code,
@@ -8,6 +10,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
+import { ScrollAnimation } from "./ScrollAnimation";
 
 export function Solutions() {
   const solutions = [
@@ -84,7 +87,7 @@ export function Solutions() {
       </div>
 
       {/* Animated Orbs */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
         <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
         <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
@@ -92,17 +95,17 @@ export function Solutions() {
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-14 max-w-4xl mx-auto">
+        <ScrollAnimation variant="fade-up" className="text-center mb-14 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6 shadow-lg">
             <Sparkles className="text-cyan-400" size={20} />
             <span className="text-white font-semibold uppercase tracking-wider text-xs">
               Giải pháp chuyên nghiệp
             </span>
           </div>
-          <h2 className="text-white mb-4">
+          <h2 className="text-white mb-4 text-3xl md:text-5xl font-bold">
             Giải pháp phần mềm đóng gói cho nhiều lĩnh vực
           </h2>
-          <p className="text-base md:text-lg text-blue-100 leading-relaxed mb-4">
+          <p className="text-base md:text-lg text-blue-100 leading-relaxed mb-6">
             SFB cung cấp giải pháp và sản phẩm phần mềm đóng gói
             nhằm giải quyết các bài toán hệ thống công nghệ
             thông tin trong các khối Chính phủ, Doanh nghiệp,
@@ -111,28 +114,25 @@ export function Solutions() {
 
           {/* Domains chips */}
           <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {domains.map((d) => (
-              <span
+            {domains.map((d, index) => (
+              <ScrollAnimation variant="fade-in" delay={index * 0.1}
                 key={d}
-                className="px-3 py-1.5 rounded-full bg-white/5 border border-white/15 text-xs md:text-sm text-blue-100"
+                className="px-4 py-2 rounded-full bg-white/5 border border-white/15 text-xs md:text-sm text-blue-100 hover:bg-white/10 transition-colors"
               >
                 {d}
-              </span>
+              </ScrollAnimation>
             ))}
           </div>
-        </div>
+        </ScrollAnimation>
 
         {/* Solutions Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-16">
+        <div className="grid lg:grid-cols-2 gap-8 mb-20">
           {solutions.map((solution, index) => {
             const Icon = solution.icon;
             return (
-              <div
+              <ScrollAnimation variant="fade-up" delay={index * 0.1}
                 key={solution.id}
-                className="group relative bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 md:p-9 hover:bg-white hover:border-white transition-all duration-700 hover:scale-[1.02] hover:shadow-2xl overflow-hidden fade-in-up"
-                style={{
-                  animationDelay: `${index * 150}ms`,
-                }}
+                className="group relative bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 md:p-9 hover:bg-white hover:border-white transition-all duration-700 hover:scale-[1.02] hover:shadow-2xl overflow-hidden"
               >
                 {/* Background Gradient on Hover */}
                 <div
@@ -155,17 +155,17 @@ export function Solutions() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-white group-hover:text-gray-900 transition-colors mb-3 text-lg md:text-xl">
+                <h3 className="text-white group-hover:text-gray-900 transition-colors mb-3 text-lg md:text-2xl font-bold">
                   {solution.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-blue-100 group-hover:text-gray-600 transition-colors leading-relaxed mb-6 text-sm md:text-base">
+                <p className="text-blue-100 group-hover:text-gray-600 transition-colors leading-relaxed mb-8 text-sm md:text-base">
                   {solution.description}
                 </p>
 
                 {/* Benefits tags */}
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-6">
                   {solution.benefits.map((benefit, i) => (
                     <span
                       key={i}
@@ -197,18 +197,18 @@ export function Solutions() {
                     className={`absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl ${solution.gradient} opacity-10 rounded-tl-full`}
                   />
                 </div>
-              </div>
+              </ScrollAnimation>
             );
           })}
         </div>
 
         {/* Bottom CTA Section */}
-        <div className="text-center relative">
-          <div className="inline-block bg-white/5 backdrop-blur-lg border border-white/20 rounded-3xl p-10 md:p-12 max-w-3xl">
-            <h3 className="text-white mb-4">
+        <ScrollAnimation variant="scale-up" className="text-center relative">
+          <div className="inline-block bg-white/5 backdrop-blur-lg border border-white/20 rounded-3xl p-10 md:p-14 max-w-4xl shadow-2xl">
+            <h3 className="text-white mb-4 text-2xl md:text-3xl font-bold">
               Sẵn sàng chuyển đổi hệ thống CNTT?
             </h3>
-            <p className="text-blue-100 text-base md:text-lg mb-8">
+            <p className="text-blue-100 text-base md:text-lg mb-8 max-w-2xl mx-auto">
               Đặt lịch tư vấn miễn phí với đội ngũ chuyên gia
               SFB để lựa chọn giải pháp phù hợp nhất cho doanh
               nghiệp của bạn.
@@ -216,7 +216,7 @@ export function Solutions() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/contact"
-                className="group px-10 py-4 md:py-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-2xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold text-sm md:text-base"
+                className="group px-10 py-4 md:py-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-2xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-bold text-sm md:text-base border border-transparent"
               >
                 Tư vấn miễn phí
                 <ArrowRight
@@ -226,13 +226,13 @@ export function Solutions() {
               </Link>
               <Link
                 href="/industries"
-                className="px-10 py-4 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/20 hover:bg-white hover:text-gray-900 hover:border-white transition-all inline-flex items-center justify-center gap-3 font-semibold text-sm md:text-base"
+                className="px-10 py-4 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/20 hover:bg-white hover:text-gray-900 hover:border-white transition-all inline-flex items-center justify-center gap-3 font-bold text-sm md:text-base"
               >
                 Xem case studies
               </Link>
             </div>
           </div>
-        </div>
+        </ScrollAnimation>
       </div>
     </section>
   );

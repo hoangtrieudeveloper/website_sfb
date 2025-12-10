@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Shield,
   CheckCircle,
@@ -9,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { ScrollAnimation } from "./ScrollAnimation";
 
 export function Features() {
   const purposeItems = [
@@ -96,23 +99,23 @@ export function Features() {
 
       <div className="container mx-auto px-6 relative z-10">
         {/* DIGITAL TRANSFORMATION BANNER */}
-        <div className="mb-16 animate-fade-in-up">
-          <div className="relative overflow-hidden rounded-3xl border border-blue-200 bg-gray-900 shadow-[0_24px_60px_rgba(15,23,42,0.45)]">
+        <ScrollAnimation variant="fade-up" className="mb-20">
+          <div className="relative overflow-hidden rounded-3xl border border-blue-200 bg-gray-900 shadow-[0_24px_60px_rgba(15,23,42,0.45)] group hover:shadow-[0_40px_80px_rgba(15,23,42,0.6)] transition-shadow duration-500">
             {/* Background */}
             <div className="absolute inset-0">
               <img
                 src="https://images.unsplash.com/photo-1526491109672-74740652b963?auto=format&fit=crop&w=1600&q=80"
                 alt="Digital Transformation"
-                className="w-full h-full object-cover opacity-70"
+                className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-1000"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-gray-900/85 via-blue-900/75 to-purple-900/85" />
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-blue-900/80 to-purple-900/90" />
             </div>
 
-            <div className="relative px-6 py-10 md:px-12 md:py-12 lg:px-16 lg:py-14 flex flex-col lg:flex-row gap-10 lg:gap-14">
+            <div className="relative px-6 py-12 md:px-12 md:py-14 lg:px-16 lg:py-16 flex flex-col lg:flex-row gap-10 lg:gap-14">
               {/* LEFT – PROCESS */}
               <div className="max-w-2xl">
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur mb-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur mb-6">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="text-[11px] font-semibold tracking-wide text-blue-100 uppercase">
                     Quy trình dịch vụ chuyển đổi số
@@ -120,97 +123,74 @@ export function Features() {
                 </div>
 
                 {/* Title & Intro */}
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-3 md:mb-4">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-white mb-4 leading-tight">
                   Chuyển đổi số không bắt đầu từ phần mềm{" "}
-                  <span className="block text-xl md:text-2xl text-blue-100 font-normal">
+                  <span className="block text-xl md:text-2xl text-blue-100 font-normal mt-2">
                     mà từ hiệu quả thực tế của doanh nghiệp.
                   </span>
                 </h2>
-                <p className="text-sm md:text-base text-blue-100 max-w-xl mb-6">
+                <p className="text-sm md:text-base text-blue-100 max-w-xl mb-8 leading-relaxed">
                   SFB giúp doanh nghiệp vận hành thông minh,
                   giảm chi phí hạ tầng, tăng năng suất và bảo
                   mật dữ liệu an toàn tuyệt đối. Chúng tôi không
                   chỉ xây phần mềm –{" "}
-                  <span className="font-semibold">
+                  <span className="font-semibold text-white">
                     chúng tôi xây hiệu quả.
                   </span>
                 </p>
 
                 {/* 4-step process */}
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-400/60 text-[11px] font-semibold text-emerald-300">
-                      1
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-blue-50">
-                        Tư vấn &amp; Đánh giá hiện trạng
+                <div className="space-y-4">
+                  {[
+                    {
+                      step: "1",
+                      title: "Tư vấn & Đánh giá hiện trạng",
+                      desc: "Phân tích nhu cầu, xác định điểm nghẽn trong hệ thống hiện tại.",
+                    },
+                    {
+                      step: "2",
+                      title: "Thiết kế giải pháp phù hợp",
+                      desc: "Xây dựng kiến trúc số hoá và mô hình triển khai cụ thể.",
+                    },
+                    {
+                      step: "3",
+                      title: "Triển khai & Tích hợp hệ thống",
+                      desc: "Lắp đặt, cấu hình và tối ưu vận hành hạ tầng công nghệ.",
+                    },
+                    {
+                      step: "4",
+                      title: "Đào tạo & Hỗ trợ vận hành",
+                      desc: "Chuyển giao kiến thức và hỗ trợ kỹ thuật 24/7.",
+                    },
+                  ].map((item, idx) => (
+                    <ScrollAnimation key={item.step} variant="slide-right" delay={idx * 0.1} className="flex gap-4 p-3 hover:bg-white/5 rounded-xl transition-colors">
+                      <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-400/60 text-xs font-bold text-emerald-300 shrink-0">
+                        {item.step}
                       </div>
-                      <p className="text-xs md:text-sm text-blue-100/90">
-                        Phân tích nhu cầu, xác định điểm nghẽn
-                        trong hệ thống hiện tại.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-400/60 text-[11px] font-semibold text-emerald-300">
-                      2
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-blue-50">
-                        Thiết kế giải pháp phù hợp
+                      <div>
+                        <div className="text-sm font-bold text-blue-50 mb-0.5">
+                          {item.title}
+                        </div>
+                        <p className="text-xs md:text-sm text-blue-100/80">
+                          {item.desc}
+                        </p>
                       </div>
-                      <p className="text-xs md:text-sm text-blue-100/90">
-                        Xây dựng kiến trúc số hoá và mô hình
-                        triển khai cụ thể.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-400/60 text-[11px] font-semibold text-emerald-300">
-                      3
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-blue-50">
-                        Triển khai &amp; Tích hợp hệ thống
-                      </div>
-                      <p className="text-xs md:text-sm text-blue-100/90">
-                        Lắp đặt, cấu hình và tối ưu vận hành hạ
-                        tầng công nghệ.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-400/60 text-[11px] font-semibold text-emerald-300">
-                      4
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-blue-50">
-                        Đào tạo &amp; Hỗ trợ vận hành
-                      </div>
-                      <p className="text-xs md:text-sm text-blue-100/90">
-                        Chuyển giao kiến thức và hỗ trợ kỹ thuật
-                        24/7.
-                      </p>
-                    </div>
-                  </div>
+                    </ScrollAnimation>
+                  ))}
                 </div>
 
                 {/* CTA buttons */}
-                <div className="mt-6 flex flex-wrap gap-3">
+                <div className="mt-8 flex flex-wrap gap-4">
                   <Link
                     href="/contact"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-gray-900 px-5 py-3 text-xs md:text-sm font-semibold hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-gray-900 px-6 py-3.5 text-xs md:text-sm font-bold hover:shadow-xl hover:-translate-y-0.5 transition-all shadow-lg shadow-white/10"
                   >
                     Nhận tư vấn miễn phí
                     <ArrowRight size={16} className="ml-0.5" />
                   </Link>
                   <Link
                     href="/solutions"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/5 px-5 py-3 text-xs md:text-sm font-semibold text-blue-50 hover:bg-white/10 transition-all"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/5 px-6 py-3.5 text-xs md:text-sm font-semibold text-blue-50 hover:bg-white/10 transition-all backdrop-blur-sm"
                   >
                     Khám phá giải pháp
                   </Link>
@@ -218,98 +198,100 @@ export function Features() {
               </div>
 
               {/* RIGHT – TRUST & CASE STUDIES */}
-              <div className="w-full lg:w-[40%] space-y-4">
+              <div className="w-full lg:w-[40%] space-y-6">
                 {/* Trusted by */}
-                <div className="rounded-2xl bg-white/5 border border-white/15 px-4 py-3 text-blue-50 backdrop-blur">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs uppercase tracking-wide text-blue-200">
-                      Được tin tưởng bởi các tổ chức hàng đầu
-                    </span>
+                <ScrollAnimation variant="fade-in" delay={0.4}>
+                  <div className="rounded-2xl bg-white/5 border border-white/15 px-5 py-4 text-blue-50 backdrop-blur shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs uppercase tracking-wide text-blue-200">
+                        Được tin tưởng bởi các tổ chức hàng đầu
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-[11px] md:text-xs">
+                      <span className="rounded-full bg-white/10 px-3 py-1.5 border border-white/5">
+                        Nam Việt JSC
+                      </span>
+                      <span className="rounded-full bg-white/10 px-3 py-1.5 border border-white/5">
+                        Hoàng Khánh
+                      </span>
+                      <span className="rounded-full bg-white/10 px-3 py-1.5 border border-white/5">
+                        Khoso.vn
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2 text-[11px] md:text-xs">
-                    <span className="rounded-full bg-white/10 px-3 py-1">
-                      Nam Việt JSC
-                    </span>
-                    <span className="rounded-full bg-white/10 px-3 py-1">
-                      Hoàng Khánh
-                    </span>
-                    <span className="rounded-full bg-white/10 px-3 py-1">
-                      Khoso.vn
-                    </span>
-                  </div>
-                </div>
+                </ScrollAnimation>
 
                 {/* KPIs */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl bg-white/5 border border-emerald-300/40 px-3 py-3 text-blue-50 text-center">
-                    <div className="text-xs uppercase tracking-wide text-emerald-200 mb-1">
-                      Hiệu quả vận hành
+                <div className="grid grid-cols-3 gap-4">
+                  <ScrollAnimation variant="scale-up" delay={0.5} className="rounded-2xl bg-white/5 border border-emerald-300/30 px-3 py-4 text-blue-50 text-center backdrop-blur hover:bg-emerald-500/10 transition-colors">
+                    <div className="text-[10px] uppercase tracking-wide text-emerald-200 mb-2">
+                      Hiệu quả
                     </div>
-                    <div className="text-xl font-semibold text-emerald-300">
+                    <div className="text-2xl font-bold text-emerald-300">
                       +40%
                     </div>
-                  </div>
-                  <div className="rounded-2xl bg-white/5 border border-rose-300/40 px-3 py-3 text-blue-50 text-center">
-                    <div className="text-xs uppercase tracking-wide text-rose-200 mb-1">
+                  </ScrollAnimation>
+                  <ScrollAnimation variant="scale-up" delay={0.6} className="rounded-2xl bg-white/5 border border-rose-300/30 px-3 py-4 text-blue-50 text-center backdrop-blur hover:bg-rose-500/10 transition-colors">
+                    <div className="text-[10px] uppercase tracking-wide text-rose-200 mb-2">
                       Chi phí IT
                     </div>
-                    <div className="text-xl font-semibold text-rose-300">
+                    <div className="text-2xl font-bold text-rose-300">
                       -30%
                     </div>
-                  </div>
-                  <div className="rounded-2xl bg-white/5 border border-cyan-300/40 px-3 py-3 text-blue-50 text-center">
-                    <div className="text-xs uppercase tracking-wide text-cyan-200 mb-1">
-                      Uptime hệ thống
+                  </ScrollAnimation>
+                  <ScrollAnimation variant="scale-up" delay={0.7} className="rounded-2xl bg-white/5 border border-cyan-300/30 px-3 py-4 text-blue-50 text-center backdrop-blur hover:bg-cyan-500/10 transition-colors">
+                    <div className="text-[10px] uppercase tracking-wide text-cyan-200 mb-2">
+                      Uptime
                     </div>
-                    <div className="text-xl font-semibold text-cyan-300">
+                    <div className="text-2xl font-bold text-cyan-300">
                       99.9%
                     </div>
-                  </div>
+                  </ScrollAnimation>
                 </div>
 
                 {/* Case study list */}
-                <div className="rounded-2xl bg-white/5 border border-white/15 px-4 py-4 text-blue-50 backdrop-blur">
-                  <div className="text-xs uppercase tracking-wide text-blue-200 mb-2">
+                <ScrollAnimation variant="fade-in" delay={0.8} className="rounded-2xl bg-white/5 border border-white/15 px-5 py-5 text-blue-50 backdrop-blur shadow-lg">
+                  <div className="text-xs uppercase tracking-wide text-blue-200 mb-3">
                     Một số case study tiêu biểu
                   </div>
-                  <ul className="space-y-1.5 text-[11px] md:text-xs text-blue-100">
-                    <li className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                  <ul className="space-y-3 text-xs text-blue-100">
+                    <li className="flex gap-3 items-center">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.8)]" />
                       <span>
                         Triển khai hệ thống ERP cho doanh nghiệp
                         sản xuất.
                       </span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                    <li className="flex gap-3 items-center">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.8)]" />
                       <span>
                         Tối ưu hoá hạ tầng cho ngân hàng và đơn
                         vị tài chính.
                       </span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                    <li className="flex gap-3 items-center">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.8)]" />
                       <span>
                         Bảo mật và giám sát mạng cho tập đoàn
                         dầu khí.
                       </span>
                     </li>
                   </ul>
-                </div>
+                </ScrollAnimation>
               </div>
             </div>
           </div>
-        </div>
+        </ScrollAnimation>
 
         {/* TITLE */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <ScrollAnimation variant="fade-up" className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-full border border-blue-200 mb-4">
             <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
             <span className="text-[11px] font-semibold tracking-wide text-blue-700 uppercase">
               Giới thiệu SFB
             </span>
           </div>
-          <h2 className="text-3xl font-semibold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900">
             Chúng tôi là ai?
           </h2>
           <p className="text-gray-600 text-lg mt-3">
@@ -317,13 +299,13 @@ export function Features() {
             chiến, chuyên sâu công nghệ và định hướng xây dựng
             hệ thống bền vững.
           </p>
-        </div>
+        </ScrollAnimation>
 
         {/* MAIN GRID – INTRO + PURPOSE + LEADERS */}
         <div className="grid lg:grid-cols-2 gap-10">
           {/* INTRO BLOCK + WHY SFB */}
-          <div className="bg-white rounded-3xl border border-blue-100 shadow-sm shadow-blue-100/40 p-8 animate-fade-in-up">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <ScrollAnimation variant="fade-up" className="bg-white rounded-3xl border border-blue-100 shadow-sm shadow-blue-100/40 p-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
               Giới thiệu SFB
             </h3>
             <p className="text-gray-700 leading-relaxed mb-6">
@@ -349,7 +331,7 @@ export function Features() {
                     size={18}
                     className="text-cyan-500"
                   />
-                  <span className="text-gray-800 text-sm">
+                  <span className="text-gray-800 text-sm font-medium">
                     {text}
                   </span>
                 </div>
@@ -357,46 +339,46 @@ export function Features() {
             </div>
 
             {/* WHY SFB GỘP VÀO TRONG CARD NÀY */}
-            <div className="mt-2 pt-5 border-t border-blue-100/70">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[11px] font-semibold tracking-[0.25em] text-blue-600 uppercase">
+            <div className="mt-8 pt-6 border-t border-blue-100/70">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-bold tracking-[0.25em] text-blue-600 uppercase">
                   Why SFB
                 </span>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
-                {advantages.map((item) => {
+                {advantages.map((item, index) => {
                   const Icon = item.icon;
                   return (
-                    <div
+                    <ScrollAnimation variant="fade-up" delay={index * 0.05}
                       key={item.title}
-                      className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50/60 border border-blue-100 px-3 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
+                      className="flex items-start gap-3 rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50/60 border border-blue-100 px-4 py-4 hover:border-blue-300 hover:shadow-sm transition-all"
                     >
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center flex-shrink-0">
-                        <Icon size={16} />
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+                        <Icon size={18} />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-[13px] font-semibold text-gray-900">
+                        <p className="text-[13px] font-bold text-gray-900">
                           {item.title}
                         </p>
                         <p className="text-[11px] text-gray-600 leading-relaxed">
                           {item.text}
                         </p>
                       </div>
-                    </div>
+                    </ScrollAnimation>
                   );
                 })}
               </div>
             </div>
 
-            <button className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl flex items-center gap-2 text-sm font-semibold hover:shadow-lg hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all">
+            <button className="mt-8 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl flex items-center gap-2 text-sm font-semibold hover:shadow-lg hover:shadow-purple-500/40 hover:-translate-y-0.5 transition-all">
               Xem chi tiết
               <ArrowRight size={16} />
             </button>
-          </div>
+          </ScrollAnimation>
 
           {/* PURPOSE BLOCK + LEADERS COMPACT */}
-          <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white p-8 rounded-3xl shadow-xl border border-blue-800 animate-fade-in-up md:animate-fade-in-up-delay">
+          <ScrollAnimation variant="fade-up" delay={0.2} className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white p-8 rounded-3xl shadow-xl border border-blue-800 flex flex-col h-full">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-blue-200 mb-1">
@@ -411,7 +393,7 @@ export function Features() {
               </div>
             </div>
 
-            <div className="space-y-5 mb-5">
+            <div className="space-y-5 mb-8">
               {purposeItems.map((item) => (
                 <div key={item.title} className="flex gap-3">
                   <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
@@ -421,7 +403,7 @@ export function Features() {
                     />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold mb-0.5">
+                    <p className="text-sm font-semibold mb-0.5 text-white">
                       {item.title}
                     </p>
                     <p className="text-xs text-blue-100 leading-relaxed">
@@ -432,7 +414,7 @@ export function Features() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-[11px] text-blue-100 mb-6">
+            <div className="flex items-center gap-2 text-[11px] text-blue-100 mb-8 bg-blue-900/40 p-3 rounded-lg border border-blue-500/30">
               <Users size={15} />
               <span>
                 Đội ngũ SFB kết hợp chuyên môn sâu và tinh thần
@@ -441,49 +423,40 @@ export function Features() {
             </div>
 
             {/* LEADERS – DÀN NGANG, GỌN GÀNG */}
-            <div className="pt-5 border-t border-blue-800/40">
+            <div className="mt-auto pt-6 border-t border-blue-800/40">
               <p className="text-[11px] font-semibold tracking-[0.2em] text-blue-200 uppercase mb-4">
                 Ban lãnh đạo
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {leaders.map((leader) => (
-                  <div
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                {leaders.map((leader, idx) => (
+                  <ScrollAnimation variant="fade-in" delay={0.3 + (idx * 0.1)}
                     key={leader.email}
-                    className="flex items-center gap-3 group p-2 rounded-xl hover:bg-white/5 transition-all"
+                    className="flex items-center gap-3 group p-2.5 rounded-xl hover:bg-white/10 transition-all cursor-pointer"
                   >
-                    <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/20 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/20 flex-shrink-0 shadow-lg">
                       <img
                         src={leader.image}
                         alt={leader.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
-                    <div className="text-xs leading-relaxed">
-                      <p className="text-white font-semibold text-sm">
+                    <div className="text-xs leading-relaxed overflow-hidden">
+                      <p className="text-white font-bold text-sm truncate">
                         {leader.name}
                       </p>
-                      <p className="text-cyan-300 text-[11px] mb-1">
+                      <p className="text-cyan-300 text-[11px] mb-0.5 truncate uppercase tracking-wider font-medium">
                         {leader.position}
                       </p>
-                      <p className="text-blue-100 text-[11px]">
-                        <span className="text-blue-200">
-                          Email:
-                        </span>{" "}
+                      <p className="text-blue-200 text-[10px] truncate">
                         {leader.email}
                       </p>
-                      <p className="text-blue-100 text-[11px]">
-                        <span className="text-blue-200">
-                          SĐT:
-                        </span>{" "}
-                        {leader.phone}
-                      </p>
                     </div>
-                  </div>
+                  </ScrollAnimation>
                 ))}
               </div>
             </div>
-          </div>
+          </ScrollAnimation>
         </div>
       </div>
     </section>

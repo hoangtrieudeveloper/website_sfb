@@ -12,10 +12,10 @@ export default function HomePage() {
   return (
     <>
       <HeroBanner />
+      <AboutCompany />
       <Features />
       <Solutions />
       <Industries />
-      <AboutCompany />
       <Testimonials />
     </>
   );

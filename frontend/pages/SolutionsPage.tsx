@@ -403,3 +403,4 @@ export function SolutionsPage() {
     </div>
   );
 }
+export default SolutionsPage;

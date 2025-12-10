@@ -7,9 +7,10 @@ const API_BASE_URL =
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  props: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const params = await props.params;
     const { slug } = params;
 
     const url = `${API_BASE_URL}/api/public/news/${slug}`;

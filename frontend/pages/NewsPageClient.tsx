@@ -293,3 +293,5 @@ export function NewsPageClient({
   );
 }
 
+
+export default NewsPageClient;

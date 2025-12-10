@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Target,
   Users,
@@ -10,6 +12,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import Link from "next/link";
+import { ScrollAnimation } from "./ScrollAnimation";
 
 export function AboutCompany() {
   const trustPillars = [
@@ -79,14 +82,14 @@ export function AboutCompany() {
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Section Title */}
-        <div className="text-center mb-16 max-w-3xl mx-auto">
+        <ScrollAnimation variant="fade-up" className="text-center mb-16 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-full border border-blue-200 mb-4">
             <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
             <span className="text-sm font-semibold text-blue-700">
               Về SFB Technology
             </span>
           </div>
-          <h2 className="text-gray-900 mb-3">
+          <h2 className="text-gray-900 mb-3 text-3xl md:text-4xl font-bold">
             Độ tin cậy của SFB Technology
           </h2>
           <p className="text-base md:text-lg text-gray-600 leading-relaxed">
@@ -94,23 +97,23 @@ export function AboutCompany() {
             minh bạch giúp SFB trở thành đối tác công nghệ tin
             cậy của hàng trăm tổ chức, doanh nghiệp.
           </p>
-        </div>
+        </ScrollAnimation>
 
         {/* Top Grid: Image + pillars */}
         <div className="grid lg:grid-cols-2 gap-14 items-center mb-18">
           {/* Image Section */}
-          <div className="relative order-2 lg:order-1">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
+          <ScrollAnimation variant="scale-up" duration={0.8} className="relative order-2 lg:order-1">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white group">
               <ImageWithFallback
                 src="https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80"
                 alt="SFB Project Meeting"
-                className="w-full h-auto"
+                className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 via-transparent to-cyan-600/20" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 via-transparent to-cyan-600/20 mix-blend-overlay" />
             </div>
 
             {/* Floating card */}
-            <div className="absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-2xl border border-gray-100 max-w-xs hidden lg:block">
+            <div className="absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-2xl border border-gray-100 max-w-xs hidden lg:block animate-pulse-glow">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
                   <TrendingUp
@@ -128,105 +131,108 @@ export function AboutCompany() {
                 </div>
               </div>
             </div>
-          </div>
+          </ScrollAnimation>
 
           {/* Pillars */}
           <div className="space-y-4 order-1 lg:order-2">
             {trustPillars.map((item, index) => {
               const Icon = item.icon;
               return (
-                <div
-                  key={index}
-                  className="group p-5 rounded-2xl border border-gray-100 hover:border-blue-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 hover:shadow-lg"
-                >
-                  <div className="flex gap-4">
-                    <div className="flex-shrink-0">
-                      <div
-                        className={`w-12 h-12 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg`}
-                      >
-                        <Icon
-                          className="text-white"
-                          size={22}
-                        />
+                <ScrollAnimation variant="slide-left" delay={index * 0.1} key={index}>
+                  <div
+                    className="group p-6 rounded-2xl border border-gray-100 hover:border-blue-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm"
+                  >
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <div
+                          className={`w-12 h-12 bg-gradient-to-br ${item.gradient} rounded-xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg`}
+                        >
+                          <Icon
+                            className="text-white"
+                            size={22}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <h4
+                          className={`text-gray-900 mb-1.5 font-bold text-lg bg-gradient-to-r ${item.gradient} bg-clip-text group-hover:text-transparent transition-all`}
+                        >
+                          {item.title}
+                        </h4>
+                        <p className="text-gray-600 text-sm mb-3 group-hover:text-gray-800 transition-colors">
+                          {item.description}
+                        </p>
+                        <ul className="space-y-1 text-xs text-gray-600">
+                          {item.bullets.map((b) => (
+                            <li key={b} className="flex gap-2 items-start">
+                              <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
-                    <div className="flex-1">
-                      <h4
-                        className={`text-gray-900 mb-1.5 bg-gradient-to-r ${item.gradient} bg-clip-text group-hover:text-transparent transition-all`}
-                      >
-                        {item.title}
-                      </h4>
-                      <p className="text-gray-600 text-sm mb-2">
-                        {item.description}
-                      </p>
-                      <ul className="space-y-1 text-xs text-gray-600">
-                        {item.bullets.map((b) => (
-                          <li key={b} className="flex gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
                   </div>
-                </div>
+                </ScrollAnimation>
               );
             })}
           </div>
         </div>
 
         {/* Bottom compact dark block */}
-        <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 rounded-3xl p-8 md:p-10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
-          <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
-              <div>
-                <h3 className="text-white mb-2">
-                  Bảo mật, uy tín & pháp lý rõ ràng
-                </h3>
-                <p className="text-sm md:text-base text-blue-100 max-w-xl">
-                  SFB chú trọng bảo mật, tuân thủ pháp luật, duy
-                  trì uy tín qua sự hài lòng và gắn bó lâu dài
-                  của khách hàng.
-                </p>
+        <ScrollAnimation variant="fade-up" delay={0.3}>
+          <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 rounded-3xl p-8 md:p-10 relative overflow-hidden shadow-2xl mt-20">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
+            <div className="relative z-10">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
+                <div>
+                  <h3 className="text-white mb-2 text-2xl font-bold">
+                    Bảo mật, uy tín & pháp lý rõ ràng
+                  </h3>
+                  <p className="text-sm md:text-base text-blue-100 max-w-xl">
+                    SFB chú trọng bảo mật, tuân thủ pháp luật, duy
+                    trì uy tín qua sự hài lòng và gắn bó lâu dài
+                    của khách hàng.
+                  </p>
+                </div>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-3 px-6 py-3 bg-white text-gray-900 rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 text-sm font-semibold shrink-0"
+                >
+                  Trao đổi về dự án của bạn
+                  <CheckCircle2 size={18} />
+                </Link>
               </div>
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-3 px-6 py-3 bg-white text-gray-900 rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 text-sm font-semibold"
-              >
-                Trao đổi về dự án của bạn
-                <CheckCircle2 size={18} />
-              </Link>
-            </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {trustValues.map((item, index) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={index}
-                    className="group p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white hover:border-white transition-all duration-400 hover:-translate-y-1.5 hover:shadow-2xl"
-                  >
-                    <div className="inline-flex mb-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 group-hover:from-blue-600 group-hover:to-cyan-600 rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-                        <Icon
-                          className="text-white"
-                          size={22}
-                        />
+              <div className="grid md:grid-cols-3 gap-6">
+                {trustValues.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <div
+                      key={index}
+                      className="group p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white hover:border-white transition-all duration-400 hover:-translate-y-1.5 hover:shadow-xl"
+                    >
+                      <div className="inline-flex mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 group-hover:from-blue-600 group-hover:to-cyan-600 rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                          <Icon
+                            className="text-white"
+                            size={22}
+                          />
+                        </div>
                       </div>
+                      <div className="text-white group-hover:text-gray-900 font-bold mb-2 transition-colors text-base">
+                        {item.title}
+                      </div>
+                      <p className="text-[13px] text-blue-100 group-hover:text-gray-600 leading-relaxed transition-colors">
+                        {item.text}
+                      </p>
                     </div>
-                    <div className="text-white group-hover:text-gray-900 font-semibold mb-1.5 transition-colors text-sm">
-                      {item.title}
-                    </div>
-                    <p className="text-[13px] text-blue-100 group-hover:text-gray-600 leading-relaxed">
-                      {item.text}
-                    </p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollAnimation>
       </div>
     </section>
   );

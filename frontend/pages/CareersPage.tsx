@@ -426,3 +426,4 @@ export function CareersPage() {
     </div>
   );
 }
+export default CareersPage;

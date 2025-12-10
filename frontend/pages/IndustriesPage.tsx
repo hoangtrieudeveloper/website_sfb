@@ -489,3 +489,4 @@ export function IndustriesPage() {
     </div>
   );
 }
+export default IndustriesPage;
