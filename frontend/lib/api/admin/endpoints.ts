@@ -10,6 +10,12 @@ export const AdminEndpoints = {
     logout: "/api/auth/logout",
   },
   
+  // Menus
+  menus: {
+    list: "/api/admin/menus",
+    detail: (id: number) => `/api/admin/menus/${id}`,
+  },
+  
   // Users
   users: {
     list: "/api/admin/users",

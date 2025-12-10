@@ -124,6 +124,13 @@ const menuItems: AdminNavItem[] = [
     requiredPermissions: ["media.view", "media.manage", "admin"],
   },
   {
+    id: "menus",
+    label: "Quản lý menu",
+    href: "/admin/menus",
+    icon: FolderTree,
+    requiredPermissions: ["menus.view", "menus.manage", "admin"],
+  },
+  {
     id: "settings",
     label: "Cài đặt",
     href: "/admin/settings",

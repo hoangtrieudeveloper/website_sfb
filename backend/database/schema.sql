@@ -200,6 +200,46 @@ VALUES
   ('media.manage', 'Quản lý thư viện Media', 'media', 'Upload, xóa, quản lý file và thư mục media', TRUE)
 ON CONFLICT (code) DO NOTHING;
 
+-- Menu management
+INSERT INTO permissions (code, name, module, description, is_active)
+VALUES
+  ('menus.view', 'Xem danh sách menu', 'menus', 'Xem danh sách menu điều hướng', TRUE),
+  ('menus.manage', 'Quản lý menu', 'menus', 'Thêm, sửa, xóa menu điều hướng', TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS menus (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  url TEXT NOT NULL,
+  position VARCHAR(50) NOT NULL DEFAULT 'header', -- header, footer, sidebar...
+  parent_id INTEGER REFERENCES menus(id) ON DELETE SET NULL,
+  sort_order INTEGER DEFAULT 0,
+  icon VARCHAR(100),
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_menus_position ON menus(position);
+CREATE INDEX IF NOT EXISTS idx_menus_parent_id ON menus(parent_id);
+CREATE INDEX IF NOT EXISTS idx_menus_is_active ON menus(is_active);
+
+DROP TRIGGER IF EXISTS update_menus_updated_at ON menus;
+CREATE TRIGGER update_menus_updated_at
+    BEFORE UPDATE ON menus
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Seed sample menus
+INSERT INTO menus (title, url, position, parent_id, sort_order, is_active)
+VALUES
+  ('Trang chủ', '/', 'header', NULL, 1, TRUE),
+  ('Giải pháp', '/#solutions', 'header', NULL, 2, TRUE),
+  ('Tin tức', '/news', 'header', NULL, 3, TRUE),
+  ('Liên hệ', '/#contact', 'header', NULL, 4, TRUE),
+  ('Footer - Giới thiệu', '/#about', 'footer', NULL, 1, TRUE)
+ON CONFLICT DO NOTHING;
+
 -- Media Library Tables
 -- Bảng media_folders (thư mục media)
 CREATE TABLE IF NOT EXISTS media_folders (
@@ -277,6 +317,8 @@ SELECT r.id, p.id
 FROM roles r
 JOIN permissions p ON p.code IN (
   'dashboard.view',
+  'menus.view',
+  'menus.manage',
   'news.view',
   'news.manage',
   'categories.view',
