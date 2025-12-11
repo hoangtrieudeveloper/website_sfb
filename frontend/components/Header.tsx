@@ -30,8 +30,20 @@ export function Header() {
 
   // Detect if we're on homepage (dark background) vs other pages (light background)
   const isHomePage = pathname === '/';
-  // Use dark theme when: on homepage AND not scrolled
-  const useDarkTheme = isHomePage && !scrolled;
+
+  // Define routes with dark backgrounds behind the transparent header
+  // Add any routes with dark hero sections here
+  const darkBackgroundRoutes = ['/about', '/products', '/solutions', '/industries', '/news', '/careers'];
+  const hasDarkBackground = darkBackgroundRoutes.some(route => pathname?.startsWith(route)) || false;
+
+
+  // Determine text color based on scroll state and background
+  // When scrolled: header is white/opaque -> ALWAYS use dark text
+  // When not scrolled (transparent header):
+  //   - If page has dark background -> use WHITE text (for contrast)
+  //   - If page has light background -> use DARK text (for visibility)
+  const useDarkText = scrolled ? true : !hasDarkBackground;
+
 
   // Language options with flags
   const languages = [
@@ -39,8 +51,9 @@ export function Header() {
     { code: "en" as const, native_name: "English", img_icon_url: "/icons/flags/en.svg" },
   ];
 
+
   const currentLanguageObj = languages.find(lang => lang.code === language);
-  const borderColor = useDarkTheme ? "border-white/30" : "border-gray-300";
+
 
   const navLinks: NavLink[] = [
     { href: "/", label: language === "vi" ? "Trang chủ" : "Home" },
@@ -178,186 +191,144 @@ export function Header() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`fixed left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-md py-4 top-0"
-          : "bg-transparent py-8 top-12"
+        className={`fixed left-0 right-0 z-50 transition-all duration-500 ${scrolled
+          ? "bg-white/80 backdrop-blur-xl shadow-lg py-3 top-0 border-b border-white/20"
+          : "bg-white/30 backdrop-blur-md shadow-sm py-3 top-12"
           }`}
       >
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-8">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group relative z-50">
+            <Link href="/" className="flex items-center gap-2 group relative z-50">
               <div className="relative">
-                <div
-                  className={`
-                    flex items-center justify-center
-                    ${isHomePage ? "w-16 h-16" : "w-12 h-12 md:w-14 md:h-14"}
-                    transition-all duration-300
-                    group-hover:scale-105
-                  `}
-                >
+                <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <img
                     src="https://sfb.vn/wp-content/uploads/2020/04/logo-2.png"
                     alt="SFB Technology"
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-contain transition-all duration-500 drop-shadow-md group-hover:drop-shadow-xl"
                   />
                 </div>
-
                 {/* Glow Effect */}
-                <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/30 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none animate-pulse" />
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
+              </div>
+              <div className="flex flex-col">
+                <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>SFB</span>
+                <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>Smart Solutions Business</span>
               </div>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-6">
-              <nav className="flex items-center gap-1 p-1.5 rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200/50 shadow-lg">
-                {navLinks.map((link) => (
-                  <div
-                    key={link.href}
-                    className="relative"
-                    onMouseEnter={() => link.children && handleDropdownEnter(link.href)}
-                    onMouseLeave={handleDropdownLeave}
-                  >
-                    <Link
-                      href={link.href}
-                      className={`px-4 py-2.5 transition-all relative group rounded-xl text-sm font-semibold flex items-center gap-1.5 ${isActivePath(link.href)
-                        ? "text-white bg-gradient-to-r from-[#006FB3] to-[#0088D9] shadow-md"
-                        : "text-gray-700 hover:text-[#006FB3] hover:bg-gray-50"
-                        }`}
-                      aria-label={link.label}
-                      aria-haspopup={link.children ? "true" : undefined}
-                      aria-expanded={link.children && activeDropdown === link.href ? "true" : "false"}
-                    >
-                      {link.label}
-                      {link.children && (
-                        <ChevronDown
-                          size={14}
-                          className={`transition-transform ${activeDropdown === link.href ? "rotate-180" : ""
-                            }`}
-                        />
-                      )}
-                      {isActivePath(link.href) && (
-                        <motion.span
-                          layoutId="activeNav"
-                          className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#006FB3] to-[#0088D9] -z-10 shadow-md"
-                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                    </Link>
-
-                    {/* Dropdown Menu */}
-                    {link.children && (
-                      <AnimatePresence>
-                        {activeDropdown === link.href && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-xl"
-                            onMouseEnter={() => handleDropdownEnter(link.href)}
-                            onMouseLeave={handleDropdownLeave}
-                          >
-                            {/* Gradient header */}
-                            <div className="h-1 bg-gradient-to-r from-[#006FB3] via-cyan-500 to-[#0088D9]" />
-
-                            <div className="p-3">
-                              {link.children.map((child, idx) => (
-                                <motion.div
-                                  key={child.href}
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: idx * 0.05 }}
-                                >
-                                  <Link
-                                    href={child.href}
-                                    className="block p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group border border-transparent hover:border-blue-100 hover:shadow-md"
-                                  >
-                                    <div className="flex items-start gap-3">
-                                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                        <span className="text-white font-bold text-sm">{idx + 1}</span>
-                                      </div>
-                                      <div className="flex-1">
-                                        <div className="font-semibold text-gray-900 group-hover:text-[#006FB3] transition-colors mb-1">
-                                          {child.label}
-                                        </div>
-                                        {child.description && (
-                                          <div className="text-xs text-gray-500 leading-relaxed">
-                                            {child.description}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </Link>
-                                </motion.div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    )}
-                  </div>
-                ))}
-              </nav>
-
-
-              {/* Language Switcher */}
-              <div
-                className="relative"
-                onMouseEnter={() => setHoverLang(true)}
-                onMouseLeave={() => setHoverLang(false)}
-              >
-                <button
-                  className={`flex items-center justify-center w-10 h-10 border ${borderColor} rounded-full overflow-hidden transition-transform hover:scale-110`}
-                  aria-label="Change language"
+            {/* Desktop Navigation - Centered */}
+            <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+              {navLinks.map((link) => (
+                <div
+                  key={link.href}
+                  className="relative"
+                  onMouseEnter={() => link.children && handleDropdownEnter(link.href)}
+                  onMouseLeave={handleDropdownLeave}
                 >
-                  <img
-                    src={currentLanguageObj?.img_icon_url || "/icons/flags/vi.svg"}
-                    alt={currentLanguageObj?.native_name}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
+                  <Link
+                    href={link.href}
+                    className={`px-4 py-2 transition-all duration-500 relative group text-xs font-bold uppercase tracking-wide flex items-center gap-1 ${isActivePath(link.href)
+                      ? useDarkText
+                        ? "text-[#006FB3]"
+                        : "text-white"
+                      : useDarkText
+                        ? "text-gray-700 hover:text-[#006FB3] hover:-translate-y-0.5"
+                        : "text-white/90 hover:text-white hover:-translate-y-0.5"
+                      }`}
+                    aria-label={link.label}
+                    aria-haspopup={link.children ? "true" : undefined}
+                    aria-expanded={link.children && activeDropdown === link.href ? "true" : "false"}
+                  >
+                    {link.label}
+                    {link.children && (
+                      <ChevronDown
+                        size={12}
+                        className={`transition-transform duration-300 ${activeDropdown === link.href ? "rotate-180" : ""}`}
+                      />
+                    )}
+                    {/* Active indicator */}
+                    {isActivePath(link.href) && (
+                      <motion.span
+                        layoutId="activeNav"
+                        className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-colors duration-500 ${useDarkText ? 'bg-gradient-to-r from-[#006FB3] to-[#0088D9]' : 'bg-white'}`}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    {/* Hover underline effect */}
+                    <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full scale-x-0 group-hover:scale-x-100 transition-all duration-500 origin-left ${useDarkText ? 'bg-gradient-to-r from-[#006FB3] to-[#0088D9]' : 'bg-white'}`} />
+                  </Link>
 
-                <AnimatePresence>
-                  {hoverLang && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      className="absolute right-0 mt-2 bg-white shadow-xl rounded-xl py-2 w-40 z-50"
-                    >
-                      {languages.map((lang) => (
-                        <button
-                          key={lang.code}
-                          onClick={() => {
-                            setLanguage(lang.code);
-                            setHoverLang(false);
-                          }}
-                          className={`flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${lang.code === language
-                            ? "font-semibold text-[#006FB3] bg-blue-50"
-                            : ""
-                            }`}
+                  {/* Dropdown Menu */}
+                  {link.children && (
+                    <AnimatePresence>
+                      {activeDropdown === link.href && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-xl"
+                          onMouseEnter={() => handleDropdownEnter(link.href)}
+                          onMouseLeave={handleDropdownLeave}
                         >
-                          <img
-                            src={lang.img_icon_url || "/icons/flags/vi.svg"}
-                            alt={lang.native_name}
-                            className="w-5 h-5 mr-2 rounded-sm object-cover"
-                          />
-                          {lang.native_name}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                          {/* Gradient header */}
+                          <div className="h-1 bg-gradient-to-r from-[#006FB3] via-cyan-500 to-[#0088D9]" />
 
-              {/* CTA */}
+                          <div className="p-3">
+                            {link.children.map((child, idx) => (
+                              <motion.div
+                                key={child.href}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                              >
+                                <Link
+                                  href={child.href}
+                                  className="block p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group border border-transparent hover:border-blue-100 hover:shadow-md"
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                      <span className="text-white font-bold text-sm">{idx + 1}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-gray-900 group-hover:text-[#006FB3] transition-colors mb-1">
+                                        {child.label}
+                                      </div>
+                                      {child.description && (
+                                        <div className="text-xs text-gray-500 leading-relaxed">
+                                          {child.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </Link>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
+                </div>
+              ))}
+            </nav>
+
+            {/* Contact Info & CTA */}
+            <div className="hidden lg:flex items-center gap-4">
+              <div className="text-right group cursor-pointer">
+                <div className={`text-xs transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>Liên hệ</div>
+                <a href="tel:0888917999" className={`text-sm font-bold transition-all duration-500 hover:scale-105 inline-block ${useDarkText ? 'text-gray-900 hover:text-[#006FB3]' : 'text-white hover:text-cyan-200'}`}>
+                  0888.917.999
+                </a>
+              </div>
               <Link
                 href="/contact"
-                className="ml-2 px-6 py-2.5 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl hover:shadow-lg hover:shadow-[#006FB3]/40 transition-all transform hover:scale-105 hover:-translate-y-0.5 text-sm font-semibold"
+                className="relative px-5 py-2 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-full hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 text-xs font-bold uppercase tracking-wide overflow-hidden group"
               >
-                {language === "vi" ? "Liên hệ ngay" : "Contact Us"}
+                {/* Shine effect */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+                <span className="relative z-10">{language === "vi" ? "Liên hệ ngay" : "Contact Now"}</span>
               </Link>
             </div>
 
