@@ -316,9 +316,11 @@ export function Header() {
 
             {/* Contact Info & CTA */}
             <div className="hidden lg:flex items-center gap-4">
-              <div className="text-right group cursor-pointer">
-                <div className={`text-xs transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>Liên hệ</div>
-                <a href="tel:0888917999" className={`text-sm font-bold transition-all duration-500 hover:scale-105 inline-block ${useDarkText ? 'text-gray-900 hover:text-[#006FB3]' : 'text-white hover:text-cyan-200'}`}>
+              <div className="text-right group">
+                <a href="mailto:info@sfb.vn" className={`block text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
+                  info@sfb.vn
+                </a>
+                <a href="tel:0888917999" className={`block text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
                   0888.917.999
                 </a>
               </div>
