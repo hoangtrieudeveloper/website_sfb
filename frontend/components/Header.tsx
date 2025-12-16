@@ -24,9 +24,23 @@ export function Header() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoverLang, setHoverLang] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
   const pathname = usePathname();
   const dropdownTimeoutRef = useRef<NodeJS.Timeout>();
   const headerRef = useRef<HTMLElement>(null);
+
+  // Check announcement dismissal status
+  useEffect(() => {
+    const dismissed = localStorage.getItem("announcementDismissed");
+    if (dismissed === "true") {
+      setShowAnnouncement(false);
+    }
+  }, []);
+
+  const handleDismissAnnouncement = () => {
+    setShowAnnouncement(false);
+    localStorage.setItem("announcementDismissed", "true");
+  };
 
   // Detect if we're on homepage (dark background) vs other pages (light background)
   const isHomePage = pathname === '/';
@@ -172,7 +186,7 @@ export function Header() {
   return (
     <>
       {/* Scroll Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200/30 z-[60]">
+      <div className="fixed top-0 left-0 right-0 h-1 bg-transparent z-[60]">
         <motion.div
           className="h-full bg-gradient-to-r from-[#006FB3] via-cyan-500 to-[#006FB3]"
           style={{ width: `${scrollProgress}%` }}
@@ -183,7 +197,10 @@ export function Header() {
 
       {/* Announcement Bar - positioned at very top */}
       <div className="fixed top-0 left-0 right-0 z-[51]">
-        <AnnouncementBar />
+        <AnnouncementBar
+          isVisible={showAnnouncement}
+          onDismiss={handleDismissAnnouncement}
+        />
       </div>
 
       <motion.header
@@ -193,7 +210,7 @@ export function Header() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={`fixed left-0 right-0 z-50 transition-all duration-500 ${scrolled
           ? "bg-white/80 backdrop-blur-xl shadow-lg py-3 top-0 border-b border-white/20"
-          : "bg-white/30 backdrop-blur-md shadow-sm py-3 top-12"
+          : `bg-transparent shadow-none backdrop-blur-none py-3 ${showAnnouncement ? 'top-12' : 'top-0'}`
           }`}
       >
         <div className="container mx-auto px-6">

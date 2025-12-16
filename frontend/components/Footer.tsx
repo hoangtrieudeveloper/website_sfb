@@ -1,14 +1,6 @@
-import {
-  MapPin,
-  Phone,
-  Mail,
-  Facebook,
-  Twitter,
-  Instagram,
-  Send,
-  ArrowRight,
-} from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Send } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -32,7 +24,7 @@ export function Footer() {
       href: "/solutions",
     },
     {
-      name: "Thiết kế & xây dựng giải pháp cổng thông tin điện tử",
+      name: "Thiết kế & xây dựng giải pháp cổng TTĐT",
       href: "/solutions",
     },
     {
@@ -50,117 +42,90 @@ export function Footer() {
     {
       icon: Facebook,
       href: "https://www.facebook.com",
-      color: "hover:bg-blue-600",
     },
     {
       icon: Twitter,
       href: "https://twitter.com",
-      color: "hover:bg-sky-500",
+    },
+    {
+      icon: Linkedin, // Use Pinterest if intended, but Linkedin is standard for business
+      href: "https://www.linkedin.com",
     },
     {
       icon: Instagram,
       href: "https://www.instagram.com",
-      color: "hover:bg-pink-500",
     },
   ];
 
   return (
-    <footer
-      id="contact"
-      className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white"
-    >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
+    <footer className="relative bg-[#F8F9FA] pt-24 pb-8 overflow-hidden text-[#334155]">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-16">
+          {/* Column 1: Logo & Intro */}
+          <div className="space-y-6">
+            <Link href="/" className="inline-block">
+              {/* Logo Placeholder - replaced with actual logo when available or text fallback that looks good */}
+              <div className="flex items-center gap-3">
+                {/* Logo Image */}
+                <div className="w-[74.73px] flex-shrink-0">
+                  <img
+                    src="/images/sfb.svg"
+                    alt="SFB Technology"
+                    className="w-full h-auto object-contain"
+                  />
+                </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10" />
-
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Top Section */}
-        <div className="py-16 grid md:grid-cols-12 gap-12">
-          {/* Company Info */}
-          <div className="md:col-span-4 space-y-6">
-            <div className="flex items-center gap-3 group cursor-pointer">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg">
-                  <span className="text-white text-2xl font-bold">
+                {/* Text Stack */}
+                <div className="flex flex-col" style={{ fontFamily: 'UTM Alexander, sans-serif' }}>
+                  <span
+                    className="text-[#006FB3] font-normal uppercase leading-[100%]"
+                    style={{ fontSize: '38px' }}
+                  >
                     SFB
                   </span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl opacity-0 group-hover:opacity-30 blur-xl transition-opacity" />
-              </div>
-              <div>
-                <div className="text-white font-bold text-xl">
-                  SFB
-                </div>
-                <div className="text-cyan-400 text-sm font-medium tracking-wide">
-                  Smart Solutions
+                  <span
+                    className="text-[#525252] font-normal uppercase leading-[100%]"
+                    style={{ fontSize: '8px' }}
+                  >
+                    Smart Solutions Business
+                  </span>
                 </div>
               </div>
-            </div>
+            </Link>
 
-            <p className="text-gray-300 leading-relaxed text-lg">
-              SFB có một đội ngũ chuyên gia CNTT trẻ, có kiến
-              thức chuyên sâu về Công nghệ Thông tin, Phát triển
-              Web và phát triển phần mềm ứng dụng.
+            <p className="text-[#334155] leading-relaxed text-[15px]">
+              SFB có một đội ngũ chuyên gia CNTT trẻ, có kiến thức chuyên sâu về Công nghệ Thông tin, Phát triển Web và phát triển phần mềm ứng dụng.
             </p>
 
-            {/* Certifications */}
-            <div className="flex flex-wrap gap-3">
-              <div className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg">
-                <div className="text-xs text-cyan-400 font-semibold">
-                  ISO 9001:2015
-                </div>
-              </div>
-              <div className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg">
-                <div className="text-xs text-cyan-400 font-semibold">
-                  ISO 27001
-                </div>
-              </div>
-            </div>
-
-            {/* Social Media */}
-            <div className="pt-2">
-              <div className="flex gap-3">
-                {socialLinks.map((social, index) => {
-                  const Icon = social.icon;
-                  return (
-                    <a
-                      key={index}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`w-10 h-10 border-2 border-white/20 rounded-xl flex items-center justify-center ${social.color} hover:border-white transition-all transform hover:scale-110 hover:-translate-y-1 group`}
-                    >
-                      <Icon
-                        className="text-gray-300 group-hover:text-white transition-colors"
-                        size={18}
-                      />
-                    </a>
-                  );
-                })}
-              </div>
+            {/* Social Icons (Circles) */}
+            <div className="flex gap-3 pt-2">
+              {socialLinks.map((social, index) => {
+                const Icon = social.icon;
+                return (
+                  <a
+                    key={index}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 border border-[#E2E8F0] rounded-full flex items-center justify-center text-[#64748B] hover:bg-[#006FB3] hover:text-white hover:border-[#006FB3] transition-all duration-300"
+                  >
+                    <Icon size={16} />
+                  </a>
+                )
+              })}
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="md:col-span-2">
-            <h4 className="text-white mb-6 relative inline-block">
-              Liên kết
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-            </h4>
+          {/* Column 2: Links */}
+          <div>
+            <h4 className="text-[#0F172A] font-bold text-lg mb-6">Liên kết</h4>
             <ul className="space-y-3">
-              {quickLinks.map((link, index) => (
-                <li key={index}>
+              {quickLinks.map((link, idx) => (
+                <li key={idx}>
                   <Link
                     href={link.href}
-                    className="text-gray-300 hover:text-white hover:translate-x-2 inline-flex items-center gap-2 transition-all duration-300 group"
+                    className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]"
                   >
-                    <ArrowRight
-                      size={14}
-                      className="opacity-0 group-hover:opacity-100 -ml-5 group-hover:ml-0 transition-all"
-                    />
                     {link.name}
                   </Link>
                 </li>
@@ -168,161 +133,67 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Services */}
-          <div className="md:col-span-3">
-            <h4 className="text-white mb-6 relative inline-block">
-              Dịch vụ
-              <span className="absolute -bottom-2 left-0 w-12 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-            </h4>
+          {/* Column 3: Services */}
+          <div>
+            <h4 className="text-[#0F172A] font-bold text-lg mb-6">Dịch vụ</h4>
             <ul className="space-y-3">
-              {solutions.map((solution, index) => (
-                <li key={index}>
+              {solutions.map((item, idx) => (
+                <li key={idx}>
                   <Link
-                    href={solution.href}
-                    className="text-gray-300 hover:text-white hover:translate-x-2 inline-flex items-center gap-2 transition-all duration-300 group"
+                    href={item.href}
+                    className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]"
                   >
-                    <ArrowRight
-                      size={14}
-                      className="opacity-0 group-hover:opacity-100 -ml-5 group-hover:ml-0 transition-all"
-                    />
-                    {solution.name}
+                    {item.name}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact Info */}
-          <div className="md:col-span-3">
-            <h4 className="text-white mb-6 relative inline-block">
-              Thông tin liên hệ
-              <span className="absolute -bottom-2 left-0 w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-            </h4>
-            <ul className="space-y-5">
-              {/* Address */}
-              <li className="flex gap-4 group">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-cyan-600 transition-all">
-                    <MapPin
-                      className="text-cyan-400 group-hover:text-white transition-colors"
-                      size={20}
-                    />
-                  </div>
-                </div>
-                <div className="text-gray-300 leading-relaxed">
-                  <div className="font-semibold text-white mb-1">
-                    Địa chỉ
-                  </div>
-                  P303, Tầng 3, Khách sạn Thể Thao, Số 15 Lê Văn
-                  Thiêm,
-                  <br />
-                  P. Nhân Chính, Q. Thanh Xuân, Hà Nội.
-                </div>
-              </li>
-
-              {/* Phone */}
-              <li className="flex gap-4 group">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-cyan-600 transition-all">
-                    <Phone
-                      className="text-cyan-400 group-hover:text-white transition-colors"
-                      size={20}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-white mb-1">
-                    Hotline
-                  </div>
-                  <a
-                    href="tel:0888917999"
-                    className="text-gray-300 hover:text-cyan-400 transition-colors"
-                  >
-                    0888 917 999
-                  </a>
-                </div>
-              </li>
-
-              {/* Email */}
-              <li className="flex gap-4 group">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-cyan-600 transition-all">
-                    <Mail
-                      className="text-cyan-400 group-hover:text-white transition-colors"
-                      size={20}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-white mb-1">
-                    Email
-                  </div>
-                  <a
-                    href="mailto:info@sfb.vn"
-                    className="text-gray-300 hover:text-cyan-400 transition-colors"
-                  >
-                    info@sfb.vn
-                  </a>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Newsletter / CTA */}
-        <div className="py-12 border-t border-white/10">
-          <div className="max-w-2xl mx-auto text-center">
-            <h4 className="text-white mb-3 text-lg font-semibold">
-              ĐĂNG KÝ TƯ VẤN!
-            </h4>
-            <p className="text-gray-300 mb-6">
-              Để đội ngũ SFB liên hệ và tư vấn giải pháp phù hợp
-              nhất cho doanh nghiệp của bạn.
-            </p>
-            <div className="flex gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Email của bạn"
-                className="flex-1 px-6 py-4 bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 transition-all"
-              />
-              <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 flex items-center gap-2 font-semibold">
-                <Send size={20} />
-                <span className="hidden sm:inline">
-                  Đăng ký
-                </span>
-              </button>
+          {/* Column 4: Contact Info */}
+          <div>
+            <h4 className="text-[#0F172A] font-bold text-lg mb-6">Thông tin liên hệ</h4>
+            <div className="space-y-4">
+              <div>
+                <span className="font-bold text-[#334155] block mb-1 text-[15px]">Địa chỉ</span>
+                <p className="text-[#334155] text-[15px] leading-relaxed">
+                  P303, Tầng 3, Khách hạn Thể thao, Số 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.
+                </p>
+              </div>
+              <div>
+                <span className="font-bold text-[#334155] inline-block mr-1 text-[15px]">Hotline:</span>
+                <a href="tel:0888917999" className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]">
+                  0888 917 999
+                </a>
+              </div>
+              <div>
+                <span className="font-bold text-[#334155] inline-block mr-1 text-[15px]">Email:</span>
+                <a href="mailto:info@sfb.vn" className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]">
+                  info@sfb.vn
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="py-8 border-t border-white/10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-gray-400 text-sm">
-              © {currentYear} SFBTECH.,JSC. All rights
-              reserved.
+        <div className="pt-8 border-t border-[#E2E8F0]">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-[#94A3B8] text-sm">
+              © {currentYear} SFBTECH.,JSC. All rights reserved.
             </p>
-            <div className="flex gap-6 text-sm">
-              <a
-                href="#"
-                className="text-gray-400 hover:text-cyan-400 transition-colors"
-              >
+            <div className="flex items-center gap-6">
+              <Link href="/privacy" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors">
                 Chính sách bảo mật
-              </a>
-              <span className="text-gray-600">|</span>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-cyan-400 transition-colors"
-              >
+              </Link>
+              <div className="h-4 w-px bg-[#E2E8F0]"></div>
+              <Link href="/terms" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors">
                 Điều khoản sử dụng
-              </a>
-              <span className="text-gray-600">|</span>
-              <a
-                href="/contact"
-                className="text-gray-400 hover:text-cyan-400 transition-colors"
-              >
+              </Link>
+              <div className="h-4 w-px bg-[#E2E8F0]"></div>
+              <Link href="/contact" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors">
                 Liên hệ
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -1,16 +1,15 @@
 "use client";
 
+import Link from "next/link";
+import { ScrollAnimation } from "./ScrollAnimation";
 import {
+  ArrowRight,
+  CheckCircle2,
   Cloud,
   Code,
   Database,
   LineChart,
-  ArrowRight,
-  Sparkles,
-  CheckCircle2,
 } from "lucide-react";
-import Link from "next/link";
-import { ScrollAnimation } from "./ScrollAnimation";
 
 export function Solutions() {
   const solutions = [
@@ -25,46 +24,42 @@ export function Solutions() {
         "Giảm rủi ro dự án",
         "Chất lượng đồng nhất",
       ],
-      gradient: "from-blue-500 via-cyan-500 to-teal-500",
+      buttonText: "Tìm hiểu cách SFB triển khai",
+      buttonLink: "/contact",
+      iconGradient: "from-cyan-400 to-blue-600",
     },
     {
       id: 2,
       icon: Code,
-      title: "Công nghệ .NET của Microsoft",
+      title: "Công nghệ .Net của Microsoft",
       description:
-        "SFB lựa chọn nền tảng .NET phổ biến và ổn định của Microsoft để xây dựng hệ thống cho khách hàng – dễ phát triển, bảo mật cao, dễ bảo trì và mở rộng lâu dài.",
-      benefits: [
-        "Bảo mật cao",
-        "Dễ bảo trì",
-        "Hệ sinh thái mạnh",
-      ],
-      gradient: "from-purple-500 via-indigo-500 to-blue-500",
+        "Nền tảng phát triển mạnh mẽ, đa ngôn ngữ và đa hệ điều hành, hỗ trợ xây dựng ứng dụng từ web, mobile đến enterprise. .NET mang lại hiệu suất cao, bảo mật và tốc độ triển khai tối ưu.",
+      benefits: ["Bảo mật cao", "Dễ bảo trì", "Hệ sinh thái mạnh"],
+      buttonText: "Xem case studies",
+      buttonLink: "/industries",
+      iconGradient: "from-fuchsia-400 to-indigo-600",
     },
     {
       id: 3,
       icon: Database,
       title: "Giải pháp lưu trữ hiện đại & Big Data",
       description:
-        "Xu hướng dữ liệu lớn (Big Data) giống như các hệ thống Google, Facebook là tất yếu. SFB tiên phong xây dựng giải pháp lưu trữ hiện đại, xử lý khối lượng dữ liệu lớn một cách an toàn và hiệu quả.",
-      benefits: [
-        "Big Data-ready",
-        "Hiệu năng cao",
-        "An toàn dữ liệu",
-      ],
-      gradient: "from-emerald-500 via-green-500 to-lime-500",
+        "Hạ tầng lưu trữ tiên tiến giúp xử lý và quản lý dữ liệu khổng lồ theo thời gian thực. Big Data cho phép phân tích sâu, phát hiện xu hướng và đưa ra quyết định dựa trên dữ liệu chính xác.",
+      benefits: ["Big Data-ready", "Hiệu năng cao", "An toàn dữ liệu"],
+      buttonText: "Tư vấn miễn phí",
+      buttonLink: "/contact",
+      iconGradient: "from-emerald-400 to-green-600",
     },
     {
       id: 4,
       icon: Cloud,
       title: "Khả năng mở rộng linh hoạt",
       description:
-        "Kiến trúc hệ thống được thiết kế với tư duy mở rộng: cả về hạ tầng vật lý (N-Tier) lẫn kiến trúc phần mềm (N-Layer). Sẵn sàng đáp ứng nhu cầu tăng trưởng của doanh nghiệp.",
-      benefits: [
-        "N-Tier / N-Layer",
-        "Dễ mở rộng",
-        "Sẵn sàng quy mô lớn",
-      ],
-      gradient: "from-orange-500 via-amber-500 to-yellow-500",
+        "Hệ thống được thiết kế để dễ dàng mở rộng theo nhu cầu: từ tăng tải người dùng đến mở rộng dịch vụ. Kiến trúc linh hoạt giúp tối ưu hiệu năng và đảm bảo hoạt động ổn định ngay cả khi quy mô tăng nhanh.",
+      benefits: ["n-Tier / n-Layer", "Dễ mở rộng", "Sẵn sàng quy mô lớn"],
+      buttonText: "Tìm hiểu cách SFB triển khai",
+      buttonLink: "/contact",
+      iconGradient: "from-orange-400 to-pink-600",
     },
   ];
 
@@ -79,45 +74,31 @@ export function Solutions() {
   return (
     <section
       id="solutions"
-      className="relative py-28 overflow-hidden"
+      className="relative py-24 overflow-visible"
+      style={{
+        background: "linear-gradient(236.99deg, #80C0E4 7%, #1D8FCF 71.94%)",
+      }}
     >
-      {/* Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
-      </div>
-
-      {/* Animated Orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-        <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
-      </div>
-
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Section Header */}
-        <ScrollAnimation variant="fade-up" className="text-center mb-14 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6 shadow-lg">
-            <Sparkles className="text-cyan-400" size={20} />
-            <span className="text-white font-semibold uppercase tracking-wider text-xs">
-              Giải pháp chuyên nghiệp
-            </span>
+      <div className="container mx-auto px-6">
+        {/* Header */}
+        <ScrollAnimation variant="fade-up" className="text-center max-w-5xl mx-auto">
+          <div className="text-white/85 text-xs font-semibold tracking-[0.25em] uppercase mb-4">
+            GIẢI PHÁP CHUYÊN NGHIỆP
           </div>
-          <h2 className="text-white mb-4 text-3xl md:text-5xl font-bold">
-            Giải pháp phần mềm đóng gói cho nhiều lĩnh vực
-          </h2>
-          <p className="text-base md:text-lg text-blue-100 leading-relaxed mb-6">
-            SFB cung cấp giải pháp và sản phẩm phần mềm đóng gói
-            nhằm giải quyết các bài toán hệ thống công nghệ
-            thông tin trong các khối Chính phủ, Doanh nghiệp,
-            Ngân hàng, Bảo hiểm, Giáo dục và Viễn thông.
-          </p>
 
-          {/* Domains chips */}
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
-            {domains.map((d, index) => (
-              <ScrollAnimation variant="fade-in" delay={index * 0.1}
+          <h2 className="text-white font-extrabold leading-tight text-3xl md:text-5xl">
+            Giải pháp phần mềm
+            <br />
+            <span className="font-medium">đóng gói cho nhiều lĩnh vực</span>
+          </h2>
+
+          <div className="mt-7 flex flex-wrap justify-center gap-2.5">
+            {domains.map((d, i) => (
+              <ScrollAnimation
                 key={d}
-                className="px-4 py-2 rounded-full bg-white/5 border border-white/15 text-xs md:text-sm text-blue-100 hover:bg-white/10 transition-colors"
+                variant="fade-in"
+                delay={i * 0.06}
+                className="px-4 py-2 rounded-full text-sm text-white/90 border border-white/35 bg-white/10 backdrop-blur-sm hover:bg-white/15 transition-colors"
               >
                 {d}
               </ScrollAnimation>
@@ -125,114 +106,92 @@ export function Solutions() {
           </div>
         </ScrollAnimation>
 
-        {/* Solutions Grid */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-20">
-          {solutions.map((solution, index) => {
-            const Icon = solution.icon;
+        {/* ✅ GRID: gap-6 (24px) for both row and column */}
+        <div className="mt-16 grid grid-cols-1 xl:grid-cols-2 gap-6 place-items-center">
+          {solutions.map((s, idx) => {
+            const Icon = s.icon;
+
             return (
-              <ScrollAnimation variant="fade-up" delay={index * 0.1}
-                key={solution.id}
-                className="group relative bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-8 md:p-9 hover:bg-white hover:border-white transition-all duration-700 hover:scale-[1.02] hover:shadow-2xl overflow-hidden"
+              <div
+                key={s.id}
+                className="
+                  box-border
+                  w-full max-w-[606px] h-auto min-h-[487px]
+                  p-[45px]
+                  rounded-[24px]
+                  border border-[#E6E6E6]
+                  bg-white
+                  shadow-[0_18px_60px_rgba(13,80,140,0.20)]
+                  overflow-hidden
+                  transition-all duration-300
+                  hover:-translate-y-1
+                  hover:shadow-[0_26px_80px_rgba(13,80,140,0.26)]
+                "
               >
-                {/* Background Gradient on Hover */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-700`}
-                />
-
-                {/* Top Row */}
-                <div className="flex items-start justify-between mb-6">
-                  {/* Icon block */}
-                  <div className="relative">
+                <ScrollAnimation variant="fade-up" delay={idx * 0.08}>
+                  <div className="h-full flex flex-col items-center gap-[24px]">
+                    {/* Icon */}
                     <div
-                      className={`w-16 h-16 md:w-18 md:h-18 bg-gradient-to-br ${solution.gradient} rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl`}
+                      className={`
+                        w-16 h-16 rounded-2xl
+                        flex items-center justify-center
+                        bg-gradient-to-br ${s.iconGradient}
+                        shadow-[0_10px_30px_rgba(0,0,0,0.15)]
+                      `}
                     >
-                      <Icon className="text-white" size={30} />
+                      <Icon className="text-white" size={28} />
                     </div>
-                    <div
-                      className={`absolute inset-0 w-16 h-16 md:w-18 md:h-18 bg-gradient-to-br ${solution.gradient} rounded-2xl opacity-0 group-hover:opacity-40 blur-2xl transition-all duration-500`}
-                    />
-                  </div>
-                </div>
 
-                {/* Title */}
-                <h3 className="text-white group-hover:text-gray-900 transition-colors mb-3 text-lg md:text-2xl font-bold">
-                  {solution.title}
-                </h3>
+                    {/* Title */}
+                    <h3 className="text-center text-gray-900 font-extrabold text-xl md:text-2xl">
+                      {s.title}
+                    </h3>
 
-                {/* Description */}
-                <p className="text-blue-100 group-hover:text-gray-600 transition-colors leading-relaxed mb-8 text-sm md:text-base">
-                  {solution.description}
-                </p>
+                    {/* Description */}
+                    <p className="text-center text-gray-600 leading-relaxed text-sm md:text-base">
+                      {s.description}
+                    </p>
 
-                {/* Benefits tags */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {solution.benefits.map((benefit, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-cyan-50 text-[11px] md:text-xs text-white group-hover:text-blue-700 rounded-full border border-white/20 group-hover:border-blue-200 transition-all font-medium"
+                    {/* Benefits */}
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {s.benefits.map((b) => (
+                        <span
+                          key={b}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-600 bg-gray-50 border border-gray-200"
+                        >
+                          <CheckCircle2 size={14} className="text-gray-400" />
+                          {b}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Button */}
+                    <Link
+                      href={s.buttonLink}
+                      className="
+                        mt-auto
+                        inline-flex items-center justify-center gap-3
+                        px-6 md:px-7 py-3.5
+                        rounded-xl
+                        text-white font-semibold text-sm
+                        shadow-[0_14px_40px_rgba(29,143,207,0.35)]
+                        hover:shadow-[0_18px_54px_rgba(29,143,207,0.45)]
+                        transition-all
+                      "
+                      style={{
+                        background:
+                          "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
+                      }}
                     >
-                      <CheckCircle2
-                        size={14}
-                        className="group-hover:text-blue-600"
-                      />
-                      {benefit}
-                    </span>
-                  ))}
-                </div>
-
-                {/* CTA inline (optional) */}
-                <div className="flex items-center gap-3 text-xs md:text-sm text-white group-hover:text-blue-600 transition-all transform translate-x-0 group-hover:translate-x-1 cursor-pointer">
-                  <span className="font-semibold">
-                    Tìm hiểu cách SFB triển khai
-                  </span>
-                  <ArrowRight
-                    size={18}
-                    className="transform group-hover:scale-110 transition-transform"
-                  />
-                </div>
-
-                {/* Corner Decoration */}
-                <div className="absolute bottom-0 right-0 w-32 h-32 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div
-                    className={`absolute bottom-0 right-0 w-full h-full bg-gradient-to-tl ${solution.gradient} opacity-10 rounded-tl-full`}
-                  />
-                </div>
-              </ScrollAnimation>
+                      {s.buttonText}
+                      <ArrowRight size={18} />
+                    </Link>
+                  </div>
+                </ScrollAnimation>
+              </div>
             );
           })}
         </div>
-
-        {/* Bottom CTA Section */}
-        <ScrollAnimation variant="scale-up" className="text-center relative">
-          <div className="inline-block bg-white/5 backdrop-blur-lg border border-white/20 rounded-3xl p-10 md:p-14 max-w-4xl shadow-2xl">
-            <h3 className="text-white mb-4 text-2xl md:text-3xl font-bold">
-              Sẵn sàng chuyển đổi hệ thống CNTT?
-            </h3>
-            <p className="text-blue-100 text-base md:text-lg mb-8 max-w-2xl mx-auto">
-              Đặt lịch tư vấn miễn phí với đội ngũ chuyên gia
-              SFB để lựa chọn giải pháp phù hợp nhất cho doanh
-              nghiệp của bạn.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/contact"
-                className="group px-10 py-4 md:py-5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-2xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-bold text-sm md:text-base border border-transparent"
-              >
-                Tư vấn miễn phí
-                <ArrowRight
-                  className="group-hover:translate-x-2 transition-transform"
-                  size={20}
-                />
-              </Link>
-              <Link
-                href="/industries"
-                className="px-10 py-4 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/20 hover:bg-white hover:text-gray-900 hover:border-white transition-all inline-flex items-center justify-center gap-3 font-bold text-sm md:text-base"
-              >
-                Xem case studies
-              </Link>
-            </div>
-          </div>
-        </ScrollAnimation>
       </div>
     </section>
   );

@@ -5,28 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-export function AnnouncementBar() {
-    const [isVisible, setIsVisible] = useState(true);
-    const [isDismissed, setIsDismissed] = useState(false);
+interface AnnouncementBarProps {
+    isVisible: boolean;
+    onDismiss: () => void;
+}
 
-    // Check if user has dismissed the announcement
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const dismissed = localStorage.getItem("announcementDismissed");
-            if (dismissed === "true") {
-                setIsDismissed(true);
-                setIsVisible(false);
-            }
-        }
-    }, []);
-
-    const handleDismiss = () => {
-        setIsVisible(false);
-        localStorage.setItem("announcementDismissed", "true");
-        setIsDismissed(true);
-    };
-
-    if (isDismissed) return null;
+export function AnnouncementBar({ isVisible, onDismiss }: AnnouncementBarProps) {
 
     return (
         <AnimatePresence>
@@ -56,7 +40,7 @@ export function AnnouncementBar() {
                                     Nhận ưu đãi
                                 </Link>
                                 <button
-                                    onClick={handleDismiss}
+                                    onClick={onDismiss}
                                     className="p-1 hover:bg-white/20 rounded transition-colors"
                                     aria-label="Dismiss announcement"
                                 >

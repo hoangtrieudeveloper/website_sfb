@@ -28,6 +28,8 @@
     "npm": ">=9.0.0"
   },
   "dependencies": {
-    "framer-motion": "^12.23.25"
+    "@tailwindcss/vite": "^4.1.18",
+    "framer-motion": "^12.23.25",
+    "tailwindcss": "^4.1.18"
   }
 }

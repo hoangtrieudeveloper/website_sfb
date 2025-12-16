@@ -1,5 +1,12 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import { Plus_Jakarta_Sans } from "next/font/google";
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "SFB Technology - Giải pháp công nghệ hàng đầu Việt Nam",
@@ -10,7 +17,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="vi">
-      <body className="min-h-screen bg-white">{children}</body>
+      <body
+        className={`${plusJakarta.className} min-h-screen bg-white antialiased`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
