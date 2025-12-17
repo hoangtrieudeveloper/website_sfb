@@ -1,6 +1,13 @@
 "use client";
 
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+
+import {
   Package,
   CheckCircle2,
   ArrowRight,
@@ -17,13 +24,70 @@ import {
   Award,
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
+
 
 type CategoryId = "all" | "edu" | "justice" | "gov" | "kpi";
 
 export function ProductsPage() {
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryId>("all");
+  const testimonials = [
+    {
+      company: "Đối tác khối Công",
+      quote:
+        "Cám ơn các bạn SFB đã dành nhiều tâm sức cho việc triển khai các dự án tại Nam Việt và được các đối tác của Nam Việt đánh giá rất cao. Đây là một trong những đối tác công nghệ chúng tôi tin tưởng nhất.",
+      author: "Ông Nguyễn Khánh Tâm",
+      rating: 5,
+    },
+    {
+      company: "Đối tác khối Giáo dục",
+      quote:
+        "Nhiều năm sử dụng phần mềm từ SFB, phần mềm đã đồng hành cùng chúng tôi đạt được nhiều thành công. Chúng tôi phát triển một phần nhờ phần mềm của các bạn, thì đương nhiên chúng tôi sẽ luôn luôn ủng hộ các bạn.",
+      author: "Ông Nguyễn Hoàng Chinh",
+      rating: 5,
+    },
+    {
+      company: "Đối tác khối Công",
+      quote:
+        "Chất lượng sản phẩm và dịch vụ của các bạn luôn đáp ứng được những yêu cầu, mong mỏi từ phía khoso.vn. Có đôi điều để tôi nhận xét về SFB, đó là: chuyên nghiệp, trách nhiệm, tận tình và ham học hỏi.",
+      author: "Ông Nguyễn Khánh Tùng",
+      rating: 5,
+    },
+    {
+      company: "Khối Doanh nghiệp",
+      quote:
+        "Cám ơn các bạn SFB đã dành nhiều tâm sức cho việc triển khai các dự án tại Nam Việt và được các đối tác của Nam Việt đánh giá rất cao. Đây là một trong những đối tác công nghệ chúng tôi tin tưởng nhất.",
+      author: "Ông Vũ Kim Trung",
+      rating: 5,
+    },
+    {
+      company: "Khối Doanh nghiệp",
+      quote:
+        "Nhiều năm sử dụng phần mềm từ SFB, phần mềm đã đồng hành cùng chúng tôi đạt được nhiều thành công. Chúng tôi phát triển một phần nhờ phần mềm của các bạn, thì đương nhiên chúng tôi sẽ luôn luôn ủng hộ các bạn.",
+      author: "Ông nguyễn Khanh",
+      rating: 5,
+    },
+  ];
+
+  // ===== Testimonials carousel =====
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  const scrollToSlide = (index: number) => {
+    api?.scrollTo(index);
+  };
+
 
   // Nhóm sản phẩm theo lĩnh vực cho dễ hiểu
   const categories: {
@@ -31,20 +95,20 @@ export function ProductsPage() {
     name: string;
     icon: any;
   }[] = [
-    { id: "all", name: "Tất cả sản phẩm", icon: Package },
-    { id: "edu", name: "Giải pháp Giáo dục", icon: Cloud },
-    {
-      id: "justice",
-      name: "Công chứng – Pháp lý",
-      icon: Shield,
-    },
-    {
-      id: "gov",
-      name: "Quản lý Nhà nước/Doanh nghiệp",
-      icon: TrendingUp,
-    },
-    { id: "kpi", name: "Quản lý KPI cá nhân", icon: Cpu },
-  ];
+      { id: "all", name: "Tất cả sản phẩm", icon: Package },
+      { id: "edu", name: "Giải pháp Giáo dục", icon: Cloud },
+      {
+        id: "justice",
+        name: "Công chứng – Pháp lý",
+        icon: Shield,
+      },
+      {
+        id: "gov",
+        name: "Quản lý Nhà nước/Doanh nghiệp",
+        icon: TrendingUp,
+      },
+      { id: "kpi", name: "Quản lý KPI cá nhân", icon: Cpu },
+    ];
 
   // === DATA SẢN PHẨM TỪ SFB.VN (đã thiết kế lại) ===
   const products = [
@@ -217,72 +281,45 @@ export function ProductsPage() {
       ? products
       : products.filter((p) => p.category === selectedCategory);
 
+
   const benefits = [
     {
-      icon: Shield,
+      icon: "/icons/custom/product1.svg",
       title: "Bảo mật cao",
       description:
         "Tuân thủ chuẩn bảo mật, mã hóa dữ liệu end-to-end.",
       gradient: "from-[#006FB3] to-[#0088D9]",
     },
     {
-      icon: Zap,
+      icon: "/icons/custom/product2.svg",
       title: "Hiệu năng ổn định",
       description:
         "Hệ thống tối ưu, uptime cao, đáp ứng nhu cầu vận hành.",
-      gradient: "from-orange-500 to-red-500",
+      gradient: "from-[#FF81C2] to-[#667EEA]",
     },
     {
-      icon: Users,
+      icon: "/icons/custom/product3.svg",
       title: "Dễ triển khai & sử dụng",
       description:
         "Giao diện trực quan, đào tạo & hỗ trợ cho người dùng.",
-      gradient: "from-emerald-500 to-teal-500",
+      gradient: "from-[#2AF598] to-[#009EFD]",
     },
     {
-      icon: TrendingUp,
+      icon: "/icons/custom/product4.svg",
       title: "Sẵn sàng mở rộng",
       description:
         "Kiến trúc linh hoạt, dễ tích hợp và mở rộng về sau.",
-      gradient: "from-purple-500 to-pink-500",
+      gradient: "from-[#FA709A] to-[#FEE140]",
     },
   ];
 
-  const testimonials = [
-    {
-      company: "Đối tác khối Giáo dục",
-      logo: "🏫",
-      quote:
-        "Các giải pháp giáo dục của SFB giúp nhà trường số hóa quy trình và giao tiếp với phụ huynh hiệu quả hơn rất nhiều.",
-      author: "Đại diện nhà trường",
-      position: "Ban Giám hiệu",
-      rating: 5,
-    },
-    {
-      company: "Đối tác khối Công",
-      logo: "🏛️",
-      quote:
-        "Hệ thống quản lý công chứng và giám sát doanh nghiệp hỗ trợ tốt cho công tác quản lý, giảm rủi ro và nâng cao minh bạch.",
-      author: "Đại diện cơ quan quản lý",
-      position: "Lãnh đạo đơn vị",
-      rating: 5,
-    },
-    {
-      company: "Khối Doanh nghiệp",
-      logo: "🏢",
-      quote:
-        "Giải pháp KPI cá nhân giúp chúng tôi chuẩn hóa hệ thống mục tiêu và quản trị hiệu suất rõ ràng, minh bạch.",
-      author: "Đại diện doanh nghiệp",
-      position: "HR/CEO",
-      rating: 5,
-    },
-  ];
+
 
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-[#006FB3] to-[#005589] pt-32 pb-20">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-br from-[#0870B4] to-[#2EABE2] pt-32 pb-20">
+
 
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0088D9] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
@@ -291,18 +328,14 @@ export function ProductsPage() {
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-8">
-              <Package className="text-cyan-400" size={20} />
-              <span className="text-white font-semibold text-sm">
-                SẢN PHẨM &amp; GIẢI PHÁP
-              </span>
-            </div>
 
-            <h1 className="text-white mb-8 text-5xl md:text-6xl">
+
+            <h1 className="text-white mb-8 text-5xl md:text-5xl">
               Bộ giải pháp phần mềm
-              <span className="block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mt-2">
+              <span className="block text-white font-extrabold text-5xl mt-2">
                 Phục vụ Giáo dục, Công chứng &amp; Doanh nghiệp
               </span>
+
             </h1>
 
             <p className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto">
@@ -327,15 +360,19 @@ export function ProductsPage() {
                 href="/contact"
                 className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
               >
-                <MessageCircle size={20} />
+
                 Tư vấn giải pháp
+                <ArrowRight
+                  className="group-hover:translate-x-2 transition-transform"
+                  size={20}
+                />
               </a>
             </div>
 
             <div className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
               <div className="text-center">
                 <div className="text-4xl font-bold text-white mb-2">
-                  Rất nhiều+
+                  +32.000
                 </div>
                 <div className="text-blue-200">
                   Giải pháp phần mềm
@@ -343,7 +380,7 @@ export function ProductsPage() {
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-white mb-2">
-                  Rất nhiều+
+                  +6.000
                 </div>
                 <div className="text-blue-200">
                   Đơn vị triển khai thực tế
@@ -351,7 +388,7 @@ export function ProductsPage() {
               </div>
               <div className="text-center">
                 <div className="text-4xl font-bold text-white mb-2">
-                  4.8★
+                  4.9★
                 </div>
                 <div className="text-blue-200">
                   Mức độ hài lòng trung bình
@@ -362,310 +399,284 @@ export function ProductsPage() {
         </div>
       </section>
 
+
       {/* Benefits */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => {
-              const Icon = benefit.icon;
-              return (
-                <div key={index} className="text-center group">
-                  <div className="inline-flex mb-6">
-                    <div
-                      className={`w-20 h-20 bg-gradient-to-br ${benefit.gradient} rounded-2xl flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl`}
-                    >
-                      <Icon className="text-white" size={32} />
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {benefits.map((benefit, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-2xl p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-gray-100
+          hover:shadow-[0_16px_40px_rgba(0,0,0,0.10)] transition-all duration-300"
+              >
+                {/* Icon box */}
+                <div className="flex justify-center mb-5">
+                  <div
+                    className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${benefit.gradient}
+              flex items-center justify-center shadow-md`}
+                  >
+                    <img
+                      src={benefit.icon}
+                      alt={benefit.title}
+                      className="w-8 h-8"
+                    />
                   </div>
-                  <h4 className="text-gray-900 mb-3">
-                    {benefit.title}
-                  </h4>
-                  <p className="text-gray-600 leading-relaxed">
-                    {benefit.description}
-                  </p>
                 </div>
-              );
-            })}
+
+                <h4 className="text-gray-900 font-bold text-base mb-2">
+                  {benefit.title}
+                </h4>
+
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  {benefit.description}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Category Filter */}
-      <section
-        id="products"
-        className="py-8 bg-gray-50 border-y border-gray-200 sticky top-[88px] z-40 backdrop-blur-lg bg-gray-50/95"
-      >
+      {/* Products Section (giống ảnh) */}
+      <section id="products" className=" bg-white">
         <div className="container mx-auto px-6">
-          <div className="flex items-center gap-4 overflow-x-auto pb-2">
-            <Package
-              className="text-gray-600 flex-shrink-0"
-              size={20}
-            />
+          {/* Title */}
+          <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px]">
+            <div className="text-[10px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+              GIẢI PHÁP CHUYÊN NGHIỆP
+            </div>
+
+            <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
+              Sản phẩm &amp; giải pháp nổi bật
+            </h2>
+
+            <p className="text-gray-600 leading-relaxed">
+              Danh sách các hệ thống phần mềm đang được SFB triển khai cho nhà trường,
+              cơ quan Nhà nước và doanh nghiệp.
+            </p>
+          </div>
+
+
+          {/* Pills filter ngay dưới title */}
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-10 mb-14">
             {categories.map((category) => {
               const Icon = category.icon;
+              const active = selectedCategory === category.id;
+
               return (
                 <button
                   key={category.id}
-                  onClick={() =>
-                    setSelectedCategory(category.id)
-                  }
-                  className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all inline-flex items-center gap-2 ${
-                    selectedCategory === category.id
-                      ? "bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white shadow-lg"
-                      : "bg-white text-gray-700 hover:bg-gray-100"
-                  }`}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2
+              ${active
+                      ? "bg-[#0870B4] text-white shadow-md"
+                      : "bg-[#EAF5FF] text-[#0870B4] hover:bg-[#DCEFFF]"
+                    }`}
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                   {category.name}
                 </button>
               );
             })}
           </div>
-        </div>
-      </section>
 
-      {/* Products Grid */}
-      <section className="py-28 bg-gradient-to-br from-gray-50 via-[#E6F4FF] to-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <h2 className="text-gray-900 mb-6">
-              Sản phẩm &amp; giải pháp nổi bật
-            </h2>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              Danh sách các hệ thống phần mềm đang được SFB
-              triển khai cho nhà trường, cơ quan Nhà nước và
-              doanh nghiệp.
-            </p>
-          </div>
-
+          {/* Grid cards */}
           <div className="grid lg:grid-cols-2 gap-10">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="group bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-gray-100 hover:border-[#006FB3] hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+                className="flex w-full h-fit p-6 flex-col items-start gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)]"
               >
-                {/* Image */}
-                <div className="relative h-72 overflow-hidden">
-                  <ImageWithFallback
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-tr ${product.gradient} opacity-30`}
-                  />
-
-                  {product.badge && (
-                    <div className="absolute top-6 right-6">
-                      <div
-                        className={`px-5 py-2 bg-gradient-to-r ${product.gradient} text-white rounded-full text-sm font-semibold shadow-lg flex items-center gap-2`}
-                      >
-                        <Star
-                          size={16}
-                          className="fill-white"
-                        />
-                        {product.badge}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Stats Overlay */}
-                  <div className="absolute bottom-6 left-6 right-6 flex flex-wrap gap-3">
-                    <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl flex items-center gap-2">
-                      <Users
-                        size={16}
-                        className="text-[#006FB3]"
+                {/* Image kiểu ảnh: có padding + khung */}
+                <div className="w-full">
+                  <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white">
+                    <div className="relative aspect-[16/7]">
+                      <ImageWithFallback
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
                       />
-                      <span className="text-sm font-semibold text-gray-900">
-                        {product.stats.users}
-                      </span>
-                    </div>
-                    <div className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl flex items-center gap-2">
-                      <Star
-                        size={16}
-                        className="text-yellow-500 fill-yellow-500"
-                      />
-                      <span className="text-sm font-semibold text-gray-900">
-                        {product.stats.rating}
-                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Content */}
-                <div className="p-8">
-                  <div className="mb-4 text-sm text-gray-500">
-                    {product.meta}
+                <div className="w-full">
+                  <div className="text-xs text-gray-500 mb-2">{product.meta}</div>
+
+                  <h3 className="text-gray-900 font-bold mb-1">
+                    {product.name}
+                  </h3>
+
+                  <div className="text-[#0870B4] font-semibold text-sm mb-3">
+                    {product.tagline}
                   </div>
 
-                  <div className="mb-6">
-                    <h3 className="text-gray-900 mb-2 group-hover:text-[#006FB3] transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-[#006FB3] font-semibold mb-3">
-                      {product.tagline}
-                    </p>
-                    <p className="text-gray-600 leading-relaxed">
-                      {product.description}
-                    </p>
-                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed mb-5">
+                    {product.description}
+                  </p>
 
                   {/* Features */}
-                  <div className="space-y-3 mb-8">
-                    {product.features
-                      .slice(0, 4)
-                      .map((feature, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start gap-3"
-                        >
-                          <CheckCircle2
-                            size={18}
-                            className="text-[#006FB3] flex-shrink-0 mt-0.5"
-                          />
-                          <span className="text-gray-700 text-sm">
-                            {feature}
-                          </span>
-                        </div>
-                      ))}
-                    {product.features.length > 4 && (
-                      <button className="text-[#006FB3] font-semibold text-sm hover:underline">
-                        +{product.features.length - 4} tính năng
-                        khác
-                      </button>
-                    )}
+                  <div className="space-y-3 w-full">
+                    {product.features.slice(0, 4).map((feature, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <CheckCircle2
+                          size={18}
+                          className="text-[#0870B4] flex-shrink-0 mt-0.5"
+                        />
+                        <span className="text-gray-700 text-sm">{feature}</span>
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-6 border-t-2 border-gray-100">
-                    <div>
-                      <div className="text-sm text-gray-500 mb-1">
-                        Giá tham khảo
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900">
-                        {product.pricing}
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <button className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all">
-                        Demo nhanh
-                      </button>
-                      <button
-                        className={`px-8 py-3 bg-gradient-to-r ${product.gradient} text-white rounded-xl hover:shadow-lg transition-all transform hover:scale-105 font-semibold`}
-                      >
-                        Tìm hiểu thêm
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-28 bg-gradient-to-br from-gray-900 via-[#006FB3] to-[#005589] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <h2 className="text-white mb-6">
-              Khách hàng nói gì về SFB
-            </h2>
-            <p className="text-xl text-blue-100 leading-relaxed">
-              Những phản hồi từ các đơn vị đã triển khai giải
-              pháp của chúng tôi.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 hover:bg-white hover:border-white transition-all duration-500 group"
-              >
-                <div className="flex items-center gap-2 mb-6">
-                  {Array.from({
-                    length: testimonial.rating,
-                  }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={20}
-                      className="text-yellow-400 fill-yellow-400"
-                    />
-                  ))}
                 </div>
 
-                <p className="text-lg text-white group-hover:text-gray-700 mb-8 leading-relaxed italic transition-colors">
-                  “{testimonial.quote}”
-                </p>
-
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center text-2xl">
-                    {testimonial.logo}
-                  </div>
+                {/* Footer giống ảnh: button nhỏ + button xanh */}
+                <div className="w-full flex items-center justify-between gap-4 flex-wrap">
                   <div>
-                    <div className="font-semibold text-white group-hover:text-gray-900 transition-colors">
-                      {testimonial.author}
+                    <div className="text-xs text-gray-500">Giá tham khảo</div>
+                    <div className="text-lg font-extrabold text-gray-900">
+                      Liên hệ
                     </div>
-                    <div className="text-sm text-blue-200 group-hover:text-gray-600 transition-colors">
-                      {testimonial.position},{" "}
-                      {testimonial.company}
-                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      className="px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                            font-semibold text-sm hover:bg-[#DCEFFF] transition
+                             inline-flex items-center gap-2"
+                    >
+                      Demo nhanh
+                      <img
+                        src="/icons/custom/product_media.svg"
+                        alt="media"
+                        className="w-6 h-6"
+                      />
+                    </button>
+
+
+                    <button className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2">
+                      Tìm hiểu thêm <ArrowRight size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+      </section >
+
+
+      {/* Testimonials (Carousel y như ảnh) */}
+      <section
+        className="w-full flex flex-col items-center gap-[60px] py-[120px] overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(237deg, rgba(128, 192, 228, 0.10) 7%, rgba(29, 143, 207, 0.10) 71.94%)",
+        }}
+      >
+        <div className="w-full max-w-[1920px] mx-auto px-6">
+          <h2 className="text-center text-4xl md:text-5xl font-extrabold text-gray-900">
+            Khách hàng nói gì về SFB ?
+          </h2>
+
+          {/* Track */}
+          {/* Carousel */}
+          <div className="w-full mt-[60px] px-0 md:px-10">
+            <Carousel
+              setApi={setApi}
+              opts={{
+                align: "center",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {testimonials.map((t, index) => (
+                  <CarouselItem
+                    key={index}
+                    className="md:basis-1/2 lg:basis-1/4"
+                  >
+                    <div className="bg-white rounded-[28px] p-8 shadow-[0_18px_40px_rgba(0,0,0,0.08)] h-full mx-4">
+                      {/* Stars */}
+                      <div className="flex items-center gap-1 mb-6">
+                        {Array.from({ length: t.rating }).map((_, i) => (
+                          <Star
+                            key={i}
+                            size={18}
+                            className="text-yellow-400 fill-yellow-400"
+                          />
+                        ))}
+                      </div>
+
+                      {/* Quote */}
+                      <p className="text-gray-700 leading-relaxed text-sm mb-8 line-clamp-4">
+                        “{t.quote}”
+                      </p>
+
+                      {/* Author */}
+                      <div className="text-sm font-semibold text-gray-900">
+                        {t.author}
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
+
+          {/* Dots */}
+          <div className="flex items-center justify-center gap-2 mt-10">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => scrollToSlide(i)}
+                aria-label={`Đi tới phản hồi ${i + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${current === i ? "w-8 bg-[#1E293B]" : "w-2 bg-[#9CA3AF]"
+                  }`}
+              />
+            ))}
+          </div>
+        </div>
       </section>
+
 
       {/* CTA Section */}
-      <section id="contact" className="py-28 bg-white">
+      <section id="contact" className="py-[60px] bg-white">
         <div className="container mx-auto px-6">
-          <div className="bg-gradient-to-br from-[#E6F4FF] to-white rounded-3xl p-12 lg:p-16 border-2 border-[#006FB3]/20 text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full border-2 border-[#006FB3]/20 mb-8">
-              <MessageCircle
-                className="text-[#006FB3]"
-                size={20}
-              />
-              <span className="text-[#006FB3] font-semibold text-sm">
-                LIÊN HỆ TƯ VẤN GIẢI PHÁP
-              </span>
-            </div>
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-[#2EABE2] rounded-2xl px-6 py-[120px] text-center flex flex-col items-center gap-[40px]">
+              <h2 className="text-white text-3xl md:text-4xl font-extrabold">
+                Miễn phí tư vấn
+              </h2>
 
-            <h2 className="text-gray-900 mb-6">
-              Cần tư vấn thêm về sản phẩm/dịch vụ?
-            </h2>
-            <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-              Hãy để lại thông tin, đội ngũ SFB sẽ liên hệ và tư
-              vấn giải pháp phù hợp nhất với nhu cầu của bạn.
-            </p>
+              <p className="text-white/90 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
+                Đặt lịch tư vấn miễn phí với chuyên gia của SFB và khám phá cách chúng tôi có thể đồng hành
+                cùng doanh nghiệp bạn trong hành trình chuyển đổi số.
+              </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/contact"
-                className="group px-10 py-5 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl hover:shadow-2xl hover:shadow-[#006FB3]/50 transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
-              >
-                Đặt lịch tư vấn
-                <ArrowRight
-                  className="group-hover:translate-x-2 transition-transform"
-                  size={20}
-                />
-              </a>
-              <a
-                href="/contact"
-                className="px-10 py-5 bg-white text-[#006FB3] rounded-xl border-2 border-[#006FB3]/20 hover:border-[#006FB3] hover:shadow-lg transition-all inline-flex items-center justify-center gap-3 font-semibold"
-              >
-                <Download size={20} />
-                Tải brochure sản phẩm
-              </a>
+              <div className="flex items-center justify-center gap-3">
+                <a
+                  href="/case-studies"
+                  className="px-5 py-2.5 rounded-md border border-white/60 text-white text-xs font-semibold hover:bg-white/10 transition"
+                >
+                  Xem case studies
+                </a>
+
+                <a
+                  href="/contact"
+                  className="px-5 py-2.5 rounded-md border border-white/60 text-white text-xs font-semibold hover:bg-white/10 transition inline-flex items-center gap-2"
+                >
+                  Tư vấn miễn phí ngay
+                  <ArrowRight size={16} />
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </section>
-    </div>
+
+    </div >
   );
 }
 export default ProductsPage;
