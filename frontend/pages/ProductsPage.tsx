@@ -439,10 +439,10 @@ export function ProductsPage() {
 
       {/* Products Section (giống ảnh) */}
       <section id="products" className=" bg-white">
-        <div className="container mx-auto px-6">
+        <div className="w-full max-w-[1920px] mx-auto">
           {/* Title */}
           <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px]">
-            <div className="text-[10px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+            <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
               GIẢI PHÁP CHUYÊN NGHIỆP
             </div>
 
@@ -481,7 +481,7 @@ export function ProductsPage() {
           </div>
 
           {/* Grid cards */}
-          <div className="grid lg:grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[32px] px-6 lg:px-[290px]">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
@@ -522,7 +522,7 @@ export function ProductsPage() {
                       <div key={i} className="flex items-start gap-3">
                         <CheckCircle2
                           size={18}
-                          className="text-[#0870B4] flex-shrink-0 mt-0.5"
+                          className="text-white fill-[#1D8FCF] flex-shrink-0 mt-0.5"
                         />
                         <span className="text-gray-700 text-sm">{feature}</span>
                       </div>
