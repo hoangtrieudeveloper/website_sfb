@@ -20,10 +20,4 @@ export function HomepageContent() {
     );
 }
 
-export * from "./HeroBanner";
-export * from "./Features";
-export * from "./Solutions";
-export * from "./Trusts";
-export * from "./AboutCompany";
-export * from "./Testimonials";
-export * from "./Consult";
+export default HomepageContent;

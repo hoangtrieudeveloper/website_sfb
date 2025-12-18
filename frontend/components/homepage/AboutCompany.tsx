@@ -12,7 +12,7 @@ export function AboutCompany() {
       <div className="container mx-auto px-6">
         {/* Header */}
         <ScrollAnimation
-          variant="fade-up"
+          variant="fade-down"
           className="text-center max-w-5xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-bold text-[#0F172A] leading-tight mb-6">
@@ -31,7 +31,7 @@ export function AboutCompany() {
           {aboutSlides.map((slide, index) => (
             <ScrollAnimation
               key={index}
-              variant="fade-up"
+              variant="elastic-up"
               delay={index * 0.1}
               className="w-full max-w-[410px]"
             >

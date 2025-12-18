@@ -8,7 +8,7 @@ export function Consult() {
     return (
         <section className="py-10 px-4 flex justify-center">
             <div className="container mx-auto flex justify-center">
-                <ScrollAnimation variant="scale-up" className="w-full flex justify-center">
+                <ScrollAnimation variant="elastic-up" className="w-full flex justify-center">
                     <div className="
             flex flex-col justify-center items-center
             w-full max-w-[1298px]

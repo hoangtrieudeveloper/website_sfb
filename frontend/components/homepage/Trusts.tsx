@@ -48,9 +48,9 @@ export function Trusts() {
             {trustFeatures.map((feature, idx) => (
               <ScrollAnimation
                 key={idx}
-                variant="slide-left"
+                variant="flip-up"
                 delay={idx * 0.1}
-                className="flex gap-5 group"
+                className="flex-1 min-w-[300px]"
               >
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">

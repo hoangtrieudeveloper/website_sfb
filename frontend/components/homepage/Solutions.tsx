@@ -22,7 +22,7 @@ export function Solutions() {
     >
       <div className="container mx-auto px-6">
         {/* Header */}
-        <ScrollAnimation variant="fade-up" className="text-center max-w-5xl mx-auto">
+        <ScrollAnimation variant="fade-down" className="text-center max-w-5xl mx-auto">
           <div className="text-white/85 text-xs font-semibold tracking-[0.25em] uppercase mb-4">
             GIẢI PHÁP CHUYÊN NGHIỆP
           </div>
@@ -37,7 +37,7 @@ export function Solutions() {
             {solutionDomains.map((d, i) => (
               <ScrollAnimation
                 key={d}
-                variant="fade-in"
+                variant="scale-up"
                 delay={i * 0.06}
                 className="px-4 py-2 rounded-full text-sm text-white/90 border border-white/35 bg-white/10 backdrop-blur-sm hover:bg-white/15 transition-colors"
               >
@@ -65,11 +65,12 @@ export function Solutions() {
                   shadow-[0_18px_60px_rgba(13,80,140,0.20)]
                   overflow-hidden
                   transition-all duration-300
-                  hover:-translate-y-1
-                  hover:shadow-[0_26px_80px_rgba(13,80,140,0.26)]
+                  hover:-translate-y-2
+                  hover:shadow-[0_0_40px_rgba(29,143,207,0.3)]
+                  hover:border-[#1D8FCF]/40
                 "
               >
-                <ScrollAnimation variant="fade-up" delay={idx * 0.08}>
+                <ScrollAnimation variant="scale-up" delay={idx * 0.08}>
                   <div className="h-full flex flex-col items-center gap-[24px]">
                     {/* Icon */}
                     <div

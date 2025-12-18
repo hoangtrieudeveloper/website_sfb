@@ -65,7 +65,7 @@ export function Features() {
     >
       <div className="container mx-auto relative z-10 px-6">
         {/* HEADER */}
-        <ScrollAnimation variant="fade-up" className="mx-auto mb-14 max-w-4xl text-center">
+        <ScrollAnimation variant="blur-in" className="mx-auto mb-14 max-w-4xl text-center">
           <p className="mb-4 text-[15px] font-medium uppercase text-[#1D8FCF]">
             GIỚI THIỆU SFB
           </p>
@@ -82,11 +82,11 @@ export function Features() {
 
         {/* BLOCK 1 */}
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          <ScrollAnimation variant="fade-up" className="flex justify-center lg:justify-start">
+          <ScrollAnimation variant="slide-right" className="flex justify-center lg:justify-start">
             <FeatureImageFrame src="/images/feature1.png" alt="SFB overview" />
           </ScrollAnimation>
 
-          <ScrollAnimation variant="fade-up" delay={0.1}>
+          <ScrollAnimation variant="slide-left" delay={0.1}>
             <div className="max-w-xl">
               <p className="text-slate-700 leading-relaxed">
                 SFB với kinh nghiệm qua nhiều dự án lớn nhỏ, tự tin xử lý các bài toán phần mềm
@@ -99,11 +99,16 @@ export function Features() {
                   "Tự tin trong các dự án phức tạp",
                   "Tối ưu quy trình và chi phí",
                   "Đồng hành trọn vòng đời sản phẩm",
-                ].map((t) => (
-                  <div key={t} className="flex items-center gap-3">
+                ].map((t, idx) => (
+                  <ScrollAnimation
+                    key={t}
+                    variant="slide-left"
+                    delay={0.1 + idx * 0.15}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors"
+                  >
                     <CheckCircle className="h-5 w-5 text-sky-500" />
                     <span className="font-medium text-slate-800">{t}</span>
-                  </div>
+                  </ScrollAnimation>
                 ))}
               </div>
 
@@ -118,18 +123,23 @@ export function Features() {
 
         {/* BLOCK 2 */}
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:items-center">
-          <ScrollAnimation variant="fade-up">
+          <ScrollAnimation variant="slide-right">
             {/* ✅ bỏ shadow */}
-            <div className="rounded-3xl bg-white border border-slate-100 p-8">
+            <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] hover:border-[#1D8FCF]/30 transition-all duration-500">
               <div className="space-y-5">
-                {advantages.map((item) => (
-                  <div key={item.title} className="flex gap-3">
-                    <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500" />
+                {advantages.map((item, idx) => (
+                  <ScrollAnimation
+                    key={item.title}
+                    variant="slide-right"
+                    delay={idx * 0.15}
+                    className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                  >
+                    <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
                     <div>
                       <p className="font-bold text-slate-900">{item.title}</p>
                       <p className="text-slate-600">{item.text}</p>
                     </div>
-                  </div>
+                  </ScrollAnimation>
                 ))}
               </div>
 
@@ -141,29 +151,34 @@ export function Features() {
             </div>
           </ScrollAnimation>
 
-          <ScrollAnimation variant="fade-up" delay={0.1} className="flex justify-center lg:justify-end">
+          <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
             <FeatureImageFrame src="/images/feature2.png" alt="Business tech" />
           </ScrollAnimation>
         </div>
 
         {/* BLOCK 3 */}
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:items-center">
-          <ScrollAnimation variant="fade-up" className="flex justify-center lg:justify-start">
+          <ScrollAnimation variant="zoom-in" className="flex justify-center lg:justify-start">
             <FeatureImageFrame src="/images/feature3.png" alt="Workflow" />
           </ScrollAnimation>
 
-          <ScrollAnimation variant="fade-up" delay={0.1}>
+          <ScrollAnimation variant="zoom-in" delay={0.1}>
             {/* ✅ bỏ shadow */}
-            <div className="rounded-3xl bg-white border border-slate-100 p-8">
+            <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] hover:border-[#1D8FCF]/30 transition-all duration-500">
               <div className="space-y-5">
-                {purposeItems.map((item) => (
-                  <div key={item.title} className="flex gap-3">
-                    <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500" />
+                {purposeItems.map((item, idx) => (
+                  <ScrollAnimation
+                    key={item.title}
+                    variant="slide-left"
+                    delay={idx * 0.15}
+                    className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                  >
+                    <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
                     <div>
                       <p className="font-bold text-slate-900">{item.title}</p>
                       <p className="text-slate-600">{item.text}</p>
                     </div>
-                  </div>
+                  </ScrollAnimation>
                 ))}
               </div>
 

@@ -5,6 +5,7 @@ import {
   Play,
   Sparkles,
 } from "lucide-react";
+import { motion } from "framer-motion"; // Add Framer Motion
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
 import { ScrollAnimation } from "../public/ScrollAnimation";
@@ -29,7 +30,7 @@ export function HeroBanner() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left */}
           <div className="space-y-8">
-            <ScrollAnimation variant="fade-up" delay={0.2}>
+            <ScrollAnimation variant="blur-in" delay={0.2}>
               <h1
                 className="text-[#0F172A] font-bold self-stretch"
                 style={{
@@ -45,7 +46,7 @@ export function HeroBanner() {
               </h1>
             </ScrollAnimation>
 
-            <ScrollAnimation variant="fade-up" delay={0.3}>
+            <ScrollAnimation variant="blur-in" delay={0.3}>
               <p
                 className="text-[#0F172A]"
                 style={{
@@ -64,11 +65,11 @@ export function HeroBanner() {
               </p>
             </ScrollAnimation>
 
-            <ScrollAnimation variant="fade-up" delay={0.4}>
+            <ScrollAnimation variant="blur-in" delay={0.4}>
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
                   href="/solutions"
-                  className="group transition-all hover:shadow-2xl text-white font-semibold"
+                  className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold"
                   style={{
                     display: "flex",
                     height: "56px",
@@ -82,11 +83,11 @@ export function HeroBanner() {
                   }}
                 >
                   Khám phá giải pháp
-                  <ArrowRight size={20} />
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <button
-                  className="group transition-all hover:shadow-xl font-semibold text-[#1D8FCF]"
+                  className="group transition-all hover:shadow-[0_0_20px_rgba(29,143,207,0.3)] hover:bg-[#1D8FCF]/5 font-semibold text-[#1D8FCF]"
                   style={{
                     display: "flex",
                     height: "56px",
@@ -99,7 +100,7 @@ export function HeroBanner() {
                     background: "transparent",
                   }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Play size={14} className="text-white ml-0.5" />
                   </div>
                   <span>Xem video</span>
@@ -110,7 +111,7 @@ export function HeroBanner() {
 
           {/* Right Image */}
           <ScrollAnimation
-            variant="scale-up"
+            variant="zoom-in"
             delay={0.3}
             duration={0.8}
             className="hidden lg:block"
@@ -148,16 +149,24 @@ export function HeroBanner() {
           >
             <div className="flex items-center gap-16 animate-partner-marquee hover:[animation-play-state:paused] h-full">
               {[...partners, ...partners].map((logo, idx) => (
-                <div
+                <motion.div
                   key={`${logo}-${idx}`}
                   className="flex items-center justify-center h-full"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 20,
+                    delay: idx * 0.1, // Stagger effect: One at a time
+                  }}
                 >
                   <ImageWithFallback
                     src={logo}
                     alt="Đối tác SFB"
                     className="h-16 w-auto object-contain hover:scale-110 transition-transform duration-300"
                   />
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>

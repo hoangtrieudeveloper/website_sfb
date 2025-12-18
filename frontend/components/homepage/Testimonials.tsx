@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Star } from "lucide-react";
+import { ScrollAnimation } from "../public/ScrollAnimation";
 
 import { testimonials as baseTestimonials } from "./data";
 
@@ -12,6 +13,7 @@ export function Testimonials() {
     align: "center",
     skipSnaps: false,
     dragFree: true, // Smooth scrolling feeling
+    duration: 60, // Slower scroll animation
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
@@ -39,7 +41,7 @@ export function Testimonials() {
       } else {
         emblaApi.scrollTo(0);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(intervalId);
   }, [emblaApi]);
@@ -70,12 +72,14 @@ export function Testimonials() {
     <section className="bg-[#eff8ff] py-24 overflow-hidden">
       <div className="container mx-auto px-6">
         {/* Header */}
-        <h2 className="text-center text-[#0F172A] text-4xl md:text-5xl font-bold mb-16">
-          Khách hàng nói về SFB?
-        </h2>
+        <ScrollAnimation variant="blur-in">
+          <h2 className="text-center text-[#0F172A] text-4xl md:text-5xl font-bold mb-16">
+            Khách hàng nói về SFB?
+          </h2>
+        </ScrollAnimation>
 
         {/* Carousel */}
-        <div className="relative w-full max-w-[1920px] mx-auto">
+        <ScrollAnimation variant="blur-in" className="relative w-full max-w-[1920px] mx-auto">
           <div className="overflow-hidden px-4 md:px-10 py-10" ref={emblaRef}>
             <div className="flex -ml-6 cursor-grab active:cursor-grabbing items-center">
               {testimonials.map((item, index) => {
@@ -134,7 +138,7 @@ export function Testimonials() {
               ) : null
             ))}
           </div>
-        </div>
+        </ScrollAnimation>
       </div>
     </section>
   );
