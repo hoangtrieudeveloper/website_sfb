@@ -1,35 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ScrollAnimation } from "./ScrollAnimation";
+import { ScrollAnimation } from "../public/ScrollAnimation";
+
+import { aboutSlides } from "./data";
 
 export function AboutCompany() {
-  const slides = [
-    {
-      title: "Tư vấn & Đánh giá hiện trạng",
-      description:
-        "Chúng tôi phân tích toàn diện hiện trạng vận hành, dữ liệu và quy trình của doanh nghiệp. Xác định điểm mạnh – điểm nghẽn – rủi ro tiềm ẩn để đưa ra bức tranh tổng thể.",
-      buttonText: "Nhận tư vấn ngay",
-      buttonLink: "/contact",
-      image: "/images/card-consulting.jpg",
-    },
-    {
-      title: "Thiết kế giải pháp phù hợp",
-      description:
-        "Xây dựng giải pháp tối ưu dựa trên nhu cầu thực tế và đặc thù ngành. Đảm bảo tính linh hoạt, khả năng mở rộng và hiệu quả vận hành lâu dài.",
-      buttonText: "Xem case studies",
-      buttonLink: "/products",
-      image: "/images/card-solution.png",
-    },
-    {
-      title: "Triển khai & Tích hợp hệ thống",
-      description:
-        "Thực hiện triển khai chuyên nghiệp, đảm bảo tiến độ và chất lượng. Kết nối liền mạch với các hệ thống hiện có để tối ưu vận hành tổng thể.",
-      buttonText: "Tìm hiểu thêm",
-      buttonLink: "/solutions",
-      image: "/images/card-implementation.png",
-    },
-  ];
 
   return (
     <section id="about" className="py-24 bg-white overflow-hidden">
@@ -52,7 +28,7 @@ export function AboutCompany() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 justify-items-center">
-          {slides.map((slide, index) => (
+          {aboutSlides.map((slide, index) => (
             <ScrollAnimation
               key={index}
               variant="fade-up"

@@ -1,30 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BarChart3, ShieldCheck, FileCheck } from "lucide-react";
-import { ScrollAnimation } from "./ScrollAnimation";
+import { trustFeatures } from "./data";
+import { ArrowRight } from "lucide-react";
+import { ScrollAnimation } from "../public/ScrollAnimation";
 
 export function Trusts() {
-  const features = [
-    {
-      icon: BarChart3,
-      title: "Năng lực được chứng minh",
-      description:
-        "Triển khai nhiều dự án quy mô lớn cho cơ quan Nhà nước, doanh nghiệp và tổ chức trong các lĩnh vực Tài chính, Ngân hàng, Giáo dục, Viễn thông, Công nghiệp.",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Đội ngũ chuyên gia giàu kinh nghiệm",
-      description:
-        "Chuyên gia nhiều năm trong phát triển phần mềm, bảo mật, hạ tầng số và thiết kế hệ thống.",
-    },
-    {
-      icon: FileCheck,
-      title: "Quy trình & cam kết minh bạch",
-      description:
-        "Quy trình quản lý dự án rõ ràng, từ khảo sát đến vận hành, luôn minh bạch với khách hàng.",
-    },
-  ];
 
   return (
     <section className="bg-white py-24 overflow-hidden">
@@ -45,7 +26,7 @@ export function Trusts() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left Column - Image */}
-          <ScrollAnimation variant="fade-right" className="relative group">
+          <ScrollAnimation variant="slide-right" className="relative group">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <div className="aspect-[4/3] w-full relative">
                 <img
@@ -64,10 +45,10 @@ export function Trusts() {
 
           {/* Right Column - Content */}
           <div className="space-y-10">
-            {features.map((feature, idx) => (
+            {trustFeatures.map((feature, idx) => (
               <ScrollAnimation
                 key={idx}
-                variant="fade-left"
+                variant="slide-left"
                 delay={idx * 0.1}
                 className="flex gap-5 group"
               >

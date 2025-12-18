@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Star } from "lucide-react";
 
+import { testimonials as baseTestimonials } from "./data";
+
 export function Testimonials() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
@@ -14,37 +16,6 @@ export function Testimonials() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
 
-  // Original data
-  const baseTestimonials = [
-    {
-      id: 1,
-      quote:
-        "Nhiều năm sử dụng phần mềm từ SFB, phần mềm đã đồng hành cùng chúng tôi đạt được nhiều thành công. Chúng tôi phát triển một phần nhờ phần mềm của các bạn, thì đương nhiên chúng tôi sẽ luôn luôn ủng hộ các bạn.",
-      author: "Ông Nguyễn Hoàng Chinh",
-      rating: 5,
-    },
-    {
-      id: 2,
-      quote:
-        "Chất lượng sản phẩm và dịch vụ của các bạn luôn đáp ứng được những yêu cầu, mong mỏi từ phía khoso.vn. Có đôi điều để tôi nhận xét về SFB, đó là: chuyên nghiệp, trách nhiệm, tận tình và ham học hỏi.",
-      author: "Ông Vũ Kim Trung",
-      rating: 5,
-    },
-    {
-      id: 3,
-      quote:
-        "Cám ơn các bạn SFB đã dành nhiều tâm sức cho việc triển khai các dự án tại Nam Việt và được các đối tác của Nam Việt đánh giá rất cao. Đây là một trong những đối tác công nghệ chúng tôi tin tưởng nhất.",
-      author: "Ông Nguyễn Khánh Tùng",
-      rating: 5,
-    },
-    {
-      id: 4,
-      quote:
-        "SFB không chỉ cung cấp giải pháp phần mềm mà còn là người bạn đồng hành tin cậy. Sự hỗ trợ nhiệt tình và chuyên môn cao của đội ngũ kỹ thuật giúp chúng tôi yên tâm vận hành hệ thống 24/7.",
-      author: "Ông Nguyễn Khanh",
-      rating: 5,
-    },
-  ];
 
   // Duplicate to create "infinite" look and enough items for scrolling
   const testimonials = [...baseTestimonials, ...baseTestimonials, ...baseTestimonials];

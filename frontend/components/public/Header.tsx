@@ -208,21 +208,26 @@ export function Header() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`fixed left-0 right-0 z-50 transition-all duration-500 ${scrolled
-          ? "bg-white/80 backdrop-blur-xl shadow-lg py-3 top-0 border-b border-white/20"
-          : `bg-transparent shadow-none backdrop-blur-none py-3 ${showAnnouncement ? 'top-12' : 'top-0'}`
+        className={`fixed left-0 right-0 z-50 transition-all duration-500 flex flex-col items-center max-w-[1920px] mx-auto ${scrolled
+          ? "bg-white/80 backdrop-blur-xl shadow-lg top-0 border-b border-white/20"
+          : `bg-transparent shadow-none backdrop-blur-none ${showAnnouncement ? 'top-12' : 'top-0'}`
           }`}
+        style={{ padding: "10px", gap: "10px" }}
       >
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between gap-8">
+          <div className="flex items-center justify-between gap-8 h-full">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group relative z-50">
+            <Link
+              href="/"
+              className="flex items-center group relative z-50"
+              style={{ height: "67px", gap: "10px" }}
+            >
               <div className="relative">
                 <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <img
-                    src="https://sfb.vn/wp-content/uploads/2020/04/logo-2.png"
+                    src="/images/sfb.svg"
                     alt="SFB Technology"
-                    className="w-full h-full object-contain transition-all duration-500 drop-shadow-md group-hover:drop-shadow-xl"
+                    className={`w-full h-full object-contain transition-all duration-500 drop-shadow-md group-hover:drop-shadow-xl ${!useDarkText ? 'brightness-0 invert' : ''}`}
                   />
                 </div>
                 {/* Glow Effect */}
@@ -343,7 +348,15 @@ export function Header() {
               </div>
               <Link
                 href="/contact"
-                className="relative px-5 py-2 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-full hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 text-xs font-bold uppercase tracking-wide overflow-hidden group"
+                className="relative text-white hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 text-xs font-bold uppercase tracking-wide overflow-hidden group flex items-center justify-center"
+                style={{
+                  height: "50px",
+                  padding: "7px 30px",
+                  gap: "0px",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(255, 255, 255, 0.40)",
+                  background: "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)"
+                }}
               >
                 {/* Shine effect */}
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />

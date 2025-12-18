@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
-import { ScrollAnimation } from "./ScrollAnimation";
+import { ScrollAnimation } from "../public/ScrollAnimation";
 
 const BTN_GRADIENT = "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)";
 
@@ -56,28 +56,8 @@ function PrimaryLinkButton({
   );
 }
 
+import { purposeItems, advantages } from "./data";
 export function Features() {
-  const purposeItems = [
-    {
-      title: "Chúng tôi hiện diện để",
-      text: "Cung cấp hệ thống hoạt động hiệu quả 24/7, đáp ứng mọi nghiệp vụ công nghệ thông tin.",
-    },
-    {
-      title: "Xây dựng niềm tin",
-      text: "Lấy niềm tin khách hàng và uy tín thương hiệu làm triết lý kinh doanh.",
-    },
-    {
-      title: "Giá trị của nhân viên",
-      text: "Đề cao trung thực – kinh nghiệm – sáng tạo – trách nhiệm.",
-    },
-  ];
-
-  const advantages = [
-    { title: "Nhiều năm kinh nghiệm", text: "Thực hiện hàng trăm dự án từ nhỏ tới lớn, phức tạp." },
-    { title: "Nhân viên nhiệt huyết", text: "Đội ngũ trẻ, chuyên sâu, giàu tinh thần trách nhiệm." },
-    { title: "Dự án lớn liên tục hoàn thành", text: "Đáp ứng yêu cầu khó, nghiệp vụ đa ngành." },
-    { title: "Làm chủ công nghệ", text: "Hạ tầng server riêng, khả năng mở rộng tức thời." },
-  ];
 
   return (
     <section

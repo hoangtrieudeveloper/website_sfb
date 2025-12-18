@@ -1,75 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ScrollAnimation } from "./ScrollAnimation";
+import { ScrollAnimation } from "../public/ScrollAnimation";
+import { solutions, solutionDomains } from "./data";
 import {
   ArrowRight,
   CheckCircle2,
-  Cloud,
-  Code,
-  Database,
-  LineChart,
 } from "lucide-react";
 
 export function Solutions() {
-  const solutions = [
-    {
-      id: 1,
-      icon: LineChart,
-      title: "Quy trình được chuẩn hóa",
-      description:
-        "Tất cả công việc tại SFB đều được chuẩn hóa theo quy trình rõ ràng – từ tác vụ đơn giản đến các hạng mục phức tạp. Giúp kiểm soát chất lượng, tiến độ và rủi ro một cách nhất quán.",
-      benefits: [
-        "Minh bạch & dễ kiểm soát",
-        "Giảm rủi ro dự án",
-        "Chất lượng đồng nhất",
-      ],
-      buttonText: "Tìm hiểu cách SFB triển khai",
-      buttonLink: "/contact",
-      iconGradient: "from-cyan-400 to-blue-600",
-    },
-    {
-      id: 2,
-      icon: Code,
-      title: "Công nghệ .Net của Microsoft",
-      description:
-        "Nền tảng phát triển mạnh mẽ, đa ngôn ngữ và đa hệ điều hành, hỗ trợ xây dựng ứng dụng từ web, mobile đến enterprise. .NET mang lại hiệu suất cao, bảo mật và tốc độ triển khai tối ưu.",
-      benefits: ["Bảo mật cao", "Dễ bảo trì", "Hệ sinh thái mạnh"],
-      buttonText: "Xem case studies",
-      buttonLink: "/industries",
-      iconGradient: "from-fuchsia-400 to-indigo-600",
-    },
-    {
-      id: 3,
-      icon: Database,
-      title: "Giải pháp lưu trữ hiện đại & Big Data",
-      description:
-        "Hạ tầng lưu trữ tiên tiến giúp xử lý và quản lý dữ liệu khổng lồ theo thời gian thực. Big Data cho phép phân tích sâu, phát hiện xu hướng và đưa ra quyết định dựa trên dữ liệu chính xác.",
-      benefits: ["Big Data-ready", "Hiệu năng cao", "An toàn dữ liệu"],
-      buttonText: "Tư vấn miễn phí",
-      buttonLink: "/contact",
-      iconGradient: "from-emerald-400 to-green-600",
-    },
-    {
-      id: 4,
-      icon: Cloud,
-      title: "Khả năng mở rộng linh hoạt",
-      description:
-        "Hệ thống được thiết kế để dễ dàng mở rộng theo nhu cầu: từ tăng tải người dùng đến mở rộng dịch vụ. Kiến trúc linh hoạt giúp tối ưu hiệu năng và đảm bảo hoạt động ổn định ngay cả khi quy mô tăng nhanh.",
-      benefits: ["n-Tier / n-Layer", "Dễ mở rộng", "Sẵn sàng quy mô lớn"],
-      buttonText: "Tìm hiểu cách SFB triển khai",
-      buttonLink: "/contact",
-      iconGradient: "from-orange-400 to-pink-600",
-    },
-  ];
 
-  const domains = [
-    "Chính phủ & cơ quan nhà nước",
-    "Doanh nghiệp",
-    "Ngân hàng & bảo hiểm",
-    "Giáo dục & đào tạo",
-    "Viễn thông & hạ tầng số",
-  ];
+
 
   return (
     <section
@@ -93,7 +34,7 @@ export function Solutions() {
           </h2>
 
           <div className="mt-7 flex flex-wrap justify-center gap-2.5">
-            {domains.map((d, i) => (
+            {solutionDomains.map((d, i) => (
               <ScrollAnimation
                 key={d}
                 variant="fade-in"
