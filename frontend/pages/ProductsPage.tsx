@@ -24,7 +24,8 @@ import {
   Award,
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 
 
 type CategoryId = "all" | "edu" | "justice" | "gov" | "kpi";
@@ -83,6 +84,32 @@ export function ProductsPage() {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
+
+  const [autoScrollPlugin, setAutoScrollPlugin] = useState<any>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (typeof window === "undefined") return;
+      try {
+        const mod = await import("embla-carousel-auto-scroll");
+        if (!mounted) return;
+        const create = (mod && (mod.default || mod)) as any;
+        const plugin = create({
+          speed: 0.5,
+          stopOnInteraction: false,
+          stopOnMouseEnter: true,
+        });
+        setAutoScrollPlugin(() => plugin);
+      } catch (e) {
+        // fail silently if the plugin can't be loaded
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const scrollToSlide = (index: number) => {
     api?.scrollTo(index);
@@ -319,57 +346,86 @@ export function ProductsPage() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-br from-[#0870B4] to-[#2EABE2] pt-32 pb-20">
-
-
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0088D9] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.2, scale: 1 }}
+            transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0088D9] rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.2, scale: 1 }}
+            transition={{ duration: 1.5, delay: 0.5, repeat: Infinity, repeatType: "reverse" }}
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+          />
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-
-
-            <h1 className="text-white mb-8 text-5xl md:text-5xl">
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-white mb-8 text-5xl md:text-5xl"
+            >
               Bộ giải pháp phần mềm
               <span className="block text-white font-extrabold text-5xl mt-2">
                 Phục vụ Giáo dục, Công chứng &amp; Doanh nghiệp
               </span>
+            </motion.h1>
 
-            </h1>
-
-            <p className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto"
+            >
               Các sản phẩm SFB được xây dựng từ bài toán thực tế
               của cơ quan Nhà nước, nhà trường và doanh nghiệp,
               giúp tối ưu quy trình và nâng cao hiệu quả quản
               lý.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href="#products"
-                className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
+                className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform inline-flex items-center justify-center gap-3 font-semibold"
               >
                 Xem danh sách sản phẩm
                 <ArrowRight
                   className="group-hover:translate-x-2 transition-transform"
                   size={20}
                 />
-              </a>
-              <a
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href="/contact"
                 className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
               >
-
                 Tư vấn giải pháp
                 <ArrowRight
                   className="group-hover:translate-x-2 transition-transform"
                   size={20}
                 />
-              </a>
-            </div>
+              </motion.a>
+            </motion.div>
 
-            <div className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto"
+            >
               <div className="text-center">
                 <div className="text-4xl font-bold text-white mb-2">
                   +32.000
@@ -394,7 +450,7 @@ export function ProductsPage() {
                   Mức độ hài lòng trung bình
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -403,9 +459,19 @@ export function ProductsPage() {
       {/* Benefits */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ staggerChildren: 0.1 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+          >
             {benefits.map((benefit, index) => (
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -10 }}
                 key={index}
                 className="bg-white rounded-2xl p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-gray-100
           hover:shadow-[0_16px_40px_rgba(0,0,0,0.10)] transition-all duration-300"
@@ -431,9 +497,9 @@ export function ProductsPage() {
                 <p className="text-gray-500 text-sm leading-relaxed">
                   {benefit.description}
                 </p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -442,29 +508,53 @@ export function ProductsPage() {
         <div className="w-full max-w-[1920px] mx-auto">
           {/* Title */}
           <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px]">
-            <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase"
+            >
               GIẢI PHÁP CHUYÊN NGHIỆP
-            </div>
+            </motion.div>
 
-            <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-gray-900 text-4xl md:text-5xl font-extrabold"
+            >
               Sản phẩm &amp; giải pháp nổi bật
-            </h2>
+            </motion.h2>
 
-            <p className="text-gray-600 leading-relaxed">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-gray-600 leading-relaxed"
+            >
               Danh sách các hệ thống phần mềm đang được SFB triển khai cho nhà trường,
               cơ quan Nhà nước và doanh nghiệp.
-            </p>
+            </motion.p>
           </div>
 
 
           {/* Pills filter ngay dưới title */}
           <div className="flex flex-wrap items-center justify-center gap-3 mt-10 mb-14">
-            {categories.map((category) => {
+            {categories.map((category, index) => {
               const Icon = category.icon;
               const active = selectedCategory === category.id;
 
               return (
-                <button
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2
@@ -475,15 +565,19 @@ export function ProductsPage() {
                 >
                   <Icon size={16} />
                   {category.name}
-                </button>
+                </motion.button>
               );
             })}
           </div>
 
           {/* Grid cards */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-[32px] px-6 lg:px-[290px]">
-            {filteredProducts.map((product) => (
-              <div
+            {filteredProducts.map((product, index) => (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
                 key={product.id}
                 className="flex w-full h-fit p-6 flex-col items-start gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)]"
               >
@@ -494,7 +588,7 @@ export function ProductsPage() {
                       <ImageWithFallback
                         src={product.image}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   </div>
@@ -541,7 +635,9 @@ export function ProductsPage() {
                   </div>
 
                   <div className="flex gap-3">
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className="px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
                             font-semibold text-sm hover:bg-[#DCEFFF] transition
                              inline-flex items-center gap-2"
@@ -552,19 +648,23 @@ export function ProductsPage() {
                         alt="media"
                         className="w-6 h-6"
                       />
-                    </button>
+                    </motion.button>
 
 
-                    <button className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                    >
                       Tìm hiểu thêm <ArrowRight size={16} />
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section >
+      </section>
 
 
       {/* Testimonials (Carousel y như ảnh) */}
@@ -576,19 +676,32 @@ export function ProductsPage() {
         }}
       >
         <div className="w-full max-w-[1920px] mx-auto px-6">
-          <h2 className="text-center text-4xl md:text-5xl font-extrabold text-gray-900">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center text-4xl md:text-5xl font-extrabold text-gray-900"
+          >
             Khách hàng nói gì về SFB ?
-          </h2>
+          </motion.h2>
 
-          {/* Track */}
           {/* Carousel */}
-          <div className="w-full mt-[60px] px-0 md:px-10">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-full mt-[60px] px-0 md:px-10"
+          >
             <Carousel
               setApi={setApi}
               opts={{
                 align: "center",
                 loop: true,
+                dragFree: true,
               }}
+              plugins={autoScrollPlugin ? [autoScrollPlugin] : []}
               className="w-full"
             >
               <CarouselContent>
@@ -623,7 +736,7 @@ export function ProductsPage() {
                 ))}
               </CarouselContent>
             </Carousel>
-          </div>
+          </motion.div>
 
           {/* Dots */}
           <div className="flex items-center justify-center gap-2 mt-10">
@@ -645,33 +758,61 @@ export function ProductsPage() {
       <section id="contact" className="py-[60px] bg-white">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
-            <div className="bg-[#2EABE2] rounded-2xl px-6 py-[120px] text-center flex flex-col items-center gap-[40px]">
-              <h2 className="text-white text-3xl md:text-4xl font-extrabold">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="bg-[#2EABE2] rounded-2xl px-6 py-[120px] text-center flex flex-col items-center gap-[40px]"
+            >
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="text-white text-3xl md:text-4xl font-extrabold"
+              >
                 Miễn phí tư vấn
-              </h2>
+              </motion.h2>
 
-              <p className="text-white/90 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="text-white/90 text-sm md:text-base leading-relaxed max-w-2xl mx-auto"
+              >
                 Đặt lịch tư vấn miễn phí với chuyên gia của SFB và khám phá cách chúng tôi có thể đồng hành
                 cùng doanh nghiệp bạn trong hành trình chuyển đổi số.
-              </p>
+              </motion.p>
 
-              <div className="flex items-center justify-center gap-3">
-                <a
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="flex items-center justify-center gap-3"
+              >
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   href="/case-studies"
                   className="px-5 py-2.5 rounded-md border border-white/60 text-white text-xs font-semibold hover:bg-white/10 transition"
                 >
                   Xem case studies
-                </a>
+                </motion.a>
 
-                <a
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   href="/contact"
                   className="px-5 py-2.5 rounded-md border border-white/60 text-white text-xs font-semibold hover:bg-white/10 transition inline-flex items-center gap-2"
                 >
                   Tư vấn miễn phí ngay
                   <ArrowRight size={16} />
-                </a>
-              </div>
-            </div>
+                </motion.a>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </section>
