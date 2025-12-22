@@ -4,7 +4,7 @@ import { Solutions } from "./Solutions";
 import { Trusts } from "./Trusts";
 import { AboutCompany } from "./AboutCompany";
 import { Testimonials } from "./Testimonials";
-import { Consult } from "./Consult";
+import { Consult } from "../public/Consult";
 
 export function HomepageContent() {
     return (

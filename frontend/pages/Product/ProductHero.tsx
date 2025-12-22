@@ -2,7 +2,14 @@ import { ArrowRight } from "lucide-react";
 
 export function ProductHero() {
     return (
-        <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-br from-[#0870B4] to-[#2EABE2] pt-32 pb-20">
+        <section
+            className="relative flex items-center overflow-hidden"
+            style={{
+                height: '847px',
+                paddingTop: '87px',
+                background: 'linear-gradient(to bottom right, #0870B4, #2EABE2)' // Approximate existing gradient
+            }}
+        >
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0088D9] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />

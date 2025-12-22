@@ -46,17 +46,16 @@ export function Header() {
   const isHomePage = pathname === '/';
 
   // Define routes with dark backgrounds behind the transparent header
-  // Add any routes with dark hero sections here
-  const darkBackgroundRoutes = ['/about', '/products', '/solutions', '/industries', '/news', '/careers'];
-  const hasDarkBackground = darkBackgroundRoutes.some(route => pathname?.startsWith(route)) || false;
+  // Define routes where header starts as transparent
+  const transparentHeaderRoutes = ['/about'];
+  const isTransparentHeader = pathname === '/' || transparentHeaderRoutes.some(route => pathname?.startsWith(route)) || false;
 
-
-  // Determine text color based on scroll state and background
-  // When scrolled: header is white/opaque -> ALWAYS use dark text
-  // When not scrolled (transparent header):
-  //   - If page has dark background -> use WHITE text (for contrast)
-  //   - If page has light background -> use DARK text (for visibility)
-  const useDarkText = scrolled ? true : !hasDarkBackground;
+  // Determine text color
+  // Scrolled: Dark text
+  // Homepage: Dark text (Bright background)
+  // Non-transparent pages: Dark text
+  // Transparent pages (like About): White text
+  const useDarkText = scrolled || pathname === '/' || !isTransparentHeader;
 
 
   // Language options with flags
@@ -208,10 +207,10 @@ export function Header() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className={`fixed left-0 right-0 z-50 transition-all duration-500 flex flex-col items-center max-w-[1920px] mx-auto ${scrolled
-          ? "bg-white/80 backdrop-blur-xl shadow-lg top-0 border-b border-white/20"
-          : `bg-transparent shadow-none backdrop-blur-none ${showAnnouncement ? 'top-12' : 'top-0'}`
-          }`}
+        className={`fixed left-0 right-0 z-50 transition-all duration-500 flex flex-col items-center max-w-[1920px] mx-auto ${scrolled || !isTransparentHeader
+          ? "bg-white shadow-lg border-b border-gray-100"
+          : "bg-transparent shadow-none backdrop-blur-none"
+          } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'}`}
         style={{ padding: "10px", gap: "10px" }}
       >
         <div className="container mx-auto px-6">

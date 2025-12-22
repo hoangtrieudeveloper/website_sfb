@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { ScrollAnimation } from "../public/ScrollAnimation";
+import { ScrollAnimation } from "./ScrollAnimation";
 
 export function Consult() {
     return (

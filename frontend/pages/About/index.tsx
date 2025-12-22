@@ -4,7 +4,7 @@ import { AboutVisionMission } from "./AboutVisionMission";
 import { AboutCoreValues } from "./AboutCoreValues";
 import { AboutMilestones } from "./AboutMilestones";
 import { AboutLeadership } from "./AboutLeadership";
-import { AboutCTA } from "./AboutCTA";
+import { Consult } from "../../components/public/Consult";
 
 export function AboutPage() {
     return (
@@ -15,7 +15,7 @@ export function AboutPage() {
             <AboutCoreValues />
             <AboutMilestones />
             <AboutLeadership />
-            <AboutCTA />
+            <Consult />
         </div>
     );
 }
