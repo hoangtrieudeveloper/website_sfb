@@ -9,6 +9,7 @@ import {
     type CarouselApi,
 } from "@/components/ui/carousel";
 import { testimonials, productTestimonialsSectionData } from "./data";
+import { FadeIn, ZoomIn } from "../../components/ui/motion";
 
 export function ProductTestimonials() {
     const [api, setApi] = useState<CarouselApi>();
@@ -38,12 +39,14 @@ export function ProductTestimonials() {
             }}
         >
             <div className="w-full max-w-[1920px] mx-auto px-6">
-                <h2 className="text-center text-4xl md:text-5xl font-extrabold text-gray-900">
-                    {productTestimonialsSectionData.title}
-                </h2>
+                <ZoomIn className="w-full">
+                    <h2 className="text-center text-4xl md:text-5xl font-extrabold text-gray-900">
+                        {productTestimonialsSectionData.title}
+                    </h2>
+                </ZoomIn>
 
                 {/* Carousel */}
-                <div className="w-full mt-[60px] px-0 md:px-10">
+                <FadeIn delay={0.2} className="w-full mt-[60px] px-0 md:px-10">
                     <Carousel
                         setApi={setApi}
                         opts={{
@@ -55,7 +58,7 @@ export function ProductTestimonials() {
                         <CarouselContent>
                             {testimonials.map((t, index) => (
                                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/4">
-                                    <div className="bg-white rounded-[28px] p-8 shadow-[0_18px_40px_rgba(0,0,0,0.08)] h-full mx-4">
+                                    <div className="bg-white rounded-[28px] p-8 shadow-[0_18px_40px_rgba(0,0,0,0.08)] h-full mx-4 hover:-translate-y-2 transition-transform duration-300">
                                         {/* Stars */}
                                         <div className="flex items-center gap-1 mb-6">
                                             {Array.from({ length: t.rating }).map((_, i) => (
@@ -81,10 +84,10 @@ export function ProductTestimonials() {
                             ))}
                         </CarouselContent>
                     </Carousel>
-                </div>
+                </FadeIn>
 
                 {/* Dots */}
-                <div className="flex items-center justify-center gap-2 mt-10">
+                <FadeIn delay={0.4} className="flex items-center justify-center gap-2 mt-10">
                     {testimonials.map((_, i) => (
                         <button
                             key={i}
@@ -94,7 +97,7 @@ export function ProductTestimonials() {
                                 }`}
                         />
                     ))}
-                </div>
+                </FadeIn>
             </div>
         </section>
     );

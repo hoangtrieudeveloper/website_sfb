@@ -1,5 +1,9 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import { productHeroData } from "./data";
+import { FadeIn, StaggerContainer, SlideIn, ZoomIn, zoomInVariant } from "../../components/ui/motion";
+import { motion } from "framer-motion";
 
 export function ProductHero() {
     return (
@@ -18,50 +22,64 @@ export function ProductHero() {
 
             <div className="container mx-auto px-6 relative z-10">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h1 className="text-white mb-8 text-5xl md:text-5xl">
-                        {productHeroData.title.line1}
-                        <span className="block text-white font-extrabold text-5xl mt-2">
-                            {productHeroData.title.line2}
-                        </span>
-                    </h1>
+                    <SlideIn direction="left" delay={0.2}>
+                        <h1 className="text-white mb-8 text-5xl md:text-5xl">
+                            {productHeroData.title.line1}
+                            <span className="block text-white font-extrabold text-5xl mt-2">
+                                {productHeroData.title.line2}
+                            </span>
+                        </h1>
+                    </SlideIn>
 
-                    <p className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto">
-                        {productHeroData.description}
-                    </p>
+                    <FadeIn delay={0.4}>
+                        <p className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto">
+                            {productHeroData.description}
+                        </p>
+                    </FadeIn>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false }}
+                        variants={zoomInVariant}
+                        className="flex flex-col sm:flex-row gap-4 justify-center"
+                    >
+                        <motion.a
                             href={productHeroData.buttons.primary.link}
-                            className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all inline-flex items-center justify-center gap-3 font-semibold"
                         >
                             {productHeroData.buttons.primary.text}
                             <ArrowRight
                                 className="group-hover:translate-x-2 transition-transform"
                                 size={20}
                             />
-                        </a>
-                        <a
+                        </motion.a>
+                        <motion.a
                             href={productHeroData.buttons.secondary.link}
-                            className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
+                            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.2)" }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
                         >
                             {productHeroData.buttons.secondary.text}
                             <ArrowRight
                                 className="group-hover:translate-x-2 transition-transform"
                                 size={20}
                             />
-                        </a>
-                    </div>
+                        </motion.a>
+                    </motion.div>
 
-                    <div className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
+                    <StaggerContainer className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto" delay={0.4}>
                         {productHeroData.stats.map((stat, index) => (
-                            <div key={index} className="text-center">
+                            <ZoomIn key={index} className="text-center">
                                 <div className="text-4xl font-bold text-white mb-2">
                                     {stat.value}
                                 </div>
                                 <div className="text-blue-200">{stat.label}</div>
-                            </div>
+                            </ZoomIn>
                         ))}
-                    </div>
+                    </StaggerContainer>
                 </div>
             </div>
         </section>

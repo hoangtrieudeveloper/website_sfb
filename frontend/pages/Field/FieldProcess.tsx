@@ -2,6 +2,7 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { processSteps, fieldProcessSectionData } from "./data";
+import { FadeIn, SlideIn } from "../../components/ui/motion";
 
 export function FieldProcess() {
     return (
@@ -10,7 +11,7 @@ export function FieldProcess() {
 
             <div className="container mx-auto px-6 relative z-10">
                 {/* Header */}
-                <div className="text-center mb-20 max-w-3xl mx-auto">
+                <FadeIn className="text-center mb-20 max-w-3xl mx-auto">
                     <div className="inline-block mb-4">
                         <span className="text-sm font-bold text-blue-500 uppercase tracking-wider">
                             {fieldProcessSectionData.header.subtitle}
@@ -20,7 +21,7 @@ export function FieldProcess() {
                         {fieldProcessSectionData.header.title.part1} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">{fieldProcessSectionData.header.title.highlight}</span> <br />
                         <span className="text-gray-900">{fieldProcessSectionData.header.title.part2}</span>
                     </h2>
-                </div>
+                </FadeIn>
 
                 {/* Steps */}
                 <div className="flex flex-col gap-24">
@@ -35,7 +36,7 @@ export function FieldProcess() {
                                 className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
                             >
                                 {/* Image Column */}
-                                <div className="w-full lg:w-1/2">
+                                <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-1/2">
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-blue-500/5 rounded-[2rem] transform rotate-3 scale-105 transition-transform group-hover:rotate-6 duration-500" />
                                         <div className="relative rounded-[2rem] overflow-hidden bg-white p-3 shadow-2xl border border-gray-100">
@@ -58,10 +59,10 @@ export function FieldProcess() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </SlideIn>
 
                                 {/* Content Column */}
-                                <div className="w-full lg:w-1/2">
+                                <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-1/2">
                                     <h3 className="text-3xl font-bold text-gray-900 mb-6">
                                         {step.title}
                                     </h3>
@@ -94,7 +95,7 @@ export function FieldProcess() {
                                             {step.button.text === "Liên hệ với chúng tôi" && <ButtonIcon size={step.button.iconSize} />}
                                         </a>
                                     </div>
-                                </div>
+                                </SlideIn>
                             </div>
                         );
                     })}

@@ -1,6 +1,8 @@
+"use client";
 
 import { Sparkles, CheckCircle2 } from "lucide-react";
 import { fieldListSectionData } from "./data";
+import { FadeIn, SlideIn, StaggerContainer } from "../../components/ui/motion";
 
 export function FieldList() {
     return (
@@ -8,7 +10,7 @@ export function FieldList() {
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
 
             <div className="container mx-auto px-6 relative z-10">
-                <div className="text-center mb-16 max-w-3xl mx-auto">
+                <FadeIn className="text-center mb-16 max-w-3xl mx-auto">
                     <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-full border border-blue-200 mb-4">
                         <Sparkles className="text-blue-600" size={18} />
                         <span className="text-sm font-semibold text-blue-700">
@@ -21,11 +23,12 @@ export function FieldList() {
                     <p className="text-xl text-gray-600 leading-relaxed">
                         {fieldListSectionData.header.description}
                     </p>
-                </div>
+                </FadeIn>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {fieldListSectionData.items.map((field) => (
-                        <div
+                        <SlideIn
+                            direction="up"
                             key={field.id}
                             className="bg-white rounded-3xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group"
                         >
@@ -56,9 +59,9 @@ export function FieldList() {
                                     </li>
                                 ))}
                             </ul>
-                        </div>
+                        </SlideIn>
                     ))}
-                </div>
+                </StaggerContainer>
             </div>
         </section>
     );

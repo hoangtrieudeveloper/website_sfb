@@ -2,6 +2,8 @@
 
 import { ArrowRight } from "lucide-react";
 import { fieldHeroData } from "./data";
+import { FadeIn, SlideIn, ZoomIn, StaggerContainer, zoomInVariant } from "../../components/ui/motion";
+import { motion } from "framer-motion";
 
 export function FieldHero() {
     return (
@@ -33,7 +35,7 @@ export function FieldHero() {
                 >
                     {/* Left Column: Image */}
                     <div className="relative order-2 lg:order-1 flex justify-center lg:justify-start lg:mr-[-55px] z-10">
-                        <div className="relative" style={{ width: '991px', height: '782px', flexShrink: 0 }}>
+                        <ZoomIn className="relative" style={{ width: '991px', height: '782px', flexShrink: 0 }}>
                             <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full filter blur-3xl opacity-30 transform scale-75" />
                             {/* Responsive Image Placeholders */}
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -48,43 +50,47 @@ export function FieldHero() {
                                     }}
                                 />
                             </div>
-                        </div>
+                        </ZoomIn>
                     </div>
 
                     {/* Right Column: Content */}
                     <div className="order-1 lg:order-2 text-white">
-                        <h1
-                            className="text-white mb-6"
-                            style={{
-                                width: '543px',
-                                fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                fontSize: '56px',
-                                lineHeight: 'normal',
-                                fontFeatureSettings: "'liga' off, 'clig' off"
-                            }}
-                        >
-                            <span className="font-bold">{fieldHeroData.title.prefix} </span>
-                            <span className="font-normal">{fieldHeroData.title.suffix}</span>
-                        </h1>
+                        <SlideIn direction="right">
+                            <h1
+                                className="text-white mb-6"
+                                style={{
+                                    width: '543px',
+                                    fontFamily: '"Plus Jakarta Sans", sans-serif',
+                                    fontSize: '56px',
+                                    lineHeight: 'normal',
+                                    fontFeatureSettings: "'liga' off, 'clig' off"
+                                }}
+                            >
+                                <span className="font-bold">{fieldHeroData.title.prefix} </span>
+                                <span className="font-normal">{fieldHeroData.title.suffix}</span>
+                            </h1>
+                        </SlideIn>
 
-                        <p
-                            className="mb-10"
-                            style={{
-                                width: '486px',
-                                color: '#FFF',
-                                fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                fontSize: '16px',
-                                fontWeight: 400,
-                                lineHeight: '26px'
-                            }}
-                        >
-                            {fieldHeroData.description}
-                        </p>
+                        <FadeIn delay={0.2}>
+                            <p
+                                className="mb-10"
+                                style={{
+                                    width: '486px',
+                                    color: '#FFF',
+                                    fontFamily: '"Plus Jakarta Sans", sans-serif',
+                                    fontSize: '16px',
+                                    fontWeight: 400,
+                                    lineHeight: '26px'
+                                }}
+                            >
+                                {fieldHeroData.description}
+                            </p>
+                        </FadeIn>
 
                         {/* Stats Row */}
-                        <div className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8">
+                        <StaggerContainer className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8" delay={0.4}>
                             {fieldHeroData.stats.slice(0, 3).map((metric, index) => (
-                                <div key={index}>
+                                <ZoomIn key={index}>
                                     <div
                                         className="mb-2"
                                         style={{
@@ -115,13 +121,17 @@ export function FieldHero() {
                                             ? "Cơ quan Nhà nước & DN"
                                             : metric.label}
                                     </div>
-                                </div>
+                                </ZoomIn>
                             ))}
-                        </div>
+                        </StaggerContainer>
 
                         {/* CTA Button */}
-                        <a
+                        <motion.a
                             href={fieldHeroData.button.link}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: false }}
+                            variants={zoomInVariant}
                             className="inline-flex items-center gap-3 transition-all hover:scale-105"
                             style={{
                                 display: 'inline-flex',
@@ -138,7 +148,7 @@ export function FieldHero() {
                         >
                             {fieldHeroData.button.text}
                             <ArrowRight size={20} />
-                        </a>
+                        </motion.a>
                     </div>
                 </div>
             </div>
