@@ -1,6 +1,6 @@
 
 import { Sparkles, CheckCircle2 } from "lucide-react";
-import { fields } from "./data";
+import { fieldListSectionData } from "./data";
 
 export function FieldList() {
     return (
@@ -12,20 +12,19 @@ export function FieldList() {
                     <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-full border border-blue-200 mb-4">
                         <Sparkles className="text-blue-600" size={18} />
                         <span className="text-sm font-semibold text-blue-700">
-                            Lĩnh vực
+                            {fieldListSectionData.header.badge}
                         </span>
                     </div>
                     <h2 className="text-gray-900 mb-6">
-                        Các lĩnh vực hoạt động & dịch vụ
+                        {fieldListSectionData.header.title}
                     </h2>
                     <p className="text-xl text-gray-600 leading-relaxed">
-                        Những mảng chuyên môn chính mà SFB đang cung cấp giải pháp và dịch
-                        vụ công nghệ thông tin cho cơ quan Nhà nước & doanh nghiệp
+                        {fieldListSectionData.header.description}
                     </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {fields.map((field) => (
+                    {fieldListSectionData.items.map((field) => (
                         <div
                             key={field.id}
                             className="bg-white rounded-3xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group"

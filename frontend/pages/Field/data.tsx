@@ -8,6 +8,8 @@ import {
     Award,
     Target,
     Sparkles,
+    ArrowRight,
+    Phone,
 } from "lucide-react";
 
 export const fields = [
@@ -138,6 +140,12 @@ export const processSteps = [
                 hover: "rgba(37,99,235,0.18)"
             },
             checkColor: "text-blue-600"
+        },
+        button: {
+            text: "Liên hệ với chúng tôi",
+            link: "/contact",
+            icon: ArrowRight,
+            iconSize: 18
         }
     },
     {
@@ -159,6 +167,12 @@ export const processSteps = [
                 hover: "rgba(16,185,129,0.22)"
             },
             checkColor: "text-emerald-600"
+        },
+        button: {
+            text: "Kết nối với chuyên gia",
+            link: "/experts",
+            icon: Phone,
+            iconSize: 18
         }
     },
     {
@@ -180,6 +194,47 @@ export const processSteps = [
                 hover: "rgba(168,85,247,0.22)"
             },
             checkColor: "text-purple-600"
+        },
+        button: {
+            text: "Tìm hiểu quy trình, nghiệp vụ",
+            link: "/process",
+            icon: Sparkles, // Using Sparkles as FileText wasn't imported in data.tsx, but I can add it
+            iconSize: 18
         }
     },
 ];
+
+// fieldHeroData
+export const fieldHeroData = {
+    title: {
+        prefix: "Giải pháp công nghệ tối ưu",
+        suffix: "vận hành doanh nghiệp"
+    },
+    description: "Hơn 8 năm xây dựng và phát triển, SFBTECH.,JSC đồng hành cùng nhiều cơ quan Nhà nước và doanh nghiệp trong hành trình chuyển đổi số với hàng trăm dự án triển khai thực tế.",
+    button: {
+        text: "KHÁM PHÁ GIẢI PHÁP",
+        link: "/solutions"
+    },
+    image: "/images/fieldhero.png",
+    stats: successMetrics // Reusing the existing export
+};
+
+export const fieldListSectionData = {
+    header: {
+        badge: "Lĩnh vực",
+        title: "Các lĩnh vực hoạt động & dịch vụ",
+        description: "Những mảng chuyên môn chính mà SFB đang cung cấp giải pháp và dịch vụ công nghệ thông tin cho cơ quan Nhà nước & doanh nghiệp"
+    },
+    items: fields // Reusing the existing export
+};
+
+export const fieldProcessSectionData = {
+    header: {
+        subtitle: "LỘ TRÌNH ĐỒNG HÀNH CÙNG SFB",
+        title: {
+            part1: "Vì sao SFB phù hợp cho",
+            highlight: "nhiều",
+            part2: "lĩnh vực khác nhau"
+        }
+    }
+};

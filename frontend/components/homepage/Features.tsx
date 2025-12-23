@@ -56,7 +56,7 @@ function PrimaryLinkButton({
   );
 }
 
-import { purposeItems, advantages } from "./data";
+import { featureData } from "./data";
 export function Features() {
 
   return (
@@ -67,39 +67,32 @@ export function Features() {
         {/* HEADER */}
         <ScrollAnimation variant="blur-in" className="mx-auto mb-14 max-w-4xl text-center">
           <p className="mb-4 text-[15px] font-medium uppercase text-[#1D8FCF]">
-            GIỚI THIỆU SFB
+            {featureData.header.sub}
           </p>
 
           <h2 className="text-[34px] sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
-            Chúng tôi là ai?
+            {featureData.header.title}
           </h2>
 
           <p className="mx-auto mt-4 max-w-3xl text-[16px] leading-[26px] text-[#0F172A]">
-            Đơn vị phát triển phần mềm với kinh nghiệm thực chiến, chuyên sâu công nghệ và
-            định hướng xây dựng hệ thống bền vững.
+            {featureData.header.description}
           </p>
         </ScrollAnimation>
 
         {/* BLOCK 1 */}
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <ScrollAnimation variant="slide-right" className="flex justify-center lg:justify-start">
-            <FeatureImageFrame src="/images/feature1.png" alt="SFB overview" />
+            <FeatureImageFrame src={featureData.block1.image} alt="SFB overview" />
           </ScrollAnimation>
 
           <ScrollAnimation variant="slide-left" delay={0.1}>
             <div className="max-w-xl">
               <p className="text-slate-700 leading-relaxed">
-                SFB với kinh nghiệm qua nhiều dự án lớn nhỏ, tự tin xử lý các bài toán phần mềm
-                phức tạp, yêu cầu chuyên môn sâu. Đội ngũ trẻ – đam mê – trách nhiệm giúp xây
-                dựng hệ thống ổn định, hiệu quả và tối ưu chi phí.
+                {featureData.block1.text}
               </p>
 
               <div className="mt-6 space-y-3">
-                {[
-                  "Tự tin trong các dự án phức tạp",
-                  "Tối ưu quy trình và chi phí",
-                  "Đồng hành trọn vòng đời sản phẩm",
-                ].map((t, idx) => (
+                {featureData.block1.list.map((t, idx) => (
                   <ScrollAnimation
                     key={t}
                     variant="slide-left"
@@ -113,8 +106,8 @@ export function Features() {
               </div>
 
               <div className="mt-7">
-                <PrimaryLinkButton href="/about">
-                  Tìm hiểu thêm <ArrowRight className="h-4 w-4" />
+                <PrimaryLinkButton href={featureData.block1.button.link}>
+                  {featureData.block1.button.text} <ArrowRight className="h-4 w-4" />
                 </PrimaryLinkButton>
               </div>
             </div>
@@ -127,7 +120,7 @@ export function Features() {
             {/* ✅ bỏ shadow */}
             <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] hover:border-[#1D8FCF]/30 transition-all duration-500">
               <div className="space-y-5">
-                {advantages.map((item, idx) => (
+                {featureData.block2.items.map((item, idx) => (
                   <ScrollAnimation
                     key={item.title}
                     variant="slide-right"
@@ -144,29 +137,29 @@ export function Features() {
               </div>
 
               <div className="mt-7">
-                <PrimaryLinkButton href="/solutions">
-                  Tìm hiểu cách SFB triển khai <ArrowRight className="h-4 w-4" />
+                <PrimaryLinkButton href={featureData.block2.button.link}>
+                  {featureData.block2.button.text} <ArrowRight className="h-4 w-4" />
                 </PrimaryLinkButton>
               </div>
             </div>
           </ScrollAnimation>
 
           <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
-            <FeatureImageFrame src="/images/feature2.png" alt="Business tech" />
+            <FeatureImageFrame src={featureData.block2.image} alt="Business tech" />
           </ScrollAnimation>
         </div>
 
         {/* BLOCK 3 */}
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:items-center">
           <ScrollAnimation variant="zoom-in" className="flex justify-center lg:justify-start">
-            <FeatureImageFrame src="/images/feature3.png" alt="Workflow" />
+            <FeatureImageFrame src={featureData.block3.image} alt="Workflow" />
           </ScrollAnimation>
 
           <ScrollAnimation variant="zoom-in" delay={0.1}>
             {/* ✅ bỏ shadow */}
             <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] hover:border-[#1D8FCF]/30 transition-all duration-500">
               <div className="space-y-5">
-                {purposeItems.map((item, idx) => (
+                {featureData.block3.items.map((item, idx) => (
                   <ScrollAnimation
                     key={item.title}
                     variant="slide-left"
@@ -183,8 +176,8 @@ export function Features() {
               </div>
 
               <div className="mt-7">
-                <PrimaryLinkButton href="/contact">
-                  Liên hệ với chúng tôi <ArrowRight className="h-4 w-4" />
+                <PrimaryLinkButton href={featureData.block3.button.link}>
+                  {featureData.block3.button.text} <ArrowRight className="h-4 w-4" />
                 </PrimaryLinkButton>
               </div>
             </div>

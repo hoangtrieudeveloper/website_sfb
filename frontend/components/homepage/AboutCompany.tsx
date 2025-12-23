@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
-import { aboutSlides } from "./data";
+import { aboutSlides, aboutCompanyData } from "./data";
 
 export function AboutCompany() {
 
@@ -16,13 +16,14 @@ export function AboutCompany() {
           className="text-center max-w-5xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-bold text-[#0F172A] leading-tight mb-6">
-            Chuyển đổi số{" "}
-            <span>không bắt đầu từ phần mềm</span> mà{" "}
-            <span>từ hiệu quả thực tế</span> của doanh nghiệp.
+            {aboutCompanyData.title.part1}
+            <span>{aboutCompanyData.title.highlight1}</span>
+            {aboutCompanyData.title.part2}
+            <span>{aboutCompanyData.title.highlight2}</span>
+            {aboutCompanyData.title.part3}
           </h2>
           <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            SFB giúp doanh nghiệp vận hành thông minh, giảm chi phí hạ tầng,
-            tăng năng suất và bảo mật dữ liệu an toàn tuyệt đối.
+            {aboutCompanyData.description}
           </p>
         </ScrollAnimation>
 

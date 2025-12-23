@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { successMetrics } from "./data";
+import { fieldHeroData } from "./data";
 
 export function FieldHero() {
     return (
@@ -38,7 +38,7 @@ export function FieldHero() {
                             {/* Responsive Image Placeholders */}
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
                                 <img
-                                    src="/images/fieldhero.png"
+                                    src={fieldHeroData.image}
                                     alt="Optimizing Business Operations"
                                     className="w-full h-full object-cover drop-shadow-2xl"
                                     onError={(e) => {
@@ -63,8 +63,8 @@ export function FieldHero() {
                                 fontFeatureSettings: "'liga' off, 'clig' off"
                             }}
                         >
-                            <span className="font-bold">Giải pháp công nghệ tối ưu </span>
-                            <span className="font-normal">vận hành doanh nghiệp</span>
+                            <span className="font-bold">{fieldHeroData.title.prefix} </span>
+                            <span className="font-normal">{fieldHeroData.title.suffix}</span>
                         </h1>
 
                         <p
@@ -78,14 +78,12 @@ export function FieldHero() {
                                 lineHeight: '26px'
                             }}
                         >
-                            Hơn 8 năm xây dựng và phát triển, SFBTECH.,JSC đồng hành cùng nhiều
-                            cơ quan Nhà nước và doanh nghiệp trong hành trình chuyển đổi số với
-                            hàng trăm dự án triển khai thực tế.
+                            {fieldHeroData.description}
                         </p>
 
                         {/* Stats Row */}
                         <div className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8">
-                            {successMetrics.slice(0, 3).map((metric, index) => (
+                            {fieldHeroData.stats.slice(0, 3).map((metric, index) => (
                                 <div key={index}>
                                     <div
                                         className="mb-2"
@@ -123,7 +121,7 @@ export function FieldHero() {
 
                         {/* CTA Button */}
                         <a
-                            href="/solutions"
+                            href={fieldHeroData.button.link}
                             className="inline-flex items-center gap-3 transition-all hover:scale-105"
                             style={{
                                 display: 'inline-flex',
@@ -138,7 +136,7 @@ export function FieldHero() {
                                 fontWeight: 700,
                             }}
                         >
-                            KHÁM PHÁ GIẢI PHÁP
+                            {fieldHeroData.button.text}
                             <ArrowRight size={20} />
                         </a>
                     </div>

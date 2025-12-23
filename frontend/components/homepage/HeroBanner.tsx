@@ -10,7 +10,7 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
-import { partners } from "./data";
+import { partners, heroData } from "./data";
 
 export function HeroBanner() {
 
@@ -40,9 +40,9 @@ export function HeroBanner() {
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
-                Chuyển đổi số<br />
-                Thông minh<br />
-                Cho doanh nghiệp
+                {heroData.title.line1}<br />
+                {heroData.title.line2}<br />
+                {heroData.title.line3}
               </h1>
             </ScrollAnimation>
 
@@ -59,16 +59,14 @@ export function HeroBanner() {
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
-                SFB Technology đồng hành cùng doanh nghiệp trong hành
-                trình chuyển đổi số với các giải pháp công nghệ tiên
-                tiến, tối ưu hóa quy trình và tăng trưởng bền vững.
+                {heroData.description}
               </p>
             </ScrollAnimation>
 
             <ScrollAnimation variant="blur-in" delay={0.4}>
               <div className="flex flex-col sm:flex-row gap-4 pt-2">
                 <Link
-                  href="/solutions"
+                  href={heroData.primaryButton.link}
                   className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold"
                   style={{
                     display: "flex",
@@ -82,7 +80,7 @@ export function HeroBanner() {
                       "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
                   }}
                 >
-                  Khám phá giải pháp
+                  {heroData.primaryButton.text}
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
 
@@ -103,7 +101,7 @@ export function HeroBanner() {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Play size={14} className="text-white ml-0.5" />
                   </div>
-                  <span>Xem video</span>
+                  <span>{heroData.secondaryButton.text}</span>
                 </button>
               </div>
             </ScrollAnimation>

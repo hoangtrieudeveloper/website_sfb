@@ -1,8 +1,7 @@
-
 import { ProductHero } from "./ProductHero";
 import { ProductBenefits } from "./ProductBenefits";
 import { ProductList } from "./ProductList";
-import { Testimonials } from "../../components/homepage/Testimonials";
+import { ProductTestimonials } from "./ProductTestimonials";
 import { Consult } from "../../components/public/Consult";
 
 export function ProductsPage() {
@@ -11,7 +10,7 @@ export function ProductsPage() {
             <ProductHero />
             <ProductBenefits />
             <ProductList />
-            <Testimonials />
+            <ProductTestimonials />
             <Consult />
         </div>
     );

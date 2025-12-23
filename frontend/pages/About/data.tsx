@@ -1,4 +1,4 @@
-
+// Consolidated coreValues from AboutCoreValues.tsx
 import {
     Eye,
     Target,
@@ -10,8 +10,96 @@ import {
     Globe,
     Calendar,
     Award,
+    Handshake,
+    ShieldCheck,
+    Database,
+    Globe2,
+    Building2,
+    MapPin,
+    Phone,
+    Mail
 } from "lucide-react";
 
+export const aboutHeroData = {
+    title: {
+        line1: "SFB Technology",
+        line2: "Công ty cổ phần",
+        line3: "công nghệ SFB"
+    },
+    description: "Hơn 8 năm xây dựng và phát triển, SFBTECH.,JSC đồng hành cùng nhiều cơ quan Nhà nước và doanh nghiệp trong hành trình chuyển đổi số với hàng trăm dự án triển khai thực tế.",
+    button: {
+        text: "KHÁM PHÁ GIẢI PHÁP",
+        link: "/solutions"
+    },
+    image: "/images/abouthero.png"
+};
+
+export const aboutCompanySectionData = {
+    header: {
+        sub: "GIỚI THIỆU SFB",
+        title: {
+            line1: "Đối tác công nghệ chiến lược",
+            line2: "cho doanh nghiệp Việt"
+        }
+    },
+    content: {
+        image1: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+        title: "CÔNG TY CỔ PHẦN CÔNG NGHỆ SFB (SFB TECHNOLOGY JOINT STOCK COMPANY – viết tắt SFBTECH.,JSC)",
+        description: "Công ty hoạt động theo mô hình cổ phần với giấy chứng nhận đăng ký kinh doanh số 0107857710 do Sở Kế hoạch và Đầu tư Hà Nội cấp ngày 24/05/2017.",
+        button: {
+            text: "Liên hệ với chúng tôi",
+            link: "/contact"
+        }
+    },
+    contact: {
+        items: [
+            {
+                icon: Building2,
+                title: "Trụ sở",
+                text: "41A ngõ 68, đường Ngọc Thuỵ, phường Ngọc Thuỵ, quận Long Biên, Hà Nội."
+            },
+            {
+                icon: MapPin,
+                title: "Văn phòng",
+                text: "P303, Tầng 3, Khách sạn Thể Thao, 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội."
+            },
+            {
+                icon: Phone,
+                title: "Hotline",
+                text: "0888 917 999",
+                isHighlight: true
+            },
+            {
+                icon: Mail,
+                title: "Email",
+                text: "info@sfb.vn",
+                isHighlight: true
+            }
+        ],
+        button: {
+            text: "Liên hệ ngay",
+            link: "/contact"
+        },
+        image2: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80"
+    }
+};
+
+export const visionMissionSectionData = {
+    header: {
+        title: "Tầm nhìn & Sứ mệnh",
+        description: "Trở thành một trong những công ty công nghệ hàng đầu về phát triển bền vững, xây dựng trên nền tảng tri thức và trí tuệ sáng tạo của đội ngũ nhân sự SFB."
+    },
+    items: [
+        { id: 1, text: "Phát triển bền vững trên nền tảng tri thức" },
+        { id: 2, text: "Kết hợp trí tuệ tập thể & sự nhiệt huyết của đội ngũ" },
+        { id: 3, text: "Xây dựng hệ thống, sản phẩm có giá trị lâu dài" },
+        { id: 4, text: "Cung cấp sản phẩm, dịch vụ tốt nhất dựa trên công nghệ mới" },
+        { id: 5, text: "Tạo dựng niềm tin vững chắc với khách hàng & nhà đầu tư" },
+        { id: 6, text: "Chung tay cùng xã hội hướng tới nền công nghiệp 4.0" },
+    ]
+};
+
+// Kept for backward compatibility if needed, but visionMissionSectionData is preferred for the UI
 export const visionMission = [
     {
         icon: Eye,
@@ -44,76 +132,67 @@ export const visionMission = [
 
 export const coreValues = [
     {
-        icon: Zap,
+        icon: Lightbulb,
         title: "Đổi mới sáng tạo",
-        description:
-            "Luôn tìm kiếm giải pháp mới, áp dụng công nghệ tiên tiến vào sản phẩm & dịch vụ.",
+        description: "Luôn tìm kiếm giải pháp mới, áp dụng công nghệ tiên tiến vào sản phẩm & dịch vụ.",
         gradient: "from-yellow-500 to-orange-500",
+    },
+    {
+        icon: Handshake,
+        title: "Tận tâm với khách hàng",
+        description: "Đặt lợi ích khách hàng lên hàng đầu, cam kết đồng hành dài lâu.",
+        gradient: "from-rose-500 to-pink-500",
     },
     {
         icon: Users,
         title: "Hợp tác & đồng hành",
-        description:
-            "Làm việc nhóm chặt chẽ, cùng khách hàng xây dựng giải pháp phù hợp nhất.",
+        description: "Làm việc nhóm chặt chẽ, cùng khách hàng xây dựng giải pháp phù hợp nhất.",
         gradient: "from-blue-500 to-cyan-500",
     },
     {
-        icon: Heart,
-        title: "Tận tâm với khách hàng",
-        description:
-            "Đặt lợi ích khách hàng lên hàng đầu, cam kết đồng hành dài lâu.",
-        gradient: "from-rose-500 to-pink-500",
-    },
-    {
-        icon: Shield,
+        icon: ShieldCheck,
         title: "Trách nhiệm & minh bạch",
-        description:
-            "Tuân thủ cam kết, quy trình rõ ràng, không phát sinh chi phí thiếu minh bạch.",
+        description: "Tuân thủ cam kết, quy trình rõ ràng, không phát sinh chi phí thiếu minh bạch.",
         gradient: "from-emerald-500 to-teal-500",
     },
     {
-        icon: Lightbulb,
+        icon: Database,
         title: "Học hỏi không ngừng",
-        description:
-            "Liên tục cập nhật xu hướng mới: Cloud, AI, Big Data, DevOps…",
+        description: "Liên tục cập nhật xu hướng mới: Cloud, AI, Big Data, DevOps..",
         gradient: "from-purple-500 to-indigo-500",
     },
     {
-        icon: Globe,
+        icon: Globe2,
         title: "Tư duy toàn cầu",
-        description:
-            "Tiếp cận theo chuẩn quốc tế, sẵn sàng mở rộng sang các thị trường mới.",
+        description: "Tiếp cận theo chuẩn quốc tế, sẵn sàng mở rộng sang các thị trường mới.",
         gradient: "from-indigo-500 to-blue-500",
     },
 ];
 
+// Milestones from AboutMilestones.tsx
 export const milestones = [
     {
         year: "2017",
         title: "Thành lập SFBTECH.,JSC",
-        description:
-            "Được cấp giấy chứng nhận đăng ký kinh doanh số 0107857710 bởi Sở KH&ĐT Hà Nội, bắt đầu hoạt động theo mô hình công ty cổ phần.",
+        description: "Được cấp giấy chứng nhận đăng ký kinh doanh số 0107857710 bởi Sở KH&ĐT Hà Nội, bắt đầu hoạt động theo mô hình công ty cổ phần.",
         icon: "🚀",
     },
     {
-        year: "2018–2019",
+        year: "2018-2019",
         title: "Xây dựng đội ngũ & sản phẩm lõi",
-        description:
-            "Hình thành các giải pháp về cổng thông tin điện tử, văn bản điều hành, thư viện số và các hệ thống nghiệp vụ cho cơ quan Nhà nước.",
+        description: "Hình thành các giải pháp về cổng thông tin điện tử, văn bản điều hành, thư viện số và các hệ thống nghiệp vụ cho cơ quan Nhà nước.",
         icon: "📘",
     },
     {
-        year: "2020–2022",
+        year: "2020-2022",
         title: "Mở rộng lĩnh vực & quy mô triển khai",
-        description:
-            "Triển khai nhiều dự án cho khối Tài chính, Bảo hiểm, Ngân hàng, Viễn thông, Chính phủ điện tử và Doanh nghiệp.",
+        description: "Triển khai nhiều dự án cho khối Tài chính, Bảo hiểm, Ngân hàng, Viễn thông, Chính phủ điện tử và Doanh nghiệp.",
         icon: "📈",
     },
     {
-        year: "Từ 2023",
+        year: "2023 - nay",
         title: "Tiếp tục tăng trưởng & chuyển đổi số",
-        description:
-            "Đẩy mạnh các giải pháp theo nhu cầu riêng của từng đơn vị, chú trọng mở rộng, an toàn, bảo mật và tích hợp hệ thống.",
+        description: "Đẩy mạnh các giải pháp theo nhu cầu riêng của từng đơn vị, chú trọng mở rộng, an toàn, bảo mật và tích hợp hệ thống.",
         icon: "🎯",
     },
 ];
@@ -121,27 +200,43 @@ export const milestones = [
 export const leaders = [
     {
         name: "Nguyễn Văn Điền",
-        position: "Kế toán trưởng",
+        position: "KẾ TOÁN TRƯỞNG",
         email: "diennv@sfb.vn",
         phone: "0888 917 999",
-        image:
-            "https://sfb.vn/wp-content/uploads/2020/04/ngvandien-500x500.jpg",
+        description: "Thành viên ban lãnh đạo phụ trách kế toán trưởng, phối hợp chặt chẽ với các khối giải pháp, sản phẩm và vận hành.",
+        image: "https://sfb.vn/wp-content/uploads/2020/04/ngvandien-500x500.jpg",
     },
     {
         name: "Nguyễn Đức Duy",
-        position: "Giám Đốc Công Nghệ",
+        position: "GIÁM ĐỐC CÔNG NGHỆ",
         email: "duynd@sfb.vn",
         phone: "0705 146 789",
-        image:
-            "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
+        description: "Thành viên ban lãnh đạo phụ trách giám đốc công nghệ, phối hợp chặt chẽ với các khối giải pháp, sản phẩm và vận hành.",
+        image: "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
     },
     {
         name: "Nguyễn Văn C",
-        position: "Giám Đốc kinh doanh",
+        position: "GIÁM ĐỐC KINH DOANH",
         email: "nvc@sfb.vn",
-        phone: "0967 891 123",
-        image:
-            "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
+        phone: "0705 146 789",
+        description: "Thành viên ban lãnh đạo phụ trách giám đốc kinh doanh, phối hợp chặt chẽ với các khối giải pháp, sản phẩm và vận hành.",
+        image: "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
+    },
+    {
+        name: "Lê Văn D",
+        position: "GIÁM ĐỐC VẬN HÀNH",
+        email: "lvd@sfb.vn",
+        phone: "0987 654 321",
+        description: "Thành viên ban lãnh đạo phụ trách vận hành và quy trình nội bộ, đảm bảo hiệu suất hoạt động tối ưu.",
+        image: "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
+    },
+    {
+        name: "Phạm Thị E",
+        position: "GIÁM ĐỐC NHÂN SỰ",
+        email: "pte@sfb.vn",
+        phone: "0123 456 789",
+        description: "Thành viên ban lãnh đạo phụ trách phát triển nguồn nhân lực và văn hóa doanh nghiệp.",
+        image: "https://sfb.vn/wp-content/uploads/2020/04/ngvandien-500x500.jpg",
     },
 ];
 

@@ -1,20 +1,23 @@
 
 import { ArrowRight, MapPin, Phone, Mail, Building2 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { aboutCompanySectionData } from "./data";
 
 export function AboutCompany() {
+    const { header, content, contact } = aboutCompanySectionData;
+
     return (
         <section className="py-20 bg-[#F8FBFE] overflow-hidden">
             <div className="max-w-[1340px] mx-auto px-6">
                 {/* Header */}
                 <div className="text-center mb-16">
                     <span className="text-[#2CA4E0] font-semibold text-sm tracking-wider uppercase mb-3 block">
-                        GIỚI THIỆU SFB
+                        {header.sub}
                     </span>
                     <h2 className="text-[#1A202C] text-3xl md:text-4xl font-bold leading-tight">
-                        Đối tác công nghệ chiến lược
+                        {header.title.line1}
                         <br />
-                        cho doanh nghiệp Việt
+                        {header.title.line2}
                     </h2>
                 </div>
 
@@ -24,7 +27,7 @@ export function AboutCompany() {
                     <div className="relative w-full lg:w-[701px] flex-shrink-0">
                         <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200">
                             <ImageWithFallback
-                                src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80"
+                                src={content.image1}
                                 alt="SFB Team Meeting"
                                 className="w-full h-full object-cover"
                             />
@@ -34,17 +37,17 @@ export function AboutCompany() {
                     {/* Right: Content */}
                     <div className="space-y-6 flex-1">
                         <h3 className="text-gray-900 text-lg font-bold leading-relaxed">
-                            CÔNG TY CỔ PHẦN CÔNG NGHỆ SFB (SFB TECHNOLOGY JOINT STOCK COMPANY – viết tắt SFBTECH.,JSC)
+                            {content.title}
                         </h3>
                         <p className="text-gray-600 leading-relaxed font-light">
-                            Công ty hoạt động theo mô hình cổ phần với giấy chứng nhận đăng ký kinh doanh số 0107857710 do Sở Kế hoạch và Đầu tư Hà Nội cấp ngày 24/05/2017.
+                            {content.description}
                         </p>
                         <div className="pt-4">
                             <a
-                                href="/contact"
+                                href={content.button.link}
                                 className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105"
                             >
-                                Liên hệ với chúng tôi
+                                {content.button.text}
                                 <ArrowRight size={16} />
                             </a>
                         </div>
@@ -56,59 +59,38 @@ export function AboutCompany() {
                     {/* Left: Contact Info */}
                     <div className="order-2 lg:order-1 space-y-8 flex-1 pl-4 lg:pl-0">
                         <div className="space-y-6">
-                            {/* Trụ sở */}
-                            <div className="flex items-start gap-4">
-                                <div className="mt-1">
-                                    <Building2 className="text-[#2CA4E0]" size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">Trụ sở</h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed">
-                                        41A ngõ 68, đường Ngọc Thuỵ, phường Ngọc Thuỵ, quận Long Biên, Hà Nội.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Văn phòng */}
-                            <div className="flex items-start gap-4">
-                                <div className="mt-1">
-                                    <MapPin className="text-[#2CA4E0]" size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">Văn phòng</h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed">
-                                        P303, Tầng 3, Khách sạn Thể Thao, 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Hotline */}
-                            <div className="flex items-start gap-4">
-                                <div className="mt-1">
-                                    <Phone className="text-[#2CA4E0]" size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">Hotline: <span className="font-normal text-gray-600">0888 917 999</span></h4>
-                                </div>
-                            </div>
-
-                            {/* Email */}
-                            <div className="flex items-start gap-4">
-                                <div className="mt-1">
-                                    <Mail className="text-[#2CA4E0]" size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">Email: <span className="font-normal text-gray-600">info@sfb.vn</span></h4>
-                                </div>
-                            </div>
+                            {contact.items.map((item, idx) => {
+                                const Icon = item.icon;
+                                return (
+                                    <div key={idx} className="flex items-start gap-4">
+                                        <div className="mt-1">
+                                            <Icon className="text-[#2CA4E0]" size={20} />
+                                        </div>
+                                        <div>
+                                            {item.isHighlight ? (
+                                                <h4 className="font-bold text-gray-900 mb-1">
+                                                    {item.title}: <span className="font-normal text-gray-600">{item.text}</span>
+                                                </h4>
+                                            ) : (
+                                                <>
+                                                    <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
+                                                    <p className="text-gray-600 text-sm leading-relaxed">
+                                                        {item.text}
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <div className="pt-2">
                             <a
-                                href="/contact"
+                                href={contact.button.link}
                                 className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105"
                             >
-                                Liên hệ ngay
+                                {contact.button.text}
                                 <ArrowRight size={16} />
                             </a>
                         </div>
@@ -118,7 +100,7 @@ export function AboutCompany() {
                     <div className="order-1 lg:order-2 relative w-full lg:w-[701px] flex-shrink-0">
                         <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200">
                             <ImageWithFallback
-                                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80"
+                                src={contact.image2}
                                 alt="SFB Office Building"
                                 className="w-full h-full object-cover"
                             />

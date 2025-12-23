@@ -8,7 +8,7 @@ import {
     CarouselItem,
     type CarouselApi,
 } from "@/components/ui/carousel";
-import { testimonials } from "./data";
+import { testimonials, productTestimonialsSectionData } from "./data";
 
 export function ProductTestimonials() {
     const [api, setApi] = useState<CarouselApi>();
@@ -39,7 +39,7 @@ export function ProductTestimonials() {
         >
             <div className="w-full max-w-[1920px] mx-auto px-6">
                 <h2 className="text-center text-4xl md:text-5xl font-extrabold text-gray-900">
-                    Khách hàng nói gì về SFB ?
+                    {productTestimonialsSectionData.title}
                 </h2>
 
                 {/* Carousel */}

@@ -5,7 +5,8 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Star } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
-import { testimonials as baseTestimonials } from "./data";
+import { testimonialsSectionData } from "./data";
+const baseTestimonials = testimonialsSectionData.reviews;
 
 export function Testimonials() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -74,7 +75,7 @@ export function Testimonials() {
         {/* Header */}
         <ScrollAnimation variant="blur-in">
           <h2 className="text-center text-[#0F172A] text-4xl md:text-5xl font-bold mb-16">
-            Khách hàng nói về SFB?
+            {testimonialsSectionData.title}
           </h2>
         </ScrollAnimation>
 

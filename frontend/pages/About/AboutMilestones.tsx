@@ -1,28 +1,8 @@
 import { TrendingUp } from "lucide-react";
 
+import { milestones } from "./data";
+
 export function AboutMilestones() {
-    const milestones = [
-        {
-            year: "2017",
-            title: "Thành lập SFBTECH.,JSC",
-            description: "Được cấp giấy chứng nhận đăng ký kinh doanh số 0107857710 bởi Sở KH&ĐT Hà Nội, bắt đầu hoạt động theo mô hình công ty cổ phần."
-        },
-        {
-            year: "2018-2019",
-            title: "Xây dựng đội ngũ & sản phẩm lõi",
-            description: "Hình thành các giải pháp về cổng thông tin điện tử, văn bản điều hành, thư viện số và các hệ thống nghiệp vụ cho cơ quan Nhà nước."
-        },
-        {
-            year: "2020-2022",
-            title: "Mở rộng lĩnh vực & quy mô triển khai",
-            description: "Triển khai nhiều dự án cho khối Tài chính, Bảo hiểm, Ngân hàng, Viễn thông, Chính phủ điện tử và Doanh nghiệp."
-        },
-        {
-            year: "2023 - nay",
-            title: "Tiếp tục tăng trưởng & chuyển đổi số",
-            description: "Đẩy mạnh các giải pháp theo nhu cầu riêng của từng đơn vị, chú trọng mở rộng, an toàn, bảo mật và tích hợp hệ thống."
-        }
-    ];
 
     return (
         <section className="py-20 bg-[#F8FBFE] overflow-hidden">

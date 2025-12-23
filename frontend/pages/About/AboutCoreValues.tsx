@@ -1,39 +1,7 @@
-import { Lightbulb, Users, Handshake, ShieldCheck, Database, Globe2 } from "lucide-react";
+// Icons are now imported in data.tsx and passed as components
 
+import { coreValues } from "./data";
 export function AboutCoreValues() {
-    const values = [
-        {
-            icon: Lightbulb,
-            title: "Đổi mới sáng tạo",
-            description: "Luôn tìm kiếm giải pháp mới, áp dụng công nghệ tiên tiến vào sản phẩm & dịch vụ.",
-        },
-        {
-            icon: Handshake,
-            title: "Tận tâm với khách hàng",
-            description: "Đặt lợi ích khách hàng lên hàng đầu, cam kết đồng hành dài lâu.",
-        },
-        {
-            icon: Users,
-            title: "Hợp tác & đồng hành",
-            description: "Làm việc nhóm chặt chẽ, cùng khách hàng xây dựng giải pháp phù hợp nhất.",
-        },
-
-        {
-            icon: ShieldCheck,
-            title: "Trách nhiệm & minh bạch",
-            description: "Tuân thủ cam kết, quy trình rõ ràng, không phát sinh chi phí thiếu minh bạch.",
-        },
-        {
-            icon: Database,
-            title: "Học hỏi không ngừng",
-            description: "Liên tục cập nhật xu hướng mới: Cloud, AI, Big Data, DevOps..",
-        },
-        {
-            icon: Globe2,
-            title: "Tư duy toàn cầu",
-            description: "Tiếp cận theo chuẩn quốc tế, sẵn sàng mở rộng sang các thị trường mới.",
-        },
-    ];
 
     return (
         <section className="py-20 bg-[#F8FBFE]">
@@ -50,7 +18,7 @@ export function AboutCoreValues() {
 
                 {/* Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {values.map((item, idx) => {
+                    {coreValues.map((item, idx) => {
                         const Icon = item.icon;
                         return (
                             <div

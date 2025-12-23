@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { productHeroData } from "./data";
 
 export function ProductHero() {
     return (
@@ -18,34 +19,32 @@ export function ProductHero() {
             <div className="container mx-auto px-6 relative z-10">
                 <div className="max-w-4xl mx-auto text-center">
                     <h1 className="text-white mb-8 text-5xl md:text-5xl">
-                        Bộ giải pháp phần mềm
+                        {productHeroData.title.line1}
                         <span className="block text-white font-extrabold text-5xl mt-2">
-                            Phục vụ Giáo dục, Công chứng &amp; Doanh nghiệp
+                            {productHeroData.title.line2}
                         </span>
                     </h1>
 
                     <p className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto">
-                        Các sản phẩm SFB được xây dựng từ bài toán thực tế của cơ quan Nhà
-                        nước, nhà trường và doanh nghiệp, giúp tối ưu quy trình và nâng cao
-                        hiệu quả quản lý.
+                        {productHeroData.description}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <a
-                            href="#products"
+                            href={productHeroData.buttons.primary.link}
                             className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
                         >
-                            Xem danh sách sản phẩm
+                            {productHeroData.buttons.primary.text}
                             <ArrowRight
                                 className="group-hover:translate-x-2 transition-transform"
                                 size={20}
                             />
                         </a>
                         <a
-                            href="/contact"
+                            href={productHeroData.buttons.secondary.link}
                             className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
                         >
-                            Tư vấn giải pháp
+                            {productHeroData.buttons.secondary.text}
                             <ArrowRight
                                 className="group-hover:translate-x-2 transition-transform"
                                 size={20}
@@ -54,22 +53,14 @@ export function ProductHero() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
-                        <div className="text-center">
-                            <div className="text-4xl font-bold text-white mb-2">
-                                +32.000
+                        {productHeroData.stats.map((stat, index) => (
+                            <div key={index} className="text-center">
+                                <div className="text-4xl font-bold text-white mb-2">
+                                    {stat.value}
+                                </div>
+                                <div className="text-blue-200">{stat.label}</div>
                             </div>
-                            <div className="text-blue-200">Giải pháp phần mềm</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl font-bold text-white mb-2">
-                                +6.000
-                            </div>
-                            <div className="text-blue-200">Đơn vị triển khai thực tế</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl font-bold text-white mb-2">4.9★</div>
-                            <div className="text-blue-200">Mức độ hài lòng trung bình</div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>

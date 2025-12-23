@@ -8,51 +8,8 @@ import {
     CarouselPrevious,
 } from "../../components/ui/carousel";
 
+import { leaders } from "./data";
 export function AboutLeadership() {
-    const leaders = [
-        {
-            name: "Nguyễn Văn Điền",
-            position: "KÉ TOÁN TRƯỞNG",
-            email: "diennv@sfb.vn",
-            phone: "0888 917 999",
-            description: "Thành viên ban lãnh đạo phụ trách kế toán trưởng, phối hợp chặt chẽ với các khối giải pháp, sản phẩm và vận hành.",
-            image: "https://sfb.vn/wp-content/uploads/2020/04/ngvandien-500x500.jpg",
-        },
-        {
-            name: "Nguyễn Đức Duy",
-            position: "GIÁM ĐỐC CÔNG NGHỆ",
-            email: "duynd@sfb.vn",
-            phone: "0705 146 789",
-            description: "Thành viên ban lãnh đạo phụ trách giám đốc công nghệ, phối hợp chặt chẽ với các khối giải pháp, sản phẩm và vận hành.",
-            image: "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
-        },
-        {
-            name: "Nguyễn Văn C",
-            position: "GIÁM ĐỐC KINH DOANH",
-            email: "nvc@sfb.vn",
-            phone: "0705 146 789",
-            description: "Thành viên ban lãnh đạo phụ trách giám đốc kinh doanh, phối hợp chặt chẽ với các khối giải pháp, sản phẩm và vận hành.",
-            image: "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
-        },
-        // Placeholder added to meet the "5 people" request
-        {
-            name: "Lê Văn D",
-            position: "GIÁM ĐỐC VẬN HÀNH",
-            email: "lvd@sfb.vn",
-            phone: "0987 654 321",
-            description: "Thành viên ban lãnh đạo phụ trách vận hành và quy trình nội bộ, đảm bảo hiệu suất hoạt động tối ưu.",
-            image: "https://sfb.vn/wp-content/uploads/2025/08/HA-500x500.jpg",
-        },
-        // Placeholder added to meet the "5 people" request
-        {
-            name: "Phạm Thị E",
-            position: "GIÁM ĐỐC NHÂN SỰ",
-            email: "pte@sfb.vn",
-            phone: "0123 456 789",
-            description: "Thành viên ban lãnh đạo phụ trách phát triển nguồn nhân lực và văn hóa doanh nghiệp.",
-            image: "https://sfb.vn/wp-content/uploads/2020/04/ngvandien-500x500.jpg",
-        },
-    ];
 
     return (
         <section className="py-20 bg-white">

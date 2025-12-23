@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ScrollAnimation } from "../public/ScrollAnimation";
-import { solutions, solutionDomains } from "./data";
+import { solutionsSectionData } from "./data";
 import {
   ArrowRight,
   CheckCircle2,
@@ -24,17 +24,17 @@ export function Solutions() {
         {/* Header */}
         <ScrollAnimation variant="fade-down" className="text-center max-w-5xl mx-auto">
           <div className="text-white/85 text-xs font-semibold tracking-[0.25em] uppercase mb-4">
-            GIẢI PHÁP CHUYÊN NGHIỆP
+            {solutionsSectionData.subHeader}
           </div>
 
           <h2 className="text-white font-extrabold leading-tight text-3xl md:text-5xl">
-            Giải pháp phần mềm
+            {solutionsSectionData.title.part1}
             <br />
-            <span className="font-medium">đóng gói cho nhiều lĩnh vực</span>
+            <span className="font-medium">{solutionsSectionData.title.part2}</span>
           </h2>
 
           <div className="mt-7 flex flex-wrap justify-center gap-2.5">
-            {solutionDomains.map((d, i) => (
+            {solutionsSectionData.domains.map((d, i) => (
               <ScrollAnimation
                 key={d}
                 variant="scale-up"
@@ -49,7 +49,7 @@ export function Solutions() {
 
         {/* ✅ GRID: gap-6 (24px) for both row and column */}
         <div className="mt-16 grid grid-cols-1 xl:grid-cols-2 gap-6 place-items-center">
-          {solutions.map((s, idx) => {
+          {solutionsSectionData.items.map((s, idx) => {
             const Icon = s.icon;
 
             return (

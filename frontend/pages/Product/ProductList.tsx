@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { products, categories, CategoryId } from "./data";
+import { products, categories, CategoryId, productListSectionData } from "./data";
 
 export function ProductList() {
     const [selectedCategory, setSelectedCategory] = useState<CategoryId>("all");
@@ -21,16 +21,15 @@ export function ProductList() {
                 {/* Title */}
                 <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px]">
                     <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
-                        GIẢI PHÁP CHUYÊN NGHIỆP
+                        {productListSectionData.header.subtitle}
                     </div>
 
                     <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
-                        Sản phẩm &amp; giải pháp nổi bật
+                        {productListSectionData.header.title}
                     </h2>
 
                     <p className="text-gray-600 leading-relaxed">
-                        Danh sách các hệ thống phần mềm đang được SFB triển khai cho nhà
-                        trường, cơ quan Nhà nước và doanh nghiệp.
+                        {productListSectionData.header.description}
                     </p>
                 </div>
 

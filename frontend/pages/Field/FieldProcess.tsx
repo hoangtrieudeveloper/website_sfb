@@ -1,7 +1,7 @@
 "use client";
 
-import { Sparkles, CheckCircle2, ArrowRight, Phone, FileText } from "lucide-react";
-import { processSteps } from "./data";
+import { CheckCircle2 } from "lucide-react";
+import { processSteps, fieldProcessSectionData } from "./data";
 
 export function FieldProcess() {
     return (
@@ -13,12 +13,12 @@ export function FieldProcess() {
                 <div className="text-center mb-20 max-w-3xl mx-auto">
                     <div className="inline-block mb-4">
                         <span className="text-sm font-bold text-blue-500 uppercase tracking-wider">
-                            LỘ TRÌNH ĐỒNG HÀNH CÙNG SFB
+                            {fieldProcessSectionData.header.subtitle}
                         </span>
                     </div>
                     <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                        Vì sao SFB phù hợp cho <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">nhiều</span> <br />
-                        <span className="text-gray-900">lĩnh vực khác nhau</span>
+                        {fieldProcessSectionData.header.title.part1} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">{fieldProcessSectionData.header.title.highlight}</span> <br />
+                        <span className="text-gray-900">{fieldProcessSectionData.header.title.part2}</span>
                     </h2>
                 </div>
 
@@ -26,11 +26,8 @@ export function FieldProcess() {
                 <div className="flex flex-col gap-24">
                     {processSteps.map((step, index) => {
                         const isEven = index % 2 !== 0; // 0 (odd visual) -> Image Left, 1 (even visual) -> Image Right? 
-                        // Wait, screenshot: 
-                        // Item 1: Image Left
-                        // Item 2: Image Right
-                        // Item 3: Image Left
-                        // So index 0 (Item 1) -> Image Left. index 1 (Item 2) -> Image Right.
+
+                        const ButtonIcon = step.button.icon;
 
                         return (
                             <div
@@ -85,26 +82,17 @@ export function FieldProcess() {
                                         ))}
                                     </ul>
 
-                                    {/* Buttons based on index */}
+                                    {/* Buttons from data */}
                                     <div>
-                                        {index === 0 && (
-                                            <a href="/contact" className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                                                Liên hệ với chúng tôi
-                                                <ArrowRight size={18} />
-                                            </a>
-                                        )}
-                                        {index === 1 && (
-                                            <a href="/experts" className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                                                <Phone size={18} />
-                                                Kết nối với chuyên gia
-                                            </a>
-                                        )}
-                                        {index === 2 && (
-                                            <a href="/process" className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                                                <FileText size={18} />
-                                                Tìm hiểu quy trình, nghiệp vụ
-                                            </a>
-                                        )}
+                                        <a href={step.button.link} className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                                            {step.button.text === "Liên hệ với chúng tôi" ? step.button.text : (
+                                                <>
+                                                    <ButtonIcon size={step.button.iconSize} />
+                                                    {step.button.text}
+                                                </>
+                                            )}
+                                            {step.button.text === "Liên hệ với chúng tôi" && <ButtonIcon size={step.button.iconSize} />}
+                                        </a>
                                     </div>
                                 </div>
                             </div>

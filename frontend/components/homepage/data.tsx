@@ -180,3 +180,80 @@ export const testimonials = [
         rating: 5,
     },
 ];
+
+export const heroData = {
+    title: {
+        line1: "Chuyển đổi số",
+        line2: "Thông minh",
+        line3: "Cho doanh nghiệp"
+    },
+    description: "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến, tối ưu hóa quy trình và tăng trưởng bền vững.",
+    primaryButton: { text: "Khám phá giải pháp", link: "/solutions" },
+    secondaryButton: { text: "Xem video" },
+    heroImage: "/images/hero.png",
+    partners: partners
+};
+
+export const aboutCompanyData = {
+    title: {
+        part1: "Chuyển đổi số ",
+        highlight1: "không bắt đầu từ phần mềm",
+        part2: " mà ",
+        highlight2: "từ hiệu quả thực tế",
+        part3: " của doanh nghiệp."
+    },
+    description: "SFB giúp doanh nghiệp vận hành thông minh, giảm chi phí hạ tầng, tăng năng suất và bảo mật dữ liệu an toàn tuyệt đối.",
+    slides: aboutSlides
+};
+
+export const featureData = {
+    header: {
+        sub: "GIỚI THIỆU SFB",
+        title: "Chúng tôi là ai?",
+        description: "Đơn vị phát triển phần mềm với kinh nghiệm thực chiến, chuyên sâu công nghệ và định hướng xây dựng hệ thống bền vững."
+    },
+    block1: {
+        image: "/images/feature1.png",
+        text: "SFB với kinh nghiệm qua nhiều dự án lớn nhỏ, tự tin xử lý các bài toán phần mềm phức tạp, yêu cầu chuyên môn sâu. Đội ngũ trẻ – đam mê – trách nhiệm giúp xây dựng hệ thống ổn định, hiệu quả và tối ưu chi phí.",
+        list: [
+            "Tự tin trong các dự án phức tạp",
+            "Tối ưu quy trình và chi phí",
+            "Đồng hành trọn vòng đời sản phẩm",
+        ],
+        button: { text: "Tìm hiểu thêm", link: "/about" }
+    },
+    block2: {
+        image: "/images/feature2.png",
+        button: { text: "Tìm hiểu cách SFB triển khai", link: "/solutions" },
+        items: advantages
+    },
+    block3: {
+        image: "/images/feature3.png",
+        button: { text: "Liên hệ với chúng tôi", link: "/contact" },
+        items: purposeItems
+    }
+};
+
+export const solutionsSectionData = {
+    subHeader: "GIẢI PHÁP CHUYÊN NGHIỆP",
+    title: {
+        part1: "Giải pháp phần mềm",
+        part2: "đóng gói cho nhiều lĩnh vực"
+    },
+    domains: solutionDomains,
+    items: solutions
+};
+
+export const testimonialsSectionData = {
+    title: "Khách hàng nói về SFB?",
+    reviews: testimonials
+};
+
+export const trustSectionData = {
+    subHeader: "SFB TECHNOLOGY",
+    title: "Độ tin cậy của SFB Technology",
+    description: "Năng lực thực chiến, đội ngũ chuyên gia và quy trình minh bạch giúp SFB trở thành đối tác công nghệ tin cậy của hàng trăm tổ chức, doanh nghiệp.",
+    image: "/images/card-consulting.jpg",
+    button: { text: "Tìm hiểu thêm", link: "/about" },
+    features: trustFeatures
+};

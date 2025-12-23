@@ -1,30 +1,6 @@
+import { visionMissionSectionData } from "./data";
+
 export function AboutVisionMission() {
-    const items = [
-        {
-            id: 1,
-            text: "Phát triển bền vững trên nền tảng tri thức",
-        },
-        {
-            id: 2,
-            text: "Kết hợp trí tuệ tập thể & sự nhiệt huyết của đội ngũ",
-        },
-        {
-            id: 3,
-            text: "Xây dựng hệ thống, sản phẩm có giá trị lâu dài",
-        },
-        {
-            id: 4,
-            text: "Cung cấp sản phẩm, dịch vụ tốt nhất dựa trên công nghệ mới",
-        },
-        {
-            id: 5,
-            text: "Tạo dựng niềm tin vững chắc với khách hàng & nhà đầu tư",
-        },
-        {
-            id: 6,
-            text: "Chung tay cùng xã hội hướng tới nền công nghiệp 4.0",
-        },
-    ];
 
     return (
         <section className="py-20 bg-white overflow-hidden">
@@ -32,16 +8,16 @@ export function AboutVisionMission() {
                 {/* Section header */}
                 <div className="max-w-4xl mx-auto text-center mb-16">
                     <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
-                        Tầm nhìn & Sứ mệnh
+                        {visionMissionSectionData.header.title}
                     </h2>
                     <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
-                        Trở thành một trong những công ty công nghệ hàng đầu về phát triển bền vững, xây dựng trên nền tảng tri thức và trí tuệ sáng tạo của đội ngũ nhân sự SFB.
+                        {visionMissionSectionData.header.description}
                     </p>
                 </div>
 
                 {/* Cards Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((item) => (
+                    {visionMissionSectionData.items.map((item) => (
                         <div
                             key={item.id}
                             className="bg-[#EFF8FC] rounded-[16px] p-6 flex items-start gap-4 transition-all duration-300 hover:shadow-lg"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { trustFeatures } from "./data";
+import { trustSectionData } from "./data";
 import { ArrowRight } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
@@ -13,14 +13,13 @@ export function Trusts() {
         {/* Header */}
         <ScrollAnimation variant="fade-up" className="text-center mb-16">
           <span className="text-[#0088D9] font-bold text-sm tracking-widest uppercase mb-3 block">
-            SFB TECHNOLOGY
+            {trustSectionData.subHeader}
           </span>
           <h2 className="text-4xl md:text-5xl font-extrabold text-[#0F172A] mb-4">
-            Độ tin cậy của SFB Technology
+            {trustSectionData.title}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Năng lực thực chiến, đội ngũ chuyên gia và quy trình minh bạch giúp SFB
-            trở thành đối tác công nghệ tin cậy của hàng trăm tổ chức, doanh nghiệp.
+            {trustSectionData.description}
           </p>
         </ScrollAnimation>
 
@@ -30,7 +29,7 @@ export function Trusts() {
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <div className="aspect-[4/3] w-full relative">
                 <img
-                  src="/images/card-consulting.jpg"
+                  src={trustSectionData.image}
                   alt="SFB Team Working"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -45,7 +44,7 @@ export function Trusts() {
 
           {/* Right Column - Content */}
           <div className="space-y-10">
-            {trustFeatures.map((feature, idx) => (
+            {trustSectionData.features.map((feature, idx) => (
               <ScrollAnimation
                 key={idx}
                 variant="flip-up"
@@ -70,10 +69,10 @@ export function Trusts() {
 
             <ScrollAnimation variant="fade-up" delay={0.4}>
               <Link
-                href="/about"
+                href={trustSectionData.button.link}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1 transition-all duration-300 group"
               >
-                <span>Tìm hiểu thêm</span>
+                <span>{trustSectionData.button.text}</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </ScrollAnimation>
