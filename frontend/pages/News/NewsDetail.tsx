@@ -20,7 +20,7 @@ import {
   Quote,
   ArrowRight,
 } from "lucide-react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { useState, useEffect } from "react";
 
 export function NewsDetailPage() {
@@ -91,7 +91,7 @@ export function NewsDetailPage() {
     },
   ];
 
-    const tags = [
+  const tags = [
     "AI/ML",
     "Fintech",
     "Digital Transformation",
@@ -217,11 +217,10 @@ export function NewsDetailPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                    isLiked
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${isLiked
                       ? "bg-red-50 border-red-200 text-red-600"
                       : "bg-white border-gray-200 text-gray-700 hover:border-red-200 hover:text-red-600"
-                  }`}
+                    }`}
                 >
                   <Heart
                     size={18}
@@ -232,11 +231,10 @@ export function NewsDetailPage() {
 
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
-                  className={`px-4 py-2.5 rounded-xl border-2 transition-all ${
-                    isBookmarked
+                  className={`px-4 py-2.5 rounded-xl border-2 transition-all ${isBookmarked
                       ? "bg-[#E6F4FF] border-[#006FB3] text-[#006FB3]"
                       : "bg-white border-gray-200 text-gray-700 hover:border-[#006FB3] hover:text-[#006FB3]"
-                  }`}
+                    }`}
                 >
                   <Bookmark
                     size={18}
@@ -357,7 +355,7 @@ export function NewsDetailPage() {
                   SFB Technology để xây dựng hệ thống phân tích
                   rủi ro và xử lý giao dịch thông minh dựa trên
                   AI/ML. Dự án này đánh dấu bước đột phá quan
-                   trọng trong chiến lược chuyển đổi số của khách
+                  trọng trong chiến lược chuyển đổi số của khách
                   hàng.
                 </p>
                 <p className="text-gray-700 leading-relaxed mb-6">

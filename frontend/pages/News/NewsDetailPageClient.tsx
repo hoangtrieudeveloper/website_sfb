@@ -4,9 +4,7 @@ import {
   Calendar,
   User,
   Clock,
-  Eye,
   Heart,
-  Share2,
   Bookmark,
   ChevronRight,
   Facebook,
@@ -16,11 +14,11 @@ import {
   MessageCircle,
   ArrowLeft,
   TrendingUp,
-  ArrowRight,
 } from "lucide-react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { newsDetailData, uiText } from "./data";
 
 interface NewsDetailPageClientProps {
   article: {
@@ -98,11 +96,11 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
               prefetch={true}
             >
               <ArrowLeft size={16} />
-              Tin tức
+              {newsDetailData.breadcrumb}
             </Link>
             <ChevronRight size={16} className="text-gray-400" />
             <span className="text-gray-400">
-              {article.categoryName || "Bài viết"}
+              {article.categoryName || newsDetailData.defaultCategory}
             </span>
           </nav>
 
@@ -137,7 +135,7 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900">
-                      {article.author || "SFB Technology"}
+                      {article.author || newsDetailData.authorDefault}
                     </div>
                   </div>
                 </div>
@@ -168,11 +166,10 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                    isLiked
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${isLiked
                       ? "bg-red-50 border-red-200 text-red-600"
                       : "bg-white border-gray-200 text-gray-700 hover:border-red-200 hover:text-red-600"
-                  }`}
+                    }`}
                 >
                   <Heart size={18} className={isLiked ? "fill-red-600" : ""} />
                   <span>{likes}</span>
@@ -180,11 +177,10 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
 
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
-                  className={`px-4 py-2.5 rounded-xl border-2 transition-all ${
-                    isBookmarked
+                  className={`px-4 py-2.5 rounded-xl border-2 transition-all ${isBookmarked
                       ? "bg-[#E6F4FF] border-[#006FB3] text-[#006FB3]"
                       : "bg-white border-gray-200 text-gray-700 hover:border-[#006FB3] hover:text-[#006FB3]"
-                  }`}
+                    }`}
                 >
                   <Bookmark
                     size={18}
@@ -242,7 +238,7 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
             {tags.length > 0 && (
               <div className="not-prose pt-8 border-t-2 border-gray-100">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-gray-600 font-medium">Tags:</span>
+                  <span className="text-gray-600 font-medium">{newsDetailData.tagsLabel}</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {tags.map((tag, index) => (
@@ -264,22 +260,22 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-gray-900 flex items-center gap-3">
                   <MessageCircle className="text-[#006FB3]" size={28} />
-                  Bình luận (0)
+                  {newsDetailData.comments.title} (0)
                 </h3>
               </div>
 
               <div className="bg-white rounded-2xl border-2 border-gray-100 p-8">
                 <textarea
-                  placeholder="Chia sẻ suy nghĩ của bạn..."
+                  placeholder={newsDetailData.comments.placeholder}
                   rows={4}
                   className="w-full px-6 py-4 border-2 border-gray-200 rounded-xl focus:border-[#006FB3] focus:outline-none transition-all resize-none"
                 />
                 <div className="flex items-center justify-between mt-4">
                   <div className="text-sm text-gray-500">
-                    Đăng nhập để bình luận
+                    {newsDetailData.comments.loginText}
                   </div>
                   <button className="px-8 py-3 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl hover:shadow-lg transition-all transform hover:scale-105 font-semibold">
-                    Gửi bình luận
+                    {newsDetailData.comments.submitButton}
                   </button>
                 </div>
               </div>
@@ -290,6 +286,5 @@ export function NewsDetailPageClient({ article }: NewsDetailPageClientProps) {
     </div>
   );
 }
-
 
 export default NewsDetailPageClient;

@@ -1,4 +1,4 @@
-import { NewsDetailPageClient } from "../../../../pages/NewsDetailPageClient";
+import { NewsDetailPageClient } from "../../../../pages/News/NewsDetailPageClient";
 import { notFound } from "next/navigation";
 
 // Enable ISR - revalidate every 60 seconds for news detail
@@ -6,10 +6,10 @@ export const revalidate = 60;
 
 async function getNewsBySlug(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL || 
-                    process.env.API_SFB_URL || 
-                    "http://localhost:4000";
-    
+    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
+      process.env.API_SFB_URL ||
+      "http://localhost:4000";
+
     const res = await fetch(`${baseUrl}/api/public/news/${slug}`, {
       next: { revalidate: 60 },
     });

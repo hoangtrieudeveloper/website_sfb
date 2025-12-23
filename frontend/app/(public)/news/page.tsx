@@ -1,14 +1,14 @@
-import { NewsPageClient } from "../../../pages/NewsPageClient";
+import { NewsPageClient } from "../../../pages/News/NewsPageClient";
 
 // Enable ISR - revalidate every 30 seconds for news page
 export const revalidate = 30;
 
 async function getNews() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL || 
-                    process.env.API_SFB_URL || 
-                    "http://localhost:4000";
-    
+    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
+      process.env.API_SFB_URL ||
+      "http://localhost:4000";
+
     // Fetch both all news and featured news
     const [newsRes, featuredRes] = await Promise.all([
       fetch(`${baseUrl}/api/public/news`, {
@@ -27,9 +27,9 @@ async function getNews() {
 
     const newsData = await newsRes.json();
     console.log("News data received:", newsData);
-    
+
     const news = newsData.data || [];
-    
+
     // Try to get featured news from dedicated endpoint
     let featured = null;
     if (featuredRes.ok) {
@@ -38,17 +38,17 @@ async function getNews() {
         featured = featuredData.data[0];
       }
     }
-    
+
     // If no featured from endpoint, use first news item as fallback
     if (!featured && news.length > 0) {
       featured = news[0];
     }
-    
+
     // Remove featured from news list to avoid duplication
-    const newsWithoutFeatured = featured 
+    const newsWithoutFeatured = featured
       ? news.filter((item: any) => item.id !== featured.id)
       : news;
-    
+
     return {
       news: newsWithoutFeatured,
       featured,
@@ -62,10 +62,10 @@ async function getNews() {
 
 async function getCategories() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL || 
-                    process.env.API_SFB_URL || 
-                    "http://localhost:4000";
-    
+    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
+      process.env.API_SFB_URL ||
+      "http://localhost:4000";
+
     const res = await fetch(`${baseUrl}/api/public/categories`, {
       next: { revalidate: 3600 }, // Cache categories for 1 hour
     });

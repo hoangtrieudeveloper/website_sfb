@@ -14,7 +14,7 @@ import {
   Share2,
   Bookmark,
 } from "lucide-react";
-import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -247,11 +247,10 @@ export function NewsPage() {
                     category.id as typeof selectedCategory,
                   )
                 }
-                className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
-                  selectedCategory === category.id
+                className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${selectedCategory === category.id
                     ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 {category.name} ({category.count})
               </button>
