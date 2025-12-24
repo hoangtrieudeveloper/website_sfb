@@ -137,12 +137,12 @@ export function ProductList() {
                                         />
                                     </button>
 
-<Link
-    href={`/products/${slugify(product.name)}`}
-    className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
->
-    Tìm hiểu thêm <ArrowRight size={16} />
-</Link>
+                                    <Link
+                                        href={`/products/${slugify(product.name)}`}
+                                        className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                                    >
+                                        Tìm hiểu thêm <ArrowRight size={16} />
+                                    </Link>
                                 </div>
                             </div>
                         </div>

@@ -218,8 +218,8 @@ export function NewsDetailPage() {
                 <button
                   onClick={handleLike}
                   className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${isLiked
-                      ? "bg-red-50 border-red-200 text-red-600"
-                      : "bg-white border-gray-200 text-gray-700 hover:border-red-200 hover:text-red-600"
+                    ? "bg-red-50 border-red-200 text-red-600"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-red-200 hover:text-red-600"
                     }`}
                 >
                   <Heart
@@ -232,8 +232,8 @@ export function NewsDetailPage() {
                 <button
                   onClick={() => setIsBookmarked(!isBookmarked)}
                   className={`px-4 py-2.5 rounded-xl border-2 transition-all ${isBookmarked
-                      ? "bg-[#E6F4FF] border-[#006FB3] text-[#006FB3]"
-                      : "bg-white border-gray-200 text-gray-700 hover:border-[#006FB3] hover:text-[#006FB3]"
+                    ? "bg-[#E6F4FF] border-[#006FB3] text-[#006FB3]"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-[#006FB3] hover:text-[#006FB3]"
                     }`}
                 >
                   <Bookmark
