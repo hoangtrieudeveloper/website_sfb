@@ -6,62 +6,74 @@ import { FadeIn, SlideIn, StaggerContainer } from "../../components/ui/motion";
 
 export function FieldList() {
     return (
-        <section className="py-28 bg-gradient-to-br from-gray-50 via-blue-50 to-cyan-50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
-
-            <div className="container mx-auto px-6 relative z-10">
-                <FadeIn className="text-center mb-16 max-w-3xl mx-auto">
-                    <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-full border border-blue-200 mb-4">
-                        <Sparkles className="text-blue-600" size={18} />
-                        <span className="text-sm font-semibold text-blue-700">
-                            {fieldListSectionData.header.badge}
-                        </span>
-                    </div>
-                    <h2 className="text-gray-900 mb-6">
+        <section className="py-[90px] relative overflow-hidden">
+            <div className="relative z-10 w-full">
+                <FadeIn className="text-center mb-16 mx-auto max-w-[1244px]"> 
+                    <h2
+                        className="mb-6 mx-auto w-[1244px] max-w-full text-center font-['Plus_Jakarta_Sans'] text-[56px] font-bold"
+                        style={{
+                            color: "var(--Color-2, #0F172A)",
+                            fontFeatureSettings: "'liga' off, 'clig' off",
+                            lineHeight: "normal",
+                        }}
+                    >
                         {fieldListSectionData.header.title}
                     </h2>
-                    <p className="text-xl text-gray-600 leading-relaxed">
+                    <p
+                        className="mx-auto w-[704px] max-w-full text-center font-['Plus_Jakarta_Sans'] text-base font-normal leading-[30px]"
+                        style={{
+                            color: "var(--Color-2, #0F172A)",
+                            fontFeatureSettings: "'liga' off, 'clig' off",
+                        }}
+                    >
                         {fieldListSectionData.header.description}
                     </p>
                 </FadeIn>
 
-                <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {fieldListSectionData.items.map((field) => (
-                        <SlideIn
-                            direction="up"
-                            key={field.id}
-                            className="bg-white rounded-3xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 group"
-                        >
-                            <div className="flex items-start gap-4 mb-6">
-                                <div className="flex-shrink-0 w-12 h-12 bg-[#008CCB] rounded-xl flex items-center justify-center text-white text-xl font-bold">
-                                    {field.id}
+                <div className="px-6 lg:px-[290px]">
+                    <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {fieldListSectionData.items.map((field) => (
+                            <SlideIn
+                                direction="up"
+                                key={field.id}
+                                className="flex h-[405px] w-[430.6667px] max-w-full flex-[1_0_0] flex-col items-start gap-6 rounded-[24px] px-[30px] py-[45px]"
+                                style={{
+                                    background: "var(--Color-7, #FFF)",
+                                    border: "0px solid var(--Linear, #1D8FCF)",
+                                    boxShadow: "0px 12px 36px 0px rgba(59, 90, 136, 0.12)",
+                                }}
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0 w-12 h-12 bg-[#008CCB] rounded-xl flex items-center justify-center text-white text-xl font-bold">
+                                        {field.id}
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 pt-1 leading-snug">
+                                        {field.title}
+                                    </h3>
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-900 pt-1 leading-snug">
-                                    {field.title}
-                                </h3>
-                            </div>
 
-                            <p className="text-gray-600 text-sm leading-relaxed mb-6 min-h-[40px]">
-                                {field.short}
-                            </p>
+                                <p className="text-gray-600 text-sm leading-relaxed min-h-[40px]">
+                                    {field.short}
+                                </p>
 
-                            <ul className="space-y-3">
-                                {field.points.map((point, idx) => (
-                                    <li key={idx} className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-0.5">
-                                            <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
-                                                <CheckCircle2 size={12} className="text-white" />
+                                <ul className="space-y-3">
+                                    {field.points.map((point, idx) => (
+                                        <li key={idx} className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-0.5">
+                                                <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
+                                                    <CheckCircle2 size={12} className="text-white" />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <span className="text-sm text-gray-600 leading-snug">
-                                            {point}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </SlideIn>
-                    ))}
-                </StaggerContainer>
+                                            <span className="text-sm text-gray-600 leading-snug">
+                                                {point}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </SlideIn>
+                        ))}
+                    </StaggerContainer>
+                </div>
             </div>
         </section>
     );
