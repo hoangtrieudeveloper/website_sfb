@@ -23,44 +23,73 @@ export function Trusts() {
           </p>
         </ScrollAnimation>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="flex flex-col lg:flex-row justify-center items-center gap-12 lg:gap-20">
           {/* Left Column - Image */}
           <ScrollAnimation variant="slide-right" className="relative group">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-              <div className="aspect-[4/3] w-full relative">
-                <img
-                  src={trustSectionData.image}
-                  alt="SFB Team Working"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              </div>
-
-              {/* Optional: Floating Stats Card or Deco */}
-              <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-dots-pattern opacity-20" />
-            </div>
+            <div
+              className="relative"
+              style={{
+                width: "701px",
+                height: "555px",
+                maxWidth: "100%",
+                flexShrink: 0,
+                borderRadius: "24px",
+                background: `url(${trustSectionData.image}) lightgray -51.4px 0px / 140.667% 100% no-repeat`,
+                boxShadow: "0px 24px 36px 0px rgba(0, 0, 0, 0.12)",
+              }}
+            />
           </ScrollAnimation>
 
           {/* Right Column - Content */}
-          <div className="space-y-10">
+          <div
+            style={{
+              display: "flex",
+              width: "549px",
+              maxWidth: "100%",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "30px",
+              flexShrink: 0,
+            }}
+          >
             {trustSectionData.features.map((feature, idx) => (
               <ScrollAnimation
                 key={idx}
                 variant="flip-up"
                 delay={idx * 0.1}
-                className="flex-1 min-w-[300px]"
+                className="flex gap-4 items-start flex-1 min-w-[300px]"
               >
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <feature.icon className="text-white w-6 h-6" />
-                  </div>
+                <div className="flex-shrink-0 pt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 15.0002V16.8C3 17.9201 3 18.4798 3.21799 18.9076C3.40973 19.2839 3.71547 19.5905 4.0918 19.7822C4.5192 20 5.07899 20 6.19691 20H21.0002M3 15.0002V5M3 15.0002L6.8534 11.7891L6.85658 11.7865C7.55366 11.2056 7.90288 10.9146 8.28154 10.7964C8.72887 10.6567 9.21071 10.6788 9.64355 10.8584C10.0105 11.0106 10.3323 11.3324 10.9758 11.9759L10.9822 11.9823C11.6357 12.6358 11.9633 12.9635 12.3362 13.1153C12.7774 13.2951 13.2685 13.3106 13.7207 13.1606C14.1041 13.0334 14.4542 12.7275 15.1543 12.115L21 7" stroke="#1D8FCF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-[#0F172A] mb-2 group-hover:text-[#006FB3] transition-colors">
+                  <h3
+                    className="self-stretch text-[#0F172A] mb-2 group-hover:text-[#006FB3] transition-colors"
+                    style={{
+                      fontFamily: '"Plus Jakarta Sans"',
+                      fontSize: "20px",
+                      fontStyle: "normal",
+                      fontWeight: 600,
+                      lineHeight: "30px",
+                      fontFeatureSettings: "'liga' off, 'clig' off",
+                    }}
+                  >
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+                  <p
+                    className="self-stretch text-[#0F172A]"
+                    style={{
+                      textAlign: "justify",
+                      fontFamily: '"Plus Jakarta Sans"',
+                      fontSize: "16px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "30px",
+                      fontFeatureSettings: "'liga' off, 'clig' off",
+                    }}
+                  >
                     {feature.description}
                   </p>
                 </div>

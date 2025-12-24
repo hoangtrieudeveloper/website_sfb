@@ -30,7 +30,7 @@ function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
         <img
           src={src}
           alt={alt}
-          className="block w-full h-full object-cover"
+          className="block w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           style={{ borderRadius: 10 }}
         />
       </div>
@@ -118,7 +118,7 @@ export function Features() {
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:items-center">
           <ScrollAnimation variant="slide-right">
             {/* ✅ bỏ shadow */}
-            <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] hover:border-[#1D8FCF]/30 transition-all duration-500">
+            <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] transition-all duration-500">
               <div className="space-y-5">
                 {featureData.block2.items.map((item, idx) => (
                   <ScrollAnimation
@@ -157,7 +157,7 @@ export function Features() {
 
           <ScrollAnimation variant="zoom-in" delay={0.1}>
             {/* ✅ bỏ shadow */}
-            <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] hover:border-[#1D8FCF]/30 transition-all duration-500">
+            <div className="rounded-3xl bg-white border border-slate-100 p-8 hover:shadow-[0_0_40px_-10px_rgba(29,143,207,0.15)] transition-all duration-500">
               <div className="space-y-5">
                 {featureData.block3.items.map((item, idx) => (
                   <ScrollAnimation
