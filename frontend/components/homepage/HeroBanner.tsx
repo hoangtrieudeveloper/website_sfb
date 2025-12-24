@@ -17,7 +17,7 @@ export function HeroBanner() {
   return (
     <section
       id="home"
-      className="relative w-full max-w-[1920px] mx-auto lg:h-[850px] flex items-start overflow-hidden bg-[#F4FAFE] pt-[171px] pb-20"
+      className="relative w-full max-w-[1920px] mx-auto min-h-screen lg:h-[850px] flex items-center lg:items-start overflow-hidden bg-[#F4FAFE] pt-32 pb-12 lg:pt-[171px] lg:pb-20"
     >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -32,30 +32,26 @@ export function HeroBanner() {
           <div className="space-y-8">
             <ScrollAnimation variant="blur-in" delay={0.2}>
               <h1
-                className="text-[#0F172A] font-bold self-stretch"
+                className="text-[#0F172A] font-bold self-stretch text-4xl md:text-5xl lg:text-[56px] text-center lg:text-left"
                 style={{
                   fontFamily: '"Plus Jakarta Sans", sans-serif',
-                  fontSize: "56px",
-                  lineHeight: "normal",
+                  lineHeight: "1.2",
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
-                {heroData.title.line1}<br />
-                {heroData.title.line2}<br />
+                {heroData.title.line1}<br className="hidden lg:block" />
+                {heroData.title.line2}<br className="hidden lg:block" />
                 {heroData.title.line3}
               </h1>
             </ScrollAnimation>
 
             <ScrollAnimation variant="blur-in" delay={0.3}>
               <p
-                className="text-[#0F172A]"
+                className="text-[#0F172A] text-base md:text-lg text-center lg:text-left mx-auto lg:mx-0 max-w-xl lg:max-w-[486px]"
                 style={{
                   fontFamily: '"Plus Jakarta Sans", sans-serif',
-                  fontSize: "16px",
                   lineHeight: "30px",
                   fontWeight: 400,
-                  width: "486px",
-                  height: "116px",
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
@@ -64,7 +60,7 @@ export function HeroBanner() {
             </ScrollAnimation>
 
             <ScrollAnimation variant="blur-in" delay={0.4}>
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center lg:justify-start">
                 <Link
                   href={heroData.primaryButton.link}
                   className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold"
@@ -112,7 +108,7 @@ export function HeroBanner() {
             variant="zoom-in"
             delay={0.3}
             duration={0.8}
-            className="hidden lg:block"
+            className="block"
           >
             <div
               className="relative overflow-hidden"
@@ -142,8 +138,8 @@ export function HeroBanner() {
           className="mt-[76px]"
         >
           <div
-            className="relative mx-auto overflow-hidden mask-fade-x"
-            style={{ width: "1120px", height: "64px", flexShrink: 0 }}
+            className="relative mx-auto overflow-hidden mask-fade-x w-full max-w-[1120px]"
+            style={{ height: "64px", flexShrink: 0 }}
           >
             <div className="flex items-center gap-16 animate-partner-marquee hover:[animation-play-state:paused] h-full">
               {[...partners, ...partners].map((logo, idx) => (
