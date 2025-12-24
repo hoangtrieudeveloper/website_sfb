@@ -221,7 +221,6 @@ export const fieldHeroData = {
 
 export const fieldListSectionData = {
     header: {
-        badge: "Lĩnh vực",
         title: "Các lĩnh vực hoạt động & dịch vụ",
         description: "Những mảng chuyên môn chính mà SFB đang cung cấp giải pháp và dịch vụ công nghệ thông tin cho cơ quan Nhà nước & doanh nghiệp"
     },

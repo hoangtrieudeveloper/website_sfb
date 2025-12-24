@@ -6,27 +6,59 @@ import { FadeIn, SlideIn } from "../../components/ui/motion";
 
 export function FieldProcess() {
     return (
-        <section className="py-24 bg-gradient-to-b from-white via-slate-50 to-blue-50/30 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a06_1px,transparent_1px),linear-gradient(to_bottom,#0f172a06_1px,transparent_1px)] bg-[size:24px_24px]" />
-
-            <div className="container mx-auto px-6 relative z-10">
+        <section className="py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
+            <div className="relative z-10 w-full px-6 lg:px-[290px]">
                 {/* Header */}
-                <FadeIn className="text-center mb-20 max-w-3xl mx-auto">
+                <FadeIn className="text-center mb-[46px] max-w-3xl mx-auto">
                     <div className="inline-block mb-4">
-                        <span className="text-sm font-bold text-blue-500 uppercase tracking-wider">
+                        <span
+                            className="text-center font-['Plus_Jakarta_Sans'] text-[15px] font-medium uppercase"
+                            style={{
+                                color: "var(--Color, #1D8FCF)",
+                                fontFeatureSettings: "'liga' off, 'clig' off",
+                                lineHeight: "normal",
+                            }}
+                        >
                             {fieldProcessSectionData.header.subtitle}
                         </span>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                        {fieldProcessSectionData.header.title.part1} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">{fieldProcessSectionData.header.title.highlight}</span> <br />
-                        <span className="text-gray-900">{fieldProcessSectionData.header.title.part2}</span>
+                    <h2
+                        className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-[56px] font-normal"
+                        style={{
+                            color: "var(--Color-2, #0F172A)",
+                            fontFeatureSettings: "'liga' off, 'clig' off",
+                            lineHeight: "normal",
+                        }}
+                    >
+                        {fieldProcessSectionData.header.title.part1}{" "}
+                        <span
+                            className="font-bold"
+                            style={{
+                                color: "var(--Color-2, #0F172A)",
+                                fontFeatureSettings: "'liga' off, 'clig' off",
+                                lineHeight: "normal",
+                            }}
+                        >
+                            {fieldProcessSectionData.header.title.highlight}
+                            <br />
+                            {fieldProcessSectionData.header.title.part2}
+                        </span>
                     </h2>
                 </FadeIn>
 
                 {/* Steps */}
-                <div className="flex flex-col gap-24">
+                <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-[90px]">
                     {processSteps.map((step, index) => {
                         const isEven = index % 2 !== 0; // 0 (odd visual) -> Image Left, 1 (even visual) -> Image Right? 
+
+                        const stepImageSrc =
+                            index === 0
+                                ? "/images/industries/industries1.png"
+                                : index === 1
+                                    ? "/images/industries/industries2.png"
+                                    : index === 2
+                                        ? "/images/industries/industries3.png"
+                                        : `/images/field_process_${index + 1}.png`;
 
                         const ButtonIcon = step.button.icon;
 
@@ -43,7 +75,7 @@ export function FieldProcess() {
                                             <div className="relative aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-gray-100">
                                                 {/* Placeholder for images since generation failed */}
                                                 <img
-                                                    src={`/images/field_process_${index + 1}.png`}
+                                                    src={stepImageSrc}
                                                     alt={step.title}
                                                     className="w-full h-full object-cover transform group-hover:scale-105 transition-duration-700"
                                                     onError={(e) => {
