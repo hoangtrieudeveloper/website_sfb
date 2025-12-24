@@ -248,8 +248,8 @@ export function NewsPage() {
                   )
                 }
                 className={`px-6 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${selectedCategory === category.id
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
               >
                 {category.name} ({category.count})

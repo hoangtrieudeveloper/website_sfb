@@ -183,8 +183,8 @@ export const testimonials = [
 
 export const heroData = {
     title: {
-        line1: "Chuyển đổi số",
-        line2: "Thông minh",
+        line1: "Chuyển đổi số ",
+        line2: "Thông minh ",
         line3: "Cho doanh nghiệp"
     },
     description: "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến, tối ưu hóa quy trình và tăng trưởng bền vững.",
