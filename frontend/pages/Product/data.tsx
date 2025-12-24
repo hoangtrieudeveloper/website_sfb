@@ -33,6 +33,7 @@ export const products = [
     {
         id: 1,
         category: "edu" as CategoryId,
+        slug: "he-thong-tuyen-sinh-dau-cap",
         name: "Hệ thống tuyển sinh đầu cấp",
         tagline: "Tuyển sinh trực tuyến minh bạch, đúng quy chế",
         meta: "Sản phẩm • Tin công nghệ • 07/08/2025",
@@ -252,38 +253,3 @@ export const testimonials = [
         rating: 5,
     },
 ];
-
-export const productHeroData = {
-    title: {
-        line1: "Bộ giải pháp phần mềm",
-        line2: "Phục vụ Giáo dục, Công chứng & Doanh nghiệp"
-    },
-    description: "Các sản phẩm SFB được xây dựng từ bài toán thực tế của cơ quan Nhà nước, nhà trường và doanh nghiệp, giúp tối ưu quy trình và nâng cao hiệu quả quản lý.",
-    buttons: {
-        primary: {
-            text: "Xem danh sách sản phẩm",
-            link: "#products"
-        },
-        secondary: {
-            text: "Tư vấn giải pháp",
-            link: "/contact"
-        }
-    },
-    stats: [
-        { value: "+32.000", label: "Giải pháp phần mềm" },
-        { value: "+6.000", label: "Đơn vị triển khai thực tế" },
-        { value: "4.9★", label: "Mức độ hài lòng trung bình" }
-    ]
-};
-
-export const productListSectionData = {
-    header: {
-        subtitle: "GIẢI PHÁP CHUYÊN NGHIỆP",
-        title: "Sản phẩm & giải pháp nổi bật",
-        description: "Danh sách các hệ thống phần mềm đang được SFB triển khai cho nhà trường, cơ quan Nhà nước và doanh nghiệp."
-    }
-};
-
-export const productTestimonialsSectionData = {
-    title: "Khách hàng nói gì về SFB ?"
-};
