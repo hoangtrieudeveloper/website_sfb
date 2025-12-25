@@ -7,11 +7,14 @@ interface DetailFeaturedImageProps {
 }
 
 export const DetailFeaturedImage = ({ article }: DetailFeaturedImageProps) => {
+    const isTuyenSinh = article?.title === "Hệ thống tuyển sinh đầu cấp";
+    const imageSrc = isTuyenSinh ? "/images/news/news1.png" : (article?.imageUrl || article?.image);
+
     return (
-        <section className="container mx-auto px-6 -mt-10 relative z-20 mb-20">
+        <section className="mx-auto max-w-[1340px] px-6 2xl:px-0 -mt-10 relative z-20 mb-20">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
                 <ImageWithFallback
-                    src={article.image}
+                    src={imageSrc}
                     alt={article.title}
                     className="w-full h-auto"
                 />

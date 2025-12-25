@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { TrendingUp, Search, Filter, Tag } from "lucide-react";
+import { TrendingUp, Filter, Tag } from "lucide-react";
 import { FeaturedNews } from "../../components/news/FeaturedNews";
 import { NewsList } from "../../components/news/NewsList";
 import { publicApiCall, PublicEndpoints } from "@/lib/api/public";
@@ -35,13 +35,12 @@ export function NewsPageClient({
   categories,
 }: NewsPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [news, setNews] = useState<NewsItem[]>(initialNews);
   const [loading, setLoading] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   // Fetch news with filters
-  const fetchNews = useCallback(async (category: string, search: string) => {
+  const fetchNews = useCallback(async (category: string) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -51,10 +50,6 @@ export function NewsPageClient({
         if (categoryCode && categoryCode !== "all") {
           params.append("category", categoryCode);
         }
-      }
-
-      if (search.trim()) {
-        params.append("search", search.trim());
       }
 
       const queryString = params.toString();
@@ -112,20 +107,15 @@ export function NewsPageClient({
     fetchCounts();
   }, [categories]);
 
-  // Debounced search effect
+  // Category filter effect (no search)
   useEffect(() => {
-    // Don't fetch on initial mount if no filters are applied
-    if (selectedCategory === "all" && !searchQuery.trim()) {
+    if (selectedCategory === "all") {
       setNews(initialNews);
       return;
     }
 
-    const timer = setTimeout(() => {
-      fetchNews(selectedCategory, searchQuery);
-    }, 500); // 500ms debounce
-
-    return () => clearTimeout(timer);
-  }, [selectedCategory, searchQuery, fetchNews, initialNews]);
+    fetchNews(selectedCategory);
+  }, [selectedCategory, fetchNews, initialNews]);
 
   // Map categories with counts
   const categoriesWithCount = useMemo(() => {
@@ -143,7 +133,7 @@ export function NewsPageClient({
       {/* Hero Section */}
       {/* Categories Filter - Sticky */}
       <section className="pt-32 pb-8 bg-white border-b border-gray-100 z-40">
-        <div className="container mx-auto px-6">
+        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Categories */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
@@ -160,34 +150,22 @@ export function NewsPageClient({
                 </button>
               ))}
             </div>
-
-            {/* Search - Compact */}
-            <div className="relative w-full md:w-64 flex-shrink-0">
-              <input
-                type="text"
-                placeholder="Tìm kiếm..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0870B4] transition-all"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            </div>
           </div>
         </div>
       </section>
 
       {/* Featured News */}
       {initialFeatured && (
-        <section className="py-12 bg-white">
-          <div className="container mx-auto px-6">
+        <section className="py-[45px] bg-white">
+          <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
             <FeaturedNews article={initialFeatured} />
           </div>
         </section>
       )}
 
       {/* News Grid */}
-      <section className="py-12 bg-white min-h-[500px]">
-        <div className="container mx-auto px-6">
+      <section className="py-[45px] bg-white min-h-[500px]">
+        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div className="mb-8 flex items-end justify-between">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{newsSectionHeaders.latest.title}</h2>
@@ -207,13 +185,7 @@ export function NewsPageClient({
           ) : (
             <>
               <NewsList
-                news={news.length > 0 && news.length < 12
-                  ? Array(12).fill(null).map((_, i) => ({
-                    ...news[i % news.length],
-                    id: 10000 + i // Ensure unique ID for React keys
-                  }))
-                  : news
-                }
+                news={news}
               />
 
               {/* Pagination Mock */}
@@ -240,8 +212,11 @@ export function NewsPageClient({
         </div>
       </section>
 
-
-      <Consult />
+      <section className="py-[45px] bg-white">
+        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+          <Consult />
+        </div>
+      </section>
     </div>
   );
 }

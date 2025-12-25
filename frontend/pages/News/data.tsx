@@ -49,10 +49,12 @@ export const categories = [
 export const featuredNewsData = {
     id: 1,
     title: "Hệ thống tuyển sinh đầu cấp",
+    slug: "he-thong-tuyen-sinh-dau-cap",
     excerpt:
         "Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh: tổ chức tuyển sinh đúng quy chế, minh bạch, tra cứu kết quả trực tuyến mọi lúc mọi nơi.",
-    image:
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+    image:"/images/news/news1.png",
+    imageUrl: "/images/news/news1.png",
+        
     category: "Sản phẩm & giải pháp",
     categoryId: "product" as const,
     date: "07 Tháng 8, 2025",
@@ -64,104 +66,80 @@ export const featuredNewsData = {
 };
 
 export const newsList = [
-    {
-        id: 2,
-        title: "Sinh nhật lần thứ 8",
-        excerpt:
-            "SFB kỷ niệm 8 năm hình thành và phát triển với sự tham gia của Ban lãnh đạo, toàn thể nhân sự và các đối tác thân thiết, đánh dấu chặng đường nỗ lực không ngừng.",
-        image:
-            "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
-        category: "Tin công ty",
-        categoryId: "company" as const,
-        date: "28 Tháng 5, 2025",
-        author: "SFB Technology",
-        readTime: "6 phút đọc",
-        views: "1.2K",
-        gradient: "from-purple-600 to-pink-600",
-        link: "/news-detail",
-    },
-    {
-        id: 3,
-        title: "Báo giá sản phẩm – hệ thống Giáo dục thông minh",
-        excerpt:
-            "Thông tin báo giá và gói dịch vụ cho hệ thống Giáo dục thông minh của SFB, hỗ trợ nhà trường triển khai dạy và học số một cách hiệu quả.",
-        image:
-            "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&w=900&q=80",
-        category: "Sản phẩm & giải pháp",
+  {
+    id: 1,
+    title: "Báo giá sản phẩm – hệ thống Giáo dục thông minh",
+    slug: "bao-gia-san-pham-he-thong-giao-duc-thong-minh",
         categoryId: "product" as const,
-        date: "08 Tháng 12, 2023",
-        author: "SFB Technology",
-        readTime: "5 phút đọc",
-        views: "980",
-        gradient: "from-emerald-600 to-teal-600",
-        link: "/news-detail",
-    },
-    {
-        id: 4,
-        title: "Hệ thống CSDL quản lý công chứng, chứng thực",
-        excerpt:
-            "Giải pháp quản lý cơ sở dữ liệu công chứng, chứng thực tập trung, bảo đảm an toàn thông tin và hỗ trợ nghiệp vụ cho các phòng công chứng.",
-        image:
-            "https://images.unsplash.com/photo-1450101215322-bf5cd27642fc?auto=format&fit=crop&w=900&q=80",
-        category: "Sản phẩm & giải pháp",
+    excerpt:
+      "Thông tin báo giá và gói dịch vụ cho hệ thống Giáo dục thông minh của SFB, hỗ trợ nhà trường triển khai dạy và học số một cách hiệu quả.",
+   imageUrl: "/images/news/news1.png",
+    likes: 20,
+    comments: 16,
+    publishedDate: "06/06/2025",
+  },
+  {
+    id: 2,
+    title: "Hệ thống CSDL quản lý công chứng, chứng thực",
+    slug: "he-thong-csdl-quan-ly-cong-chung-chung-thuc",
         categoryId: "product" as const,
-        date: "16 Tháng 9, 2023",
-        author: "SFB Technology",
-        readTime: "8 phút đọc",
-        views: "1.1K",
-        gradient: "from-orange-600 to-amber-600",
-        link: "/news-detail",
-    },
-    {
-        id: 5,
-        title: "Điều khoản sử dụng app HS2",
-        excerpt:
-            "Quy định và điều khoản sử dụng ứng dụng HS2, giúp người dùng nắm rõ quyền lợi và trách nhiệm khi sử dụng phần mềm của SFB.",
-        image:
-            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80",
-        category: "Tin công nghệ",
+    excerpt:
+      "Giải pháp quản lý cơ sở dữ liệu công chứng, chứng thực tập trung, bảo đảm an toàn thông tin và hỗ trợ nghiệp vụ cho các phòng công chứng.",
+        imageUrl: "/images/news/news2.png",
+    likes: 20,
+    comments: 16,
+    publishedDate: "06/06/2025",
+  },
+  {
+    id: 3,
+    title: "Điều khoản sử dụng app HS2",
+    slug: "dieu-khoan-su-dung-app-hs2",
         categoryId: "tech" as const,
-        date: "08 Tháng 6, 2023",
-        author: "SFB Technology",
-        readTime: "7 phút đọc",
-        views: "860",
-        gradient: "from-red-600 to-rose-600",
-        link: "/news-detail",
-    },
-    {
-        id: 6,
-        title: "Mã hóa tuyến tính Hamming",
-        excerpt:
-            "Giới thiệu khái niệm và ứng dụng của mã Hamming trong hệ thống truyền tin, giúp phát hiện và sửa lỗi dữ liệu.",
-        image:
-            "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80",
-        category: "Tin công nghệ",
+    excerpt:
+      "Thông tin báo giá và gói dịch vụ cho hệ thống Giáo dục thông minh của SFB, hỗ trợ nhà trường triển khai dạy và học số một cách hiệu quả.",
+    imageUrl: "/images/news/news3.png",
+    likes: 20,
+    comments: 16,
+    publishedDate: "06/06/2025",
+  },
+  {
+    id: 4,
+    title: "Báo giá sản phẩm – hệ thống Giáo dục thông minh",
+    slug: "bao-gia-san-pham-he-thong-giao-duc-thong-minh-2",
+        categoryId: "product" as const,
+    excerpt:
+      "Thông tin báo giá và gói dịch vụ cho hệ thống Giáo dục thông minh của SFB, hỗ trợ nhà trường triển khai dạy và học số một cách hiệu quả.",
+    imageUrl: "/images/news/news1.png",
+    likes: 20,
+    comments: 16,
+    publishedDate: "06/06/2025",
+  },
+  {
+    id: 5,
+    title: "Hệ thống CSDL quản lý công chứng, chứng thực",
+    slug: "he-thong-csdl-quan-ly-cong-chung-chung-thuc-2",
+        categoryId: "product" as const,
+    excerpt:
+      "Giải pháp quản lý cơ sở dữ liệu công chứng, chứng thực tập trung, bảo đảm an toàn thông tin và hỗ trợ nghiệp vụ cho các phòng công chứng.",
+    imageUrl:"/images/news/news2.png",
+    likes: 20,
+    comments: 16,
+    publishedDate: "06/06/2025",
+  },
+  {
+    id: 6,
+    title: "Điều khoản sử dụng app HS2",
+    slug: "dieu-khoan-su-dung-app-hs2-2",
         categoryId: "tech" as const,
-        date: "06 Tháng 4, 2023",
-        author: "SFB Technology",
-        readTime: "12 phút đọc",
-        views: "1.4K",
-        gradient: "from-indigo-600 to-purple-600",
-        link: "/news-detail",
-    },
-    {
-        id: 7,
-        title:
-            "Công ty cổ phần công nghệ SFB đăng ký thành công hệ thống mã số DUNS",
-        excerpt:
-            "SFB chính thức đăng ký thành công mã số DUNS, khẳng định uy tín và chuẩn hóa thông tin doanh nghiệp trên hệ thống quốc tế.",
-        image:
-            "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80",
-        category: "Tin công ty",
-        categoryId: "company" as const,
-        date: "Năm 2020",
-        author: "SFB Technology",
-        readTime: "4 phút đọc",
-        views: "740",
-        gradient: "from-cyan-600 to-blue-600",
-        link: "/news-detail",
-    },
+    excerpt:
+      "Thông tin báo giá và gói dịch vụ cho hệ thống Giáo dục thông minh của SFB, hỗ trợ nhà trường triển khai dạy và học số một cách hiệu quả.",
+    imageUrl:"/images/news/news3.png",
+    likes: 20,
+    comments: 16,
+    publishedDate: "06/06/2025",
+  },
 ];
+
 
 export const newsDetailData = {
     breadcrumb: "Tin tức",

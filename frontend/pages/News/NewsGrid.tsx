@@ -1,10 +1,27 @@
-import { Bookmark, Share2, User, Clock, Eye, Heart, ArrowRight } from "lucide-react";
+import { Bookmark, Share2, User, Clock, Calendar, MessageCircle, Heart, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import Link from "next/link";
 import { newsSectionHeaders, uiText } from "./data";
 
 interface NewsGridProps {
-    filteredNews: any[];
+    filteredNews: Array<{
+        id: number;
+        title: string;
+        slug?: string;
+        excerpt?: string;
+        imageUrl?: string;
+        image?: string;
+        likes?: number;
+        comments?: number;
+        publishedDate?: string;
+        categoryId?: string;
+        categoryName?: string;
+        category?: string;
+        author?: string;
+        readTime?: string;
+        gradient?: string;
+        link?: string;
+    }>;
 }
 
 export const NewsGrid = ({ filteredNews }: NewsGridProps) => {
@@ -25,25 +42,47 @@ export const NewsGrid = ({ filteredNews }: NewsGridProps) => {
                 ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredNews.map((article) => (
+                            (() => {
+                                const imageSrc =
+                                    article.imageUrl ||
+                                    article.image ||
+                                    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80";
+
+                                const gradient = article.gradient || "from-blue-600 to-cyan-600";
+
+                                const categoryLabel =
+                                    article.categoryName ||
+                                    article.category ||
+                                    (article.categoryId === "company"
+                                        ? "Tin công ty"
+                                        : article.categoryId === "product"
+                                            ? "Sản phẩm & giải pháp"
+                                            : article.categoryId === "tech"
+                                                ? "Tin công nghệ"
+                                                : "Tin tức");
+
+                                const href = article.link || (article.slug ? `/news/${article.slug}` : "/news-detail");
+
+                                return (
                             <article
                                 key={article.id}
                                 className="group bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
                             >
                                 <div className="relative h-56 overflow-hidden">
                                     <ImageWithFallback
-                                        src={article.image}
+                                        src={imageSrc}
                                         alt={article.title}
                                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                                     />
                                     <div
-                                        className={`absolute inset-0 bg-gradient-to-tr ${article.gradient} opacity-20`}
+                                        className={`absolute inset-0 bg-gradient-to-tr ${gradient} opacity-20`}
                                     />
 
                                     <div className="absolute top-4 left-4">
                                         <span
-                                            className={`px-4 py-2 bg-gradient-to-r ${article.gradient} text-white rounded-full text-xs font-semibold shadow-lg`}
+                                            className={`px-4 py-2 bg-gradient-to-r ${gradient} text-white rounded-full text-xs font-semibold shadow-lg`}
                                         >
-                                            {article.category}
+                                            {categoryLabel}
                                         </span>
                                     </div>
 
@@ -62,35 +101,49 @@ export const NewsGrid = ({ filteredNews }: NewsGridProps) => {
                                         {article.title}
                                     </h4>
 
-                                    <p className="text-gray-600 mb-6 line-clamp-2 leading-relaxed">
-                                        {article.excerpt}
-                                    </p>
+                                    {article.excerpt && (
+                                        <p className="text-gray-600 mb-6 line-clamp-2 leading-relaxed">
+                                            {article.excerpt}
+                                        </p>
+                                    )}
 
                                     <div className="flex items-center justify-between text-xs text-gray-500 mb-6 pb-6 border-b border-gray-100">
                                         <div className="flex items-center gap-2">
                                             <User size={14} />
-                                            <span>{article.author}</span>
+                                            <span>{article.author || "SFB Technology"}</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock size={14} />
-                                            <span>{article.readTime}</span>
-                                        </div>
+                                        {article.readTime && (
+                                            <div className="flex items-center gap-2">
+                                                <Clock size={14} />
+                                                <span>{article.readTime}</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4 text-xs text-gray-500">
-                                            <div className="flex items-center gap-1">
-                                                <Eye size={14} />
-                                                <span>{article.views}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Heart size={14} />
-                                                <span>125</span>
-                                            </div>
+                                            {article.publishedDate && (
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar size={14} />
+                                                    <span>{article.publishedDate}</span>
+                                                </div>
+                                            )}
+                                            {typeof article.likes === "number" && (
+                                                <div className="flex items-center gap-1">
+                                                    <Heart size={14} />
+                                                    <span>{article.likes}</span>
+                                                </div>
+                                            )}
+                                            {typeof article.comments === "number" && (
+                                                <div className="flex items-center gap-1">
+                                                    <MessageCircle size={14} />
+                                                    <span>{article.comments}</span>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <Link
-                                            href={article.link || "/news-detail"}
+                                            href={href}
                                             className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-2 group/link"
                                         >
                                             {uiText.readMore}
@@ -102,6 +155,8 @@ export const NewsGrid = ({ filteredNews }: NewsGridProps) => {
                                     </div>
                                 </div>
                             </article>
+                                );
+                            })()
                         ))}
                     </div>
                 )}
