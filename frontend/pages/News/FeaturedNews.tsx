@@ -8,8 +8,11 @@ interface FeaturedNewsProps {
 }
 
 export const FeaturedNews = ({ featuredNews }: FeaturedNewsProps) => {
+    const isTuyenSinh = featuredNews?.title === "Hệ thống tuyển sinh đầu cấp";
+    const featuredImageSrc = isTuyenSinh ? "/images/news/news1.png" : featuredNews?.image;
+
     return (
-        <section className="py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+        <section className="py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 ">
             <div className="container mx-auto px-6">
                 <div className="mb-12">
                     <h2 className="text-gray-900 mb-2">{newsSectionHeaders.featured.title}</h2>
@@ -19,7 +22,7 @@ export const FeaturedNews = ({ featuredNews }: FeaturedNewsProps) => {
                 <div className="grid lg:grid-cols-2 gap-12 items-center bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-100 group hover:shadow-3xl transition-all duration-500">
                     <div className="relative h-96 lg:h-full overflow-hidden">
                         <ImageWithFallback
-                            src={featuredNews.image}
+                            src={featuredImageSrc}
                             alt={featuredNews.title}
                             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                         />

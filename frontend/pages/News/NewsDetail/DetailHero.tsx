@@ -38,7 +38,7 @@ export const DetailHero = ({
             <div className="absolute -top-24 -right-10 w-80 h-80 rounded-full bg-cyan-400/30 blur-3xl" />
             <div className="absolute -bottom-32 -left-10 w-80 h-80 rounded-full bg-blue-500/20 blur-3xl" />
 
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="mx-auto max-w-[1340px] px-6 2xl:px-0 relative z-10">
                 <nav className="flex items-center gap-2 text-sm mb-8 text-gray-500">
                     <a
                         href="/news"

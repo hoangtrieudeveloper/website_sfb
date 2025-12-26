@@ -30,8 +30,10 @@ export const DetailContent = ({
     tableOfContents,
     tags,
 }: DetailContentProps) => {
+    const isTuyenSinh = article?.slug === "he-thong-tuyen-sinh-dau-cap" || article?.title === "Hệ thống tuyển sinh đầu cấp";
+
     return (
-        <section className="container mx-auto px-6 pb-28">
+        <section className="mx-auto max-w-[1340px] px-6 2xl:px-0 pb-28">
             <div className="grid lg:grid-cols-12 gap-16">
                 <aside className="lg:col-span-3 hidden lg:block">
                     <div className="sticky top-28 space-y-6">
@@ -182,6 +184,25 @@ export const DetailContent = ({
                             <p className="text-gray-700 leading-relaxed mb-6">
                                 {implementationData.description}
                             </p>
+
+                            {isTuyenSinh && (
+                                <div className="not-prose my-10 space-y-6">
+                                    <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white">
+                                        <ImageWithFallback
+                                            src="/images/news/news5.png"
+                                            alt="Bảng tuyển sinh 1"
+                                            className="w-full h-auto"
+                                        />
+                                    </div>
+                                    <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white">
+                                        <ImageWithFallback
+                                            src="/images/news/news6.png"
+                                            alt="Bảng tuyển sinh 2"
+                                            className="w-full h-auto"
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-6 not-prose">
                                 {implementationData.stages.map((phase, index) => (

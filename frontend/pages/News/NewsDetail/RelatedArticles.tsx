@@ -9,7 +9,7 @@ interface RelatedArticlesProps {
 export const RelatedArticles = ({ relatedArticles }: RelatedArticlesProps) => {
     return (
         <section className="py-20 bg-gradient-to-br from-gray-50 via-[#E6F4FF] to-gray-50">
-            <div className="container mx-auto px-6">
+            <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
                 <div className="text-center mb-16">
                     <h2 className="text-gray-900 mb-4">
                         {newsDetailData.relatedArticlesTitle}

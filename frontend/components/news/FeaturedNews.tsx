@@ -26,13 +26,18 @@ interface FeaturedNewsProps {
 }
 
 export function FeaturedNews({ article }: FeaturedNewsProps) {
+  const isTuyenSinh = article?.title === "Hệ thống tuyển sinh đầu cấp";
+  const imageSrc = isTuyenSinh
+    ? "/images/news/news1.png"
+    : (article.imageUrl || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80");
+
   return (
     <div className="grid lg:grid-cols-12 gap-8 items-center group">
       {/* Image - Left Side (Span 7) */}
       <div className="lg:col-span-7">
         <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm">
           <ImageWithFallback
-            src={article.imageUrl || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80"}
+            src={imageSrc}
             alt={article.title}
             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
           />
