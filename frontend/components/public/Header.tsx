@@ -74,22 +74,10 @@ export function Header() {
     {
       href: "/products",
       label: language === "vi" ? "Sản phẩm" : "Products",
-      children: [
-        { href: "/products/erp", label: "Hệ thống ERP", description: "Quản lý doanh nghiệp toàn diện" },
-        { href: "/products/education", label: "Giáo dục thông minh", description: "Giải pháp cho nhà trường" },
-        { href: "/products/library", label: "Thư viện số", description: "Quản lý thư viện hiện đại" },
-        { href: "/products/eoffice", label: "Văn phòng điện tử", description: "Số hóa quy trình văn bản" },
-      ],
     },
     {
       href: "/solutions",
       label: language === "vi" ? "Giải pháp" : "Solutions",
-      children: [
-        { href: "/solutions/digital-transformation", label: "Chuyển đổi số", description: "Hiện đại hóa doanh nghiệp" },
-        { href: "/solutions/cloud", label: "Giải pháp Cloud", description: "Hạ tầng đám mây" },
-        { href: "/solutions/big-data", label: "Big Data & AI", description: "Phân tích dữ liệu thông minh" },
-        { href: "/solutions/security", label: "An ninh mạng", description: "Bảo mật toàn diện" },
-      ],
     },
     { href: "/industries", label: language === "vi" ? "Lĩnh vực" : "Industries" },
     { href: "/news", label: language === "vi" ? "Tin tức" : "News" },

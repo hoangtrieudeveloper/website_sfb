@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface FeaturedNewsProps {
   article: {
@@ -32,25 +33,42 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
     : (article.imageUrl || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80");
 
   return (
-    <div className="grid lg:grid-cols-12 gap-8 items-center group">
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5 }}
+      viewport={{ once: false, amount: 0.3 }}
+      transition={{ duration: 0.6 }}
+      className="grid lg:grid-cols-12 gap-8 items-center group relative"
+    >
+      {/* Glow Effect */}
+      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-blue-500/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl" />
+
       {/* Image - Left Side (Span 7) */}
-      <div className="lg:col-span-7">
-        <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm">
+      <div className="lg:col-span-7 relative z-10">
+        <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-[0_0_30px_rgba(8,112,180,0.2)] transition-shadow duration-500">
           <ImageWithFallback
             src={imageSrc}
             alt={article.title}
-            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
           />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#0870B4]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
       </div>
 
       {/* Content - Right Side (Span 5) */}
-      <div className="lg:col-span-5 flex flex-col justify-center space-y-6">
+      <div className="lg:col-span-5 flex flex-col justify-center space-y-6 relative z-10">
 
         {/* Meta Row */}
-        <div className="flex flex-wrap items-center gap-4 text-sm">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: false }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-wrap items-center gap-4 text-sm"
+        >
           {/* Category Name */}
-          <span className="text-[#0870B4] font-medium">
+          <span className="text-[#0870B4] font-medium px-3 py-1 bg-[#0870B4]/10 rounded-full border border-[#0870B4]/20">
             {article.categoryName || "Tin sản phẩm & giải pháp"}
           </span>
 
@@ -73,32 +91,50 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
             <User size={14} />
             <span>{article.author || "SFB Technology"}</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Title */}
-        <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight group-hover:text-[#0870B4] transition-colors">
+        <motion.h2
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false }}
+          transition={{ delay: 0.3 }}
+          className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight group-hover:text-[#0870B4] transition-colors"
+        >
           {article.title}
-        </h2>
+        </motion.h2>
 
         {/* Excerpt */}
         {article.excerpt && (
-          <p className="text-gray-600 text-lg leading-relaxed line-clamp-3">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: false }}
+            transition={{ delay: 0.4 }}
+            className="text-gray-600 text-lg leading-relaxed line-clamp-3"
+          >
             {article.excerpt}
-          </p>
+          </motion.p>
         )}
 
         {/* Button */}
-        <div className="pt-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false }}
+          transition={{ delay: 0.5 }}
+          className="pt-2"
+        >
           <Link
             href={`/news/${article.slug}`}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#2D9CDB] text-white rounded-lg font-medium hover:bg-[#2680B3] transition-colors shadow-sm hover:shadow-md"
+            className="inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium shadow-sm hover:shadow-[0_0_20px_rgba(45,156,219,0.4)] transform hover:-translate-y-1 transition-all"
             prefetch={true}
           >
             Đọc ngay
             <ArrowRight size={18} />
           </Link>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

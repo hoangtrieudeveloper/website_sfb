@@ -7,6 +7,7 @@ import { NewsList } from "../../components/news/NewsList";
 import { publicApiCall, PublicEndpoints } from "@/lib/api/public";
 import { newsHeroData, newsSectionHeaders, newsletterData, uiText } from "./data";
 import { Consult } from "../../components/public/Consult";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NewsItem {
   id: number;
@@ -38,6 +39,7 @@ export function NewsPageClient({
   const [news, setNews] = useState<NewsItem[]>(initialNews);
   const [loading, setLoading] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [pageSize, setPageSize] = useState<number>(6);
 
   // Fetch news with filters
   const fetchNews = useCallback(async (category: string) => {
@@ -90,6 +92,8 @@ export function NewsPageClient({
         for (const cat of categories) {
           if (cat.id === "all" || !cat.code) continue;
 
+          // Note: doing this in a loop is not ideal for performance but matches original logic
+          // ideally the backend should return counts
           const catData = await publicApiCall<{ success: boolean; data: NewsItem[] }>(
             `${PublicEndpoints.news.list}?category=${cat.code}`
           );
@@ -138,16 +142,18 @@ export function NewsPageClient({
             {/* Categories */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
               {categoriesWithCount.map((category) => (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
-                    ? "bg-[#0870B4] text-white shadow-md"
+                    ? "bg-[#0870B4] text-white shadow-md select-none"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                     }`}
                 >
-                  {category.name}
-                </button>
+                  {category.name} ({category.count})
+                </motion.button>
               ))}
             </div>
           </div>
@@ -166,10 +172,35 @@ export function NewsPageClient({
       {/* News Grid */}
       <section className="py-[45px] bg-white min-h-[500px]">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-          <div className="mb-8 flex items-end justify-between">
-            <div>
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: false }}
+            >
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{newsSectionHeaders.latest.title}</h2>
               <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>
+            </motion.div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 font-medium">Hiển thị:</span>
+              <div className="relative">
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className="appearance-none bg-white border border-gray-200 rounded-lg pl-4 pr-10 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:border-[#0870B4] focus:ring-1 focus:ring-[#0870B4] transition-all cursor-pointer hover:border-gray-300"
+                >
+                  <option value={6}>6 bài viết</option>
+                  <option value={12}>12 bài viết</option>
+                  <option value={24}>24 bài viết</option>
+                  <option value={48}>48 bài viết</option>
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -183,31 +214,33 @@ export function NewsPageClient({
               {uiText.noResults}
             </div>
           ) : (
-            <>
+            <AnimatePresence mode="wait">
               <NewsList
-                news={news}
+                news={news.slice(0, pageSize)}
               />
 
-              {/* Pagination Mock */}
-              <div className="flex justify-center mt-16 gap-2">
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] transition-colors">
-                  &lt;
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#0870B4] text-white shadow-md font-medium">
-                  1
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] transition-colors font-medium">
-                  2
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] transition-colors font-medium">
-                  3
-                </button>
-                <span className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
-                <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] transition-colors">
-                  &gt;
-                </button>
-              </div>
-            </>
+              {/* Pagination Mock - Hide if less items than pageSize */}
+              {news.length > pageSize && (
+                <div className="flex justify-center mt-16 gap-2">
+                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] transition-colors">
+                    &lt;
+                  </button>
+                  <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#0870B4] text-white shadow-md font-medium">
+                    1
+                  </button>
+                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] transition-colors font-medium">
+                    2
+                  </button>
+                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] transition-colors font-medium">
+                    3
+                  </button>
+                  <span className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
+                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] transition-colors">
+                    &gt;
+                  </button>
+                </div>
+              )}
+            </AnimatePresence>
           )}
         </div>
       </section>
