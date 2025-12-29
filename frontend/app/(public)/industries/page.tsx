@@ -1,7 +1,7 @@
-import { IndustriesPage } from "../../../pages/IndustriesPage";
+import { FieldPage } from "../../../pages/Field";
 
 export default function IndustriesRoute() {
-  return <IndustriesPage />;
+  return <FieldPage />;
 }
 
 

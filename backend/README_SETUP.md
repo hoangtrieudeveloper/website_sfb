@@ -12,7 +12,6 @@ Lệnh này sẽ setup toàn bộ:
 - ✅ Tạo tất cả bảng (users, roles, news, media, ...)
 - ✅ Thêm permissions
 - ✅ Tạo dữ liệu mẫu
-
 ## 📋 Yêu cầu
 
 - Node.js ≥ 18

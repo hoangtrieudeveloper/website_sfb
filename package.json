@@ -26,6 +26,10 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "framer-motion": "^12.23.25",
+    "tailwindcss": "^4.1.18"
   }
 }
-

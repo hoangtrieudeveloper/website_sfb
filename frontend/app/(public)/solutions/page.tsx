@@ -1,4 +1,4 @@
-import { SolutionsPage } from "../../../pages/SolutionsPage";
+import { SolutionsPage } from "../../../pages/Solutions";
 
 export default function SolutionsRoute() {
   return <SolutionsPage />;

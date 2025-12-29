@@ -1,17 +1,9 @@
 "use client";
 
-import {
-  Calendar,
-  User,
-  ArrowRight,
-  Clock,
-  Eye,
-  Heart,
-  Share2,
-  Bookmark,
-} from "lucide-react";
+import { Calendar, Heart, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NewsItem {
   id: number;
@@ -19,12 +11,12 @@ interface NewsItem {
   slug: string;
   excerpt?: string;
   categoryName?: string;
-  categoryId?: string;
   imageUrl?: string;
-  author?: string;
-  readTime?: string;
-  gradient?: string;
   publishedDate?: string;
+
+  // optional: nếu bạn có data
+  likes?: number;
+  comments?: number;
 }
 
 interface NewsListProps {
@@ -34,108 +26,117 @@ interface NewsListProps {
 export function NewsList({ news }: NewsListProps) {
   if (news.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-12">
-        Không có bài viết nào.
-      </div>
+      <div className="text-center text-gray-500 py-12">Không có bài viết nào.</div>
     );
   }
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {news.map((article) => (
-        <article
-          key={article.id}
-          className="group bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
-        >
-          {/* Image */}
-          <div className="relative h-56 overflow-hidden">
-            <ImageWithFallback
-              src={article.imageUrl || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80"}
-              alt={article.title}
-              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-            />
-            <div
-              className={`absolute inset-0 bg-gradient-to-tr ${article.gradient || "from-blue-600 to-cyan-600"} opacity-20`}
-            />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      layout
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[45px]"
+    >
+      <AnimatePresence>
+        {news.map((article, index) => {
+          const img =
+            article.imageUrl ||
+            "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&w=900&q=80";
 
-            {/* Category */}
-            {article.categoryName && (
-              <div className="absolute top-4 left-4">
-                <span
-                  className={`px-4 py-2 bg-gradient-to-r ${article.gradient || "from-blue-600 to-cyan-600"} text-white rounded-full text-xs font-semibold shadow-lg`}
-                >
-                  {article.categoryName}
-                </span>
-              </div>
-            )}
+          const likes = article.likes ?? 20;
+          const comments = article.comments ?? 16;
 
-            {/* Actions */}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all transform hover:scale-110">
-                <Bookmark size={16} className="text-gray-700" />
-              </button>
-              <button className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all transform hover:scale-110">
-                <Share2 size={16} className="text-gray-700" />
-              </button>
-            </div>
-          </div>
+          const dateText = article.publishedDate
+            ? new Date(article.publishedDate).toLocaleDateString("vi-VN")
+            : "";
 
-          {/* Content */}
-          <div className="p-6">
-            <h4 className="text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-              {article.title}
-            </h4>
-
-            {article.excerpt && (
-              <p className="text-gray-600 mb-6 line-clamp-2 leading-relaxed">
-                {article.excerpt}
-              </p>
-            )}
-
-            {/* Meta Info */}
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-6 pb-6 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <User size={14} />
-                <span>{article.author || "SFB Technology"}</span>
-              </div>
-              {article.readTime && (
-                <div className="flex items-center gap-2">
-                  <Clock size={14} />
-                  <span>{article.readTime}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                {article.publishedDate && (
-                  <div className="flex items-center gap-1">
-                    <Calendar size={14} />
-                    <span>
-                      {new Date(article.publishedDate).toLocaleDateString("vi-VN", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-                )}
-              </div>
-
+          return (
+            <motion.div
+              layout
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, amount: 0.1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.5, delay: index * 0.05, type: "spring", stiffness: 50 }}
+              key={article.id}
+            >
               <Link
                 href={`/news/${article.slug}`}
-                className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-2 group/link"
-                prefetch={true}
+                aria-label={article.title}
+                className="block h-full"
               >
-                Đọc thêm
-                <ArrowRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
+                <motion.article
+                  whileHover={{
+                    y: -10,
+                    boxShadow: "0 20px 40px -5px rgba(29, 143, 207, 0.2)",
+                    borderColor: "rgba(29, 143, 207, 0.4)"
+                  }}
+                  className={[
+                    "flex flex-col items-start gap-6 flex-[1_0_0] pb-6",
+                    "h-[530px]",
+                    "rounded-[24px] bg-[var(--Color-7,#FFF)]",
+                    "border border-transparent", // Adjusted for animation
+                    "shadow-[0_12px_36px_0_rgba(59,90,136,0.12)]",
+                    "overflow-hidden",
+                    "transition-colors duration-300"
+                  ].join(" ")}
+                >
+                  {/* IMAGE */}
+                  <div className="w-full rounded-[12px] overflow-hidden shrink-0 relative group">
+                    <ImageWithFallback
+                      src={img}
+                      alt={article.title}
+                      className="w-full h-[220px] md:h-[273.243px] object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
+
+                  {/* CONTENT */}
+                  <div className="w-full px-6 flex flex-col flex-1 min-h-0">
+                    <h3
+                      className="h-[60px] self-stretch line-clamp-2 font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] text-[var(--Color-2,#0F172A)] group-hover:text-[#1D8FCF] transition-colors"
+                      style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
+                    >
+                      {article.title}
+                    </h3>
+
+                    {article.excerpt && (
+                      <p
+                        className="mt-3 flex-[1_0_0] min-h-0 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)]"
+                        style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
+                      >
+                        {article.excerpt}
+                      </p>
+                    )}
+
+                    {/* ICON ROW giống ảnh */}
+                    <div className="mt-auto pt-4 flex items-center gap-5 text-[13px] text-gray-500">
+                      <div className="flex items-center gap-2">
+                        <Heart size={16} className="text-red-500" />
+                        <span>{likes}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <MessageCircle size={16} className="text-blue-600" />
+                        <span>{comments}</span>
+                      </div>
+
+                      {dateText && (
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} className="text-gray-400" />
+                          <span>{dateText}</span>
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+                </motion.article>
               </Link>
-            </div>
-          </div>
-        </article>
-      ))}
-    </div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </motion.div>
   );
 }
-

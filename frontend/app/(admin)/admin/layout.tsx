@@ -42,7 +42,7 @@ import { useEffect, useState, useMemo } from "react";
 import { removeAuthToken } from "@/lib/auth/token";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -234,9 +234,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } w-64 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 text-slate-100 shadow-2xl`}
+        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } w-64 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 text-slate-100 shadow-2xl`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -253,17 +252,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               const Icon = item.icon;
               const hasSubmenu = item.children && item.children.length > 0;
               const isSubmenuOpen = openSubmenus.has(item.id);
-              
+
               // Kiểm tra permission - ẩn item nếu không có quyền (sau khi đã mount)
               // Trên server hoặc chưa mount, hiển thị tất cả để tránh hydration mismatch
               const hasPermission = !mounted || userPermissions.size === 0
                 ? true
                 : !item.requiredPermissions ||
-                  item.requiredPermissions.length === 0 ||
-                  item.requiredPermissions.some((perm) => userPermissions.has(perm));
-              
+                item.requiredPermissions.length === 0 ||
+                item.requiredPermissions.some((perm) => userPermissions.has(perm));
+
               if (!hasPermission) return null;
-              
+
               const isActive =
                 pathname === item.href ||
                 (item.href && item.href !== "/admin" && pathname.startsWith(item.href)) ||
@@ -292,11 +291,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                     }}
                   >
                     <CollapsibleTrigger
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-sm ${
-                        isActive
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-sm ${isActive
                           ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
                           : "text-slate-200 hover:bg-white/5"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center">
                         <Icon className="w-5 h-5" />
@@ -314,26 +312,25 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         const isChildActive =
                           pathname === child.href ||
                           (child.href && pathname.startsWith(child.href));
-                        
+
                         // Kiểm tra permission cho child - ẩn nếu không có quyền (sau khi đã mount)
                         // Trên server hoặc chưa mount, hiển thị tất cả để tránh hydration mismatch
                         const childHasPermission = !mounted || userPermissions.size === 0
                           ? true
                           : !child.requiredPermissions ||
-                            child.requiredPermissions.length === 0 ||
-                            child.requiredPermissions.some((perm) => userPermissions.has(perm));
-                        
+                          child.requiredPermissions.length === 0 ||
+                          child.requiredPermissions.some((perm) => userPermissions.has(perm));
+
                         if (!childHasPermission) return null;
 
                         return (
                           <Link
                             key={child.id}
                             href={child.href || "#"}
-                            className={`w-full flex items-center pl-10 pr-4 py-2.5 rounded-lg transition-all text-sm ${
-                              isChildActive
+                            className={`w-full flex items-center pl-10 pr-4 py-2.5 rounded-lg transition-all text-sm ${isChildActive
                                 ? "bg-white/10 text-white font-medium border-l-2 border-cyan-400"
                                 : "text-slate-200 hover:bg-white/5"
-                            }`}
+                              }`}
                           >
                             <ChildIcon className="w-4 h-4" />
                             <span className="ml-3">{child.label}</span>
@@ -349,11 +346,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 <Link
                   key={item.id}
                   href={item.href || "#"}
-                  className={`w-full flex items-center px-4 py-3 rounded-lg transition-all text-sm ${
-                    isActive
+                  className={`w-full flex items-center px-4 py-3 rounded-lg transition-all text-sm ${isActive
                       ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
                       : "text-slate-200 hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="ml-3">{item.label}</span>
