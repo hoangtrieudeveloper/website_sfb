@@ -67,5 +67,43 @@ export const AdminEndpoints = {
       detail: (id: number) => `/api/admin/media/files/${id}`,
     },
   },
+  
+  // Products
+  products: {
+    list: "/api/admin/products",
+    detail: (id: number) => `/api/admin/products/${id}`,
+    toggle: (id: number) => `/api/admin/products/${id}/toggle`,
+    detailPage: (productId: number) => `/api/admin/products/${productId}/detail`,
+  },
+  
+  // Product Categories
+  productCategories: {
+    list: "/api/admin/products/categories",
+    detail: (id: number) => `/api/admin/products/categories/${id}`,
+  },
+  
+  // Product Benefits
+  productBenefits: {
+    list: "/api/admin/products/benefits",
+    detail: (id: number) => `/api/admin/products/benefits/${id}`,
+  },
+  
+  // Product Hero
+  productHero: {
+    get: "/api/admin/products/hero",
+    update: "/api/admin/products/hero",
+  },
+  
+  // Product Contact Banner
+  productContact: {
+    get: "/api/admin/products/contact",
+    update: "/api/admin/products/contact",
+  },
+  
+  // Testimonials
+  testimonials: {
+    list: "/api/admin/testimonials",
+    detail: (id: number) => `/api/admin/testimonials/${id}`,
+  },
 } as const;
 

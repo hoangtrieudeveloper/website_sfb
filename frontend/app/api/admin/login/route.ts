@@ -38,7 +38,12 @@ export async function POST(req: Request) {
 
     const data = (await res.json()) as {
       token: string;
-      user?: { name?: string; email?: string };
+      user?: { 
+        name?: string; 
+        email?: string;
+        permissions?: string[];
+        [key: string]: any;
+      };
       expiresIn?: number;
     };
 

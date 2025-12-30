@@ -15,6 +15,8 @@ const publicCategoriesRoutes = require('./routes/publicCategories.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const mediaFoldersRoutes = require('./routes/mediaFolders.routes');
 const mediaFilesRoutes = require('./routes/mediaFiles.routes');
+const productsRoutes = require('./routes/products.routes');
+const testimonialsRoutes = require('./routes/testimonials.routes');
 const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
@@ -99,6 +101,10 @@ app.use('/api/admin/menus', requireAuth, menuRoutes);
 app.use('/api/admin/upload', uploadRoutes);
 app.use('/api/admin/media/folders', requireAuth, mediaFoldersRoutes);
 app.use('/api/admin/media/files', requireAuth, mediaFilesRoutes);
+// Products routes - tất cả routes đã được gộp vào products.routes.js
+app.use('/api/admin/products', requireAuth, productsRoutes);
+// Testimonials routes
+app.use('/api/admin/testimonials', requireAuth, testimonialsRoutes);
 
 // 404 & error handlers
 app.use(notFound);

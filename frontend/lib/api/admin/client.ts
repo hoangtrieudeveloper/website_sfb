@@ -35,6 +35,8 @@ export async function adminApiCall<T = any>(
   
   const response = await fetch(url, {
     ...options,
+    // Force fresh data for GET requests to avoid 304 issues
+    cache: options.method === 'GET' ? 'no-cache' : options.cache,
     headers: {
       ...getAdminHeaders(),
       ...(options.headers || {}),
@@ -51,12 +53,29 @@ export async function adminApiCall<T = any>(
     throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
   }
 
+  // Handle 304 Not Modified - response has no body, return null or cached data
+  if (response.status === 304) {
+    // For 304, we can't parse JSON, so return null
+    // The component should handle this case
+    return null as T;
+  }
+
   if (!response.ok) {
     const errorMessage = await parseErrorResponse(response);
     throw new Error(errorMessage);
   }
 
-  return response.json();
+  // Check if response has content to parse
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    const text = await response.text();
+    if (text) {
+      return JSON.parse(text);
+    }
+  }
+
+  // If no content, return null
+  return null as T;
 }
 
 /**

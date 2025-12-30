@@ -19,6 +19,10 @@ import {
   ChevronRight,
   Settings2,
   Image,
+  Package,
+  Star,
+  Phone,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +46,7 @@ import { useEffect, useState, useMemo } from "react";
 import { removeAuthToken } from "@/lib/auth/token";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products-group" | "products" | "product-categories" | "product-benefits" | "product-hero" | "product-contact" | "menus" | "testimonials";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -79,6 +83,56 @@ const menuItems: AdminNavItem[] = [
         requiredPermissions: ["categories.view", "categories.manage", "admin"],
       },
     ],
+  },
+  {
+    id: "products-group",
+    label: "Sản phẩm",
+    icon: Package,
+    requiredPermissions: ["products.view", "products.manage", "product_categories.view", "product_categories.manage", "admin"],
+    children: [
+      {
+        id: "products",
+        label: "Danh sách sản phẩm",
+        href: "/admin/products",
+        icon: Package,
+        requiredPermissions: ["products.view", "products.manage", "admin"],
+      },
+      {
+        id: "product-categories",
+        label: "Danh mục sản phẩm",
+        href: "/admin/products/categories",
+        icon: FolderTree,
+        requiredPermissions: ["product_categories.view", "product_categories.manage", "admin"],
+      },
+      {
+        id: "product-benefits",
+        label: "Lợi ích sản phẩm",
+        href: "/admin/products/benefits",
+        icon: Star,
+        requiredPermissions: ["product_benefits.manage", "admin"],
+      },
+      {
+        id: "product-hero",
+        label: "Hero Section",
+        href: "/admin/products/hero",
+        icon: Package,
+        requiredPermissions: ["product_hero.manage", "admin"],
+      },
+    ],
+  },
+  {
+    id: "product-contact",
+    label: "Quản lý Banner Liên hệ",
+    href: "/admin/contact",
+    icon: Phone,
+    requiredPermissions: ["product_contact.manage", "admin"],
+  },
+  {
+    id: "testimonials",
+    label: "Khách hàng nói về SFB",
+    href: "/admin/testimonials",
+    icon: MessageSquare,
+    requiredPermissions: ["testimonials.manage", "admin"],
   },
   {
     id: "system",
@@ -234,14 +288,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } w-64 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 text-slate-100 shadow-2xl`}
+        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } w-64 text-slate-100 shadow-2xl`}
+        style={{
+          background: "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)"
+        }}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="h-16 flex items-center px-6 border-b border-slate-800/60 backdrop-blur">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg">
-              <LayoutDashboard className="w-6 h-6 text-white drop-shadow" />
+            <div className="w-10 h-10 flex items-center justify-center bg-white rounded-[20px]">
+              <img 
+                src="/images/logo-2.png" 
+                alt="SFB Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="ml-3 text-xl text-slate-100 font-semibold">SFB Admin</span>
           </div>
@@ -362,7 +424,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="w-full flex items-center px-4 py-3 text-white-600 hover:bg-red-50 rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5" />
               <span className="ml-3">Đăng xuất</span>
