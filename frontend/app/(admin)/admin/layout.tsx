@@ -23,6 +23,7 @@ import {
   Star,
   Phone,
   MessageSquare,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +47,7 @@ import { useEffect, useState, useMemo } from "react";
 import { removeAuthToken } from "@/lib/auth/token";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products-group" | "products" | "product-categories" | "product-benefits" | "product-hero" | "product-contact" | "menus" | "testimonials";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products-group" | "products" | "product-categories" | "product-benefits" | "product-hero" | "product-contact" | "menus" | "testimonials" | "industries";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -119,6 +120,13 @@ const menuItems: AdminNavItem[] = [
         requiredPermissions: ["product_hero.manage", "admin"],
       },
     ],
+  },
+  {
+    id: "industries",
+    label: "Quản lý lĩnh vực",
+    href: "/admin/industries",
+    icon: Briefcase,
+    requiredPermissions: ["industries.view", "industries.manage", "admin"],
   },
   {
     id: "product-contact",

@@ -105,5 +105,23 @@ export const AdminEndpoints = {
     list: "/api/admin/testimonials",
     detail: (id: number) => `/api/admin/testimonials/${id}`,
   },
+  
+  // Industries
+  industries: {
+    list: "/api/admin/industries",
+    detail: (id: number) => `/api/admin/industries/${id}`,
+    hero: {
+      get: "/api/admin/industries/hero",
+      update: "/api/admin/industries/hero",
+    },
+    listHeader: {
+      get: "/api/admin/industries/list-header",
+      update: "/api/admin/industries/list-header",
+    },
+    process: {
+      get: "/api/admin/industries/process",
+      update: "/api/admin/industries/process",
+    },
+  },
 } as const;
 
