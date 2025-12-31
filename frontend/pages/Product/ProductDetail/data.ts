@@ -30,10 +30,17 @@ export type ProductShowcase = {
     };
 };
 
+export type TitledParagraph = {
+    title: string;
+    text: string;
+};
+
+export type SectionParagraph = string | TitledParagraph;
+
 export type NumberedSection = {
     no: number;
     title: string;
-    paragraphs: string[];
+    paragraphs: SectionParagraph[];
     image: string;
     imageAlt?: string;
     imageSide: "left" | "right";
@@ -162,9 +169,18 @@ export const productDetails: ProductDetail[] = [
                 no: 1,
                 title: "Quản lý thông tin nhân sự, học sinh, lớp học",
                 paragraphs: [
-                    "Người dùng có thể quản lý học sinh theo khối, lớp, khu vực, giới tính nhằm phục vụ công tác quản lý, tuyển sinh sau này hoặc công tác phân bổ học sinh, giáo viên trên địa bàn.",
-                    "Hệ thống cung cấp các tính năng trong việc phân chia lớp, xếp môn cho lớp. Việc phân môn chính xác giúp tính toán điểm và tổng kết đơn giản và dễ dàng hơn.",
-                    "Hệ thống quản lý tất cả thông tin của nhân sự theo từng trường, từng nhóm bộ môn. Dữ liệu quản lý có thể phục vụ cho việc thống kê, in báo cáo cho Ban giám hiệu nhà trường.",
+                    {
+                        title: "Học sinh",
+                        text: "Người dùng có thể quản lý học sinh theo khối, lớp, khu vực, giới tính nhằm phục vụ công tác quản lý, tuyển sinh sau này hoặc công tác phân bổ học sinh, giáo viên trên địa bàn.",
+                    },
+                    {
+                        title: "Lớp học",
+                        text: "Hệ thống cung cấp các tính năng trong việc phân chia lớp, xếp môn cho lớp. Việc phân môn chính xác giúp tính toán điểm và tổng kết đơn giản và dễ dàng hơn.",
+                    },
+                    {
+                        title: "Nhân sự",
+                        text: "Hệ thống quản lý tất cả thông tin của nhân sự theo từng trường, từng nhóm bộ môn. Dữ liệu quản lý có thể phục vụ cho việc thống kê, in báo cáo cho Ban giám hiệu nhà trường.",
+                    },
                 ],
                 image: "/images/products/tuyen-sinh-dau-cap/section-1.png",
                 imageSide: "right",

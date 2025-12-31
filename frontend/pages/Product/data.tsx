@@ -114,7 +114,7 @@ export const products = [
         category: "edu" as CategoryId,
         name: "Phần mềm quản lý Đại học – Học viện – Cao đẳng",
         tagline: "Giải pháp quản lý tổng thể cơ sở đào tạo",
-        meta: "Sản phẩm • 01/11/2022",
+         meta: "Sản phẩm • Tin công nghệ • 07/08/2025",
         description:
             "Giải pháp quản lý tổng thể dành cho các trường Đại học, Học viện, Cao đẳng, hỗ trợ quản lý đào tạo, sinh viên, chương trình học và chất lượng đào tạo.",
         image: "https://sfb.vn/wp-content/uploads/2022/11/BG-768x512.png",
@@ -140,7 +140,7 @@ export const products = [
         category: "gov" as CategoryId,
         name: "Hệ thống thông tin quản lý, giám sát doanh nghiệp",
         tagline: "Giám sát doanh nghiệp Nhà nước hiệu quả",
-        meta: "Sản phẩm • 16/01/2021",
+        meta: "Sản phẩm • Tin công nghệ • 07/08/2025",
         description:
             "Hệ thống thông tin quản lý, giám sát Nhà nước tại doanh nghiệp, hỗ trợ cơ quan quản lý nắm bắt tình hình hoạt động và chỉ tiêu của doanh nghiệp một cách chi tiết.",
         image: "https://sfb.vn/wp-content/uploads/2021/01/btc-255x170.png",
@@ -166,7 +166,7 @@ export const products = [
         category: "kpi" as CategoryId,
         name: "Hệ thống quản lý KPI cá nhân (BSC/KPIs)",
         tagline: "Quản trị hiệu suất cá nhân & tổ chức",
-        meta: "Sản phẩm • 16/01/2021",
+          meta: "Sản phẩm • Tin công nghệ • 07/08/2025",
         description:
             "Hệ thống quản lý BSC/KPIs cá nhân giúp thiết kế bảng điểm cân bằng và hệ thống chỉ tiêu KPI, hỗ trợ đo lường và đánh giá hiệu quả công việc.",
         image: "https://sfb.vn/wp-content/uploads/2021/02/Skpi-red-768x512.png",

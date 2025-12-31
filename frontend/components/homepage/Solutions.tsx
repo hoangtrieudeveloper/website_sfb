@@ -15,25 +15,25 @@ export function Solutions() {
   return (
     <section
       id="solutions"
-      className="relative py-24 overflow-visible"
-      style={{
-        background: "linear-gradient(236.99deg, #80C0E4 7%, #1D8FCF 71.94%)",
-      }}
+      className="relative py-[120px] overflow-visible bg-[linear-gradient(236.99deg,#80C0E4_7%,#1D8FCF_71.94%)]"
     >
       <div className="container mx-auto px-6">
         {/* Header */}
-        <ScrollAnimation variant="fade-down" className="text-center max-w-5xl mx-auto">
-          <div className="text-white/85 text-xs font-semibold tracking-[0.25em] uppercase mb-4">
+        <ScrollAnimation
+          variant="fade-down"
+          className="mx-auto w-full max-w-5xl self-stretch text-center flex flex-col items-center gap-6"
+        >
+          <div className="self-stretch text-center text-[var(--light-blue,#EFF6FF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[15px] font-medium leading-normal uppercase">
             {solutionsSectionData.subHeader}
           </div>
 
-          <h2 className="text-white font-extrabold leading-tight text-3xl md:text-5xl">
-            {solutionsSectionData.title.part1}
+          <h2 className="mx-auto w-full max-w-[840px] text-center text-[var(--White,#FFF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[clamp(32px,4.6vw,56px)] leading-normal">
+            <span className="font-bold">{solutionsSectionData.title.part1}</span>
             <br />
-            <span className="font-medium">{solutionsSectionData.title.part2}</span>
+            <span className="font-normal">{solutionsSectionData.title.part2}</span>
           </h2>
 
-          <div className="mt-7 flex flex-wrap justify-center gap-2.5">
+          <div className="flex flex-wrap justify-center gap-2.5">
             {solutionsSectionData.domains.map((d, i) => (
               <ScrollAnimation
                 key={d}
@@ -48,7 +48,7 @@ export function Solutions() {
         </ScrollAnimation>
 
         {/* ✅ GRID: gap-6 (24px) for both row and column */}
-        <div className="mt-16 grid grid-cols-1 xl:grid-cols-2 gap-6 place-items-center">
+        <div className="mt-16 mx-auto w-full max-w-[1236px] grid grid-cols-1 xl:grid-cols-2 gap-6 place-items-center">
           {solutionsSectionData.items.map((s, idx) => {
             const Icon = s.icon;
 
@@ -119,11 +119,8 @@ export function Solutions() {
                         shadow-[0_14px_40px_rgba(29,143,207,0.35)]
                         hover:shadow-[0_18px_54px_rgba(29,143,207,0.45)]
                         transition-all
+                        bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)]
                       "
-                      style={{
-                        background:
-                          "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
-                      }}
                     >
                       {s.buttonText}
                       <ArrowRight size={18} />

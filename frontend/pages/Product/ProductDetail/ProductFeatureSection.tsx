@@ -66,10 +66,30 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                 <div className="text-gray-900 text-xl md:text-2xl font-bold mb-4">
                     {section.no}. {section.title}
                 </div>
-                <div className="space-y-4 text-gray-600 leading-relaxed">
-                    {section.paragraphs.map((p, i) => (
-                        <p key={i}>{p}</p>
-                    ))}
+                <div className="space-y-4">
+                    {section.paragraphs.map((p, i) => {
+                        if (typeof p === "string") {
+                            return (
+                                <p
+                                    key={i}
+                                    className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]"
+                                >
+                                    {p}
+                                </p>
+                            );
+                        }
+
+                        return (
+                            <div key={i} className="flex flex-col self-stretch gap-2">
+                                <div className="self-stretch text-[var(--Color-3,#29A3DD)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
+                                    {p.title}
+                                </div>
+                                <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]">
+                                    {p.text}
+                                </p>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

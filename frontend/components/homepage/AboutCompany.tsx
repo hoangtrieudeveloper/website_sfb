@@ -1,131 +1,226 @@
 "use client";
 
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import useEmblaCarousel from "embla-carousel-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
 import { aboutSlides, aboutCompanyData } from "./data";
 
 export function AboutCompany() {
+  const baseSlides = aboutSlides;
+  const slides = [...baseSlides, ...baseSlides, ...baseSlides];
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: "start",
+    skipSnaps: false,
+    dragFree: true,
+    duration: 80,
+  });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+  const onInit = useCallback((api: any) => {
+    setScrollSnaps(api.scrollSnapList());
+  }, []);
+
+  const onSelect = useCallback((api: any) => {
+    setSelectedIndex(api.selectedScrollSnap());
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onInit(emblaApi);
+    onSelect(emblaApi);
+
+    // Start in the middle set so we can scroll both directions.
+    emblaApi.scrollTo(baseSlides.length, true);
+
+    emblaApi.on("reInit", onInit);
+    emblaApi.on("reInit", onSelect);
+    emblaApi.on("select", onSelect);
+  }, [emblaApi, onInit, onSelect]);
+
+  // Auto-scroll slow (same spirit as Testimonials)
+  useEffect(() => {
+    if (!emblaApi) return;
+    const intervalId = setInterval(() => {
+      emblaApi.scrollNext();
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [emblaApi]);
+
+  const scrollTo = useCallback(
+    (index: number) => emblaApi && emblaApi.scrollTo(index),
+    [emblaApi]
+  );
+
+  const scrollToDot = useCallback(
+    (index: number) => {
+      if (!emblaApi) return;
+      emblaApi.scrollTo(index + baseSlides.length);
+    },
+    [emblaApi, baseSlides.length]
+  );
 
   return (
-    <section id="about" className="py-24 bg-white overflow-hidden">
-      <div className="container mx-auto px-6">
-        {/* Header */}
-        <ScrollAnimation
-          variant="fade-down"
-          className="text-center max-w-5xl mx-auto mb-16"
-        >
-          <h2 className="text-3xl md:text-5xl font-bold text-[#0F172A] leading-tight mb-6">
-            {aboutCompanyData.title.part1}
-            <span>{aboutCompanyData.title.highlight1}</span>
-            {aboutCompanyData.title.part2}
-            <span>{aboutCompanyData.title.highlight2}</span>
-            {aboutCompanyData.title.part3}
-          </h2>
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            {aboutCompanyData.description}
-          </p>
-        </ScrollAnimation>
-
-        {/* Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 justify-items-center">
-          {aboutSlides.map((slide, index) => (
-            <ScrollAnimation
-              key={index}
-              variant="elastic-up"
-              delay={index * 0.1}
-              className="w-full max-w-[410px]"
-            >
-              <div
+    <section id="about" className="py-[90px] bg-[#F4FAFE] overflow-hidden">
+      <div className="mx-auto w-full max-w-[1920px] px-6 2xl:px-0">
+        <div className="flex flex-col gap-[69px]">
+          {/* Header */}
+          <ScrollAnimation
+            variant="fade-down"
+            className="text-center mx-auto px-6"
+          >
+            <div className="mx-auto mb-6 w-full max-w-[1244px]">
+              <h2
                 className="
-                  group w-full bg-white rounded-3xl p-6
-                  border-2 border-gray-100
-                  shadow-[0_8px_30px_rgba(0,0,0,0.04)]
-                  flex flex-col
-                  transition-all duration-300
-                  hover:-translate-y-1
-                  hover:shadow-[0_18px_60px_rgba(0,0,0,0.10)]
+                  mx-auto w-full text-center
+                  font-['Plus_Jakarta_Sans'] font-medium
+                  text-[var(--Dark-Blue,#0F172A)]
+                  [font-feature-settings:'liga'_off,'clig'_off]
+                  text-[clamp(32px,4.6vw,56px)]
+                  leading-[clamp(40px,5.8vw,71px)]
                 "
-                style={{ minHeight: "523px" }}
               >
-                {/* IMAGE + RGB LED FRAME */}
-                <div className="relative w-full mb-6 flex-shrink-0">
-                  <div className="rgb-frame p-[3px] rounded-[14px]">
+                <span className="lg:whitespace-nowrap">
+                  {aboutCompanyData.title.part1}
+                  <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
+                    {aboutCompanyData.title.highlight1}
+                  </span>
+                  <span
+                    className="text-[var(--Dark-Blue,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[inherit] lg:text-[56px] font-normal leading-[inherit] lg:leading-normal"
+                  >
+                    {aboutCompanyData.title.part2}
+                  </span>
+                </span>
+                <br className="hidden lg:block" />
+                <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
+                  {aboutCompanyData.title.highlight2}
+                </span>
+                {aboutCompanyData.title.part3}
+              </h2>
+            </div>
+
+            <p
+              className="
+                mx-auto w-full max-w-[1000px] text-center
+                font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]
+                text-[var(--Color-2,#0F172A)]
+                [font-feature-settings:'liga'_off,'clig'_off]
+              "
+            >
+              {aboutCompanyData.description}
+            </p>
+          </ScrollAnimation>
+
+          {/* Cards */}
+          <div className="mx-auto w-full max-w-[410px] sm:max-w-[860px] lg:max-w-[1340px]">
+            <ScrollAnimation variant="blur-in" className="relative w-full">
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex gap-[34px]">
+                  {slides.map((slide, index) => (
                     <div
-                      className="relative w-full overflow-hidden rounded-lg bg-white"
-                      style={{ height: "234px" }}
+                      key={index}
+                      className="flex-[0_0_100%] sm:flex-[0_0_410px]"
                     >
-                      <img
-                        src={slide.image}
-                        alt={slide.title}
-                        className="
-                          w-full h-full object-cover
-                          transition-transform duration-500
-                          group-hover:scale-[1.05]
-                        "
-                      />
+                      <ScrollAnimation
+                        variant="elastic-up"
+                        delay={index * 0.1}
+                        className="w-full max-w-[410px]"
+                      >
+                        <div
+                          className="
+                            group mx-auto w-full max-w-[410px] h-[523px]
+                            bg-white rounded-3xl p-6
+                            border-2 border-gray-100
+                            shadow-[0_8px_30px_rgba(0,0,0,0.04)]
+                            flex flex-col items-start gap-6
+                            transition-all duration-300
+                            hover:-translate-y-1
+                            hover:shadow-[0_18px_60px_rgba(0,0,0,0.10)]
+                          "
+                        >
+                          {/* IMAGE + RGB LED FRAME */}
+                          <div className="relative w-full flex-shrink-0">
+                            <div className="rgb-frame p-[3px] rounded-[14px]">
+                              <div className="relative w-full h-[234px] overflow-hidden rounded-lg bg-white">
+                                <img
+                                  src={slide.image}
+                                  alt={slide.title}
+                                  className="
+                                    w-full h-full object-cover
+                                    transition-transform duration-500
+                                    group-hover:scale-[1.05]
+                                  "
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 w-full flex flex-col items-start text-left gap-4">
+                            <h3
+                              className="text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF]"
+                            >
+                              {slide.title}
+                            </h3>
+
+                            <p
+                              className="flex-1 line-clamp-4 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px]"
+                            >
+                              {slide.description}
+                            </p>
+
+                            {/* BUTTON */}
+                            <Link
+                              href={slide.buttonLink}
+                              className="
+                                relative mt-auto w-full h-12 rounded-lg
+                                flex items-center justify-center gap-2
+                                text-white font-semibold
+                                overflow-hidden
+                                transition-all duration-300
+                                hover:-translate-y-0.5
+                                focus-visible:outline-none
+                                focus-visible:ring-2 focus-visible:ring-offset-2
+                                focus-visible:ring-[#2EABE2]
+                                bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)]
+                              "
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                {slide.buttonText}
+                                <span className="transition-transform duration-300 group-hover:translate-x-1">
+                                  →
+                                </span>
+                              </span>
+                            </Link>
+                          </div>
+                        </div>
+                      </ScrollAnimation>
                     </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 flex flex-col text-center">
-                  <h3
-                    className="mb-4 transition-colors duration-300 group-hover:text-[#1D8FCF]"
-                    style={{
-                      color: "#0F172A",
-                      fontFamily: '"Plus Jakarta Sans", sans-serif',
-                      fontSize: "20px",
-                      fontWeight: 600,
-                      lineHeight: "30px",
-                    }}
-                  >
-                    {slide.title}
-                  </h3>
-
-                  <p
-                    className="mb-6 flex-1 line-clamp-4"
-                    style={{
-                      color: "#0F172A",
-                      fontFamily: '"Plus Jakarta Sans", sans-serif',
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      lineHeight: "26px",
-                    }}
-                  >
-                    {slide.description}
-                  </p>
-
-                  {/* BUTTON */}
-                  <Link
-                    href={slide.buttonLink}
-                    className="
-                      relative mt-auto w-full h-12 rounded-lg
-                      flex items-center justify-center gap-2
-                      text-white font-semibold
-                      overflow-hidden
-                      transition-all duration-300
-                      hover:-translate-y-0.5
-                      focus-visible:outline-none
-                      focus-visible:ring-2 focus-visible:ring-offset-2
-                      focus-visible:ring-[#2EABE2]
-                    "
-                    style={{
-                      background:
-                        "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
-                    }}
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {slide.buttonText}
-                      <span className="transition-transform duration-300 group-hover:translate-x-1">
-                        →
-                      </span>
-                    </span>
-                  </Link>
+                  ))}
                 </div>
               </div>
+
+              {/* Dots Pagination */}
+              <div className="flex justify-center gap-2 mt-10 flex-wrap">
+                {baseSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => scrollToDot(index)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      index === (selectedIndex % baseSlides.length)
+                        ? "bg-[#0F172A] w-6"
+                        : "bg-[#94A3B8] hover:bg-[#64748B]"
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
             </ScrollAnimation>
-          ))}
+          </div>
         </div>
       </div>
     </section>
