@@ -7,10 +7,10 @@ interface ProductFeatureSectionProps {
 
 export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[90px]">
             <div
                 className={
-                    section.imageSide === "left" ? "order-1" : "order-2 lg:order-2"
+                    section.imageSide === "left" ? "order-1 lg:order-1" : "order-1 lg:order-2"
                 }
             >
                 <div className="w-full flex justify-center lg:justify-start">
@@ -60,13 +60,14 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
 
             <div
                 className={
-                    section.imageSide === "left" ? "order-2" : "order-1 lg:order-1"
+                    section.imageSide === "left" ? "order-2 lg:order-2" : "order-2 lg:order-1"
                 }
             >
-                <div className="text-gray-900 text-xl md:text-2xl font-bold mb-4">
-                    {section.no}. {section.title}
-                </div>
-                <div className="space-y-4">
+                <div className="flex w-full max-w-[549px] flex-col items-start gap-6">
+                    <div className="text-gray-900 text-xl md:text-2xl font-bold">
+                        {section.no}. {section.title}
+                    </div>
+
                     {section.paragraphs.map((p, i) => {
                         if (typeof p === "string") {
                             return (

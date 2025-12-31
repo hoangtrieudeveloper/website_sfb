@@ -8,7 +8,7 @@ interface OverviewSectionProps {
 export function OverviewSection({ product }: OverviewSectionProps) {
     return (
         <section className="w-full">
-            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] flex justify-center">
+            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[45px] flex justify-center">
                 <div className="flex flex-col items-start gap-[60px] w-full lg:w-[1340px]">
                     <div className="w-full text-center space-y-4">
                         <div
