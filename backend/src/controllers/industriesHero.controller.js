@@ -1,49 +1,63 @@
 const { pool } = require('../config/database');
 
+// Helper function to get section by type
+const getSection = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM industries_sections WHERE section_type = $1 AND is_active = true',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
+// Helper function to get items by section_id and section_type
+const getItems = async (sectionId, sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM industries_section_items WHERE section_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+    [sectionId, sectionType]
+  );
+  return rows;
+};
+
 // GET /api/admin/industries/hero
 exports.getHero = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM industries_hero WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('hero');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const hero = rows[0];
-
-    // Lấy stats
-    const { rows: stats } = await pool.query(
-      'SELECT * FROM industries_hero_stats WHERE hero_id = $1 ORDER BY sort_order ASC',
-      [hero.id],
-    );
+    const data = section.data || {};
+    const stats = await getItems(section.id, 'hero');
 
     return res.json({
       success: true,
       data: {
-        id: hero.id,
-        titlePrefix: hero.title_prefix || '',
-        titleSuffix: hero.title_suffix || '',
-        description: hero.description || '',
-        buttonText: hero.button_text || '',
-        buttonLink: hero.button_link || '',
-        image: hero.image || '',
-        backgroundGradient: hero.background_gradient || '',
-        stats: stats.map(s => ({
-          id: s.id,
-          iconName: s.icon_name || '',
-          value: s.value,
-          label: s.label,
-          gradient: s.gradient || '',
-          sortOrder: s.sort_order || 0,
-        })),
-        isActive: hero.is_active !== undefined ? hero.is_active : true,
-        createdAt: hero.created_at,
-        updatedAt: hero.updated_at,
+        id: section.id,
+        titlePrefix: data.titlePrefix || '',
+        titleSuffix: data.titleSuffix || '',
+        description: data.description || '',
+        buttonText: data.buttonText || '',
+        buttonLink: data.buttonLink || '',
+        image: data.image || '',
+        backgroundGradient: data.backgroundGradient || '',
+        stats: stats.map(s => {
+          const itemData = s.data || {};
+          return {
+            id: s.id,
+            iconName: itemData.iconName || '',
+            value: itemData.value || '',
+            label: itemData.label || '',
+            gradient: itemData.gradient || '',
+            sortOrder: s.sort_order || 0,
+          };
+        }),
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -69,87 +83,47 @@ exports.updateHero = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    // Kiểm tra xem đã có hero chưa
-    const { rows: existing } = await client.query(
-      'SELECT id FROM industries_hero WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      titlePrefix: titlePrefix || '',
+      titleSuffix: titleSuffix || '',
+      description: description || '',
+      buttonText: buttonText || '',
+      buttonLink: buttonLink || '',
+      image: image || '',
+      backgroundGradient: backgroundGradient || '',
+    };
 
+    const section = await getSection('hero');
     let heroId;
 
-    if (existing.length > 0) {
-      // Update existing
-      heroId = existing[0].id;
+    if (section) {
+      heroId = section.id;
       await client.query(
-        `
-          UPDATE industries_hero
-          SET
-            title_prefix = $1,
-            title_suffix = $2,
-            description = $3,
-            button_text = $4,
-            button_link = $5,
-            image = $6,
-            background_gradient = $7,
-            is_active = $8,
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = $9
-        `,
-        [
-          titlePrefix || '',
-          titleSuffix || '',
-          description || '',
-          buttonText || '',
-          buttonLink || '',
-          image || '',
-          backgroundGradient || '',
-          isActive !== undefined ? isActive : true,
-          heroId,
-        ],
+        'UPDATE industries_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, heroId]
       );
+      await client.query('DELETE FROM industries_section_items WHERE section_id = $1 AND section_type = $2', [heroId, 'hero']);
     } else {
-      // Create new
-      const { rows: newHero } = await client.query(
-        `
-          INSERT INTO industries_hero (
-            title_prefix, title_suffix, description,
-            button_text, button_link, image,
-            background_gradient, is_active
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          RETURNING id
-        `,
-        [
-          titlePrefix || '',
-          titleSuffix || '',
-          description || '',
-          buttonText || '',
-          buttonLink || '',
-          image || '',
-          backgroundGradient || '',
-          isActive !== undefined ? isActive : true,
-        ],
+      const { rows: inserted } = await client.query(
+        'INSERT INTO industries_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
+        ['hero', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
-      heroId = newHero[0].id;
+      heroId = inserted[0].id;
     }
 
-    // Xóa và tạo lại stats
-    await client.query('DELETE FROM industries_hero_stats WHERE hero_id = $1', [heroId]);
+    // Insert stats
     if (stats && stats.length > 0) {
       for (let i = 0; i < stats.length; i++) {
         const stat = stats[i];
+        const itemData = {
+          iconName: stat.iconName || '',
+          value: stat.value || '',
+          label: stat.label || '',
+          gradient: stat.gradient || '',
+        };
         await client.query(
-          `
-            INSERT INTO industries_hero_stats (hero_id, icon_name, value, label, gradient, sort_order)
-            VALUES ($1, $2, $3, $4, $5, $6)
-          `,
-          [
-            heroId,
-            stat.iconName || '',
-            stat.value || '',
-            stat.label || '',
-            stat.gradient || '',
-            stat.sortOrder || i,
-          ],
+          'INSERT INTO industries_section_items (section_id, section_type, data, sort_order) VALUES ($1, $2, $3, $4)',
+          [heroId, 'hero', JSON.stringify(itemData), stat.sortOrder || i]
         );
       }
     }
@@ -157,38 +131,35 @@ exports.updateHero = async (req, res, next) => {
     await client.query('COMMIT');
 
     // Fetch updated data
-    const { rows: updatedHero } = await client.query(
-      'SELECT * FROM industries_hero WHERE id = $1',
-      [heroId],
-    );
-    const { rows: updatedStats } = await client.query(
-      'SELECT * FROM industries_hero_stats WHERE hero_id = $1 ORDER BY sort_order ASC',
-      [heroId],
-    );
+    const updatedSection = await getSection('hero');
+    const updatedStats = await getItems(heroId, 'hero');
 
     return res.json({
       success: true,
       message: 'Đã cập nhật hero thành công',
       data: {
-        id: updatedHero[0].id,
-        titlePrefix: updatedHero[0].title_prefix || '',
-        titleSuffix: updatedHero[0].title_suffix || '',
-        description: updatedHero[0].description || '',
-        buttonText: updatedHero[0].button_text || '',
-        buttonLink: updatedHero[0].button_link || '',
-        image: updatedHero[0].image || '',
-        backgroundGradient: updatedHero[0].background_gradient || '',
-        stats: updatedStats.map(s => ({
-          id: s.id,
-          iconName: s.icon_name || '',
-          value: s.value,
-          label: s.label,
-          gradient: s.gradient || '',
-          sortOrder: s.sort_order || 0,
-        })),
-        isActive: updatedHero[0].is_active !== undefined ? updatedHero[0].is_active : true,
-        createdAt: updatedHero[0].created_at,
-        updatedAt: updatedHero[0].updated_at,
+        id: updatedSection.id,
+        titlePrefix: updatedSection.data?.titlePrefix || '',
+        titleSuffix: updatedSection.data?.titleSuffix || '',
+        description: updatedSection.data?.description || '',
+        buttonText: updatedSection.data?.buttonText || '',
+        buttonLink: updatedSection.data?.buttonLink || '',
+        image: updatedSection.data?.image || '',
+        backgroundGradient: updatedSection.data?.backgroundGradient || '',
+        stats: updatedStats.map(s => {
+          const itemData = s.data || {};
+          return {
+            id: s.id,
+            iconName: itemData.iconName || '',
+            value: itemData.value || '',
+            label: itemData.label || '',
+            gradient: itemData.gradient || '',
+            sortOrder: s.sort_order || 0,
+          };
+        }),
+        isActive: updatedSection.is_active !== undefined ? updatedSection.is_active : true,
+        createdAt: updatedSection.created_at,
+        updatedAt: updatedSection.updated_at,
       },
     });
   } catch (error) {
@@ -198,4 +169,3 @@ exports.updateHero = async (req, res, next) => {
     client.release();
   }
 };
-

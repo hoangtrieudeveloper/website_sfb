@@ -32,7 +32,7 @@ const mapProduct = (row) => ({
   isActive: row.is_active !== undefined ? row.is_active : true,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
-  features: row.features || [],
+  features: Array.isArray(row.features) ? row.features : [],
 });
 
 // GET /api/admin/products
@@ -64,7 +64,17 @@ exports.getProducts = async (req, res, next) => {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // Lấy products với features
+    // Lấy products với features (từ JSONB)
+    // Kiểm tra xem cột features có tồn tại không
+    const { rows: columnCheck } = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'products' AND column_name = 'features'
+    `);
+    const hasFeaturesColumn = columnCheck.length > 0;
+    
+    const featuresSelect = hasFeaturesColumn ? 'p.features,' : 'NULL::jsonb as features,';
+    
     const query = `
       SELECT
         p.id,
@@ -83,6 +93,7 @@ exports.getProducts = async (req, res, next) => {
         p.stats_users,
         p.stats_rating,
         p.stats_deploy,
+        ${featuresSelect}
         p.sort_order,
         p.is_featured,
         p.is_active,
@@ -96,36 +107,12 @@ exports.getProducts = async (req, res, next) => {
 
     const { rows: products } = await pool.query(query, params);
 
-    // Lấy features cho từng product
-    const productIds = products.map(p => p.id);
-    let featuresMap = {};
-    
-    if (productIds.length > 0) {
-      const featuresQuery = `
-        SELECT product_id, feature_text, sort_order
-        FROM product_features
-        WHERE product_id = ANY($1)
-        ORDER BY product_id, sort_order ASC
-      `;
-      const { rows: features } = await pool.query(featuresQuery, [productIds]);
-      
-      features.forEach(f => {
-        if (!featuresMap[f.product_id]) {
-          featuresMap[f.product_id] = [];
-        }
-        featuresMap[f.product_id].push(f.feature_text);
-      });
-    }
-
-    // Gộp features vào products
-    const productsWithFeatures = products.map(p => ({
-      ...mapProduct(p),
-      features: featuresMap[p.id] || [],
-    }));
-
     return res.json({
       success: true,
-      data: productsWithFeatures,
+      data: products.map(p => ({
+        ...mapProduct(p),
+        features: Array.isArray(p.features) ? p.features : [],
+      })),
     });
   } catch (error) {
     return next(error);
@@ -136,6 +123,15 @@ exports.getProducts = async (req, res, next) => {
 exports.getProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    // Kiểm tra xem cột features có tồn tại không
+    const { rows: columnCheck } = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'products' AND column_name = 'features'
+    `);
+    const hasFeaturesColumn = columnCheck.length > 0;
+    const featuresSelect = hasFeaturesColumn ? 'p.features,' : 'NULL::jsonb as features,';
 
     const { rows } = await pool.query(
       `
@@ -156,6 +152,7 @@ exports.getProductById = async (req, res, next) => {
           p.stats_users,
           p.stats_rating,
           p.stats_deploy,
+          ${featuresSelect}
           p.sort_order,
           p.is_featured,
           p.is_active,
@@ -176,15 +173,9 @@ exports.getProductById = async (req, res, next) => {
       });
     }
 
-    // Lấy features
-    const { rows: features } = await pool.query(
-      'SELECT feature_text FROM product_features WHERE product_id = $1 ORDER BY sort_order ASC',
-      [id],
-    );
-
     const product = {
       ...mapProduct(rows[0]),
-      features: features.map(f => f.feature_text),
+      features: Array.isArray(rows[0].features) ? rows[0].features : [],
     };
 
     return res.json({
@@ -244,68 +235,83 @@ exports.createProduct = async (req, res, next) => {
     try {
       await client.query('BEGIN');
 
-      // Insert product
+      // Insert product với features JSONB
+      const featureTexts = features && Array.isArray(features) 
+        ? features.map(f => f.trim()).filter(f => f) 
+        : [];
+
+      // Kiểm tra xem cột features có tồn tại không
+      const { rows: columnCheck } = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'products' AND column_name = 'features'
+      `);
+      const hasFeaturesColumn = columnCheck.length > 0;
+
+      const insertFields = hasFeaturesColumn
+        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, features, sort_order, is_featured, is_active'
+        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, sort_order, is_featured, is_active';
+      
+      const insertValues = hasFeaturesColumn
+        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17'
+        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16';
+
+      const insertParams = hasFeaturesColumn
+        ? [
+            categoryId || null, slug, name, tagline, meta, description, image, gradient,
+            pricing, badge, statsUsers, statsRating, statsDeploy, JSON.stringify(featureTexts),
+            sortOrder, isFeatured, isActive,
+          ]
+        : [
+            categoryId || null, slug, name, tagline, meta, description, image, gradient,
+            pricing, badge, statsUsers, statsRating, statsDeploy,
+            sortOrder, isFeatured, isActive,
+          ];
+
       const insertQuery = `
-        INSERT INTO products (
-          category_id, slug, name, tagline, meta, description, image, gradient,
-          pricing, badge, stats_users, stats_rating, stats_deploy,
-          sort_order, is_featured, is_active
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        INSERT INTO products (${insertFields})
+        VALUES (${insertValues})
         RETURNING *
       `;
 
-      const { rows } = await client.query(insertQuery, [
-        categoryId || null,
-        slug,
-        name,
-        tagline,
-        meta,
-        description,
-        image,
-        gradient,
-        pricing,
-        badge,
-        statsUsers,
-        statsRating,
-        statsDeploy,
-        sortOrder,
-        isFeatured,
-        isActive,
-      ]);
+      const { rows } = await client.query(insertQuery, insertParams);
 
       const productId = rows[0].id;
-
-      // Insert features
-      if (features && features.length > 0) {
-        const featureValues = features.map((feature, index) => 
-          `(${productId}, $${index + 1}, ${index})`
-        ).join(', ');
-        
-        const featureTexts = features.map(f => f.trim()).filter(f => f);
-        
-        if (featureTexts.length > 0) {
-          const featureQuery = `
-            INSERT INTO product_features (product_id, feature_text, sort_order)
-            VALUES ${featureTexts.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(', ')}
-          `;
-          
-          const featureParams = [];
-          featureTexts.forEach((text, index) => {
-            featureParams.push(productId, text, index);
-          });
-          
-          await client.query(featureQuery, featureParams);
-        }
-      }
 
       await client.query('COMMIT');
 
       // Lấy lại product với features
+      const { rows: columnCheck2 } = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'products' AND column_name = 'features'
+      `);
+      const hasFeaturesColumn2 = columnCheck2.length > 0;
+      const featuresSelect2 = hasFeaturesColumn2 ? 'p.features,' : 'NULL::jsonb as features,';
+
       const { rows: productRows } = await pool.query(
         `
           SELECT
-            p.*,
+            p.id,
+            p.category_id,
+            p.slug,
+            p.name,
+            p.tagline,
+            p.meta,
+            p.description,
+            p.image,
+            p.gradient,
+            p.pricing,
+            p.badge,
+            p.stats_users,
+            p.stats_rating,
+            p.stats_deploy,
+            ${featuresSelect2}
+            p.sort_order,
+            p.is_featured,
+            p.is_active,
+            p.created_at,
+            p.updated_at,
             pc.name AS category_name,
             pc.slug AS category_slug
           FROM products p
@@ -315,14 +321,9 @@ exports.createProduct = async (req, res, next) => {
         [productId],
       );
 
-      const { rows: featureRows } = await pool.query(
-        'SELECT feature_text FROM product_features WHERE product_id = $1 ORDER BY sort_order ASC',
-        [productId],
-      );
-
       const product = {
         ...mapProduct(productRows[0]),
-        features: featureRows.map(f => f.feature_text),
+        features: Array.isArray(productRows[0].features) ? productRows[0].features : [],
       };
 
       return res.status(201).json({
@@ -425,6 +426,24 @@ exports.updateProduct = async (req, res, next) => {
       addField('is_featured', isFeatured);
       addField('is_active', isActive);
 
+      // Cập nhật features nếu có (JSONB)
+      if (features !== undefined) {
+        // Kiểm tra xem cột features có tồn tại không
+        const { rows: columnCheck } = await client.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'products' AND column_name = 'features'
+        `);
+        const hasFeaturesColumn = columnCheck.length > 0;
+        
+        if (hasFeaturesColumn) {
+          const featureTexts = features && Array.isArray(features)
+            ? features.map(f => typeof f === 'string' ? f.trim() : String(f).trim()).filter(f => f)
+            : [];
+          addField('features', JSON.stringify(featureTexts));
+        }
+      }
+
       if (fields.length > 0) {
         params.push(id);
         const updateQuery = `
@@ -436,35 +455,40 @@ exports.updateProduct = async (req, res, next) => {
         await client.query(updateQuery, params);
       }
 
-      // Cập nhật features nếu có
-      if (features !== undefined) {
-        // Xóa features cũ
-        await client.query('DELETE FROM product_features WHERE product_id = $1', [id]);
-
-        // Thêm features mới
-        if (features && features.length > 0) {
-          const featureTexts = features.map(f => typeof f === 'string' ? f : f.trim()).filter(f => f);
-          if (featureTexts.length > 0) {
-            const featureQuery = `
-              INSERT INTO product_features (product_id, feature_text, sort_order)
-              VALUES ${featureTexts.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(', ')}
-            `;
-            const featureParams = [];
-            featureTexts.forEach((text, index) => {
-              featureParams.push(id, text, index);
-            });
-            await client.query(featureQuery, featureParams);
-          }
-        }
-      }
-
       await client.query('COMMIT');
 
       // Lấy lại product với features
+      const { rows: columnCheck3 } = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'products' AND column_name = 'features'
+      `);
+      const hasFeaturesColumn3 = columnCheck3.length > 0;
+      const featuresSelect3 = hasFeaturesColumn3 ? 'p.features,' : 'NULL::jsonb as features,';
+
       const { rows: productRows } = await pool.query(
         `
           SELECT
-            p.*,
+            p.id,
+            p.category_id,
+            p.slug,
+            p.name,
+            p.tagline,
+            p.meta,
+            p.description,
+            p.image,
+            p.gradient,
+            p.pricing,
+            p.badge,
+            p.stats_users,
+            p.stats_rating,
+            p.stats_deploy,
+            ${featuresSelect3}
+            p.sort_order,
+            p.is_featured,
+            p.is_active,
+            p.created_at,
+            p.updated_at,
             pc.name AS category_name,
             pc.slug AS category_slug
           FROM products p
@@ -474,14 +498,9 @@ exports.updateProduct = async (req, res, next) => {
         [id],
       );
 
-      const { rows: featureRows } = await pool.query(
-        'SELECT feature_text FROM product_features WHERE product_id = $1 ORDER BY sort_order ASC',
-        [id],
-      );
-
       const product = {
         ...mapProduct(productRows[0]),
-        features: featureRows.map(f => f.feature_text),
+        features: Array.isArray(productRows[0].features) ? productRows[0].features : [],
       };
 
       return res.json({

@@ -12,6 +12,7 @@ const newsCategoriesRoutes = require('./routes/newsCategories.routes');
 const menuRoutes = require('./routes/menu.routes');
 const publicNewsRoutes = require('./routes/publicNews.routes');
 const publicCategoriesRoutes = require('./routes/publicCategories.routes');
+const publicCareersRoutes = require('./routes/publicCareers.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const mediaFoldersRoutes = require('./routes/mediaFolders.routes');
 const mediaFilesRoutes = require('./routes/mediaFiles.routes');
@@ -93,6 +94,7 @@ app.use('/api/dashboard', dashboardRoutes);
 // Public routes (no authentication required)
 app.use('/api/public/news', publicNewsRoutes);
 app.use('/api/public/categories', publicCategoriesRoutes);
+app.use('/api/public/careers', publicCareersRoutes);
 
 // Admin protected routes
 app.use('/api/admin/users', requireAuth, usersRoutes);

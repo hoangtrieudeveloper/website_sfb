@@ -1,29 +1,36 @@
 const { pool } = require('../config/database');
 
+// Helper function to get section by type
+const getSection = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM industries_sections WHERE section_type = $1 AND is_active = true',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
 // GET /api/admin/industries/list-header
 exports.getListHeader = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM industries_list_header WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('list-header');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const row = rows[0];
+    const data = section.data || {};
     return res.json({
       success: true,
       data: {
-        id: row.id,
-        title: row.title || '',
-        description: row.description || '',
-        isActive: row.is_active !== undefined ? row.is_active : true,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        id: section.id,
+        title: data.title || '',
+        description: data.description || '',
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -36,65 +43,42 @@ exports.updateListHeader = async (req, res, next) => {
   try {
     const { title, description, isActive } = req.body;
 
-    // Kiểm tra xem đã có header chưa
-    const { rows: existing } = await pool.query(
-      'SELECT id FROM industries_list_header WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      title: title || '',
+      description: description || '',
+    };
 
-    let result;
+    const section = await getSection('list-header');
 
-    if (existing.length > 0) {
-      // Update existing
-      const { rows } = await pool.query(
-        `
-          UPDATE industries_list_header
-          SET
-            title = $1,
-            description = $2,
-            is_active = $3,
-            updated_at = CURRENT_TIMESTAMP
-          WHERE id = $4
-          RETURNING *
-        `,
-        [
-          title || '',
-          description || '',
-          isActive !== undefined ? isActive : true,
-          existing[0].id,
-        ],
+    if (section) {
+      await pool.query(
+        'UPDATE industries_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, section.id]
       );
-      result = rows[0];
     } else {
-      // Create new
-      const { rows } = await pool.query(
-        `
-          INSERT INTO industries_list_header (title, description, is_active)
-          VALUES ($1, $2, $3)
-          RETURNING *
-        `,
-        [
-          title || '',
-          description || '',
-          isActive !== undefined ? isActive : true,
-        ],
+      await pool.query(
+        'INSERT INTO industries_sections (section_type, data, is_active) VALUES ($1, $2, $3)',
+        ['list-header', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
-      result = rows[0];
     }
+
+    // Fetch updated data
+    const updatedSection = await getSection('list-header');
+    const updatedData = updatedSection.data || {};
 
     return res.json({
       success: true,
       message: 'Đã cập nhật list header thành công',
       data: {
-        id: result.id,
-        title: result.title || '',
-        description: result.description || '',
-        isActive: result.is_active !== undefined ? result.is_active : true,
-        createdAt: result.created_at,
-        updatedAt: result.updated_at,
+        id: updatedSection.id,
+        title: updatedData.title || '',
+        description: updatedData.description || '',
+        isActive: updatedSection.is_active !== undefined ? updatedSection.is_active : true,
+        createdAt: updatedSection.created_at,
+        updatedAt: updatedSection.updated_at,
       },
     });
   } catch (error) {
     return next(error);
   }
 };
-

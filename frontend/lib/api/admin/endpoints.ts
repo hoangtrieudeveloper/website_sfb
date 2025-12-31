@@ -94,10 +94,16 @@ export const AdminEndpoints = {
     update: "/api/admin/products/hero",
   },
   
-  // Product Contact Banner
-  productContact: {
-    get: "/api/admin/products/contact",
-    update: "/api/admin/products/contact",
+  // Product List Header
+  productListHeader: {
+    get: "/api/admin/products/list-header",
+    update: "/api/admin/products/list-header",
+  },
+  
+  // Product CTA
+  productCta: {
+    get: "/api/admin/products/cta",
+    update: "/api/admin/products/cta",
   },
   
   // Testimonials
@@ -110,6 +116,10 @@ export const AdminEndpoints = {
   industries: {
     list: "/api/admin/industries",
     detail: (id: number) => `/api/admin/industries/${id}`,
+    cta: {
+      get: "/api/admin/industries/cta",
+      update: "/api/admin/industries/cta",
+    },
     hero: {
       get: "/api/admin/industries/hero",
       update: "/api/admin/industries/hero",

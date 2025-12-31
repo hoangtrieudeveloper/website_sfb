@@ -1,17 +1,76 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 
 export function CareerHero() {
+    const [heroData, setHeroData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchHero = async () => {
+            try {
+                const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
+                    process.env.API_SFB_URL ||
+                    "http://localhost:4000";
+
+                const res = await fetch(`${baseUrl}/api/public/careers/hero`, {
+                    next: { revalidate: 60 },
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        setHeroData(data.data);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching career hero:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        void fetchHero();
+    }, []);
+
+    // Fallback data nếu không có data từ API
+    const displayData = heroData || {
+        titleLine1: "Cùng xây dựng",
+        titleLine2: "tương lai công nghệ",
+        description: "Gia nhập đội ngũ 50+ chuyên gia công nghệ, làm việc với tech stack hiện đại nhất và triển khai dự án cho các khách hàng lớn",
+        buttonText: "Xem vị trí tuyển dụng",
+        buttonLink: "#positions",
+        image: "/images/hero.png",
+        backgroundGradient: "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
+    };
+
+    if (loading) {
+        return (
+            <section
+                className="relative w-full flex justify-center items-center overflow-hidden"
+                style={{
+                    height: '847px',
+                    paddingTop: '87px',
+                    background: displayData.backgroundGradient,
+                }}
+            >
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="text-white text-center">Đang tải...</div>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section
             className="relative w-full flex justify-center items-center overflow-hidden"
             style={{
                 height: '847px',
                 paddingTop: '87px',
-                background: 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)'
+                background: displayData.backgroundGradient || 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)'
             }}
         >
             {/* Techno Grid Overlay */}
@@ -27,45 +86,50 @@ export function CareerHero() {
                     <StaggerContainer className="text-white lg:max-w-[45%]">
                         <FadeIn>
                             <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                                Cùng xây dựng
+                                {displayData.titleLine1}
                                 <span className="block mt-2">
-                                    tương lai công nghệ
+                                    {displayData.titleLine2}
                                 </span>
                             </h1>
                         </FadeIn>
 
-                        <FadeIn delay={0.2}>
-                            <p className="text-base md:text-lg text-white/90 mb-10 leading-relaxed font-light">
-                                Gia nhập đội ngũ 50+ chuyên gia công nghệ, làm việc với tech stack
-                                hiện đại nhất và triển khai dự án cho các khách hàng lớn
-                            </p>
-                        </FadeIn>
+                        {displayData.description && (
+                            <FadeIn delay={0.2}>
+                                <p className="text-base md:text-lg text-white/90 mb-10 leading-relaxed font-light">
+                                    {displayData.description}
+                                </p>
+                            </FadeIn>
+                        )}
 
-                        <FadeIn delay={0.4}>
-                            <a
-                                href="#positions"
-                                className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md"
-                            >
-                                Xem vị trí tuyển dụng
-                                <ArrowRight size={18} />
-                            </a>
-                        </FadeIn>
+                        {displayData.buttonText && (
+                            <FadeIn delay={0.4}>
+                                <a
+                                    href={displayData.buttonLink || "#positions"}
+                                    className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md"
+                                >
+                                    {displayData.buttonText}
+                                    <ArrowRight size={18} />
+                                </a>
+                            </FadeIn>
+                        )}
                     </StaggerContainer>
 
                     {/* Image Content */}
-                    <FadeIn delay={0.5} className="w-full lg:w-auto">
-                        <div className="relative flex-none lg:w-[851px] lg:h-[512px] w-full h-auto flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
-                            <div className="w-full h-full rounded-[14px] overflow-hidden relative">
-                                <ImageWithFallback
-                                    src="/images/hero.png"
-                                    alt="Career Hero"
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                />
-                                {/* Overlay Glint */}
-                                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                    {displayData.image && (
+                        <FadeIn delay={0.5} className="w-full lg:w-auto">
+                            <div className="relative flex-none lg:w-[851px] lg:h-[512px] w-full h-auto flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
+                                <div className="w-full h-full rounded-[14px] overflow-hidden relative">
+                                    <ImageWithFallback
+                                        src={displayData.image}
+                                        alt="Career Hero"
+                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                    />
+                                    {/* Overlay Glint */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                                </div>
                             </div>
-                        </div>
-                    </FadeIn>
+                        </FadeIn>
+                    )}
                 </div>
             </div>
         </section>

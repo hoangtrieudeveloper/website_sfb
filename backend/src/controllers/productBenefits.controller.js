@@ -5,15 +5,32 @@ exports.getBenefits = async (req, res, next) => {
   try {
     const { active } = req.query;
 
+    // Lấy benefits section
+    const { rows: sections } = await pool.query(
+      `SELECT id FROM products_sections 
+       WHERE section_type = 'benefits' AND is_active = true 
+       ORDER BY id DESC LIMIT 1`,
+    );
+
+    if (sections.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const sectionId = sections[0].id;
+
     let query = `
-      SELECT id, icon, title, description, gradient, sort_order, is_active, created_at, updated_at
-      FROM product_benefits
+      SELECT id, data, sort_order, is_active, created_at, updated_at
+      FROM products_section_items
+      WHERE section_id = $1 AND section_type = 'benefits'
     `;
-    const params = [];
+    const params = [sectionId];
 
     if (active !== undefined) {
       params.push(active === 'true');
-      query += ` WHERE is_active = $1`;
+      query += ` AND is_active = $2`;
     }
 
     query += ` ORDER BY sort_order ASC, id ASC`;
@@ -22,17 +39,20 @@ exports.getBenefits = async (req, res, next) => {
 
     return res.json({
       success: true,
-      data: rows.map(row => ({
-        id: row.id,
-        icon: row.icon || '',
-        title: row.title,
-        description: row.description || '',
-        gradient: row.gradient || '',
-        sortOrder: row.sort_order || 0,
-        isActive: row.is_active !== undefined ? row.is_active : true,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      })),
+      data: rows.map(row => {
+        const data = row.data || {};
+        return {
+          id: row.id,
+          icon: data.icon || '',
+          title: data.title || '',
+          description: data.description || '',
+          gradient: data.gradient || '',
+          sortOrder: row.sort_order || 0,
+          isActive: row.is_active !== undefined ? row.is_active : true,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        };
+      }),
     });
   } catch (error) {
     return next(error);
@@ -45,7 +65,9 @@ exports.getBenefitById = async (req, res, next) => {
     const { id } = req.params;
 
     const { rows } = await pool.query(
-      'SELECT * FROM product_benefits WHERE id = $1',
+      `SELECT id, data, sort_order, is_active, created_at, updated_at
+       FROM products_section_items
+       WHERE id = $1 AND section_type = 'benefits'`,
       [id],
     );
 
@@ -57,14 +79,16 @@ exports.getBenefitById = async (req, res, next) => {
     }
 
     const row = rows[0];
+    const data = row.data || {};
+
     return res.json({
       success: true,
       data: {
         id: row.id,
-        icon: row.icon || '',
-        title: row.title,
-        description: row.description || '',
-        gradient: row.gradient || '',
+        icon: data.icon || '',
+        title: data.title || '',
+        description: data.description || '',
+        gradient: data.gradient || '',
         sortOrder: row.sort_order || 0,
         isActive: row.is_active !== undefined ? row.is_active : true,
         createdAt: row.created_at,
@@ -88,27 +112,54 @@ exports.createBenefit = async (req, res, next) => {
       });
     }
 
-    const { rows } = await pool.query(
-      `
-        INSERT INTO product_benefits (icon, title, description, gradient, sort_order, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING *
-      `,
-      [icon, title, description, gradient, sortOrder, isActive],
+    // Lấy hoặc tạo benefits section
+    let { rows: sections } = await pool.query(
+      `SELECT id FROM products_sections 
+       WHERE section_type = 'benefits' AND is_active = true 
+       ORDER BY id DESC LIMIT 1`,
     );
+
+    let sectionId;
+    if (sections.length === 0) {
+      const { rows: newSection } = await pool.query(
+        `INSERT INTO products_sections (section_type, data, is_active)
+         VALUES ('benefits', '{}'::jsonb, true)
+         RETURNING id`,
+      );
+      sectionId = newSection[0].id;
+    } else {
+      sectionId = sections[0].id;
+    }
+
+    const data = {
+      icon,
+      title,
+      description,
+      gradient,
+    };
+
+    const { rows } = await pool.query(
+      `INSERT INTO products_section_items (section_id, section_type, data, sort_order, is_active)
+       VALUES ($1, 'benefits', $2, $3, $4)
+       RETURNING id, data, sort_order, is_active, created_at, updated_at`,
+      [sectionId, JSON.stringify(data), sortOrder, isActive],
+    );
+
+    const row = rows[0];
+    const rowData = row.data || {};
 
     return res.status(201).json({
       success: true,
       data: {
-        id: rows[0].id,
-        icon: rows[0].icon || '',
-        title: rows[0].title,
-        description: rows[0].description || '',
-        gradient: rows[0].gradient || '',
-        sortOrder: rows[0].sort_order || 0,
-        isActive: rows[0].is_active !== undefined ? rows[0].is_active : true,
-        createdAt: rows[0].created_at,
-        updatedAt: rows[0].updated_at,
+        id: row.id,
+        icon: rowData.icon || '',
+        title: rowData.title || '',
+        description: rowData.description || '',
+        gradient: rowData.gradient || '',
+        sortOrder: row.sort_order || 0,
+        isActive: row.is_active !== undefined ? row.is_active : true,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
       },
     });
   } catch (error) {
@@ -122,39 +173,51 @@ exports.updateBenefit = async (req, res, next) => {
     const { id } = req.params;
     const { icon, title, description, gradient, sortOrder, isActive } = req.body;
 
-    const fields = [];
-    const params = [];
+    // Lấy benefit hiện tại
+    const { rows: existing } = await pool.query(
+      `SELECT data FROM products_section_items WHERE id = $1 AND section_type = 'benefits'`,
+      [id],
+    );
 
-    const addField = (column, value) => {
-      if (value !== undefined) {
-        params.push(value);
-        fields.push(`${column} = $${params.length}`);
-      }
-    };
-
-    addField('icon', icon);
-    addField('title', title);
-    addField('description', description);
-    addField('gradient', gradient);
-    addField('sort_order', sortOrder);
-    addField('is_active', isActive);
-
-    if (fields.length === 0) {
-      return res.status(400).json({
+    if (existing.length === 0) {
+      return res.status(404).json({
         success: false,
-        message: 'Không có dữ liệu để cập nhật',
+        message: 'Không tìm thấy lợi ích',
       });
     }
 
+    const currentData = existing[0].data || {};
+    const data = {
+      icon: icon !== undefined ? icon : currentData.icon,
+      title: title !== undefined ? title : currentData.title,
+      description: description !== undefined ? description : currentData.description,
+      gradient: gradient !== undefined ? gradient : currentData.gradient,
+    };
+
+    const fields = [];
+    const params = [];
+
+    fields.push('data = $' + (params.length + 1));
+    params.push(JSON.stringify(data));
+
+    if (sortOrder !== undefined) {
+      fields.push('sort_order = $' + (params.length + 1));
+      params.push(sortOrder);
+    }
+
+    if (isActive !== undefined) {
+      fields.push('is_active = $' + (params.length + 1));
+      params.push(isActive);
+    }
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
     params.push(id);
 
     const { rows } = await pool.query(
-      `
-        UPDATE product_benefits
-        SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $${params.length}
-        RETURNING *
-      `,
+      `UPDATE products_section_items
+       SET ${fields.join(', ')}
+       WHERE id = $${params.length}
+       RETURNING id, data, sort_order, is_active, created_at, updated_at`,
       params,
     );
 
@@ -165,18 +228,21 @@ exports.updateBenefit = async (req, res, next) => {
       });
     }
 
+    const row = rows[0];
+    const rowData = row.data || {};
+
     return res.json({
       success: true,
       data: {
-        id: rows[0].id,
-        icon: rows[0].icon || '',
-        title: rows[0].title,
-        description: rows[0].description || '',
-        gradient: rows[0].gradient || '',
-        sortOrder: rows[0].sort_order || 0,
-        isActive: rows[0].is_active !== undefined ? rows[0].is_active : true,
-        createdAt: rows[0].created_at,
-        updatedAt: rows[0].updated_at,
+        id: row.id,
+        icon: rowData.icon || '',
+        title: rowData.title || '',
+        description: rowData.description || '',
+        gradient: rowData.gradient || '',
+        sortOrder: row.sort_order || 0,
+        isActive: row.is_active !== undefined ? row.is_active : true,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
       },
     });
   } catch (error) {
@@ -190,7 +256,7 @@ exports.deleteBenefit = async (req, res, next) => {
     const { id } = req.params;
 
     const { rowCount } = await pool.query(
-      'DELETE FROM product_benefits WHERE id = $1',
+      'DELETE FROM products_section_items WHERE id = $1 AND section_type = \'benefits\'',
       [id],
     );
 
@@ -209,4 +275,3 @@ exports.deleteBenefit = async (req, res, next) => {
     return next(error);
   }
 };
-

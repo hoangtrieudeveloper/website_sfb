@@ -4,7 +4,10 @@ const { pool } = require('../config/database');
 exports.getHero = async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM product_page_hero WHERE is_active = true ORDER BY id DESC LIMIT 1',
+      `SELECT id, data, is_active, created_at, updated_at 
+       FROM products_sections 
+       WHERE section_type = 'hero' AND is_active = true 
+       ORDER BY id DESC LIMIT 1`,
     );
 
     if (rows.length === 0) {
@@ -15,24 +18,26 @@ exports.getHero = async (req, res, next) => {
     }
 
     const row = rows[0];
+    const data = row.data || {};
+    
     return res.json({
       success: true,
       data: {
         id: row.id,
-        title: row.title,
-        subtitle: row.subtitle || '',
-        description: row.description || '',
-        primaryCtaText: row.primary_cta_text || '',
-        primaryCtaLink: row.primary_cta_link || '',
-        secondaryCtaText: row.secondary_cta_text || '',
-        secondaryCtaLink: row.secondary_cta_link || '',
-        stat1Label: row.stat_1_label || '',
-        stat1Value: row.stat_1_value || '',
-        stat2Label: row.stat_2_label || '',
-        stat2Value: row.stat_2_value || '',
-        stat3Label: row.stat_3_label || '',
-        stat3Value: row.stat_3_value || '',
-        backgroundGradient: row.background_gradient || '',
+        title: data.title || '',
+        subtitle: data.subtitle || '',
+        description: data.description || '',
+        primaryCtaText: data.primaryCtaText || '',
+        primaryCtaLink: data.primaryCtaLink || '',
+        secondaryCtaText: data.secondaryCtaText || '',
+        secondaryCtaLink: data.secondaryCtaLink || '',
+        stat1Label: data.stat1Label || '',
+        stat1Value: data.stat1Value || '',
+        stat2Label: data.stat2Label || '',
+        stat2Value: data.stat2Value || '',
+        stat3Label: data.stat3Label || '',
+        stat3Value: data.stat3Value || '',
+        backgroundGradient: data.backgroundGradient || '',
         isActive: row.is_active !== undefined ? row.is_active : true,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -66,115 +71,71 @@ exports.updateHero = async (req, res, next) => {
 
     // Kiểm tra xem đã có hero chưa
     const { rows: existing } = await pool.query(
-      'SELECT id FROM product_page_hero WHERE is_active = true ORDER BY id DESC LIMIT 1',
+      `SELECT id FROM products_sections 
+       WHERE section_type = 'hero' AND is_active = true 
+       ORDER BY id DESC LIMIT 1`,
     );
+
+    const data = {
+      title: title || '',
+      subtitle: subtitle || '',
+      description: description || '',
+      primaryCtaText: primaryCtaText || '',
+      primaryCtaLink: primaryCtaLink || '',
+      secondaryCtaText: secondaryCtaText || '',
+      secondaryCtaLink: secondaryCtaLink || '',
+      stat1Label: stat1Label || '',
+      stat1Value: stat1Value || '',
+      stat2Label: stat2Label || '',
+      stat2Value: stat2Value || '',
+      stat3Label: stat3Label || '',
+      stat3Value: stat3Value || '',
+      backgroundGradient: backgroundGradient || '',
+    };
 
     let result;
 
     if (existing.length > 0) {
       // Update existing
-      const fields = [];
-      const params = [];
-
-      const addField = (column, value) => {
-        if (value !== undefined) {
-          params.push(value);
-          fields.push(`${column} = $${params.length}`);
-        }
-      };
-
-      addField('title', title);
-      addField('subtitle', subtitle);
-      addField('description', description);
-      addField('primary_cta_text', primaryCtaText);
-      addField('primary_cta_link', primaryCtaLink);
-      addField('secondary_cta_text', secondaryCtaText);
-      addField('secondary_cta_link', secondaryCtaLink);
-      addField('stat_1_label', stat1Label);
-      addField('stat_1_value', stat1Value);
-      addField('stat_2_label', stat2Label);
-      addField('stat_2_value', stat2Value);
-      addField('stat_3_label', stat3Label);
-      addField('stat_3_value', stat3Value);
-      addField('background_gradient', backgroundGradient);
-      addField('is_active', isActive);
-
-      if (fields.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Không có dữ liệu để cập nhật',
-        });
-      }
-
-      params.push(existing[0].id);
-
       const { rows } = await pool.query(
-        `
-          UPDATE product_page_hero
-          SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-          WHERE id = $${params.length}
-          RETURNING *
-        `,
-        params,
+        `UPDATE products_sections
+         SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3
+         RETURNING *`,
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, existing[0].id],
       );
-
       result = rows[0];
     } else {
       // Create new
       const { rows } = await pool.query(
-        `
-          INSERT INTO product_page_hero (
-            title, subtitle, description,
-            primary_cta_text, primary_cta_link,
-            secondary_cta_text, secondary_cta_link,
-            stat_1_label, stat_1_value,
-            stat_2_label, stat_2_value,
-            stat_3_label, stat_3_value,
-            background_gradient, is_active
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-          RETURNING *
-        `,
-        [
-          title || '',
-          subtitle || '',
-          description || '',
-          primaryCtaText || '',
-          primaryCtaLink || '',
-          secondaryCtaText || '',
-          secondaryCtaLink || '',
-          stat1Label || '',
-          stat1Value || '',
-          stat2Label || '',
-          stat2Value || '',
-          stat3Label || '',
-          stat3Value || '',
-          backgroundGradient || '',
-          isActive !== undefined ? isActive : true,
-        ],
+        `INSERT INTO products_sections (section_type, data, is_active)
+         VALUES ('hero', $1, $2)
+         RETURNING *`,
+        [JSON.stringify(data), isActive !== undefined ? isActive : true],
       );
-
       result = rows[0];
     }
+
+    const resultData = result.data || {};
 
     return res.json({
       success: true,
       data: {
         id: result.id,
-        title: result.title,
-        subtitle: result.subtitle || '',
-        description: result.description || '',
-        primaryCtaText: result.primary_cta_text || '',
-        primaryCtaLink: result.primary_cta_link || '',
-        secondaryCtaText: result.secondary_cta_text || '',
-        secondaryCtaLink: result.secondary_cta_link || '',
-        stat1Label: result.stat_1_label || '',
-        stat1Value: result.stat_1_value || '',
-        stat2Label: result.stat_2_label || '',
-        stat2Value: result.stat_2_value || '',
-        stat3Label: result.stat_3_label || '',
-        stat3Value: result.stat_3_value || '',
-        backgroundGradient: result.background_gradient || '',
+        title: resultData.title || '',
+        subtitle: resultData.subtitle || '',
+        description: resultData.description || '',
+        primaryCtaText: resultData.primaryCtaText || '',
+        primaryCtaLink: resultData.primaryCtaLink || '',
+        secondaryCtaText: resultData.secondaryCtaText || '',
+        secondaryCtaLink: resultData.secondaryCtaLink || '',
+        stat1Label: resultData.stat1Label || '',
+        stat1Value: resultData.stat1Value || '',
+        stat2Label: resultData.stat2Label || '',
+        stat2Value: resultData.stat2Value || '',
+        stat3Label: resultData.stat3Label || '',
+        stat3Value: resultData.stat3Value || '',
+        backgroundGradient: resultData.backgroundGradient || '',
         isActive: result.is_active !== undefined ? result.is_active : true,
         createdAt: result.created_at,
         updatedAt: result.updated_at,
@@ -184,4 +145,3 @@ exports.updateHero = async (req, res, next) => {
     return next(error);
   }
 };
-

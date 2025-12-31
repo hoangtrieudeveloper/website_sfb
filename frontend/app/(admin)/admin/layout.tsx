@@ -49,7 +49,7 @@ import { removeAuthToken } from "@/lib/auth/token";
 import { Toaster } from "sonner";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products-group" | "products" | "product-categories" | "product-benefits" | "product-hero" | "product-contact" | "menus" | "testimonials" | "industries" | "about";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -88,42 +88,6 @@ const menuItems: AdminNavItem[] = [
     ],
   },
   {
-    id: "products-group",
-    label: "Sản phẩm",
-    icon: Package,
-    requiredPermissions: ["products.view", "products.manage", "product_categories.view", "product_categories.manage", "admin"],
-    children: [
-      {
-        id: "product-categories",
-        label: "Danh mục sản phẩm",
-        href: "/admin/products/categories",
-        icon: FolderTree,
-        requiredPermissions: ["product_categories.view", "product_categories.manage", "admin"],
-      },
-      {
-        id: "products",
-        label: "Danh sách sản phẩm",
-        href: "/admin/products",
-        icon: Package,
-        requiredPermissions: ["products.view", "products.manage", "admin"],
-      },
-      {
-        id: "product-benefits",
-        label: "Lợi ích sản phẩm",
-        href: "/admin/products/benefits",
-        icon: Star,
-        requiredPermissions: ["product_benefits.manage", "admin"],
-      },
-      {
-        id: "product-hero",
-        label: "Hero Section",
-        href: "/admin/products/hero",
-        icon: Package,
-        requiredPermissions: ["product_hero.manage", "admin"],
-      },
-    ],
-  },
-  {
     id: "industries",
     label: "Quản lý lĩnh vực",
     href: "/admin/industries",
@@ -131,18 +95,11 @@ const menuItems: AdminNavItem[] = [
     requiredPermissions: ["industries.view", "industries.manage", "admin"],
   },
   {
-    id: "product-contact",
-    label: "Quản lý Banner Liên hệ",
-    href: "/admin/contact",
-    icon: Phone,
-    requiredPermissions: ["product_contact.manage", "admin"],
-  },
-  {
-    id: "testimonials",
-    label: "Khách hàng nói về SFB",
-    href: "/admin/testimonials",
-    icon: MessageSquare,
-    requiredPermissions: ["testimonials.manage", "admin"],
+    id: "products",
+    label: "Quản lý Sản phẩm",
+    href: "/admin/products",
+    icon: Package,
+    requiredPermissions: ["products.view", "products.manage", "product_categories.view", "product_categories.manage", "product_benefits.manage", "product_hero.manage", "admin"],
   },
   {
     id: "about",

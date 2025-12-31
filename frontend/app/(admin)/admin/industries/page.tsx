@@ -111,6 +111,17 @@ interface ProcessData {
   steps: ProcessStep[];
 }
 
+interface CtaFormData {
+  title: string;
+  description: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+  backgroundColor: string;
+  isActive: boolean;
+}
+
 const PAGE_SIZE = 10;
 
 // Danh sách icon names từ lucide-react
@@ -196,6 +207,19 @@ export default function AdminIndustriesPage() {
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   const [stepFormData, setStepFormData] = useState<any>(null);
 
+  // CTA State
+  const [ctaData, setCtaData] = useState<CtaFormData>({
+    title: "",
+    description: "",
+    primaryButtonText: "",
+    primaryButtonLink: "",
+    secondaryButtonText: "",
+    secondaryButtonLink: "",
+    backgroundColor: "#29A3DD",
+    isActive: true,
+  });
+  const [loadingCta, setLoadingCta] = useState(false);
+
   // Fetch Industries
   const fetchIndustries = async () => {
     try {
@@ -263,11 +287,29 @@ export default function AdminIndustriesPage() {
     }
   };
 
+  // Fetch CTA
+  const fetchCta = async () => {
+    try {
+      setLoadingCta(true);
+      const data = await adminApiCall<{ success: boolean; data?: CtaFormData }>(
+        AdminEndpoints.industries.cta.get,
+      );
+      if (data?.data) {
+        setCtaData(data.data);
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Không thể tải CTA");
+    } finally {
+      setLoadingCta(false);
+    }
+  };
+
   useEffect(() => {
     void fetchIndustries();
     void fetchHero();
     void fetchListHeader();
     void fetchProcess();
+    void fetchCta();
   }, []);
 
   // Industries handlers (giữ nguyên từ code cũ)
@@ -545,6 +587,23 @@ export default function AdminIndustriesPage() {
     }
   };
 
+  // CTA handlers
+  const handleSaveCta = async () => {
+    try {
+      setLoadingCta(true);
+      await adminApiCall(AdminEndpoints.industries.cta.update, {
+        method: "PUT",
+        body: JSON.stringify(ctaData),
+      });
+      toast.success("Đã lưu CTA thành công");
+      void fetchCta();
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi khi lưu CTA");
+    } finally {
+      setLoadingCta(false);
+    }
+  };
+
   const handleAddStep = () => {
     setStepFormData({
       stepId: String(processData.steps.length + 1).padStart(2, "0"),
@@ -714,6 +773,15 @@ export default function AdminIndustriesPage() {
     }
   };
 
+  // Active sub tabs state
+  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("industries_active_sub_tabs");
+      return saved ? JSON.parse(saved) : { hero: "config", list: "config", process: "config", cta: "config" };
+    }
+    return { hero: "config", list: "config", process: "config", cta: "config" };
+  });
+
   const activeIndustries = industries.filter((i) => i.isActive);
 
   // Render icon component
@@ -732,10 +800,11 @@ export default function AdminIndustriesPage() {
       </div>
 
       <Tabs defaultValue="hero" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="hero">Hero Banner</TabsTrigger>
           <TabsTrigger value="list">Danh sách lĩnh vực</TabsTrigger>
           <TabsTrigger value="process">Lộ trình đồng hành</TabsTrigger>
+          <TabsTrigger value="cta">CTA</TabsTrigger>
         </TabsList>
 
         {/* Tab: Danh sách lĩnh vực */}
@@ -2293,6 +2362,175 @@ export default function AdminIndustriesPage() {
                           Chưa có step nào đang hiển thị
                         </div>
                       )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        {/* Tab: CTA */}
+        <TabsContent value="cta" className="space-y-0">
+          <Tabs
+            value={activeSubTabs?.cta || "config"}
+            onValueChange={(value) => {
+              const newTabs = { ...(activeSubTabs || {}), cta: value };
+              setActiveSubTabs(newTabs);
+              if (typeof window !== "undefined") {
+                localStorage.setItem("industries_active_sub_tabs", JSON.stringify(newTabs));
+              }
+            }}
+            className="w-full"
+          >
+            <TabsList>
+              <TabsTrigger value="config">Cấu hình</TabsTrigger>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="config" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Cấu hình CTA</CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">Quản lý phần CTA (Call to Action) cho trang lĩnh vực</p>
+                    </div>
+                    <Button onClick={handleSaveCta} disabled={loadingCta} className="gap-2">
+                      <Save className="w-4 h-4" />
+                      {loadingCta ? "Đang lưu..." : "Lưu"}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <Label htmlFor="cta-title">Tiêu đề *</Label>
+                      <Input
+                        id="cta-title"
+                        value={ctaData.title}
+                        onChange={(e) => setCtaData({ ...ctaData, title: e.target.value })}
+                        placeholder="Ví dụ: Miễn phí tư vấn"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="cta-description">Mô tả *</Label>
+                      <Textarea
+                        id="cta-description"
+                        value={ctaData.description}
+                        onChange={(e) => setCtaData({ ...ctaData, description: e.target.value })}
+                        placeholder="Nhập mô tả..."
+                        rows={4}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cta-primary-text">Nút chính - Text *</Label>
+                      <Input
+                        id="cta-primary-text"
+                        value={ctaData.primaryButtonText}
+                        onChange={(e) => setCtaData({ ...ctaData, primaryButtonText: e.target.value })}
+                        placeholder="Ví dụ: Tư vấn miễn phí ngay"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cta-primary-link">Nút chính - Link *</Label>
+                      <Input
+                        id="cta-primary-link"
+                        value={ctaData.primaryButtonLink}
+                        onChange={(e) => setCtaData({ ...ctaData, primaryButtonLink: e.target.value })}
+                        placeholder="Ví dụ: /contact"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cta-secondary-text">Nút phụ - Text *</Label>
+                      <Input
+                        id="cta-secondary-text"
+                        value={ctaData.secondaryButtonText}
+                        onChange={(e) => setCtaData({ ...ctaData, secondaryButtonText: e.target.value })}
+                        placeholder="Ví dụ: Xem case studies"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cta-secondary-link">Nút phụ - Link *</Label>
+                      <Input
+                        id="cta-secondary-link"
+                        value={ctaData.secondaryButtonLink}
+                        onChange={(e) => setCtaData({ ...ctaData, secondaryButtonLink: e.target.value })}
+                        placeholder="Ví dụ: /solutions"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cta-bg-color">Màu nền</Label>
+                      <Input
+                        id="cta-bg-color"
+                        type="color"
+                        value={ctaData.backgroundColor}
+                        onChange={(e) => setCtaData({ ...ctaData, backgroundColor: e.target.value })}
+                        className="h-10"
+                      />
+                      <Input
+                        value={ctaData.backgroundColor}
+                        onChange={(e) => setCtaData({ ...ctaData, backgroundColor: e.target.value })}
+                        placeholder="#29A3DD"
+                        className="mt-2"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="cta-isActive">Hiển thị</Label>
+                      <Switch
+                        id="cta-isActive"
+                        checked={ctaData.isActive}
+                        onCheckedChange={(checked) => setCtaData({ ...ctaData, isActive: checked })}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="preview" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Preview - CTA</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="py-10 px-4 flex justify-center">
+                    <div className="container mx-auto flex justify-center">
+                      <div
+                        className="
+                          flex flex-col justify-center items-center
+                          w-full max-w-[1298px]
+                          py-[120px] px-[20px]
+                          rounded-[16px]
+                          text-center
+                          shadow-lg
+                        "
+                        style={{ backgroundColor: ctaData.backgroundColor || "#29A3DD" }}
+                      >
+                        <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+                          <h2 className="text-white text-4xl md:text-5xl font-bold mb-6">
+                            {ctaData.title || "Tiêu đề"}
+                          </h2>
+                          <p className="text-white/95 text-base md:text-lg leading-relaxed mb-10 max-w-2xl font-medium">
+                            {ctaData.description || "Mô tả"}
+                          </p>
+                          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                            <a
+                              href={ctaData.secondaryButtonLink || "#"}
+                              className="flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:opacity-90 transition-colors duration-300 w-full sm:w-auto min-w-[180px]"
+                            >
+                              {ctaData.secondaryButtonText || "Nút phụ"}
+                            </a>
+                            <a
+                              href={ctaData.primaryButtonLink || "#"}
+                              className="group flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:opacity-90 transition-colors duration-300 w-full sm:w-auto min-w-[200px]"
+                            >
+                              <span>{ctaData.primaryButtonText || "Nút chính"}</span>
+                              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>

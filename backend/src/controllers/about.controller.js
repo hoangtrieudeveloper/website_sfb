@@ -1,33 +1,49 @@
 const { pool } = require('../config/database');
 
+// Generic function to get section by type
+const getSection = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM about_sections WHERE section_type = $1 AND is_active = true',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
+// Generic function to get items by section_id and section_type
+const getItems = async (sectionId, sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM about_section_items WHERE section_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+    [sectionId, sectionType]
+  );
+  return rows;
+};
+
 // ==================== HERO ====================
 exports.getHero = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM about_hero WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('hero');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const hero = rows[0];
+    const data = section.data || {};
     return res.json({
       success: true,
       data: {
-        id: hero.id,
-        titleLine1: hero.title_line1 || '',
-        titleLine2: hero.title_line2 || '',
-        titleLine3: hero.title_line3 || '',
-        description: hero.description || '',
-        buttonText: hero.button_text || '',
-        buttonLink: hero.button_link || '',
-        image: hero.image || '',
-        backgroundGradient: hero.background_gradient || '',
-        isActive: hero.is_active !== undefined ? hero.is_active : true,
+        id: section.id,
+        titleLine1: data.titleLine1 || '',
+        titleLine2: data.titleLine2 || '',
+        titleLine3: data.titleLine3 || '',
+        description: data.description || '',
+        buttonText: data.buttonText || '',
+        buttonLink: data.buttonLink || '',
+        image: data.image || '',
+        backgroundGradient: data.backgroundGradient || '',
+        isActive: section.is_active !== undefined ? section.is_active : true,
       },
     });
   } catch (error) {
@@ -49,50 +65,28 @@ exports.updateHero = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    // Check if exists
-    const { rows: existing } = await pool.query(
-      'SELECT id FROM about_hero WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      titleLine1: titleLine1 || '',
+      titleLine2: titleLine2 || '',
+      titleLine3: titleLine3 || '',
+      description: description || '',
+      buttonText: buttonText || '',
+      buttonLink: buttonLink || '',
+      image: image || '',
+      backgroundGradient: backgroundGradient || '',
+    };
 
-    if (existing.length > 0) {
-      // Update
+    const section = await getSection('hero');
+
+    if (section) {
       await pool.query(
-        `UPDATE about_hero SET
-          title_line1 = $1, title_line2 = $2, title_line3 = $3,
-          description = $4, button_text = $5, button_link = $6,
-          image = $7, background_gradient = $8, is_active = $9
-        WHERE id = $10`,
-        [
-          titleLine1,
-          titleLine2,
-          titleLine3,
-          description,
-          buttonText,
-          buttonLink,
-          image,
-          backgroundGradient,
-          isActive !== undefined ? isActive : true,
-          existing[0].id,
-        ],
+        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, section.id]
       );
     } else {
-      // Insert
       await pool.query(
-        `INSERT INTO about_hero (
-          title_line1, title_line2, title_line3, description,
-          button_text, button_link, image, background_gradient, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          titleLine1,
-          titleLine2,
-          titleLine3,
-          description,
-          buttonText,
-          buttonLink,
-          image,
-          backgroundGradient,
-          isActive !== undefined ? isActive : true,
-        ],
+        'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3)',
+        ['hero', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
     }
 
@@ -105,49 +99,45 @@ exports.updateHero = async (req, res, next) => {
 // ==================== COMPANY ====================
 exports.getCompany = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM about_company WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('company');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const company = rows[0];
-
-    // Get contacts
-    const { rows: contacts } = await pool.query(
-      'SELECT * FROM about_company_contacts WHERE company_id = $1 ORDER BY sort_order ASC',
-      [company.id],
-    );
+    const data = section.data || {};
+    const contacts = await getItems(section.id, 'company');
 
     return res.json({
       success: true,
       data: {
-        id: company.id,
-        headerSub: company.header_sub || '',
-        headerTitleLine1: company.header_title_line1 || '',
-        headerTitleLine2: company.header_title_line2 || '',
-        contentImage1: company.content_image1 || '',
-        contentTitle: company.content_title || '',
-        contentDescription: company.content_description || '',
-        contentButtonText: company.content_button_text || '',
-        contentButtonLink: company.content_button_link || '',
-        contactImage2: company.contact_image2 || '',
-        contactButtonText: company.contact_button_text || '',
-        contactButtonLink: company.contact_button_link || '',
-        contacts: contacts.map(c => ({
-          id: c.id,
-          iconName: c.icon_name || 'Building2',
-          title: c.title || '',
-          text: c.text || '',
-          isHighlight: c.is_highlight || false,
-          sortOrder: c.sort_order || 0,
-        })),
-        isActive: company.is_active !== undefined ? company.is_active : true,
+        id: section.id,
+        headerSub: data.headerSub || '',
+        headerTitleLine1: data.headerTitleLine1 || '',
+        headerTitleLine2: data.headerTitleLine2 || '',
+        contentImage1: data.contentImage1 || '',
+        contentTitle: data.contentTitle || '',
+        contentDescription: data.contentDescription || '',
+        contentButtonText: data.contentButtonText || '',
+        contentButtonLink: data.contentButtonLink || '',
+        contactImage2: data.contactImage2 || '',
+        contactButtonText: data.contactButtonText || '',
+        contactButtonLink: data.contactButtonLink || '',
+        contacts: contacts.map(c => {
+          const itemData = c.data || {};
+          return {
+            id: c.id,
+            iconName: itemData.iconName || 'Building2',
+            title: itemData.title || '',
+            text: itemData.text || '',
+            isHighlight: itemData.isHighlight || false,
+            sortOrder: c.sort_order || 0,
+          };
+        }),
+        isActive: section.is_active !== undefined ? section.is_active : true,
       },
     });
   } catch (error) {
@@ -176,65 +166,34 @@ exports.updateCompany = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    // Check if exists
-    const { rows: existing } = await client.query(
-      'SELECT id FROM about_company WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      headerSub: headerSub || '',
+      headerTitleLine1: headerTitleLine1 || '',
+      headerTitleLine2: headerTitleLine2 || '',
+      contentImage1: contentImage1 || '',
+      contentTitle: contentTitle || '',
+      contentDescription: contentDescription || '',
+      contentButtonText: contentButtonText || '',
+      contentButtonLink: contentButtonLink || '',
+      contactImage2: contactImage2 || '',
+      contactButtonText: contactButtonText || '',
+      contactButtonLink: contactButtonLink || '',
+    };
 
+    const section = await getSection('company');
     let companyId;
-    if (existing.length > 0) {
-      companyId = existing[0].id;
-      // Update
-      await client.query(
-        `UPDATE about_company SET
-          header_sub = $1, header_title_line1 = $2, header_title_line2 = $3,
-          content_image1 = $4, content_title = $5, content_description = $6,
-          content_button_text = $7, content_button_link = $8,
-          contact_image2 = $9, contact_button_text = $10, contact_button_link = $11,
-          is_active = $12
-        WHERE id = $13`,
-        [
-          headerSub,
-          headerTitleLine1,
-          headerTitleLine2,
-          contentImage1,
-          contentTitle,
-          contentDescription,
-          contentButtonText,
-          contentButtonLink,
-          contactImage2,
-          contactButtonText,
-          contactButtonLink,
-          isActive !== undefined ? isActive : true,
-          companyId,
-        ],
-      );
 
-      // Delete old contacts
-      await client.query('DELETE FROM about_company_contacts WHERE company_id = $1', [companyId]);
+    if (section) {
+      companyId = section.id;
+      await client.query(
+        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, companyId]
+      );
+      await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [companyId, 'company']);
     } else {
-      // Insert
       const { rows: inserted } = await client.query(
-        `INSERT INTO about_company (
-          header_sub, header_title_line1, header_title_line2,
-          content_image1, content_title, content_description,
-          content_button_text, content_button_link,
-          contact_image2, contact_button_text, contact_button_link, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
-        [
-          headerSub,
-          headerTitleLine1,
-          headerTitleLine2,
-          contentImage1,
-          contentTitle,
-          contentDescription,
-          contentButtonText,
-          contentButtonLink,
-          contactImage2,
-          contactButtonText,
-          contactButtonLink,
-          isActive !== undefined ? isActive : true,
-        ],
+        'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
+        ['company', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
       companyId = inserted[0].id;
     }
@@ -242,18 +201,15 @@ exports.updateCompany = async (req, res, next) => {
     // Insert contacts
     for (let i = 0; i < contacts.length; i++) {
       const contact = contacts[i];
+      const itemData = {
+        iconName: contact.iconName || 'Building2',
+        title: contact.title || '',
+        text: contact.text || '',
+        isHighlight: contact.isHighlight || false,
+      };
       await client.query(
-        `INSERT INTO about_company_contacts (
-          company_id, icon_name, title, text, is_highlight, sort_order
-        ) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [
-          companyId,
-          contact.iconName || 'Building2',
-          contact.title || '',
-          contact.text || '',
-          contact.isHighlight || false,
-          i,
-        ],
+        'INSERT INTO about_section_items (section_id, section_type, data, sort_order) VALUES ($1, $2, $3, $4)',
+        [companyId, 'company', JSON.stringify(itemData), i]
       );
     }
 
@@ -270,37 +226,33 @@ exports.updateCompany = async (req, res, next) => {
 // ==================== VISION & MISSION ====================
 exports.getVisionMission = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM about_vision_mission WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('vision-mission');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const vm = rows[0];
-
-    // Get items
-    const { rows: items } = await pool.query(
-      'SELECT * FROM about_vision_mission_items WHERE vision_mission_id = $1 ORDER BY sort_order ASC',
-      [vm.id],
-    );
+    const data = section.data || {};
+    const items = await getItems(section.id, 'vision-mission');
 
     return res.json({
       success: true,
       data: {
-        id: vm.id,
-        headerTitle: vm.header_title || '',
-        headerDescription: vm.header_description || '',
-        items: items.map(i => ({
-          id: i.id,
-          text: i.text || '',
-          sortOrder: i.sort_order || 0,
-        })),
-        isActive: vm.is_active !== undefined ? vm.is_active : true,
+        id: section.id,
+        headerTitle: data.headerTitle || '',
+        headerDescription: data.headerDescription || '',
+        items: items.map(i => {
+          const itemData = i.data || {};
+          return {
+            id: i.id,
+            text: itemData.text || '',
+            sortOrder: i.sort_order || 0,
+          };
+        }),
+        isActive: section.is_active !== undefined ? section.is_active : true,
       },
     });
   } catch (error) {
@@ -315,36 +267,35 @@ exports.updateVisionMission = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    // Check if exists
-    const { rows: existing } = await client.query(
-      'SELECT id FROM about_vision_mission WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      headerTitle: headerTitle || '',
+      headerDescription: headerDescription || '',
+    };
 
+    const section = await getSection('vision-mission');
     let vmId;
-    if (existing.length > 0) {
-      vmId = existing[0].id;
+
+    if (section) {
+      vmId = section.id;
       await client.query(
-        `UPDATE about_vision_mission SET
-          header_title = $1, header_description = $2, is_active = $3
-        WHERE id = $4`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true, vmId],
+        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, vmId]
       );
-      await client.query('DELETE FROM about_vision_mission_items WHERE vision_mission_id = $1', [vmId]);
+      await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [vmId, 'vision-mission']);
     } else {
       const { rows: inserted } = await client.query(
-        `INSERT INTO about_vision_mission (header_title, header_description, is_active)
-        VALUES ($1, $2, $3) RETURNING id`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true],
+        'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
+        ['vision-mission', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
       vmId = inserted[0].id;
     }
 
     // Insert items
     for (let i = 0; i < items.length; i++) {
+      const itemData = { text: items[i].text || '' };
       await client.query(
-        `INSERT INTO about_vision_mission_items (vision_mission_id, text, sort_order)
-        VALUES ($1, $2, $3)`,
-        [vmId, items[i].text || '', i],
+        'INSERT INTO about_section_items (section_id, section_type, data, sort_order) VALUES ($1, $2, $3, $4)',
+        [vmId, 'vision-mission', JSON.stringify(itemData), i]
       );
     }
 
@@ -361,41 +312,37 @@ exports.updateVisionMission = async (req, res, next) => {
 // ==================== CORE VALUES ====================
 exports.getCoreValues = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM about_core_values WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('core-values');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const cv = rows[0];
-
-    // Get items
-    const { rows: items } = await pool.query(
-      'SELECT * FROM about_core_values_items WHERE core_values_id = $1 ORDER BY sort_order ASC',
-      [cv.id],
-    );
+    const data = section.data || {};
+    const items = await getItems(section.id, 'core-values');
 
     return res.json({
       success: true,
       data: {
-        id: cv.id,
-        headerTitle: cv.header_title || '',
-        headerDescription: cv.header_description || '',
-        items: items.map(i => ({
-          id: i.id,
-          iconName: i.icon_name || 'Lightbulb',
-          title: i.title || '',
-          description: i.description || '',
-          gradient: i.gradient || '',
-          sortOrder: i.sort_order || 0,
-          isActive: i.is_active !== undefined ? i.is_active : true,
-        })),
-        isActive: cv.is_active !== undefined ? cv.is_active : true,
+        id: section.id,
+        headerTitle: data.headerTitle || '',
+        headerDescription: data.headerDescription || '',
+        items: items.map(i => {
+          const itemData = i.data || {};
+          return {
+            id: i.id,
+            iconName: itemData.iconName || 'Lightbulb',
+            title: itemData.title || '',
+            description: itemData.description || '',
+            gradient: itemData.gradient || '',
+            sortOrder: i.sort_order || 0,
+            isActive: i.is_active !== undefined ? i.is_active : true,
+          };
+        }),
+        isActive: section.is_active !== undefined ? section.is_active : true,
       },
     });
   } catch (error) {
@@ -410,26 +357,25 @@ exports.updateCoreValues = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    // Check if exists
-    const { rows: existing } = await client.query(
-      'SELECT id FROM about_core_values WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      headerTitle: headerTitle || '',
+      headerDescription: headerDescription || '',
+    };
 
+    const section = await getSection('core-values');
     let cvId;
-    if (existing.length > 0) {
-      cvId = existing[0].id;
+
+    if (section) {
+      cvId = section.id;
       await client.query(
-        `UPDATE about_core_values SET
-          header_title = $1, header_description = $2, is_active = $3
-        WHERE id = $4`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true, cvId],
+        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, cvId]
       );
-      await client.query('DELETE FROM about_core_values_items WHERE core_values_id = $1', [cvId]);
+      await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [cvId, 'core-values']);
     } else {
       const { rows: inserted } = await client.query(
-        `INSERT INTO about_core_values (header_title, header_description, is_active)
-        VALUES ($1, $2, $3) RETURNING id`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true],
+        'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
+        ['core-values', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
       cvId = inserted[0].id;
     }
@@ -437,19 +383,15 @@ exports.updateCoreValues = async (req, res, next) => {
     // Insert items
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      const itemData = {
+        iconName: item.iconName || 'Lightbulb',
+        title: item.title || '',
+        description: item.description || '',
+        gradient: item.gradient || '',
+      };
       await client.query(
-        `INSERT INTO about_core_values_items (
-          core_values_id, icon_name, title, description, gradient, sort_order, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          cvId,
-          item.iconName || 'Lightbulb',
-          item.title || '',
-          item.description || '',
-          item.gradient || '',
-          i,
-          item.isActive !== undefined ? item.isActive : true,
-        ],
+        'INSERT INTO about_section_items (section_id, section_type, data, sort_order, is_active) VALUES ($1, $2, $3, $4, $5)',
+        [cvId, 'core-values', JSON.stringify(itemData), i, item.isActive !== undefined ? item.isActive : true]
       );
     }
 
@@ -466,41 +408,37 @@ exports.updateCoreValues = async (req, res, next) => {
 // ==================== MILESTONES ====================
 exports.getMilestones = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM about_milestones WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('milestones');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const ms = rows[0];
-
-    // Get items
-    const { rows: items } = await pool.query(
-      'SELECT * FROM about_milestones_items WHERE milestones_id = $1 ORDER BY sort_order ASC',
-      [ms.id],
-    );
+    const data = section.data || {};
+    const items = await getItems(section.id, 'milestones');
 
     return res.json({
       success: true,
       data: {
-        id: ms.id,
-        headerTitle: ms.header_title || '',
-        headerDescription: ms.header_description || '',
-        items: items.map(i => ({
-          id: i.id,
-          year: i.year || '',
-          title: i.title || '',
-          description: i.description || '',
-          icon: i.icon || '🚀',
-          sortOrder: i.sort_order || 0,
-          isActive: i.is_active !== undefined ? i.is_active : true,
-        })),
-        isActive: ms.is_active !== undefined ? ms.is_active : true,
+        id: section.id,
+        headerTitle: data.headerTitle || '',
+        headerDescription: data.headerDescription || '',
+        items: items.map(i => {
+          const itemData = i.data || {};
+          return {
+            id: i.id,
+            year: itemData.year || '',
+            title: itemData.title || '',
+            description: itemData.description || '',
+            icon: itemData.icon || '🚀',
+            sortOrder: i.sort_order || 0,
+            isActive: i.is_active !== undefined ? i.is_active : true,
+          };
+        }),
+        isActive: section.is_active !== undefined ? section.is_active : true,
       },
     });
   } catch (error) {
@@ -515,26 +453,25 @@ exports.updateMilestones = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    // Check if exists
-    const { rows: existing } = await client.query(
-      'SELECT id FROM about_milestones WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      headerTitle: headerTitle || '',
+      headerDescription: headerDescription || '',
+    };
 
+    const section = await getSection('milestones');
     let msId;
-    if (existing.length > 0) {
-      msId = existing[0].id;
+
+    if (section) {
+      msId = section.id;
       await client.query(
-        `UPDATE about_milestones SET
-          header_title = $1, header_description = $2, is_active = $3
-        WHERE id = $4`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true, msId],
+        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, msId]
       );
-      await client.query('DELETE FROM about_milestones_items WHERE milestones_id = $1', [msId]);
+      await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [msId, 'milestones']);
     } else {
       const { rows: inserted } = await client.query(
-        `INSERT INTO about_milestones (header_title, header_description, is_active)
-        VALUES ($1, $2, $3) RETURNING id`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true],
+        'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
+        ['milestones', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
       msId = inserted[0].id;
     }
@@ -542,19 +479,15 @@ exports.updateMilestones = async (req, res, next) => {
     // Insert items
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      const itemData = {
+        year: item.year || '',
+        title: item.title || '',
+        description: item.description || '',
+        icon: item.icon || '🚀',
+      };
       await client.query(
-        `INSERT INTO about_milestones_items (
-          milestones_id, year, title, description, icon, sort_order, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [
-          msId,
-          item.year || '',
-          item.title || '',
-          item.description || '',
-          item.icon || '🚀',
-          i,
-          item.isActive !== undefined ? item.isActive : true,
-        ],
+        'INSERT INTO about_section_items (section_id, section_type, data, sort_order, is_active) VALUES ($1, $2, $3, $4, $5)',
+        [msId, 'milestones', JSON.stringify(itemData), i, item.isActive !== undefined ? item.isActive : true]
       );
     }
 
@@ -571,43 +504,39 @@ exports.updateMilestones = async (req, res, next) => {
 // ==================== LEADERSHIP ====================
 exports.getLeadership = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM about_leadership WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
-
-    if (rows.length === 0) {
+    const section = await getSection('leadership');
+    
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const ld = rows[0];
-
-    // Get items
-    const { rows: items } = await pool.query(
-      'SELECT * FROM about_leadership_items WHERE leadership_id = $1 ORDER BY sort_order ASC',
-      [ld.id],
-    );
+    const data = section.data || {};
+    const items = await getItems(section.id, 'leadership');
 
     return res.json({
       success: true,
       data: {
-        id: ld.id,
-        headerTitle: ld.header_title || '',
-        headerDescription: ld.header_description || '',
-        items: items.map(i => ({
-          id: i.id,
-          name: i.name || '',
-          position: i.position || '',
-          email: i.email || '',
-          phone: i.phone || '',
-          description: i.description || '',
-          image: i.image || '',
-          sortOrder: i.sort_order || 0,
-          isActive: i.is_active !== undefined ? i.is_active : true,
-        })),
-        isActive: ld.is_active !== undefined ? ld.is_active : true,
+        id: section.id,
+        headerTitle: data.headerTitle || '',
+        headerDescription: data.headerDescription || '',
+        items: items.map(i => {
+          const itemData = i.data || {};
+          return {
+            id: i.id,
+            name: itemData.name || '',
+            position: itemData.position || '',
+            email: itemData.email || '',
+            phone: itemData.phone || '',
+            description: itemData.description || '',
+            image: itemData.image || '',
+            sortOrder: i.sort_order || 0,
+            isActive: i.is_active !== undefined ? i.is_active : true,
+          };
+        }),
+        isActive: section.is_active !== undefined ? section.is_active : true,
       },
     });
   } catch (error) {
@@ -622,26 +551,25 @@ exports.updateLeadership = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    // Check if exists
-    const { rows: existing } = await client.query(
-      'SELECT id FROM about_leadership WHERE is_active = true ORDER BY id DESC LIMIT 1',
-    );
+    const data = {
+      headerTitle: headerTitle || '',
+      headerDescription: headerDescription || '',
+    };
 
+    const section = await getSection('leadership');
     let ldId;
-    if (existing.length > 0) {
-      ldId = existing[0].id;
+
+    if (section) {
+      ldId = section.id;
       await client.query(
-        `UPDATE about_leadership SET
-          header_title = $1, header_description = $2, is_active = $3
-        WHERE id = $4`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true, ldId],
+        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
+        [JSON.stringify(data), isActive !== undefined ? isActive : true, ldId]
       );
-      await client.query('DELETE FROM about_leadership_items WHERE leadership_id = $1', [ldId]);
+      await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [ldId, 'leadership']);
     } else {
       const { rows: inserted } = await client.query(
-        `INSERT INTO about_leadership (header_title, header_description, is_active)
-        VALUES ($1, $2, $3) RETURNING id`,
-        [headerTitle, headerDescription, isActive !== undefined ? isActive : true],
+        'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
+        ['leadership', JSON.stringify(data), isActive !== undefined ? isActive : true]
       );
       ldId = inserted[0].id;
     }
@@ -649,21 +577,17 @@ exports.updateLeadership = async (req, res, next) => {
     // Insert items
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      const itemData = {
+        name: item.name || '',
+        position: item.position || '',
+        email: item.email || '',
+        phone: item.phone || '',
+        description: item.description || '',
+        image: item.image || '',
+      };
       await client.query(
-        `INSERT INTO about_leadership_items (
-          leadership_id, name, position, email, phone, description, image, sort_order, is_active
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          ldId,
-          item.name || '',
-          item.position || '',
-          item.email || '',
-          item.phone || '',
-          item.description || '',
-          item.image || '',
-          i,
-          item.isActive !== undefined ? item.isActive : true,
-        ],
+        'INSERT INTO about_section_items (section_id, section_type, data, sort_order, is_active) VALUES ($1, $2, $3, $4, $5)',
+        [ldId, 'leadership', JSON.stringify(itemData), i, item.isActive !== undefined ? item.isActive : true]
       );
     }
 
@@ -676,4 +600,3 @@ exports.updateLeadership = async (req, res, next) => {
     client.release();
   }
 };
-

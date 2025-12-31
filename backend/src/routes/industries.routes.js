@@ -18,6 +18,10 @@ const {
   getProcess,
   updateProcess,
 } = require('../controllers/industriesProcess.controller');
+const {
+  getCta,
+  updateCta,
+} = require('../controllers/industriesCta.controller');
 
 const router = express.Router();
 
@@ -36,6 +40,10 @@ router.put('/list-header', updateListHeader);
 // Process routes - phải đặt trước /:id
 router.get('/process', getProcess);
 router.put('/process', updateProcess);
+
+// CTA routes - phải đặt trước /:id
+router.get('/cta', getCta);
+router.put('/cta', updateCta);
 
 // Dynamic routes - phải đặt SAU các routes đặc biệt
 router.get('/:id', getIndustryById);

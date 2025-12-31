@@ -30,9 +30,13 @@ const {
   updateHero,
 } = require('../controllers/productHero.controller');
 const {
-  getContact,
-  updateContact,
-} = require('../controllers/productContact.controller');
+  getListHeader,
+  updateListHeader,
+} = require('../controllers/productListHeader.controller');
+const {
+  getCta,
+  updateCta,
+} = require('../controllers/productCta.controller');
 
 const router = express.Router();
 
@@ -85,9 +89,13 @@ router.delete('/benefits/:id', deleteBenefit);
 router.get('/hero', getHero);
 router.put('/hero', updateHero);
 
-// Contact Banner routes - phải đặt trước /:id
-router.get('/contact', getContact);
-router.put('/contact', updateContact);
+// List Header routes - phải đặt trước /:id
+router.get('/list-header', getListHeader);
+router.put('/list-header', updateListHeader);
+
+// CTA routes - phải đặt trước /:id
+router.get('/cta', getCta);
+router.put('/cta', updateCta);
 
 // Product Details routes - đặt trước /:id
 router.get('/:productId/detail', getProductDetail);
