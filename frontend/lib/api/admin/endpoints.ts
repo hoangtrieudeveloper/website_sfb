@@ -151,5 +151,25 @@ export const AdminEndpoints = {
       update: "/api/admin/about/leadership",
     },
   },
+
+  // Careers
+  careers: {
+    hero: {
+      get: "/api/admin/careers/hero",
+      update: "/api/admin/careers/hero",
+    },
+    benefits: {
+      get: "/api/admin/careers/benefits",
+      update: "/api/admin/careers/benefits",
+    },
+    positions: {
+      get: "/api/admin/careers/positions",
+      update: "/api/admin/careers/positions",
+    },
+    cta: {
+      get: "/api/admin/careers/cta",
+      update: "/api/admin/careers/cta",
+    },
+  },
 } as const;
 

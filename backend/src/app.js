@@ -19,6 +19,7 @@ const productsRoutes = require('./routes/products.routes');
 const testimonialsRoutes = require('./routes/testimonials.routes');
 const industriesRoutes = require('./routes/industries.routes');
 const aboutRoutes = require('./routes/about.routes');
+const careersRoutes = require('./routes/careers.routes');
 const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
@@ -111,6 +112,8 @@ app.use('/api/admin/testimonials', requireAuth, testimonialsRoutes);
 app.use('/api/admin/industries', requireAuth, industriesRoutes);
 // About routes
 app.use('/api/admin/about', requireAuth, aboutRoutes);
+// Careers routes
+app.use('/api/admin/careers', requireAuth, careersRoutes);
 
 // 404 & error handlers
 app.use(notFound);

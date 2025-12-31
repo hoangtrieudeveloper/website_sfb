@@ -152,6 +152,13 @@ const menuItems: AdminNavItem[] = [
     requiredPermissions: ["about.manage", "admin"],
   },
   {
+    id: "careers",
+    label: "Quản lý trang Tuyển dụng",
+    href: "/admin/careers",
+    icon: Briefcase,
+    requiredPermissions: ["careers.manage", "admin"],
+  },
+  {
     id: "system",
     label: "Hệ thống",
     icon: Settings2,

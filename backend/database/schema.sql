@@ -1487,3 +1487,243 @@ BEGIN
     ON CONFLICT DO NOTHING;
   END IF;
 END $$;
+
+-- ==================== CAREERS MODULE ====================
+
+-- Bảng career_hero (Hero section cho trang Careers)
+CREATE TABLE IF NOT EXISTS career_hero (
+  id SERIAL PRIMARY KEY,
+  title_line1 VARCHAR(255),
+  title_line2 VARCHAR(255),
+  description TEXT,
+  button_text VARCHAR(255),
+  button_link VARCHAR(255),
+  image TEXT,
+  background_gradient TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_hero_active ON career_hero(is_active);
+
+-- Trigger cập nhật updated_at cho career_hero
+DROP TRIGGER IF EXISTS update_career_hero_updated_at ON career_hero;
+CREATE TRIGGER update_career_hero_updated_at
+    BEFORE UPDATE ON career_hero
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng career_benefits (Phúc lợi & Đãi ngộ)
+CREATE TABLE IF NOT EXISTS career_benefits (
+  id SERIAL PRIMARY KEY,
+  header_title VARCHAR(255),
+  header_description TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_benefits_active ON career_benefits(is_active);
+
+-- Trigger cập nhật updated_at cho career_benefits
+DROP TRIGGER IF EXISTS update_career_benefits_updated_at ON career_benefits;
+CREATE TRIGGER update_career_benefits_updated_at
+    BEFORE UPDATE ON career_benefits
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng career_benefits_items (Items trong phần Benefits)
+CREATE TABLE IF NOT EXISTS career_benefits_items (
+  id SERIAL PRIMARY KEY,
+  benefits_id INTEGER NOT NULL REFERENCES career_benefits(id) ON DELETE CASCADE,
+  icon_name VARCHAR(100),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  gradient VARCHAR(100),
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_benefits_items_benefits ON career_benefits_items(benefits_id);
+CREATE INDEX IF NOT EXISTS idx_career_benefits_items_sort ON career_benefits_items(sort_order);
+CREATE INDEX IF NOT EXISTS idx_career_benefits_items_active ON career_benefits_items(is_active);
+
+-- Trigger cập nhật updated_at cho career_benefits_items
+DROP TRIGGER IF EXISTS update_career_benefits_items_updated_at ON career_benefits_items;
+CREATE TRIGGER update_career_benefits_items_updated_at
+    BEFORE UPDATE ON career_benefits_items
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng career_positions (Vị trí đang tuyển)
+CREATE TABLE IF NOT EXISTS career_positions (
+  id SERIAL PRIMARY KEY,
+  header_title VARCHAR(255),
+  header_description TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_positions_active ON career_positions(is_active);
+
+-- Trigger cập nhật updated_at cho career_positions
+DROP TRIGGER IF EXISTS update_career_positions_updated_at ON career_positions;
+CREATE TRIGGER update_career_positions_updated_at
+    BEFORE UPDATE ON career_positions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng career_positions_items (Items trong phần Positions)
+CREATE TABLE IF NOT EXISTS career_positions_items (
+  id SERIAL PRIMARY KEY,
+  positions_id INTEGER NOT NULL REFERENCES career_positions(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  department VARCHAR(255),
+  type VARCHAR(100),
+  location VARCHAR(255),
+  salary VARCHAR(255),
+  experience VARCHAR(255),
+  description TEXT,
+  skills JSONB DEFAULT '[]'::jsonb,
+  gradient VARCHAR(100),
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_positions_items_positions ON career_positions_items(positions_id);
+CREATE INDEX IF NOT EXISTS idx_career_positions_items_sort ON career_positions_items(sort_order);
+CREATE INDEX IF NOT EXISTS idx_career_positions_items_active ON career_positions_items(is_active);
+
+-- Trigger cập nhật updated_at cho career_positions_items
+DROP TRIGGER IF EXISTS update_career_positions_items_updated_at ON career_positions_items;
+CREATE TRIGGER update_career_positions_items_updated_at
+    BEFORE UPDATE ON career_positions_items
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng career_cta (CTA section)
+CREATE TABLE IF NOT EXISTS career_cta (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  description TEXT,
+  primary_button_text VARCHAR(255),
+  primary_button_link VARCHAR(255),
+  secondary_button_text VARCHAR(255),
+  secondary_button_link VARCHAR(255),
+  background_gradient TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_career_cta_active ON career_cta(is_active);
+
+-- Trigger cập nhật updated_at cho career_cta
+DROP TRIGGER IF EXISTS update_career_cta_updated_at ON career_cta;
+CREATE TRIGGER update_career_cta_updated_at
+    BEFORE UPDATE ON career_cta
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Seed data cho Careers
+DO $$
+DECLARE
+  hero_id_val INTEGER;
+  benefits_id_val INTEGER;
+  positions_id_val INTEGER;
+  cta_id_val INTEGER;
+BEGIN
+  -- Career Hero
+  INSERT INTO career_hero (title_line1, title_line2, description, button_text, button_link, image, background_gradient, is_active)
+  VALUES (
+    'Cùng xây dựng',
+    'tương lai công nghệ',
+    'Gia nhập đội ngũ 50+ chuyên gia công nghệ, làm việc với tech stack hiện đại nhất và triển khai dự án cho các khách hàng lớn',
+    'Xem vị trí tuyển dụng',
+    '#positions',
+    '/images/hero.png',
+    'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)',
+    TRUE
+  )
+  ON CONFLICT DO NOTHING
+  RETURNING id INTO hero_id_val;
+
+  -- Career Benefits
+  INSERT INTO career_benefits (header_title, header_description, is_active)
+  VALUES (
+    'Phúc lợi & Đãi ngộ',
+    'Chúng tôi tin rằng nhân viên hạnh phúc sẽ làm việc hiệu quả hơn',
+    TRUE
+  )
+  ON CONFLICT DO NOTHING
+  RETURNING id INTO benefits_id_val;
+
+  IF benefits_id_val IS NOT NULL THEN
+    INSERT INTO career_benefits_items (benefits_id, icon_name, title, description, gradient, sort_order, is_active)
+    VALUES
+      (benefits_id_val, 'DollarSign', 'Lương thưởng hấp dẫn', 'Mức lương cạnh tranh top đầu thị trường, thưởng theo hiệu quả công việc', 'from-emerald-500 to-teal-500', 1, TRUE),
+      (benefits_id_val, 'TrendingUp', 'Thăng tiến rõ ràng', 'Lộ trình phát triển sự nghiệp minh bạch, đánh giá định kỳ 6 tháng', 'from-[#006FB3] to-[#0088D9]', 2, TRUE),
+      (benefits_id_val, 'Coffee', 'Môi trường năng động', 'Văn hóa startup, không gian làm việc hiện đại, team building định kỳ', 'from-orange-500 to-amber-500', 3, TRUE),
+      (benefits_id_val, 'Heart', 'Chăm sóc sức khỏe', 'Bảo hiểm sức khỏe toàn diện, khám sức khỏe định kỳ, gym membership', 'from-rose-500 to-pink-500', 4, TRUE),
+      (benefits_id_val, 'Rocket', 'Công nghệ tiên tiến', 'Làm việc với tech stack mới nhất, tham gia dự án quốc tế', 'from-purple-500 to-pink-500', 5, TRUE),
+      (benefits_id_val, 'Award', 'Đào tạo & phát triển', 'Ngân sách training unlimited, hỗ trợ certification & conference', 'from-indigo-500 to-purple-500', 6, TRUE)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  -- Career Positions
+  INSERT INTO career_positions (header_title, header_description, is_active)
+  VALUES (
+    'Vị trí đang tuyển',
+    'Tìm vị trí phù hợp với bạn và ứng tuyển ngay hôm nay',
+    TRUE
+  )
+  ON CONFLICT DO NOTHING
+  RETURNING id INTO positions_id_val;
+
+  IF positions_id_val IS NOT NULL THEN
+    INSERT INTO career_positions_items (positions_id, title, department, type, location, salary, experience, description, skills, gradient, sort_order, is_active)
+    VALUES
+      (positions_id_val, 'Senior Full-stack Developer', 'Engineering', 'Full-time', 'TP. HCM', '2000 - 3500 USD', '4+ years', 'Phát triển và maintain các hệ thống enterprise cho khách hàng lớn. Lead team 3-5 developers.', '["React", "Node.js", "AWS", "MongoDB"]'::jsonb, 'from-[#006FB3] to-[#0088D9]', 1, TRUE),
+      (positions_id_val, 'Mobile Developer (Flutter)', 'Engineering', 'Full-time', 'TP. HCM / Remote', '1500 - 2500 USD', '2+ years', 'Xây dựng mobile app cho các lĩnh vực fintech, e-commerce, healthcare.', '["Flutter", "Dart", "Firebase", "RESTful API"]'::jsonb, 'from-purple-500 to-pink-500', 2, TRUE),
+      (positions_id_val, 'DevOps Engineer', 'Infrastructure', 'Full-time', 'TP. HCM', '1800 - 3000 USD', '3+ years', 'Quản lý infrastructure, CI/CD pipeline, monitoring và scaling hệ thống.', '["AWS", "Kubernetes", "Docker", "Terraform"]'::jsonb, 'from-emerald-500 to-teal-500', 3, TRUE),
+      (positions_id_val, 'UI/UX Designer', 'Design', 'Full-time', 'TP. HCM', '1200 - 2000 USD', '2+ years', 'Thiết kế giao diện và trải nghiệm người dùng cho web/mobile app.', '["Figma", "Adobe XD", "Prototyping", "User Research"]'::jsonb, 'from-orange-500 to-amber-500', 4, TRUE),
+      (positions_id_val, 'Data Engineer', 'Data', 'Full-time', 'TP. HCM', '2000 - 3200 USD', '3+ years', 'Xây dựng data pipeline, ETL và data warehouse cho dự án Big Data.', '["Python", "Spark", "Airflow", "SQL"]'::jsonb, 'from-indigo-500 to-purple-500', 5, TRUE),
+      (positions_id_val, 'QA Automation Engineer', 'Quality Assurance', 'Full-time', 'TP. HCM / Remote', '1000 - 1800 USD', '2+ years', 'Phát triển automation test, đảm bảo chất lượng sản phẩm.', '["Selenium", "Jest", "Cypress", "CI/CD"]'::jsonb, 'from-rose-500 to-pink-500', 6, TRUE)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  -- Career CTA
+  INSERT INTO career_cta (title, description, primary_button_text, primary_button_link, secondary_button_text, secondary_button_link, background_gradient, is_active)
+  VALUES (
+    'Không tìm thấy vị trí phù hợp?',
+    'Gửi CV cho chúng tôi! Chúng tôi luôn tìm kiếm những tài năng xuất sắc',
+    'Gửi CV qua email',
+    'mailto:careers@sfb.vn',
+    'Liên hệ HR',
+    '/contact',
+    'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)',
+    TRUE
+  )
+  ON CONFLICT DO NOTHING
+  RETURNING id INTO cta_id_val;
+END $$;
+
+-- Thêm permission cho careers
+INSERT INTO permissions (code, name, module, description, is_active)
+VALUES
+  ('careers.manage', 'Quản lý trang Tuyển dụng', 'careers', 'Quản lý toàn bộ nội dung trang Tuyển dụng', TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+-- Gán quyền careers cho role admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON p.code = 'careers.manage'
+WHERE r.code = 'admin'
+ON CONFLICT (role_id, permission_id) DO NOTHING;
