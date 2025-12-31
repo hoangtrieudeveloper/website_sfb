@@ -11,10 +11,10 @@ export function HeroSection({ product }: HeroSectionProps) {
     return (
         <section className="w-full">
             <div className="bg-[linear-gradient(31deg,#0870B4_51.21%,#2EABE2_97.73%)]">
-                <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[243px] pt-[120px] sm:pt-[160px] lg:pt-[194.5px] pb-[80px] sm:pb-[110px] lg:pb-[127.5px]">
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 lg:gap-[98px]">
+                <div className="mx-auto w-full max-w-[1920px] px-6 min-[1920px]:px-[243px] py-[80px] sm:py-[110px] lg:py-[127.5px] min-[1920px]:py-0">
+                    <div className="w-full flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-[56px] min-[1920px]:gap-[98px] min-[1920px]:h-[760px]">
                         {/* LEFT */}
-                        <div className="text-white flex flex-col items-start gap-[29px] w-full lg:w-[486px]">
+                        <div className="text-white flex flex-col items-start gap-[29px] w-full lg:w-[543px] lg:shrink-0">
                             <div
                                 className="text-white uppercase font-medium text-[16px]"
                                 style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
@@ -23,7 +23,7 @@ export function HeroSection({ product }: HeroSectionProps) {
                             </div>
 
                             <h1
-                                className="text-[32px] sm:text-[44px] lg:text-[56px] leading-[normal] font-extrabold w-full lg:w-[543px]"
+                                className="text-[32px] sm:text-[44px] lg:text-[56px] leading-[normal] font-extrabold w-full"
                                 style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                             >
                                 {product.name}
