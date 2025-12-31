@@ -8,7 +8,7 @@ export function Footer() {
   const quickLinks = [
     { name: "Trang chủ", href: "/" },
     { name: "Giới thiệu SFB", href: "/about" },
-    { name: "Sản phẩm – Dịch vụ", href: "/solutions" },
+    // { name: "Sản phẩm – Dịch vụ", href: "/solutions" },
     { name: "Tuyển dụng", href: "/careers" },
     { name: "Tin tức", href: "/news" },
     { name: "Liên hệ", href: "/contact" },
@@ -134,7 +134,8 @@ export function Footer() {
           </div>
 
           {/* Column 3: Services */}
-          <div>
+          {/* Column 3: Services - Temporarily Disabled */}
+          {/* <div>
             <h4 className="text-[#0F172A] font-bold text-lg mb-6">Dịch vụ</h4>
             <ul className="space-y-3">
               {solutions.map((item, idx) => (
@@ -148,7 +149,7 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Column 4: Contact Info */}
           <div>

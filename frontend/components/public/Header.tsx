@@ -75,10 +75,10 @@ export function Header() {
       href: "/products",
       label: language === "vi" ? "Sản phẩm" : "Products",
     },
-    {
-      href: "/solutions",
-      label: language === "vi" ? "Giải pháp" : "Solutions",
-    },
+    // {
+    //   href: "/solutions",
+    //   label: language === "vi" ? "Giải pháp" : "Solutions",
+    // },
     { href: "/industries", label: language === "vi" ? "Lĩnh vực" : "Industries" },
     { href: "/news", label: language === "vi" ? "Tin tức" : "News" },
     { href: "/careers", label: language === "vi" ? "Tuyển dụng" : "Careers" },
