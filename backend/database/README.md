@@ -11,19 +11,23 @@ npm run setup
 
 Lệnh này sẽ tự động:
 1. ✅ Tạo database nếu chưa tồn tại
-2. ✅ Chạy schema.sql (bao gồm tất cả: bảng cơ bản + media tables + permissions)
+2. ✅ Chạy schema.sql (bao gồm tất cả: users, roles, news, media, products, industries, about, permissions, và seed data)
 3. ✅ Tạo các thư mục mặc định cho media
 4. ✅ Gán permissions cho các roles
+5. ✅ Insert seed data mẫu cho tất cả modules
 
 ## 📁 Files Structure
 
 ### Files chính:
-- **`schema.sql`** - Schema tổng hợp (đã bao gồm tất cả: users, roles, news, media, permissions)
-- **`update_featured_news.sql`** - Script update dữ liệu (tùy chọn)
+- **`schema.sql`** - Schema tổng hợp (đã bao gồm tất cả: users, roles, news, media, products, industries, about, permissions, và seed data)
 
-### Files đã loại bỏ:
+### Files đã loại bỏ (đã gộp vào schema.sql):
+- `products_schema.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
+- `industries_schema.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
+- `about_schema.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
 - `media_schema.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
 - `add_media_permissions.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
+- Tất cả files trong `migrations/` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`
 
 ## 🔄 Auto-Create
 
@@ -60,9 +64,10 @@ Nếu gặp lỗi, kiểm tra:
 
 Sau khi chạy `npm run setup`, bạn sẽ có:
 - ✅ Database `sfb_db` được tạo
-- ✅ Tất cả bảng được tạo (users, roles, news, media_folders, media_files, ...)
+- ✅ Tất cả bảng được tạo (users, roles, news, media, products, industries, about, ...)
 - ✅ Permissions được thiết lập
 - ✅ User admin mặc định: `admin@sfb.local` / `admin123`
+- ✅ Seed data mẫu cho products, industries, about, testimonials
 - ✅ Thư mục media mặc định được tạo
 
 Bạn có thể start backend server ngay: `npm start`

@@ -58,16 +58,16 @@ async function setupAll() {
     client = await pool.connect();
     console.log('✅ Connected\n');
 
-    // Bước 3: Chạy schema.sql (bao gồm tất cả: bảng cơ bản + media tables + permissions)
+    // Bước 3: Chạy schema.sql (bao gồm tất cả: bảng cơ bản + products + industries + about + media tables + permissions)
     console.log('📄 Step 3/4: Running complete schema (schema.sql)...');
-    console.log('   This includes: main tables, media tables, and permissions');
+    console.log('   This includes: main tables, products, industries, about, media tables, and permissions');
     const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');
     if (!fs.existsSync(schemaPath)) {
       throw new Error(`Schema file not found at: ${schemaPath}`);
     }
     const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
     await client.query(schemaSQL);
-    console.log('✅ Complete schema executed (includes media tables and permissions)\n');
+    console.log('✅ Complete schema executed (includes all modules: products, industries, about, media, and permissions)\n');
 
     // Kiểm tra các bảng đã được tạo
     console.log('📊 Step 4/4: Verifying tables...');

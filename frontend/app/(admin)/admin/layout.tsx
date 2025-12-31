@@ -24,6 +24,7 @@ import {
   Phone,
   MessageSquare,
   Briefcase,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,9 +46,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { removeAuthToken } from "@/lib/auth/token";
+import { Toaster } from "sonner";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products-group" | "products" | "product-categories" | "product-benefits" | "product-hero" | "product-contact" | "menus" | "testimonials" | "industries";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products-group" | "products" | "product-categories" | "product-benefits" | "product-hero" | "product-contact" | "menus" | "testimonials" | "industries" | "about";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -92,18 +94,18 @@ const menuItems: AdminNavItem[] = [
     requiredPermissions: ["products.view", "products.manage", "product_categories.view", "product_categories.manage", "admin"],
     children: [
       {
-        id: "products",
-        label: "Danh sách sản phẩm",
-        href: "/admin/products",
-        icon: Package,
-        requiredPermissions: ["products.view", "products.manage", "admin"],
-      },
-      {
         id: "product-categories",
         label: "Danh mục sản phẩm",
         href: "/admin/products/categories",
         icon: FolderTree,
         requiredPermissions: ["product_categories.view", "product_categories.manage", "admin"],
+      },
+      {
+        id: "products",
+        label: "Danh sách sản phẩm",
+        href: "/admin/products",
+        icon: Package,
+        requiredPermissions: ["products.view", "products.manage", "admin"],
       },
       {
         id: "product-benefits",
@@ -141,6 +143,13 @@ const menuItems: AdminNavItem[] = [
     href: "/admin/testimonials",
     icon: MessageSquare,
     requiredPermissions: ["testimonials.manage", "admin"],
+  },
+  {
+    id: "about",
+    label: "Quản lý trang Giới thiệu",
+    href: "/admin/about",
+    icon: Info,
+    requiredPermissions: ["about.manage", "admin"],
   },
   {
     id: "system",
@@ -296,9 +305,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } w-64 text-slate-100 shadow-2xl`}
+        className={`fixed left-0 top-0 z-40 h-screen transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } w-64 text-slate-100 shadow-2xl`}
         style={{
           background: "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)"
         }}
@@ -307,9 +315,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           {/* Logo */}
           <div className="h-16 flex items-center px-6 border-b border-slate-800/60 backdrop-blur">
             <div className="w-10 h-10 flex items-center justify-center bg-white rounded-[20px]">
-              <img 
-                src="/images/logo-2.png" 
-                alt="SFB Logo" 
+              <img
+                src="/images/logo-2.png"
+                alt="SFB Logo"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -362,8 +370,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   >
                     <CollapsibleTrigger
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-sm ${isActive
-                          ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
-                          : "text-slate-200 hover:bg-white/5"
+                        ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
+                        : "text-slate-200 hover:bg-white/5"
                         }`}
                     >
                       <div className="flex items-center">
@@ -398,8 +406,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             key={child.id}
                             href={child.href || "#"}
                             className={`w-full flex items-center pl-10 pr-4 py-2.5 rounded-lg transition-all text-sm ${isChildActive
-                                ? "bg-white/10 text-white font-medium border-l-2 border-cyan-400"
-                                : "text-slate-200 hover:bg-white/5"
+                              ? "bg-white/10 text-white font-medium border-l-2 border-cyan-400"
+                              : "text-slate-200 hover:bg-white/5"
                               }`}
                           >
                             <ChildIcon className="w-4 h-4" />
@@ -417,8 +425,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   key={item.id}
                   href={item.href || "#"}
                   className={`w-full flex items-center px-4 py-3 rounded-lg transition-all text-sm ${isActive
-                      ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
-                      : "text-slate-200 hover:bg-white/5"
+                    ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
+                    : "text-slate-200 hover:bg-white/5"
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -526,6 +534,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="p-6">{children}</div>
         </main>
       </div>
+      <Toaster position="top-right" richColors />
     </div>
   );
 }

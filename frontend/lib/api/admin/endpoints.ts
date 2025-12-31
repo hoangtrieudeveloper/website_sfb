@@ -123,5 +123,33 @@ export const AdminEndpoints = {
       update: "/api/admin/industries/process",
     },
   },
+  
+  // About
+  about: {
+    hero: {
+      get: "/api/admin/about/hero",
+      update: "/api/admin/about/hero",
+    },
+    company: {
+      get: "/api/admin/about/company",
+      update: "/api/admin/about/company",
+    },
+    visionMission: {
+      get: "/api/admin/about/vision-mission",
+      update: "/api/admin/about/vision-mission",
+    },
+    coreValues: {
+      get: "/api/admin/about/core-values",
+      update: "/api/admin/about/core-values",
+    },
+    milestones: {
+      get: "/api/admin/about/milestones",
+      update: "/api/admin/about/milestones",
+    },
+    leadership: {
+      get: "/api/admin/about/leadership",
+      update: "/api/admin/about/leadership",
+    },
+  },
 } as const;
 

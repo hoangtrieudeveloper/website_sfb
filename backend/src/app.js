@@ -17,6 +17,8 @@ const mediaFoldersRoutes = require('./routes/mediaFolders.routes');
 const mediaFilesRoutes = require('./routes/mediaFiles.routes');
 const productsRoutes = require('./routes/products.routes');
 const testimonialsRoutes = require('./routes/testimonials.routes');
+const industriesRoutes = require('./routes/industries.routes');
+const aboutRoutes = require('./routes/about.routes');
 const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
@@ -105,6 +107,10 @@ app.use('/api/admin/media/files', requireAuth, mediaFilesRoutes);
 app.use('/api/admin/products', requireAuth, productsRoutes);
 // Testimonials routes
 app.use('/api/admin/testimonials', requireAuth, testimonialsRoutes);
+// Industries routes
+app.use('/api/admin/industries', requireAuth, industriesRoutes);
+// About routes
+app.use('/api/admin/about', requireAuth, aboutRoutes);
 
 // 404 & error handlers
 app.use(notFound);

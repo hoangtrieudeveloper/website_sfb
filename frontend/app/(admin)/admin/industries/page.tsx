@@ -489,11 +489,13 @@ export default function AdminIndustriesPage() {
         ...heroData,
         stats: [...heroData.stats, statFormData!],
       });
+      toast.success("Đã thêm stat mới");
     } else if (editingStatIndex !== null) {
       // Update existing stat
       const newStats = [...heroData.stats];
       newStats[editingStatIndex] = statFormData!;
       setHeroData({ ...heroData, stats: newStats });
+      toast.success("Đã cập nhật stat");
     }
     handleCancelStat();
   };
@@ -506,6 +508,7 @@ export default function AdminIndustriesPage() {
     const newStats = [...heroData.stats];
     newStats.splice(index, 1);
     setHeroData({ ...heroData, stats: newStats });
+    toast.success("Đã xóa stat");
   };
 
   // List Header handlers
@@ -652,9 +655,63 @@ export default function AdminIndustriesPage() {
   };
 
   const handleRemoveStep = (index: number) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa step này?")) return;
     const newSteps = [...processData.steps];
     newSteps.splice(index, 1);
     setProcessData({ ...processData, steps: newSteps });
+    toast.success("Đã xóa step");
+  };
+
+  const handleMoveStepUp = async (index: number) => {
+    if (index === 0) return;
+    try {
+      const newSteps = [...processData.steps];
+      [newSteps[index - 1], newSteps[index]] = [newSteps[index], newSteps[index - 1]];
+
+      const updatedProcessData = {
+        ...processData,
+        steps: newSteps,
+      };
+      setProcessData(updatedProcessData);
+
+      setLoadingProcess(true);
+      await adminApiCall(AdminEndpoints.industries.process.update, {
+        method: "PUT",
+        body: JSON.stringify(updatedProcessData),
+      });
+      toast.success("Đã cập nhật thứ tự step");
+      void fetchProcess();
+    } catch (error: any) {
+      toast.error(error?.message || "Không thể cập nhật thứ tự step");
+    } finally {
+      setLoadingProcess(false);
+    }
+  };
+
+  const handleMoveStepDown = async (index: number) => {
+    if (index === processData.steps.length - 1) return;
+    try {
+      const newSteps = [...processData.steps];
+      [newSteps[index], newSteps[index + 1]] = [newSteps[index + 1], newSteps[index]];
+
+      const updatedProcessData = {
+        ...processData,
+        steps: newSteps,
+      };
+      setProcessData(updatedProcessData);
+
+      setLoadingProcess(true);
+      await adminApiCall(AdminEndpoints.industries.process.update, {
+        method: "PUT",
+        body: JSON.stringify(updatedProcessData),
+      });
+      toast.success("Đã cập nhật thứ tự step");
+      void fetchProcess();
+    } catch (error: any) {
+      toast.error(error?.message || "Không thể cập nhật thứ tự step");
+    } finally {
+      setLoadingProcess(false);
+    }
   };
 
   const activeIndustries = industries.filter((i) => i.isActive);
@@ -1321,7 +1378,7 @@ export default function AdminIndustriesPage() {
                   handleCancelStat();
                 }
               }}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
                       {editingStatIndex === -1 ? "Thêm Stat mới" : `Chỉnh sửa Stat`}
@@ -1333,7 +1390,7 @@ export default function AdminIndustriesPage() {
                     </DialogDescription>
                   </DialogHeader>
                   {statFormData && (
-                    <div className="space-y-4">
+                    <div className="space-y-4 py-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label className="pb-2">Icon Name</Label>
@@ -1787,8 +1844,27 @@ export default function AdminIndustriesPage() {
                               <div className="flex gap-2">
                                 <Button
                                   variant="outline"
+                                  size="icon"
+                                  onClick={() => handleMoveStepUp(index)}
+                                  disabled={index === 0}
+                                  title="Di chuyển lên"
+                                >
+                                  <ChevronUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleMoveStepDown(index)}
+                                  disabled={index === processData.steps.length - 1}
+                                  title="Di chuyển xuống"
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => handleEditStep(index)}
+                                  title="Chỉnh sửa"
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
                                   Chỉnh sửa
@@ -1797,6 +1873,7 @@ export default function AdminIndustriesPage() {
                                   variant="outline"
                                   size="icon"
                                   onClick={() => handleRemoveStep(index)}
+                                  title="Xóa"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -1816,7 +1893,7 @@ export default function AdminIndustriesPage() {
                   handleCancelStep();
                 }
               }}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent style={{ maxWidth: "50rem" }} className="max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
                       {editingStepIndex === -1 ? "Thêm Step mới" : `Chỉnh sửa Step ${stepFormData?.stepId}`}

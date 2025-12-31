@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Save, X, Star, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Star, Eye, ChevronUp, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,14 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Testimonial {
   id: number;
@@ -110,6 +118,62 @@ export default function TestimonialsPage() {
     }
   };
 
+  const handleMoveUp = async (index: number) => {
+    if (index === 0) return;
+    try {
+      const sortedTestimonials = [...testimonials].sort((a, b) => a.sortOrder - b.sortOrder);
+      const newTestimonials = [...sortedTestimonials];
+      [newTestimonials[index - 1], newTestimonials[index]] = [
+        newTestimonials[index],
+        newTestimonials[index - 1],
+      ];
+
+      await Promise.all(
+        newTestimonials.map((testimonial, i) =>
+          adminApiCall(AdminEndpoints.testimonials.detail(testimonial.id), {
+            method: "PUT",
+            body: JSON.stringify({
+              ...testimonial,
+              sortOrder: i,
+            }),
+          })
+        )
+      );
+      toast.success("Đã cập nhật thứ tự");
+      void fetchTestimonials();
+    } catch (error: any) {
+      toast.error(error?.message || "Không thể cập nhật thứ tự");
+    }
+  };
+
+  const handleMoveDown = async (index: number) => {
+    const sortedTestimonials = [...testimonials].sort((a, b) => a.sortOrder - b.sortOrder);
+    if (index === sortedTestimonials.length - 1) return;
+    try {
+      const newTestimonials = [...sortedTestimonials];
+      [newTestimonials[index], newTestimonials[index + 1]] = [
+        newTestimonials[index + 1],
+        newTestimonials[index],
+      ];
+
+      await Promise.all(
+        newTestimonials.map((testimonial, i) =>
+          adminApiCall(AdminEndpoints.testimonials.detail(testimonial.id), {
+            method: "PUT",
+            body: JSON.stringify({
+              ...testimonial,
+              sortOrder: i,
+            }),
+          })
+        )
+      );
+      toast.success("Đã cập nhật thứ tự");
+      void fetchTestimonials();
+    } catch (error: any) {
+      toast.error(error?.message || "Không thể cập nhật thứ tự");
+    }
+  };
+
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -143,15 +207,20 @@ export default function TestimonialsPage() {
         </TabsList>
 
         <TabsContent value="list" className="space-y-4">
-          {/* Form Create/Edit */}
-          {editingId !== null && (
-            <Card>
-              <CardHeader>
-                <CardTitle>
+          {/* Form Create/Edit Modal */}
+          <Dialog open={editingId !== null} onOpenChange={(open) => !open && handleCancel()}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
                   {editingId === -1 ? "Thêm đánh giá mới" : "Chỉnh sửa đánh giá"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+                </DialogTitle>
+                <DialogDescription>
+                  {editingId === -1
+                    ? "Thêm đánh giá mới từ khách hàng"
+                    : "Chỉnh sửa thông tin đánh giá"}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <Label htmlFor="quote">Nội dung đánh giá *</Label>
@@ -214,19 +283,19 @@ export default function TestimonialsPage() {
                     <Label htmlFor="isActive">Hiển thị</Label>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSave} className="gap-2">
-                    <Save className="w-4 h-4" />
-                    Lưu
-                  </Button>
-                  <Button variant="outline" onClick={handleCancel} className="gap-2">
-                    <X className="w-4 h-4" />
-                    Hủy
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={handleCancel} className="gap-2">
+                  <X className="w-4 h-4" />
+                  Hủy
+                </Button>
+                <Button onClick={handleSave} className="gap-2">
+                  <Save className="w-4 h-4" />
+                  Lưu
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* List */}
           {loading ? (
@@ -239,52 +308,74 @@ export default function TestimonialsPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-4">
-              {testimonials.map((testimonial) => (
-                <Card key={testimonial.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          {renderStars(testimonial.rating)}
+              {[...testimonials]
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((testimonial, index) => (
+                  <Card key={testimonial.id}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {renderStars(testimonial.rating)}
+                          </div>
+                          <p className="text-gray-700 mb-2 italic">"{testimonial.quote}"</p>
+                          <div className="text-sm text-gray-600">
+                            <p className="font-semibold">{testimonial.author}</p>
+                            {testimonial.company && (
+                              <p className="text-gray-500">{testimonial.company}</p>
+                            )}
+                          </div>
+                          <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                            <span>Thứ tự: #{testimonial.sortOrder}</span>
+                            <span
+                              className={`${
+                                testimonial.isActive ? "text-green-600" : "text-gray-400"
+                              }`}
+                            >
+                              {testimonial.isActive ? "Đang hiển thị" : "Ẩn"}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-gray-700 mb-2 italic">"{testimonial.quote}"</p>
-                        <div className="text-sm text-gray-600">
-                          <p className="font-semibold">{testimonial.author}</p>
-                          {testimonial.company && (
-                            <p className="text-gray-500">{testimonial.company}</p>
-                          )}
-                        </div>
-                        <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                          <span>Thứ tự: #{testimonial.sortOrder}</span>
-                          <span
-                            className={`${
-                              testimonial.isActive ? "text-green-600" : "text-gray-400"
-                            }`}
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleMoveUp(index)}
+                            disabled={index === 0}
+                            title="Di chuyển lên"
                           >
-                            {testimonial.isActive ? "Đang hiển thị" : "Ẩn"}
-                          </span>
+                            <ChevronUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleMoveDown(index)}
+                            disabled={index === testimonials.length - 1}
+                            title="Di chuyển xuống"
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleEdit(testimonial)}
+                            title="Chỉnh sửa"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDelete(testimonial.id)}
+                            title="Xóa"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(testimonial)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(testimonial.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           )}
         </TabsContent>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Eye } from "lucide-react";
+import { Save } from "lucide-react";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +42,6 @@ const GRADIENT_OPTIONS = [
 export default function ProductHeroPage() {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [showPreview, setShowPreview] = useState(false);
 
   const [formData, setFormData] = useState<HeroFormData>({
     title: "",
@@ -115,15 +114,6 @@ export default function ProductHeroPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Quản lý Hero Section</h1>
           <p className="text-gray-600 mt-1">Cấu hình hero section cho trang sản phẩm</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowPreview(!showPreview)}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            {showPreview ? "Ẩn Preview" : "Xem Preview"}
-          </Button>
         </div>
       </div>
 
