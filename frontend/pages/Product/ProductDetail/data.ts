@@ -30,10 +30,17 @@ export type ProductShowcase = {
     };
 };
 
+export type TitledParagraph = {
+    title: string;
+    text: string;
+};
+
+export type SectionParagraph = string | TitledParagraph;
+
 export type NumberedSection = {
     no: number;
     title: string;
-    paragraphs: string[];
+    paragraphs: SectionParagraph[];
     image: string;
     imageAlt?: string;
     imageSide: "left" | "right";
@@ -41,7 +48,7 @@ export type NumberedSection = {
 
     overlay?: {
         back: OverlayImage;
-        front: OverlayImage;
+        front?: OverlayImage;
     };
 };
 
@@ -162,17 +169,26 @@ export const productDetails: ProductDetail[] = [
                 no: 1,
                 title: "Quản lý thông tin nhân sự, học sinh, lớp học",
                 paragraphs: [
-                    "Người dùng có thể quản lý học sinh theo khối, lớp, khu vực, giới tính nhằm phục vụ công tác quản lý, tuyển sinh sau này hoặc công tác phân bổ học sinh, giáo viên trên địa bàn.",
-                    "Hệ thống cung cấp các tính năng trong việc phân chia lớp, xếp môn cho lớp. Việc phân môn chính xác giúp tính toán điểm và tổng kết đơn giản và dễ dàng hơn.",
-                    "Hệ thống quản lý tất cả thông tin của nhân sự theo từng trường, từng nhóm bộ môn. Dữ liệu quản lý có thể phục vụ cho việc thống kê, in báo cáo cho Ban giám hiệu nhà trường.",
+                    {
+                        title: "Học sinh",
+                        text: "Người dùng có thể quản lý học sinh theo khối, lớp, khu vực, giới tính nhằm phục vụ công tác quản lý, tuyển sinh sau này hoặc công tác phân bổ học sinh, giáo viên trên địa bàn.",
+                    },
+                    {
+                        title: "Lớp học",
+                        text: "Hệ thống cung cấp các tính năng trong việc phân chia lớp, xếp môn cho lớp. Việc phân môn chính xác giúp tính toán điểm và tổng kết đơn giản và dễ dàng hơn.",
+                    },
+                    {
+                        title: "Nhân sự",
+                        text: "Hệ thống quản lý tất cả thông tin của nhân sự theo từng trường, từng nhóm bộ môn. Dữ liệu quản lý có thể phục vụ cho việc thống kê, in báo cáo cho Ban giám hiệu nhà trường.",
+                    },
                 ],
-                image: "/images/products/tuyen-sinh-dau-cap/section-1.png",
+                image: "/images/product_detail/featuresection1.png",
                 imageSide: "right",
 
 
                 overlay: {
                     back: {
-                        src: "/images/products/tuyen-sinh-dau-cap/section-1.png",
+                        src: "/images/product_detail/featuresection1.png",
                         alt: "Section 1 - ảnh chính",
                         sizeClass: "w-[701px] h-[511px]",
                         objectClass: "object-cover",
@@ -180,7 +196,7 @@ export const productDetails: ProductDetail[] = [
                             "rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden",
                     },
                     front: {
-                        src: "/images/products/tuyen-sinh-dau-cap/section-1.png",
+                        src: "/images/product_detail/fearutesection1.1.png",
                         alt: "Section 1 - ảnh chồng",
                         sizeClass: "w-[561px] h-[375px]",
                         objectClass: "object-cover",
@@ -197,8 +213,19 @@ export const productDetails: ProductDetail[] = [
                     "Hệ thống căn cứ trên các thông tư được ban hành để xây dựng nên sổ dữ liệu tính điểm cho trường.",
                     "Thiết kế giao diện đơn giản cùng các tiện ích tìm kiếm phục vụ cho công tác tính điểm của giáo viên và công tác quản lý của ban giám hiệu nhà trường.",
                 ],
-                image: "/images/products/tuyen-sinh-dau-cap/section-2.png",
+                image: "/images/product_detail/featuresection2.png",
                 imageSide: "left",
+
+                overlay: {
+                    back: {
+                        src: "/images/product_detail/featuresection2.png",
+                        alt: "Section 2 - ảnh chính",
+                        sizeClass: "w-[701px] h-[511px]",
+                        objectClass: "object-contain",
+                        frameClass:
+                            "rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden",
+                    },
+                },
             },
             {
                 no: 4,
@@ -206,13 +233,13 @@ export const productDetails: ProductDetail[] = [
                 paragraphs: [
                     "Phần mềm cung cấp các chức năng báo cáo thống kê trên tất cả dữ liệu quản lý trong nhà trường.",
                 ],
-                image: "/images/products/tuyen-sinh-dau-cap/section-4.png",
+                image: "/images/product_detail/featuresection4.png",
                 imageSide: "right",
 
 
                 overlay: {
                     back: {
-                        src: "/images/products/tuyen-sinh-dau-cap/section-4.png",
+                        src: "/images/product_detail/featuresection4.png",
                         alt: "Section 4 - ảnh chính",
                         sizeClass: "w-[701px] h-[511px]",
                         objectClass: "object-cover",
@@ -220,7 +247,7 @@ export const productDetails: ProductDetail[] = [
                             "rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden",
                     },
                     front: {
-                        src: "/images/products/tuyen-sinh-dau-cap/section-4.png",
+                        src: "/images/product_detail/featuresection4.1.png",
                         alt: "Section 4 - ảnh chồng",
                         sizeClass: "w-[561px] h-[375px]",
                         objectClass: "object-cover",
@@ -234,16 +261,15 @@ export const productDetails: ProductDetail[] = [
                 no: 5,
                 title: "Sổ sách",
                 paragraphs: [
-                    "Ngoài việc quản lý thông tin, kết quả học tập, phần mềm phát triển các tính năng phục vụ cho việc lưu trữ/nhắc các sổ sách trong việc quản lý nhà trường.",
-                    "Thông tin các sổ sách được dựa theo thông tư đã ban hành và ý kiến trao đổi với phía nhà trường.",
+                    "Ngoài việc quản lý thông tin, kết quả học tập, phần mềm Hồ sơ học sinh phát triển các tính năng phục vụ cho việc lưu trữ nhưcác sổ sách trong việc quản lý nhà trường. Thông tin các sổ sách được dựa theo thông tư đã ban hành và ý kiến trao đổi với phía nhà trường.",
                 ],
-                image: "/images/products/tuyen-sinh-dau-cap/section-5.png",
+                image: "/images/product_detail/featuresection5.png",
                 imageSide: "left",
 
 
                 overlay: {
                     back: {
-                        src: "/images/products/tuyen-sinh-dau-cap/section-5.png",
+                        src: "/images/product_detail/featuresection5.png",
                         alt: "Section 5 - ảnh chính",
                         sizeClass: "w-[701px] h-[511px]",
                         objectClass: "object-cover",
@@ -251,7 +277,7 @@ export const productDetails: ProductDetail[] = [
                             "rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden",
                     },
                     front: {
-                        src: "/images/products/tuyen-sinh-dau-cap/section-5.png",
+                        src: "/images/product_detail/featuresection5.2.png",
                         alt: "Section 5 - ảnh chồng",
                         sizeClass: "w-[561px] h-[375px]",
                         objectClass: "object-cover",
@@ -271,7 +297,7 @@ export const productDetails: ProductDetail[] = [
         ],
         expandCtaText: "Demo hệ thống",
         expandCtaHref: "#demo",
-        expandImage: "/images/products/tuyen-sinh-dau-cap/expand.png",
+        expandImage: "/images/product_detail/heroproductdetail.png",
     },
 ];
 

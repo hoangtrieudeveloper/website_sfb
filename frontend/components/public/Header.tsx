@@ -75,10 +75,10 @@ export function Header() {
       href: "/products",
       label: language === "vi" ? "Sản phẩm" : "Products",
     },
-    {
-      href: "/solutions",
-      label: language === "vi" ? "Giải pháp" : "Solutions",
-    },
+    // {
+    //   href: "/solutions",
+    //   label: language === "vi" ? "Giải pháp" : "Solutions",
+    // },
     { href: "/industries", label: language === "vi" ? "Lĩnh vực" : "Industries" },
     { href: "/news", label: language === "vi" ? "Tin tức" : "News" },
     { href: "/careers", label: language === "vi" ? "Tuyển dụng" : "Careers" },
@@ -198,10 +198,9 @@ export function Header() {
         className={`fixed left-0 right-0 z-50 transition-all duration-500 flex flex-col items-center max-w-[1920px] mx-auto ${scrolled || !isTransparentHeader
           ? "bg-white shadow-lg border-b border-gray-100"
           : "bg-transparent shadow-none backdrop-blur-none"
-          } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'}`}
-        style={{ padding: "10px", gap: "10px" }}
+          } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'} p-2.5 gap-2.5`}
       >
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between gap-8 h-full">
             {/* Logo */}
             <Link

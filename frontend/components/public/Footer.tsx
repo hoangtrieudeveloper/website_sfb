@@ -8,7 +8,7 @@ export function Footer() {
   const quickLinks = [
     { name: "Trang chủ", href: "/" },
     { name: "Giới thiệu SFB", href: "/about" },
-    { name: "Sản phẩm – Dịch vụ", href: "/solutions" },
+    // { name: "Sản phẩm – Dịch vụ", href: "/solutions" },
     { name: "Tuyển dụng", href: "/careers" },
     { name: "Tin tức", href: "/news" },
     { name: "Liên hệ", href: "/contact" },
@@ -134,7 +134,8 @@ export function Footer() {
           </div>
 
           {/* Column 3: Services */}
-          <div>
+          {/* Column 3: Services - Temporarily Disabled */}
+          {/* <div>
             <h4 className="text-[#0F172A] font-bold text-lg mb-6">Dịch vụ</h4>
             <ul className="space-y-3">
               {solutions.map((item, idx) => (
@@ -148,7 +149,7 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Column 4: Contact Info */}
           <div>
@@ -182,15 +183,15 @@ export function Footer() {
             <p className="text-[#94A3B8] text-sm">
               © {currentYear} SFBTECH.,JSC. All rights reserved.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
               <Link href="/privacy" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors">
                 Chính sách bảo mật
               </Link>
-              <div className="h-4 w-px bg-[#E2E8F0]"></div>
+              <div className="hidden md:block h-4 w-px bg-[#E2E8F0]" aria-hidden="true"></div>
               <Link href="/terms" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors">
                 Điều khoản sử dụng
               </Link>
-              <div className="h-4 w-px bg-[#E2E8F0]"></div>
+              <div className="hidden md:block h-4 w-px bg-[#E2E8F0]" aria-hidden="true"></div>
               <Link href="/contact" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors">
                 Liên hệ
               </Link>

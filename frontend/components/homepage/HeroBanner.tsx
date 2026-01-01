@@ -17,7 +17,7 @@ export function HeroBanner() {
   return (
     <section
       id="home"
-      className="relative w-full max-w-[1920px] mx-auto min-h-screen lg:h-[850px] flex items-center lg:items-start overflow-hidden bg-[#F4FAFE] pt-32 pb-12 lg:pt-[171px] lg:pb-20"
+      className="relative w-full max-w-[1920px] mx-auto min-h-screen lg:h-[850px] flex items-center lg:items-start overflow-hidden bg-[#F4FAFE] pt-32 pb-[28px] lg:pt-[171px]"
     >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -27,7 +27,7 @@ export function HeroBanner() {
       </div>
 
       <div className="container mx-auto px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-[45px] items-center">
           {/* Left */}
           <div className="space-y-8">
             <ScrollAnimation variant="blur-in" delay={0.2}>

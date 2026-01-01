@@ -38,7 +38,7 @@ export function AboutLeadership() {
                         }}
                         className="w-full"
                     >
-                        <CarouselContent className="-ml-4">
+                        <CarouselContent className="-ml-4 py-4">
                             {leaders.map((leader, index) => (
                                 <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
                                     <motion.div
