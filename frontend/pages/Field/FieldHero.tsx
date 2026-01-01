@@ -4,8 +4,24 @@ import { ArrowRight } from "lucide-react";
 import { fieldHeroData } from "./data";
 import { FadeIn, SlideIn, ZoomIn, StaggerContainer, zoomInVariant } from "../../components/ui/motion";
 import { motion } from "framer-motion";
+import * as LucideIcons from "lucide-react";
 
-export function FieldHero() {
+interface FieldHeroProps {
+    data?: any;
+}
+
+export function FieldHero({ data }: FieldHeroProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data || {
+        titlePrefix: fieldHeroData.title.prefix,
+        titleSuffix: fieldHeroData.title.suffix,
+        description: fieldHeroData.description,
+        buttonText: fieldHeroData.button.text,
+        buttonLink: fieldHeroData.button.link,
+        image: fieldHeroData.image,
+        backgroundGradient: 'linear-gradient(31deg, #0870B4 51.21%, #2EABE2 97.73%)',
+        stats: fieldHeroData.stats,
+    };
     return (
         <section
             className="relative overflow-hidden"
@@ -15,7 +31,7 @@ export function FieldHero() {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                background: 'linear-gradient(31deg, #0870B4 51.21%, #2EABE2 97.73%)',
+                background: displayData.backgroundGradient || 'linear-gradient(31deg, #0870B4 51.21%, #2EABE2 97.73%)',
                 paddingTop: '87px'
             }}
         >
@@ -40,7 +56,7 @@ export function FieldHero() {
                             {/* Responsive Image Placeholders */}
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
                                 <img
-                                    src={fieldHeroData.image}
+                                    src={displayData.image}
                                     alt="Optimizing Business Operations"
                                     className="w-full h-full object-cover drop-shadow-2xl"
                                     onError={(e) => {
@@ -66,8 +82,8 @@ export function FieldHero() {
                                     fontFeatureSettings: "'liga' off, 'clig' off"
                                 }}
                             >
-                                <span className="font-bold">{fieldHeroData.title.prefix} </span>
-                                <span className="font-normal">{fieldHeroData.title.suffix}</span>
+                                <span className="font-bold">{displayData.titlePrefix} </span>
+                                <span className="font-normal">{displayData.titleSuffix}</span>
                             </h1>
                         </SlideIn>
 
@@ -83,51 +99,53 @@ export function FieldHero() {
                                     lineHeight: '26px'
                                 }}
                             >
-                                {fieldHeroData.description}
+                                {displayData.description}
                             </p>
                         </FadeIn>
 
                         {/* Stats Row */}
-                        <StaggerContainer className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8" delay={0.4}>
-                            {fieldHeroData.stats.slice(0, 3).map((metric, index) => (
-                                <ZoomIn key={index}>
-                                    <div
-                                        className="mb-2"
-                                        style={{
-                                            color: '#FFF',
-                                            textAlign: 'center',
-                                            fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                            fontSize: '26px',
-                                            fontStyle: 'normal',
-                                            fontWeight: 700,
-                                            lineHeight: '38px',
-                                            fontFeatureSettings: "'liga' off, 'clig' off"
-                                        }}
-                                    >
-                                        {metric.value}
-                                    </div>
-                                    <div
-                                        style={{
-                                            color: '#FFF',
-                                            textAlign: 'center',
-                                            fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                            fontSize: '14px',
-                                            fontStyle: 'normal',
-                                            fontWeight: 400,
-                                            lineHeight: '35px'
-                                        }}
-                                    >
-                                        {metric.label === "Cơ quan Nhà nước & doanh nghiệp"
-                                            ? "Cơ quan Nhà nước & DN"
-                                            : metric.label}
-                                    </div>
-                                </ZoomIn>
-                            ))}
-                        </StaggerContainer>
+                        {displayData.stats && displayData.stats.length > 0 && (
+                            <StaggerContainer className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8" delay={0.4}>
+                                {displayData.stats.map((metric: any, index: number) => (
+                                    <ZoomIn key={index}>
+                                        <div
+                                            className="mb-2"
+                                            style={{
+                                                color: '#FFF',
+                                                textAlign: 'center',
+                                                fontFamily: '"Plus Jakarta Sans", sans-serif',
+                                                fontSize: '26px',
+                                                fontStyle: 'normal',
+                                                fontWeight: 700,
+                                                lineHeight: '38px',
+                                                fontFeatureSettings: "'liga' off, 'clig' off"
+                                            }}
+                                        >
+                                            {metric.value}
+                                        </div>
+                                        <div
+                                            style={{
+                                                color: '#FFF',
+                                                textAlign: 'center',
+                                                fontFamily: '"Plus Jakarta Sans", sans-serif',
+                                                fontSize: '14px',
+                                                fontStyle: 'normal',
+                                                fontWeight: 400,
+                                                lineHeight: '35px'
+                                            }}
+                                        >
+                                            {metric.label === "Cơ quan Nhà nước & doanh nghiệp"
+                                                ? "Cơ quan Nhà nước & DN"
+                                                : metric.label}
+                                        </div>
+                                    </ZoomIn>
+                                ))}
+                            </StaggerContainer>
+                        )}
 
                         {/* CTA Button */}
                         <motion.a
-                            href={fieldHeroData.button.link}
+                            href={displayData.buttonLink || '#'}
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: false }}
@@ -146,7 +164,7 @@ export function FieldHero() {
                                 fontWeight: 700,
                             }}
                         >
-                            {fieldHeroData.button.text}
+                            {displayData.buttonText}
                             <ArrowRight size={20} />
                         </motion.a>
                     </div>

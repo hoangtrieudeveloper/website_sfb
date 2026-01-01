@@ -7,8 +7,18 @@ import {
   ArrowRight,
   CheckCircle2,
 } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 
-export function Solutions() {
+interface SolutionsProps {
+  data?: any;
+}
+
+export function Solutions({ data }: SolutionsProps) {
+  // Use data from props if available, otherwise fallback to static data
+  const subHeader = data?.subHeader || solutionsSectionData.subHeader;
+  const title = data?.title || solutionsSectionData.title;
+  const domains = data?.domains || solutionsSectionData.domains;
+  const items = data?.items || solutionsSectionData.items;
 
 
 
@@ -24,17 +34,17 @@ export function Solutions() {
           className="mx-auto w-full max-w-5xl self-stretch text-center flex flex-col items-center gap-6"
         >
           <div className="self-stretch text-center text-[var(--light-blue,#EFF6FF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[15px] font-medium leading-normal uppercase">
-            {solutionsSectionData.subHeader}
+            {subHeader}
           </div>
 
           <h2 className="mx-auto w-full max-w-[840px] text-center text-[var(--White,#FFF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[clamp(32px,4.6vw,56px)] leading-normal">
-            <span className="font-bold">{solutionsSectionData.title.part1}</span>
+            <span className="font-bold">{title.part1}</span>
             <br />
-            <span className="font-normal">{solutionsSectionData.title.part2}</span>
+            <span className="font-normal">{title.part2}</span>
           </h2>
 
           <div className="flex flex-wrap justify-center gap-2.5">
-            {solutionsSectionData.domains.map((d, i) => (
+            {domains.map((d: string, i: number) => (
               <ScrollAnimation
                 key={d}
                 variant="scale-up"
@@ -49,8 +59,9 @@ export function Solutions() {
 
         {/* ✅ GRID: gap-6 (24px) for both row and column */}
         <div className="mt-16 mx-auto w-full max-w-[1236px] grid grid-cols-1 xl:grid-cols-2 gap-6 place-items-center">
-          {solutionsSectionData.items.map((s, idx) => {
-            const Icon = s.icon;
+          {items.map((s: any, idx: number) => {
+            const IconComponent = s.iconName ? (LucideIcons as any)[s.iconName] : s.icon;
+            const Icon = IconComponent || LucideIcons.Code;
 
             return (
               <div
@@ -96,7 +107,7 @@ export function Solutions() {
 
                     {/* Benefits */}
                     <div className="flex flex-wrap justify-center gap-2">
-                      {s.benefits.map((b) => (
+                      {s.benefits.map((b: string) => (
                         <span
                           key={b}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-600 bg-gray-50 border border-gray-200"
@@ -109,7 +120,7 @@ export function Solutions() {
 
                     {/* Button */}
                     <Link
-                      href={s.buttonLink}
+                      href={s.buttonLink || s.button?.link || "#"}
                       className="
                         mt-auto
                         inline-flex items-center justify-center gap-3
@@ -122,7 +133,7 @@ export function Solutions() {
                         bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)]
                       "
                     >
-                      {s.buttonText}
+                      {s.buttonText || s.button?.text || "Xem thêm"}
                       <ArrowRight size={18} />
                     </Link>
                   </div>

@@ -13,19 +13,33 @@ import { positions } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 
-export const CareerPositions = () => {
+interface CareerPositionsProps {
+  data?: any;
+}
+
+export const CareerPositions = ({ data }: CareerPositionsProps) => {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data?.data || { items: positions };
+    const headerTitle = displayData.headerTitle || "Vị trí đang tuyển";
+    const headerDescription = displayData.headerDescription || "Tìm vị trí phù hợp với bạn và ứng tuyển ngay hôm nay";
+    const items = displayData.items || positions;
+
     return (
         <section id="positions" className="py-20 bg-white">
             <div className="max-w-[1340px] mx-auto px-6">
                 <FadeIn className="text-center mb-16 max-w-3xl mx-auto">
-                    <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">Vị trí đang tuyển</h2>
-                    <p className="text-gray-600 md:text-lg leading-relaxed">
-                        Tìm vị trí phù hợp với bạn và ứng tuyển ngay hôm nay
-                    </p>
+                    {headerTitle && (
+                        <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">{headerTitle}</h2>
+                    )}
+                    {headerDescription && (
+                        <p className="text-gray-600 md:text-lg leading-relaxed">
+                            {headerDescription}
+                        </p>
+                    )}
                 </FadeIn>
 
                 <StaggerContainer className="grid lg:grid-cols-2 gap-8">
-                    {positions.map((position) => (
+                    {items.filter((item: any) => item.isActive !== false).map((position: any) => (
                         <FadeIn key={position.id} className="h-full">
                             <motion.div
                                 whileHover={{ y: -5, boxShadow: "0 20px 40px -5px rgba(0, 0, 0, 0.1)" }}

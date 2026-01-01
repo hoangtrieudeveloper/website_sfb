@@ -5,6 +5,10 @@ import { milestones } from "./data";
 import { FadeIn } from "../../components/ui/motion";
 import { motion, Variants } from "framer-motion";
 
+interface AboutMilestonesProps {
+  data?: any;
+}
+
 const cardVariants: Variants = {
     hidden: (isLeft: boolean) => ({
         opacity: 0,
@@ -40,23 +44,33 @@ const lineFillVariants: Variants = {
     }
 };
 
-export function AboutMilestones() {
+export function AboutMilestones({ data }: AboutMilestonesProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data?.data || { items: milestones };
+    const headerTitle = displayData.headerTitle || "Hành trình phát triển";
+    const headerDescription = displayData.headerDescription || "Từ năm 2017 đến nay, SFB liên tục mở rộng đội ngũ, nâng cấp sản phẩm và chuẩn hóa dịch vụ để đồng hành cùng khách hàng lâu dài";
+    const items = displayData.items || milestones;
+
     return (
         <section className="py-20 bg-[#F8FBFE] overflow-hidden">
             <div className="max-w-[1340px] mx-auto px-6">
                 {/* Header */}
                 <FadeIn className="text-center mb-24 max-w-4xl mx-auto">
-                    <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
-                        Hành trình phát triển
-                    </h2>
-                    <p className="text-gray-600 md:text-lg leading-relaxed max-w-2xl mx-auto">
-                        Từ năm 2017 đến nay, SFB liên tục mở rộng đội ngũ, nâng cấp sản phẩm và chuẩn hóa dịch vụ để đồng hành cùng khách hàng lâu dài
-                    </p>
+                    {headerTitle && (
+                        <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
+                            {headerTitle}
+                        </h2>
+                    )}
+                    {headerDescription && (
+                        <p className="text-gray-600 md:text-lg leading-relaxed max-w-2xl mx-auto">
+                            {headerDescription}
+                        </p>
+                    )}
                 </FadeIn>
 
                 <div className="max-w-5xl mx-auto relative lg:min-h-[800px]">
                     <div className="space-y-12 lg:space-y-0 relative">
-                        {milestones.map((item, index) => {
+                        {items.filter((item: any) => item.isActive !== false).map((item: any, index: number) => {
                             const isLeft = index % 2 === 0;
 
                             return (
@@ -77,9 +91,14 @@ export function AboutMilestones() {
                                             whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(44, 164, 224, 0.15)" }}
                                             className="bg-white rounded-[24px] p-8 shadow-sm max-w-lg w-full relative z-10 border border-transparent hover:border-blue-100 transition-colors duration-300 cursor-default"
                                         >
-                                            <div className="w-10 h-10 mb-4 text-[#2CA4E0]">
-                                                <TrendingUp size={32} strokeWidth={1.5} />
+                                            <div className="w-10 h-10 mb-4 text-[#2CA4E0] text-2xl">
+                                                {item.icon || "🚀"}
                                             </div>
+                                            {item.year && (
+                                                <div className="mb-2">
+                                                    <span className="text-[#2CA4E0] font-bold text-lg">{item.year}</span>
+                                                </div>
+                                            )}
                                             <h3 className="text-[#0F172A] font-bold text-lg mb-3">
                                                 {item.title}
                                             </h3>
@@ -102,7 +121,7 @@ export function AboutMilestones() {
                                         </motion.div>
 
                                         {/* Connecting Line to next item */}
-                                        {index < milestones.length - 1 && (
+                                        {index < items.filter((i: any) => i.isActive !== false).length - 1 && (
                                             <motion.div
                                                 initial="hidden"
                                                 whileInView="visible"

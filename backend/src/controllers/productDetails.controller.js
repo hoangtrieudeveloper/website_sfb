@@ -30,61 +30,83 @@ exports.getProductDetail = async (req, res, next) => {
 
     const detail = details[0];
 
-    // Lấy overview cards
-    const { rows: overviewCards } = await pool.query(
-      'SELECT * FROM product_overview_cards WHERE product_detail_id = $1 ORDER BY sort_order ASC',
-      [detail.id],
+    // Lấy overview cards từ products_section_items
+    const { rows: overviewCardsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'overview-cards'],
     );
 
-    // Lấy showcase bullets
-    const { rows: showcaseBullets } = await pool.query(
-      'SELECT * FROM product_showcase_bullets WHERE product_detail_id = $1 ORDER BY sort_order ASC',
-      [detail.id],
+    // Lấy showcase bullets từ products_section_items
+    const { rows: showcaseBulletsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'showcase-bullets'],
     );
 
-    // Lấy numbered sections
-    const { rows: numberedSections } = await pool.query(
-      'SELECT * FROM product_numbered_sections WHERE product_detail_id = $1 ORDER BY sort_order ASC',
-      [detail.id],
+    // Lấy numbered sections từ products_section_items
+    const { rows: numberedSectionsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'numbered-sections'],
     );
 
-    // Lấy paragraphs cho từng section
-    const sectionIds = numberedSections.map(s => s.id);
+    // Lấy paragraphs cho từng section từ products_section_items
+    const sectionIds = numberedSectionsRows.map(s => s.id);
     let paragraphsMap = {};
     
     if (sectionIds.length > 0) {
-      const { rows: paragraphs } = await pool.query(
-        'SELECT * FROM product_section_paragraphs WHERE numbered_section_id = ANY($1) ORDER BY numbered_section_id, sort_order ASC',
-        [sectionIds],
+      // Lấy tất cả paragraphs của product detail này
+      const { rows: paragraphsRows } = await pool.query(
+        'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+        [detail.id, 'section-paragraphs'],
       );
       
-      paragraphs.forEach(p => {
-        if (!paragraphsMap[p.numbered_section_id]) {
-          paragraphsMap[p.numbered_section_id] = [];
+      paragraphsRows.forEach(p => {
+        // Parse parent_id từ data JSONB
+        const data = p.data || {};
+        const parentId = parseInt(data.parent_id || data.numbered_section_id || '0');
+        if (parentId && sectionIds.includes(parentId)) {
+          if (!paragraphsMap[parentId]) {
+            paragraphsMap[parentId] = [];
+          }
+          paragraphsMap[parentId].push(data.paragraph_text || data.text || '');
         }
-        paragraphsMap[p.numbered_section_id].push(p.paragraph_text);
       });
     }
 
-    // Lấy expand bullets
-    const { rows: expandBullets } = await pool.query(
-      'SELECT * FROM product_expand_bullets WHERE product_detail_id = $1 ORDER BY sort_order ASC',
-      [detail.id],
+    // Lấy expand bullets từ products_section_items
+    const { rows: expandBulletsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'expand-bullets'],
     );
 
-    // Gộp paragraphs vào sections
-    const sectionsWithParagraphs = numberedSections.map(section => ({
+    // Parse overview cards
+    const overviewCards = overviewCardsRows.map(row => ({
+      id: row.id,
+      step: row.data?.step || 0,
+      title: row.data?.title || '',
+      description: row.data?.description || '',
+      sortOrder: row.sort_order || 0,
+    }));
+
+    // Parse showcase bullets
+    const showcaseBullets = showcaseBulletsRows.map(row => ({
+      id: row.id,
+      bullet_text: row.data?.bullet_text || row.data?.text || '',
+      sortOrder: row.sort_order || 0,
+    }));
+
+    // Parse numbered sections
+    const sectionsWithParagraphs = numberedSectionsRows.map(section => ({
       id: section.id,
-      sectionNo: section.section_no,
-      title: section.title,
+      sectionNo: section.data?.section_no || section.data?.sectionNo || 0,
+      title: section.data?.title || '',
       // Hỗ trợ cả imageBack/imageFront (mới) và image (cũ) để backward compatible
-      imageBack: section.overlay_back_image || section.image || '',
-      imageFront: section.overlay_front_image || '',
-      image: section.image || '', // Giữ lại để backward compatible
-      imageAlt: section.image_alt || '',
-      imageSide: section.image_side || 'left',
-      overlayBackImage: section.overlay_back_image || '',
-      overlayFrontImage: section.overlay_front_image || '',
+      imageBack: section.data?.overlay_back_image || section.data?.imageBack || section.data?.image || '',
+      imageFront: section.data?.overlay_front_image || section.data?.imageFront || '',
+      image: section.data?.image || '', // Giữ lại để backward compatible
+      imageAlt: section.data?.image_alt || section.data?.imageAlt || '',
+      imageSide: section.data?.image_side || section.data?.imageSide || 'left',
+      overlayBackImage: section.data?.overlay_back_image || section.data?.imageBack || '',
+      overlayFrontImage: section.data?.overlay_front_image || section.data?.imageFront || '',
       paragraphs: paragraphsMap[section.id] || [],
       sortOrder: section.sort_order || 0,
     }));
@@ -104,13 +126,7 @@ exports.getProductDetail = async (req, res, next) => {
         ctaDemoHref: detail.cta_demo_href || '',
         overviewKicker: detail.overview_kicker || '',
         overviewTitle: detail.overview_title || '',
-        overviewCards: overviewCards.map(card => ({
-          id: card.id,
-          step: card.step,
-          title: card.title,
-          description: card.description || '',
-          sortOrder: card.sort_order || 0,
-        })),
+        overviewCards: overviewCards,
         showcase: {
           title: detail.showcase_title || '',
           desc: detail.showcase_desc || '',
@@ -123,7 +139,7 @@ exports.getProductDetail = async (req, res, next) => {
         numberedSections: sectionsWithParagraphs,
         expand: {
           title: detail.expand_title || '',
-          bullets: expandBullets.map(b => b.bullet_text),
+          bullets: expandBulletsRows.map(b => b.data?.bullet_text || b.data?.text || ''),
           ctaText: detail.expand_cta_text || '',
           ctaHref: detail.expand_cta_href || '',
           image: detail.expand_image || '',
@@ -283,49 +299,50 @@ exports.saveProductDetail = async (req, res, next) => {
       }
 
       // Xóa và tạo lại overview cards
-      await client.query('DELETE FROM product_overview_cards WHERE product_detail_id = $1', [detailId]);
+      await client.query('DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2', [detailId, 'overview-cards']);
       if (overviewCards && overviewCards.length > 0) {
-        // Đơn giản hóa: insert từng card một để tránh lỗi mapping tham số
         for (let i = 0; i < overviewCards.length; i++) {
           const card = overviewCards[i];
           await client.query(
-            `
-              INSERT INTO product_overview_cards (
-                product_detail_id,
-                step,
-                title,
-                description,
-                sort_order
-              )
-              VALUES ($1, $2, $3, $4, $5)
-            `,
+            `INSERT INTO products_section_items (product_detail_id, section_type, data, sort_order, is_active)
+             VALUES ($1, $2, $3, $4, $5)`,
             [
               detailId,
-              card.step || i + 1,
-              card.title || '',
-              card.description || '',
+              'overview-cards',
+              JSON.stringify({
+                step: card.step || i + 1,
+                title: card.title || '',
+                description: card.description || '',
+              }),
               i,
+              true,
             ],
           );
         }
       }
 
       // Xóa và tạo lại showcase bullets
-      await client.query('DELETE FROM product_showcase_bullets WHERE product_detail_id = $1', [detailId]);
+      await client.query('DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2', [detailId, 'showcase-bullets']);
       if (showcase.bullets && showcase.bullets.length > 0) {
-        const bulletParams = [];
-        showcase.bullets.forEach((bullet, index) => {
-          bulletParams.push(detailId, bullet, index);
-        });
-        await client.query(
-          `INSERT INTO product_showcase_bullets (product_detail_id, bullet_text, sort_order)
-           VALUES ${showcase.bullets.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(', ')}`,
-          bulletParams,
-        );
+        for (let i = 0; i < showcase.bullets.length; i++) {
+          await client.query(
+            `INSERT INTO products_section_items (product_detail_id, section_type, data, sort_order, is_active)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+              detailId,
+              'showcase-bullets',
+              JSON.stringify({
+                bullet_text: showcase.bullets[i] || '',
+              }),
+              i,
+              true,
+            ],
+          );
+        }
       }
 
       // Xóa và tạo lại numbered sections
-      await client.query('DELETE FROM product_numbered_sections WHERE product_detail_id = $1', [detailId]);
+      await client.query('DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2', [detailId, 'numbered-sections']);
       if (numberedSections && numberedSections.length > 0) {
         for (let i = 0; i < numberedSections.length; i++) {
           const section = numberedSections[i];
@@ -335,35 +352,24 @@ exports.saveProductDetail = async (req, res, next) => {
           // Nếu có imageBack thì dùng làm image chính, nếu không thì dùng image cũ
           const imageValue = section.imageBack || section.image || '';
           
-          console.log(`[DEBUG] Saving numbered section ${i}:`, {
-            sectionNo: section.sectionNo,
-            title: section.title,
-            imageBack: section.imageBack,
-            imageFront: section.imageFront,
-            imageBackValue,
-            imageFrontValue,
-            imageValue,
-          });
-          
           const { rows: newSection } = await client.query(
-            `
-              INSERT INTO product_numbered_sections (
-                product_detail_id, section_no, title, image, image_alt, image_side,
-                overlay_back_image, overlay_front_image, sort_order
-              )
-              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-              RETURNING id
-            `,
+            `INSERT INTO products_section_items (product_detail_id, section_type, data, sort_order, is_active)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING id`,
             [
               detailId,
-              section.sectionNo,
-              section.title,
-              imageValue,
-              section.imageAlt || '',
-              section.imageSide || 'left',
-              imageBackValue,
-              imageFrontValue,
+              'numbered-sections',
+              JSON.stringify({
+                section_no: section.sectionNo,
+                title: section.title || '',
+                image: imageValue,
+                image_alt: section.imageAlt || '',
+                image_side: section.imageSide || 'left',
+                overlay_back_image: imageBackValue,
+                overlay_front_image: imageFrontValue,
+              }),
               i,
+              true,
             ],
           );
 
@@ -371,34 +377,49 @@ exports.saveProductDetail = async (req, res, next) => {
 
           // Thêm paragraphs cho section này
           if (section.paragraphs && section.paragraphs.length > 0) {
-            const paraValues = section.paragraphs.map((_, index) => 
-              `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`
-            ).join(', ');
-            const paraParams = [];
-            section.paragraphs.forEach((para, index) => {
-              paraParams.push(sectionId, para, index);
-            });
-            await client.query(
-              `INSERT INTO product_section_paragraphs (numbered_section_id, paragraph_text, sort_order)
-               VALUES ${section.paragraphs.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(', ')}`,
-              paraParams,
-            );
+            // Xóa paragraphs cũ của section này
+            await client.query('DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 AND (data->>\'parent_id\')::int = $3', [detailId, 'section-paragraphs', sectionId]);
+            
+            for (let j = 0; j < section.paragraphs.length; j++) {
+              await client.query(
+                `INSERT INTO products_section_items (product_detail_id, section_type, data, sort_order, is_active)
+                 VALUES ($1, $2, $3, $4, $5)`,
+                [
+                  detailId,
+                  'section-paragraphs',
+                  JSON.stringify({
+                    parent_id: sectionId,
+                    numbered_section_id: sectionId,
+                    paragraph_text: section.paragraphs[j] || '',
+                    text: section.paragraphs[j] || '',
+                  }),
+                  j,
+                  true,
+                ],
+              );
+            }
           }
         }
       }
 
       // Xóa và tạo lại expand bullets
-      await client.query('DELETE FROM product_expand_bullets WHERE product_detail_id = $1', [detailId]);
+      await client.query('DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2', [detailId, 'expand-bullets']);
       if (expand.bullets && expand.bullets.length > 0) {
-        const expandParams = [];
-        expand.bullets.forEach((bullet, index) => {
-          expandParams.push(detailId, bullet, index);
-        });
-        await client.query(
-          `INSERT INTO product_expand_bullets (product_detail_id, bullet_text, sort_order)
-           VALUES ${expand.bullets.map((_, i) => `($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`).join(', ')}`,
-          expandParams,
-        );
+        for (let i = 0; i < expand.bullets.length; i++) {
+          await client.query(
+            `INSERT INTO products_section_items (product_detail_id, section_type, data, sort_order, is_active)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+              detailId,
+              'expand-bullets',
+              JSON.stringify({
+                bullet_text: expand.bullets[i] || '',
+              }),
+              i,
+              true,
+            ],
+          );
+        }
       }
 
       await client.query('COMMIT');

@@ -1,43 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 
-export function CareerHero() {
-    const [heroData, setHeroData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+interface CareerHeroProps {
+  data?: any;
+}
 
-    useEffect(() => {
-        const fetchHero = async () => {
-            try {
-                const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
-                    process.env.API_SFB_URL ||
-                    "http://localhost:4000";
-
-                const res = await fetch(`${baseUrl}/api/public/careers/hero`, {
-                    next: { revalidate: 60 },
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success && data.data) {
-                        setHeroData(data.data);
-                    }
-                }
-            } catch (error) {
-                console.error("Error fetching career hero:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void fetchHero();
-    }, []);
-
-    // Fallback data nếu không có data từ API
-    const displayData = heroData || {
+export function CareerHero({ data }: CareerHeroProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data?.data || {
         titleLine1: "Cùng xây dựng",
         titleLine2: "tương lai công nghệ",
         description: "Gia nhập đội ngũ 50+ chuyên gia công nghệ, làm việc với tech stack hiện đại nhất và triển khai dự án cho các khách hàng lớn",
@@ -46,23 +19,6 @@ export function CareerHero() {
         image: "/images/hero.png",
         backgroundGradient: "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
     };
-
-    if (loading) {
-        return (
-            <section
-                className="relative w-full flex justify-center items-center overflow-hidden"
-                style={{
-                    height: '847px',
-                    paddingTop: '87px',
-                    background: displayData.backgroundGradient,
-                }}
-            >
-                <div className="container mx-auto px-6 relative z-10">
-                    <div className="text-white text-center">Đang tải...</div>
-                </div>
-            </section>
-        );
-    }
 
     return (
         <section

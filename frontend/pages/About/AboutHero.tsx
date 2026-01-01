@@ -5,14 +5,29 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { aboutHeroData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 
-export function AboutHero() {
+interface AboutHeroProps {
+  data?: any;
+}
+
+export function AboutHero({ data }: AboutHeroProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data?.data || aboutHeroData;
+    const backgroundGradient = displayData.backgroundGradient || 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)';
+    const titleLine1 = displayData.titleLine1 || displayData.title?.line1 || aboutHeroData.title.line1;
+    const titleLine2 = displayData.titleLine2 || displayData.title?.line2 || aboutHeroData.title.line2;
+    const titleLine3 = displayData.titleLine3 || displayData.title?.line3 || aboutHeroData.title.line3;
+    const description = displayData.description || aboutHeroData.description;
+    const buttonText = displayData.buttonText || displayData.button?.text || aboutHeroData.button.text;
+    const buttonLink = displayData.buttonLink || displayData.button?.link || aboutHeroData.button.link;
+    const image = displayData.image || aboutHeroData.image;
+
     return (
         <section
             className="relative w-full flex justify-center items-center overflow-hidden"
             style={{
                 height: '847px',
                 paddingTop: '87px',
-                background: 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)'
+                background: backgroundGradient
             }}
         >
             {/* Techno Grid Overlay */}
@@ -28,27 +43,27 @@ export function AboutHero() {
                     <StaggerContainer className="text-white lg:max-w-[45%]">
                         <FadeIn>
                             <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                                {aboutHeroData.title.line1}
+                                {titleLine1}
                                 <span className="block mt-2">
-                                    {aboutHeroData.title.line2}
+                                    {titleLine2}
                                     <br />
-                                    {aboutHeroData.title.line3}
+                                    {titleLine3}
                                 </span>
                             </h1>
                         </FadeIn>
 
                         <FadeIn delay={0.2}>
                             <p className="text-base md:text-lg text-white/90 mb-10 leading-relaxed font-light">
-                                {aboutHeroData.description}
+                                {description}
                             </p>
                         </FadeIn>
 
                         <FadeIn delay={0.4}>
                             <a
-                                href={aboutHeroData.button.link}
+                                href={buttonLink}
                                 className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md"
                             >
-                                {aboutHeroData.button.text}
+                                {buttonText}
                                 <ArrowRight size={18} />
                             </a>
                         </FadeIn>
@@ -59,7 +74,7 @@ export function AboutHero() {
                         <div className="relative flex-none lg:w-[851px] lg:h-[512px] w-full h-auto flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
                             <div className="w-full h-full rounded-[14px] overflow-hidden relative">
                                 <ImageWithFallback
-                                    src={aboutHeroData.image}
+                                    src={image}
                                     alt="About Hero Detail"
                                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                                 />

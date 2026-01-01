@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Home, Sparkles, Users, Briefcase, ShieldCheck, MessageSquare, CheckCircle2, ArrowRight, Play, CheckCircle, LineChart, Code, Database, Cloud, BarChart3, FileCheck, Plus, Edit, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Save, Home, Sparkles, Users, Briefcase, ShieldCheck, MessageSquare, CheckCircle2, ArrowRight, Play, CheckCircle, LineChart, Code, Database, Cloud, BarChart3, FileCheck, Plus, Edit, Trash2, ChevronUp, ChevronDown, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
-const BLOCK_TYPES = ['hero', 'aboutCompany', 'features', 'solutions', 'trusts', 'consult'] as const;
+const BLOCK_TYPES = ['hero', 'aboutCompany', 'features', 'solutions', 'trusts', 'testimonials', 'consult'] as const;
 type BlockType = typeof BLOCK_TYPES[number];
 
 const ICON_OPTIONS = [
@@ -64,6 +64,7 @@ export default function AdminHomepagePage() {
     features: { sectionType: 'features', data: {}, isActive: true },
     solutions: { sectionType: 'solutions', data: {}, isActive: true },
     trusts: { sectionType: 'trusts', data: {}, isActive: true },
+    testimonials: { sectionType: 'testimonials', data: {}, isActive: true },
     consult: { sectionType: 'consult', data: {}, isActive: true },
   });
   const [loading, setLoading] = useState<Record<BlockType, boolean>>({
@@ -72,6 +73,7 @@ export default function AdminHomepagePage() {
     features: false,
     solutions: false,
     trusts: false,
+    testimonials: false,
     consult: false,
   });
   const [activeTab, setActiveTab] = useState<BlockType>('hero');
@@ -82,14 +84,16 @@ export default function AdminHomepagePage() {
   const [editingTrustFeatureIndex, setEditingTrustFeatureIndex] = useState<number | null>(null);
   const [editingFeatureItemIndex, setEditingFeatureItemIndex] = useState<{ block: 'block2' | 'block3', index: number } | null>(null);
   const [editingFeatureBlockIndex, setEditingFeatureBlockIndex] = useState<number | null>(null);
+  const [editingTestimonialIndex, setEditingTestimonialIndex] = useState<number | null>(null);
 
   const tabsConfig = [
-    { value: 'hero' as BlockType, label: 'Hero Banner', icon: Home, description: 'Banner đầu trang, tiêu đề..' },
-    { value: 'aboutCompany' as BlockType, label: 'Giới thiệu công ty', icon: Users, description: 'Phần giới thiệu về công ty' },
-    { value: 'features' as BlockType, label: 'Tính năng', icon: Sparkles, description: 'Các tính năng nổi bật' },
-    { value: 'solutions' as BlockType, label: 'Giải pháp', icon: Briefcase, description: 'Các giải pháp chuyên nghiệp' },
-    { value: 'trusts' as BlockType, label: 'Độ tin cậy', icon: ShieldCheck, description: 'Phần thể hiện độ tin cậy' },
-    { value: 'consult' as BlockType, label: 'Tư vấn', icon: MessageSquare, description: 'Phần kêu gọi tư vấn' },
+    { value: 'hero' as BlockType, label: 'Hero Banner', icon: Home, description: 'Banner đầu trang..' },
+    { value: 'aboutCompany' as BlockType, label: 'Giới thiệu', icon: Users, description: 'Giới thiệu..' },
+    { value: 'features' as BlockType, label: 'Tính năng', icon: Sparkles, description: 'Tính năng nổi bật' },
+    { value: 'solutions' as BlockType, label: 'Giải pháp', icon: Briefcase, description: 'Chuyên nghiệp' },
+    { value: 'trusts' as BlockType, label: 'Độ tin cậy', icon: ShieldCheck, description: 'Thể hiện độ tin cậy' },
+    { value: 'testimonials' as BlockType, label: 'Khách hàng', icon: Star, description: 'Đánh giá từ khách hàng' },
+    { value: 'consult' as BlockType, label: 'Tư vấn', icon: MessageSquare, description: 'Kêu gọi tư vấn' },
   ];
 
   useEffect(() => {
@@ -1103,6 +1107,104 @@ export default function AdminHomepagePage() {
                           </div>
                         </>
                       )}
+
+                      {blockType === 'testimonials' && (
+                        <>
+                          <div>
+                            <Label className="mb-2">Tiêu đề</Label>
+                            <Input
+                              value={getBlockData('testimonials', 'title')}
+                              onChange={(e) => updateBlockData('testimonials', 'title', e.target.value)}
+                              placeholder="Khách hàng nói về SFB?"
+                            />
+                          </div>
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-lg">Reviews (Đánh giá)</h3>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  const reviews = getBlockData('testimonials', 'reviews', []) as any[];
+                                  addArrayItem('testimonials', 'reviews', {
+                                    id: reviews.length + 1,
+                                    quote: '',
+                                    author: '',
+                                    rating: 5,
+                                  });
+                                  setEditingTestimonialIndex(reviews.length);
+                                }}
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Thêm review
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              {(getBlockData('testimonials', 'reviews', []) as any[]).map((review: any, idx: number) => (
+                                <Card key={idx}>
+                                  <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                      <CardTitle className="text-base">Review {idx + 1}</CardTitle>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => moveArrayItem('testimonials', 'reviews', idx, 'up')}
+                                          disabled={idx === 0}
+                                        >
+                                          <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => moveArrayItem('testimonials', 'reviews', idx, 'down')}
+                                          disabled={idx === (getBlockData('testimonials', 'reviews', []) as any[]).length - 1}
+                                        >
+                                          <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => setEditingTestimonialIndex(idx)}
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => removeArrayItem('testimonials', 'reviews', idx)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="space-y-2">
+                                      <p className="font-medium text-sm">{review.author || 'Chưa có tác giả'}</p>
+                                      <p className="text-xs text-gray-600 line-clamp-2">{review.quote || 'Chưa có nội dung'}</p>
+                                      <div className="flex gap-1">
+                                        {[...Array(review.rating || 5)].map((_, i) => (
+                                          <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="mb-2">Kích hoạt</Label>
+                            <Switch
+                              checked={block.isActive}
+                              onCheckedChange={(checked) => setBlocks(prev => ({
+                                ...prev,
+                                [blockType]: { ...prev[blockType], isActive: checked }
+                              }))}
+                            />
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -1480,6 +1582,36 @@ export default function AdminHomepagePage() {
                                 <ArrowRight className="w-5 h-5" />
                               </a>
                             </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {blockType === 'testimonials' && (
+                        <div className="bg-[#eff8ff] py-12 rounded-lg">
+                          <div className="text-center mb-12">
+                            <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
+                              {getBlockData('testimonials', 'title', 'Khách hàng nói về SFB?')}
+                            </h2>
+                          </div>
+                          <div className="flex flex-wrap gap-4 justify-center px-4">
+                            {(getBlockData('testimonials', 'reviews', []) as any[]).slice(0, 4).map((review: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-white rounded-[32px] p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col items-start gap-4 w-full max-w-[300px]"
+                              >
+                                <div className="flex gap-1">
+                                  {[...Array(review.rating || 5)].map((_, i) => (
+                                    <Star key={i} className="h-4 w-4 fill-[#FBBF24] text-[#FBBF24]" />
+                                  ))}
+                                </div>
+                                <p className="text-[#334155] text-sm leading-relaxed line-clamp-4">
+                                  "{review.quote || 'Nội dung đánh giá...'}"
+                                </p>
+                                <div className="font-bold text-[#0F172A] text-sm mt-auto">
+                                  {review.author || 'Tác giả'}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -2134,6 +2266,84 @@ export default function AdminHomepagePage() {
             }}>
               <Save className="h-4 w-4 mr-2" />
               Lưu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for Testimonials Reviews */}
+      <Dialog open={editingTestimonialIndex !== null} onOpenChange={(open) => {
+        if (!open) setEditingTestimonialIndex(null);
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingTestimonialIndex !== null && editingTestimonialIndex >= (getBlockData('testimonials', 'reviews', []) as any[]).length
+                ? "Thêm review mới"
+                : "Chỉnh sửa review"}
+            </DialogTitle>
+          </DialogHeader>
+          {editingTestimonialIndex !== null && (() => {
+            const reviews = getBlockData('testimonials', 'reviews', []) as any[];
+            const review = reviews[editingTestimonialIndex] || { id: reviews.length + 1, quote: '', author: '', rating: 5 };
+            return (
+              <div className="space-y-4 py-4">
+                <div>
+                  <Label className="mb-2">Tác giả</Label>
+                  <Input
+                    value={review.author || ''}
+                    onChange={(e) => {
+                      const newReviews = [...reviews];
+                      if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
+                      newReviews[editingTestimonialIndex].author = e.target.value;
+                      updateBlockData('testimonials', 'reviews', newReviews);
+                    }}
+                    placeholder="Ông Nguyễn Văn A"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2">Nội dung đánh giá</Label>
+                  <Textarea
+                    value={review.quote || ''}
+                    onChange={(e) => {
+                      const newReviews = [...reviews];
+                      if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
+                      newReviews[editingTestimonialIndex].quote = e.target.value;
+                      updateBlockData('testimonials', 'reviews', newReviews);
+                    }}
+                    placeholder="Nội dung đánh giá..."
+                    rows={5}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2">Đánh giá (1-5 sao)</Label>
+                  <Select
+                    value={String(review.rating || 5)}
+                    onValueChange={(value) => {
+                      const newReviews = [...reviews];
+                      if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
+                      newReviews[editingTestimonialIndex].rating = parseInt(value);
+                      updateBlockData('testimonials', 'reviews', newReviews);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 sao</SelectItem>
+                      <SelectItem value="2">2 sao</SelectItem>
+                      <SelectItem value="3">3 sao</SelectItem>
+                      <SelectItem value="4">4 sao</SelectItem>
+                      <SelectItem value="5">5 sao</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTestimonialIndex(null)}>
+              Đóng
             </Button>
           </DialogFooter>
         </DialogContent>

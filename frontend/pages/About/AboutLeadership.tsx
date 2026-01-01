@@ -14,19 +14,32 @@ import { leaders } from "./data";
 import { FadeIn } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 
-export function AboutLeadership() {
+interface AboutLeadershipProps {
+  data?: any;
+}
+
+export function AboutLeadership({ data }: AboutLeadershipProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data?.data || { items: leaders };
+    const headerTitle = displayData.headerTitle || "Ban lãnh đạo";
+    const headerDescription = displayData.headerDescription || "Đội ngũ lãnh đạo chủ chốt của SFB Technology, định hướng chiến lược và đồng hành cùng khách hàng trong mọi dự án";
+    const items = displayData.items || leaders;
 
     return (
         <section className="py-20 bg-white">
             <div className="max-w-[1340px] mx-auto px-6">
                 {/* Header */}
                 <FadeIn className="text-center mb-16 max-w-4xl mx-auto">
-                    <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
-                        Ban lãnh đạo
-                    </h2>
-                    <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
-                        Đội ngũ lãnh đạo chủ chốt của SFB Technology, định hướng chiến lược và đồng hành cùng khách hàng trong mọi dự án
-                    </p>
+                    {headerTitle && (
+                        <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
+                            {headerTitle}
+                        </h2>
+                    )}
+                    {headerDescription && (
+                        <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
+                            {headerDescription}
+                        </p>
+                    )}
                 </FadeIn>
 
                 {/* Carousel */}
@@ -39,7 +52,7 @@ export function AboutLeadership() {
                         className="w-full"
                     >
                         <CarouselContent className="-ml-4 py-4">
-                            {leaders.map((leader, index) => (
+                            {items.filter((item: any) => item.isActive !== false).map((leader: any, index: number) => (
                                 <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
                                     <motion.div
                                         whileHover={{ y: -8 }}

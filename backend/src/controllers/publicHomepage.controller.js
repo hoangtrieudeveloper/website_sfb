@@ -15,8 +15,9 @@ exports.getPublicHomepageBlocks = async (req, res, next) => {
           WHEN 'features' THEN 3
           WHEN 'solutions' THEN 4
           WHEN 'trusts' THEN 5
-          WHEN 'consult' THEN 6
-          ELSE 7
+          WHEN 'testimonials' THEN 6
+          WHEN 'consult' THEN 7
+          ELSE 8
         END
       `,
     );

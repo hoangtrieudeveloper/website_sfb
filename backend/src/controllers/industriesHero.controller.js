@@ -1,9 +1,18 @@
 const { pool } = require('../config/database');
 
-// Helper function to get section by type
+// Helper function to get section by type (only active)
 const getSection = async (sectionType) => {
   const { rows } = await pool.query(
     'SELECT * FROM industries_sections WHERE section_type = $1 AND is_active = true',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
+// Helper function to get section by type (any status)
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM industries_sections WHERE section_type = $1',
     [sectionType]
   );
   return rows.length > 0 ? rows[0] : null;
@@ -21,7 +30,8 @@ const getItems = async (sectionId, sectionType) => {
 // GET /api/admin/industries/hero
 exports.getHero = async (req, res, next) => {
   try {
-    const section = await getSection('hero');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('hero');
     
     if (!section) {
       return res.json({
@@ -31,7 +41,11 @@ exports.getHero = async (req, res, next) => {
     }
 
     const data = section.data || {};
-    const stats = await getItems(section.id, 'hero');
+    // For admin, get all stats (any status) to manage them
+    const stats = await pool.query(
+      'SELECT * FROM industries_section_items WHERE section_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [section.id, 'hero']
+    );
 
     return res.json({
       success: true,
@@ -44,7 +58,7 @@ exports.getHero = async (req, res, next) => {
         buttonLink: data.buttonLink || '',
         image: data.image || '',
         backgroundGradient: data.backgroundGradient || '',
-        stats: stats.map(s => {
+        stats: stats.rows.map(s => {
           const itemData = s.data || {};
           return {
             id: s.id,
@@ -93,17 +107,30 @@ exports.updateHero = async (req, res, next) => {
       backgroundGradient: backgroundGradient || '',
     };
 
-    const section = await getSection('hero');
+    // Check if section exists (any status)
+    const section = await getSectionAnyStatus('hero');
     let heroId;
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
       heroId = section.id;
+      const existingData = section.data || {};
+      const updateData = {
+        titlePrefix: titlePrefix !== undefined && titlePrefix !== '' ? titlePrefix : (existingData.titlePrefix || ''),
+        titleSuffix: titleSuffix !== undefined && titleSuffix !== '' ? titleSuffix : (existingData.titleSuffix || ''),
+        description: description !== undefined && description !== '' ? description : (existingData.description || ''),
+        buttonText: buttonText !== undefined && buttonText !== '' ? buttonText : (existingData.buttonText || ''),
+        buttonLink: buttonLink !== undefined && buttonLink !== '' ? buttonLink : (existingData.buttonLink || ''),
+        image: image !== undefined && image !== '' ? image : (existingData.image || ''),
+        backgroundGradient: backgroundGradient !== undefined && backgroundGradient !== '' ? backgroundGradient : (existingData.backgroundGradient || ''),
+      };
       await client.query(
         'UPDATE industries_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, heroId]
+        [JSON.stringify(updateData), isActive !== undefined ? isActive : true, heroId]
       );
       await client.query('DELETE FROM industries_section_items WHERE section_id = $1 AND section_type = $2', [heroId, 'hero']);
     } else {
+      // Insert new
       const { rows: inserted } = await client.query(
         'INSERT INTO industries_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
         ['hero', JSON.stringify(data), isActive !== undefined ? isActive : true]
@@ -130,8 +157,15 @@ exports.updateHero = async (req, res, next) => {
 
     await client.query('COMMIT');
 
-    // Fetch updated data
-    const updatedSection = await getSection('hero');
+    // Fetch updated data (any status)
+    const updatedSection = await getSectionAnyStatus('hero');
+    if (!updatedSection) {
+      client.release();
+      return res.status(500).json({
+        success: false,
+        message: 'Không thể lấy dữ liệu sau khi cập nhật',
+      });
+    }
     const updatedStats = await getItems(heroId, 'hero');
 
     return res.json({

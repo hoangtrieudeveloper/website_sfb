@@ -12,7 +12,18 @@ import { ScrollAnimation } from "../public/ScrollAnimation";
 
 import { partners, heroData } from "./data";
 
-export function HeroBanner() {
+interface HeroBannerProps {
+  data?: any;
+}
+
+export function HeroBanner({ data }: HeroBannerProps) {
+  // Use data from props if available, otherwise fallback to static data
+  const title = data?.title || heroData.title;
+  const description = data?.description || heroData.description;
+  const primaryButton = data?.primaryButton || heroData.primaryButton;
+  const secondaryButton = data?.secondaryButton || heroData.secondaryButton;
+  const heroImage = data?.heroImage || heroData.heroImage;
+  const partnersList = data?.partners || partners;
 
   return (
     <section
@@ -39,9 +50,9 @@ export function HeroBanner() {
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
-                {heroData.title.line1}<br className="hidden lg:block" />
-                {heroData.title.line2}<br className="hidden lg:block" />
-                {heroData.title.line3}
+                {title.line1}<br className="hidden lg:block" />
+                {title.line2}<br className="hidden lg:block" />
+                {title.line3}
               </h1>
             </ScrollAnimation>
 
@@ -55,14 +66,14 @@ export function HeroBanner() {
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
-                {heroData.description}
+                {description}
               </p>
             </ScrollAnimation>
 
             <ScrollAnimation variant="blur-in" delay={0.4}>
               <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center lg:justify-start">
                 <Link
-                  href={heroData.primaryButton.link}
+                  href={primaryButton.link}
                   className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold"
                   style={{
                     display: "flex",
@@ -76,7 +87,7 @@ export function HeroBanner() {
                       "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
                   }}
                 >
-                  {heroData.primaryButton.text}
+                  {primaryButton.text}
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
 
@@ -97,7 +108,7 @@ export function HeroBanner() {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Play size={14} className="text-white ml-0.5" />
                   </div>
-                  <span>{heroData.secondaryButton.text}</span>
+                  <span>{secondaryButton.text}</span>
                 </button>
               </div>
             </ScrollAnimation>
@@ -123,7 +134,7 @@ export function HeroBanner() {
               }}
             >
               <ImageWithFallback
-                src="/images/hero.png"
+                src={heroImage}
                 alt="SFB Technology Office"
                 className="w-full h-auto"
               />
@@ -142,7 +153,7 @@ export function HeroBanner() {
             style={{ height: "64px", flexShrink: 0 }}
           >
             <div className="flex items-center gap-16 animate-partner-marquee hover:[animation-play-state:paused] h-full">
-              {[...partners, ...partners].map((logo, idx) => (
+              {[...partnersList, ...partnersList].map((logo, idx) => (
                 <motion.div
                   key={`${logo}-${idx}`}
                   className="flex items-center justify-center h-full"

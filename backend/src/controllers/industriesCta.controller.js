@@ -3,10 +3,11 @@ const { pool } = require('../config/database');
 // GET /api/admin/industries/cta
 exports.getCta = async (req, res, next) => {
   try {
+    // For admin, get section with any status
     const { rows } = await pool.query(
       `SELECT id, data, is_active, created_at, updated_at 
        FROM industries_sections 
-       WHERE section_type = 'cta' AND is_active = true 
+       WHERE section_type = 'cta'
        ORDER BY id DESC LIMIT 1`,
     );
 

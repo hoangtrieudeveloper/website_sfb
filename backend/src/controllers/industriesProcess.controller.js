@@ -1,9 +1,18 @@
 const { pool } = require('../config/database');
 
-// Helper function to get section by type
+// Helper function to get section by type (only active)
 const getSection = async (sectionType) => {
   const { rows } = await pool.query(
     'SELECT * FROM industries_sections WHERE section_type = $1 AND is_active = true',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
+// Helper function to get section by type (any status)
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM industries_sections WHERE section_type = $1',
     [sectionType]
   );
   return rows.length > 0 ? rows[0] : null;
@@ -21,9 +30,11 @@ const getItems = async (sectionId, sectionType) => {
 // GET /api/admin/industries/process
 exports.getProcess = async (req, res, next) => {
   try {
-    const section = await getSection('process-header');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('process-header');
+    // For admin, get all steps (any status) to manage them
     const steps = await pool.query(
-      'SELECT * FROM industries_section_items WHERE section_type = $1 AND is_active = true ORDER BY sort_order ASC',
+      'SELECT * FROM industries_section_items WHERE section_type = $1 ORDER BY sort_order ASC',
       ['process']
     );
 
@@ -84,22 +95,32 @@ exports.updateProcess = async (req, res, next) => {
     // Update/Create header
     let processHeaderId;
     if (header) {
-      const headerData = {
-        subtitle: header.subtitle || '',
-        titlePart1: header.titlePart1 || '',
-        titleHighlight: header.titleHighlight || '',
-        titlePart2: header.titlePart2 || '',
-      };
-
-      const section = await getSection('process-header');
+      // Check if section exists (any status)
+      const section = await getSectionAnyStatus('process-header');
 
       if (section) {
+        // Update existing - ALWAYS preserve existing data if new data is empty or undefined
         processHeaderId = section.id;
+        const existingData = section.data || {};
+        const headerData = {
+          // Only update if new value is provided and not empty, otherwise keep existing
+          subtitle: (header.subtitle && header.subtitle.trim() !== '') ? header.subtitle : (existingData.subtitle || ''),
+          titlePart1: (header.titlePart1 && header.titlePart1.trim() !== '') ? header.titlePart1 : (existingData.titlePart1 || ''),
+          titleHighlight: (header.titleHighlight && header.titleHighlight.trim() !== '') ? header.titleHighlight : (existingData.titleHighlight || ''),
+          titlePart2: (header.titlePart2 && header.titlePart2.trim() !== '') ? header.titlePart2 : (existingData.titlePart2 || ''),
+        };
         await client.query(
           'UPDATE industries_sections SET data = $1, is_active = $2 WHERE id = $3',
           [JSON.stringify(headerData), header.isActive !== undefined ? header.isActive : true, processHeaderId]
         );
       } else {
+        // Insert new
+        const headerData = {
+          subtitle: header.subtitle || '',
+          titlePart1: header.titlePart1 || '',
+          titleHighlight: header.titleHighlight || '',
+          titlePart2: header.titlePart2 || '',
+        };
         const { rows: inserted } = await client.query(
           'INSERT INTO industries_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
           ['process-header', JSON.stringify(headerData), header.isActive !== undefined ? header.isActive : true]
@@ -107,8 +128,8 @@ exports.updateProcess = async (req, res, next) => {
         processHeaderId = inserted[0].id;
       }
     } else {
-      // Get existing header id if exists
-      const section = await getSection('process-header');
+      // Get existing header id if exists (any status)
+      const section = await getSectionAnyStatus('process-header');
       if (section) {
         processHeaderId = section.id;
       }
@@ -153,9 +174,10 @@ exports.updateProcess = async (req, res, next) => {
 
     await client.query('COMMIT');
 
-    // Fetch updated data
-    const updatedSection = await getSection('process-header');
-    const updatedSteps = await getItems(processHeaderId || updatedSection?.id, 'process');
+    // Fetch updated data (any status)
+    const updatedSection = await getSectionAnyStatus('process-header');
+    const sectionId = processHeaderId || updatedSection?.id;
+    const updatedSteps = sectionId ? await getItems(sectionId, 'process') : [];
 
     return res.json({
       success: true,

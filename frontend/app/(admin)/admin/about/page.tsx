@@ -344,9 +344,29 @@ export default function AdminAboutPage() {
   const handleSaveHero = async () => {
     try {
       setLoadingHero(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.about.hero.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        titleLine1: heroData.titleLine1 !== '' ? heroData.titleLine1 : (existingData.titleLine1 || ''),
+        titleLine2: heroData.titleLine2 !== '' ? heroData.titleLine2 : (existingData.titleLine2 || ''),
+        titleLine3: heroData.titleLine3 !== '' ? heroData.titleLine3 : (existingData.titleLine3 || ''),
+        description: heroData.description !== '' ? heroData.description : (existingData.description || ''),
+        buttonText: heroData.buttonText !== '' ? heroData.buttonText : (existingData.buttonText || ''),
+        buttonLink: heroData.buttonLink !== '' ? heroData.buttonLink : (existingData.buttonLink || ''),
+        image: heroData.image !== '' ? heroData.image : (existingData.image || ''),
+        backgroundGradient: heroData.backgroundGradient !== '' ? heroData.backgroundGradient : (existingData.backgroundGradient || ''),
+        isActive: heroData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.about.hero.update, {
         method: "PUT",
-        body: JSON.stringify(heroData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu hero");
       void fetchHero();
@@ -360,9 +380,33 @@ export default function AdminAboutPage() {
   const handleSaveCompany = async () => {
     try {
       setLoadingCompany(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.about.company.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerSub: companyData.headerSub !== '' ? companyData.headerSub : (existingData.headerSub || ''),
+        headerTitleLine1: companyData.headerTitleLine1 !== '' ? companyData.headerTitleLine1 : (existingData.headerTitleLine1 || ''),
+        headerTitleLine2: companyData.headerTitleLine2 !== '' ? companyData.headerTitleLine2 : (existingData.headerTitleLine2 || ''),
+        contentImage1: companyData.contentImage1 !== '' ? companyData.contentImage1 : (existingData.contentImage1 || ''),
+        contentTitle: companyData.contentTitle !== '' ? companyData.contentTitle : (existingData.contentTitle || ''),
+        contentDescription: companyData.contentDescription !== '' ? companyData.contentDescription : (existingData.contentDescription || ''),
+        contentButtonText: companyData.contentButtonText !== '' ? companyData.contentButtonText : (existingData.contentButtonText || ''),
+        contentButtonLink: companyData.contentButtonLink !== '' ? companyData.contentButtonLink : (existingData.contentButtonLink || ''),
+        contactImage2: companyData.contactImage2 !== '' ? companyData.contactImage2 : (existingData.contactImage2 || ''),
+        contactButtonText: companyData.contactButtonText !== '' ? companyData.contactButtonText : (existingData.contactButtonText || ''),
+        contactButtonLink: companyData.contactButtonLink !== '' ? companyData.contactButtonLink : (existingData.contactButtonLink || ''),
+        contacts: companyData.contacts,
+        isActive: companyData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.about.company.update, {
         method: "PUT",
-        body: JSON.stringify(companyData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu company");
       void fetchCompany();
@@ -376,9 +420,24 @@ export default function AdminAboutPage() {
   const handleSaveVisionMission = async () => {
     try {
       setLoadingVisionMission(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.about.visionMission.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerTitle: visionMissionData.headerTitle !== '' ? visionMissionData.headerTitle : (existingData.headerTitle || ''),
+        headerDescription: visionMissionData.headerDescription !== '' ? visionMissionData.headerDescription : (existingData.headerDescription || ''),
+        items: visionMissionData.items,
+        isActive: visionMissionData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.about.visionMission.update, {
         method: "PUT",
-        body: JSON.stringify(visionMissionData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu vision & mission");
       void fetchVisionMission();
@@ -392,9 +451,24 @@ export default function AdminAboutPage() {
   const handleSaveCoreValues = async () => {
     try {
       setLoadingCoreValues(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.about.coreValues.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerTitle: coreValuesData.headerTitle !== '' ? coreValuesData.headerTitle : (existingData.headerTitle || ''),
+        headerDescription: coreValuesData.headerDescription !== '' ? coreValuesData.headerDescription : (existingData.headerDescription || ''),
+        items: coreValuesData.items,
+        isActive: coreValuesData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.about.coreValues.update, {
         method: "PUT",
-        body: JSON.stringify(coreValuesData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu core values");
       void fetchCoreValues();
@@ -408,9 +482,24 @@ export default function AdminAboutPage() {
   const handleSaveMilestones = async () => {
     try {
       setLoadingMilestones(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.about.milestones.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerTitle: milestonesData.headerTitle !== '' ? milestonesData.headerTitle : (existingData.headerTitle || ''),
+        headerDescription: milestonesData.headerDescription !== '' ? milestonesData.headerDescription : (existingData.headerDescription || ''),
+        items: milestonesData.items,
+        isActive: milestonesData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.about.milestones.update, {
         method: "PUT",
-        body: JSON.stringify(milestonesData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu milestones");
       void fetchMilestones();
@@ -424,9 +513,24 @@ export default function AdminAboutPage() {
   const handleSaveLeadership = async () => {
     try {
       setLoadingLeadership(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.about.leadership.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerTitle: leadershipData.headerTitle !== '' ? leadershipData.headerTitle : (existingData.headerTitle || ''),
+        headerDescription: leadershipData.headerDescription !== '' ? leadershipData.headerDescription : (existingData.headerDescription || ''),
+        items: leadershipData.items,
+        isActive: leadershipData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.about.leadership.update, {
         method: "PUT",
-        body: JSON.stringify(leadershipData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu leadership");
       void fetchLeadership();
@@ -854,7 +958,29 @@ export default function AdminAboutPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={heroData.isActive}
-                      onCheckedChange={(checked) => setHeroData({ ...heroData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If heroData is empty, fetch existing data first to preserve it
+                        if (!heroData.titleLine1 && !heroData.titleLine2 && !heroData.titleLine3 && !heroData.description) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.about.hero.get,
+                            );
+                            if (data?.data) {
+                              setHeroData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setHeroData({ ...heroData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải hero để cập nhật trạng thái.");
+                            setHeroData({ ...heroData, isActive: checked });
+                          }
+                        } else {
+                          setHeroData({ ...heroData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -1151,7 +1277,29 @@ export default function AdminAboutPage() {
                         <Label className="pb-2">Kích hoạt</Label>
                         <Switch
                           checked={companyData.isActive}
-                          onCheckedChange={(checked) => setCompanyData({ ...companyData, isActive: checked })}
+                          onCheckedChange={async (checked) => {
+                            // If companyData is empty, fetch existing data first to preserve it
+                            if (!companyData.headerSub && !companyData.headerTitleLine1 && !companyData.headerTitleLine2 && companyData.contacts.length === 0) {
+                              try {
+                                const data = await adminApiCall<{ success: boolean; data?: any }>(
+                                  AdminEndpoints.about.company.get,
+                                );
+                                if (data?.data) {
+                                  setCompanyData({
+                                    ...data.data,
+                                    isActive: checked,
+                                  });
+                                } else {
+                                  setCompanyData({ ...companyData, isActive: checked });
+                                }
+                              } catch (error) {
+                                toast.error("Không thể tải company để cập nhật trạng thái.");
+                                setCompanyData({ ...companyData, isActive: checked });
+                              }
+                            } else {
+                              setCompanyData({ ...companyData, isActive: checked });
+                            }
+                          }}
                         />
                       </div>
                     </div>
@@ -1411,7 +1559,29 @@ export default function AdminAboutPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={visionMissionData.isActive}
-                      onCheckedChange={(checked) => setVisionMissionData({ ...visionMissionData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If visionMissionData is empty, fetch existing data first to preserve it
+                        if (!visionMissionData.headerTitle && !visionMissionData.headerDescription && visionMissionData.items.length === 0) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.about.visionMission.get,
+                            );
+                            if (data?.data) {
+                              setVisionMissionData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setVisionMissionData({ ...visionMissionData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải vision & mission để cập nhật trạng thái.");
+                            setVisionMissionData({ ...visionMissionData, isActive: checked });
+                          }
+                        } else {
+                          setVisionMissionData({ ...visionMissionData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -1599,7 +1769,29 @@ export default function AdminAboutPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={coreValuesData.isActive}
-                      onCheckedChange={(checked) => setCoreValuesData({ ...coreValuesData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If coreValuesData is empty, fetch existing data first to preserve it
+                        if (!coreValuesData.headerTitle && !coreValuesData.headerDescription && coreValuesData.items.length === 0) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.about.coreValues.get,
+                            );
+                            if (data?.data) {
+                              setCoreValuesData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setCoreValuesData({ ...coreValuesData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải core values để cập nhật trạng thái.");
+                            setCoreValuesData({ ...coreValuesData, isActive: checked });
+                          }
+                        } else {
+                          setCoreValuesData({ ...coreValuesData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -1884,7 +2076,29 @@ export default function AdminAboutPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={milestonesData.isActive}
-                      onCheckedChange={(checked) => setMilestonesData({ ...milestonesData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If milestonesData is empty, fetch existing data first to preserve it
+                        if (!milestonesData.headerTitle && !milestonesData.headerDescription && milestonesData.items.length === 0) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.about.milestones.get,
+                            );
+                            if (data?.data) {
+                              setMilestonesData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setMilestonesData({ ...milestonesData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải milestones để cập nhật trạng thái.");
+                            setMilestonesData({ ...milestonesData, isActive: checked });
+                          }
+                        } else {
+                          setMilestonesData({ ...milestonesData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -2179,7 +2393,29 @@ export default function AdminAboutPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={leadershipData.isActive}
-                      onCheckedChange={(checked) => setLeadershipData({ ...leadershipData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If leadershipData is empty, fetch existing data first to preserve it
+                        if (!leadershipData.headerTitle && !leadershipData.headerDescription && leadershipData.items.length === 0) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.about.leadership.get,
+                            );
+                            if (data?.data) {
+                              setLeadershipData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setLeadershipData({ ...leadershipData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải leadership để cập nhật trạng thái.");
+                            setLeadershipData({ ...leadershipData, isActive: checked });
+                          }
+                        } else {
+                          setLeadershipData({ ...leadershipData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>

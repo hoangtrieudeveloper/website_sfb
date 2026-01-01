@@ -34,45 +34,64 @@ function PrimaryLinkButton({
 }
 
 import { featureData } from "./data";
-export function Features() {
+import * as LucideIcons from "lucide-react";
 
-  return (
-    <section
-      className="relative overflow-hidden mx-auto w-full max-w-[1920px] min-h-[2166px] flex justify-center items-start gap-[10px] py-[90px] px-[10px] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F9FD_100%)]"
-    >
-      <div className="relative z-10 w-full max-w-[1340px]">
-        {/* HEADER */}
-        <ScrollAnimation variant="blur-in" className="mx-auto mb-[46px] max-w-4xl text-center flex flex-col items-center gap-6">
-          <p className="text-[15px] font-medium uppercase text-[#1D8FCF]">
-            {featureData.header.sub}
-          </p>
+interface FeaturesProps {
+  data?: any;
+}
 
-          <h2 className="text-[34px] sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
-            {featureData.header.title}
-          </h2>
+export function Features({ data }: FeaturesProps) {
+  // Use data from props if available, otherwise fallback to static data
+  const header = data?.header || featureData.header;
+  const blocks = data?.blocks || [];
+  
+  // Convert old block1/2/3 format to blocks array if needed
+  let displayBlocks = blocks;
+  if (blocks.length === 0 && (data?.block1 || data?.block2 || data?.block3)) {
+    displayBlocks = [
+      data.block1 ? { ...data.block1, type: 'type1', imageSide: 'left' } : null,
+      data.block2 ? { ...data.block2, type: 'type2', imageSide: 'right' } : null,
+      data.block3 ? { ...data.block3, type: 'type2', imageSide: 'left' } : null,
+    ].filter(Boolean);
+  }
+  
+  // Fallback to static data if no blocks
+  if (displayBlocks.length === 0) {
+    displayBlocks = [
+      { ...featureData.block1, type: 'type1', imageSide: 'left' },
+      { ...featureData.block2, type: 'type2', imageSide: 'right' },
+      { ...featureData.block3, type: 'type2', imageSide: 'left' },
+    ];
+  }
 
-          <p className="mx-auto max-w-3xl text-[16px] leading-[26px] text-[#0F172A]">
-            {featureData.header.description}
-          </p>
-        </ScrollAnimation>
+  const renderBlock = (block: any, index: number) => {
+    const imageSide = block.imageSide || 'left';
+    const imageElement = block.image ? (
+      <FeatureImageFrame src={block.image} alt={`Feature ${index + 1}`} />
+    ) : null;
 
-        <div className="flex flex-col gap-[90px]">
-          {/* BLOCK 1 */}
-          <div className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
+    if (block.type === 'type1') {
+      return (
+        <div key={index} className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
+          {imageSide === 'left' && (
             <ScrollAnimation variant="slide-right" className="flex justify-center lg:justify-start">
-              <FeatureImageFrame src={featureData.block1.image} alt="SFB overview" />
+              {imageElement}
             </ScrollAnimation>
-
-            <ScrollAnimation variant="slide-left" delay={0.1}>
-              <div className="flex w-[549px] max-w-full flex-col items-start gap-[30px]">
+          )}
+          
+          <ScrollAnimation variant="slide-left" delay={0.1}>
+            <div className="flex w-[549px] max-w-full flex-col items-start gap-[30px]">
+              {block.text && (
                 <p className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
-                  {featureData.block1.text}
+                  {block.text}
                 </p>
-
+              )}
+              
+              {block.list && block.list.length > 0 && (
                 <div className="w-full space-y-[18px]">
-                  {featureData.block1.list.map((t, idx) => (
+                  {block.list.map((t: string, idx: number) => (
                     <ScrollAnimation
-                      key={t}
+                      key={idx}
                       variant="slide-left"
                       delay={0.1 + idx * 0.15}
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors"
@@ -84,93 +103,102 @@ export function Features() {
                     </ScrollAnimation>
                   ))}
                 </div>
-
+              )}
+              
+              {block.button?.text && (
                 <div>
-                  <PrimaryLinkButton href={featureData.block1.button.link}>
-                    {featureData.block1.button.text} <ArrowRight className="h-4 w-4" />
+                  <PrimaryLinkButton href={block.button.link || '#'}>
+                    {block.button.text} <ArrowRight className="h-4 w-4" />
                   </PrimaryLinkButton>
                 </div>
-              </div>
+              )}
+            </div>
+          </ScrollAnimation>
+          
+          {imageSide === 'right' && (
+            <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
+              {imageElement}
             </ScrollAnimation>
-          </div>
-
-          {/* BLOCK 2 */}
-          <div className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
-          <ScrollAnimation variant="slide-right">
-            {/* ✅ bỏ shadow */}
-          <div className="flex w-[549px] max-w-full min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
-              <div className="w-full space-y-5">
-                {featureData.block2.items.map((item, idx) => (
-                  <ScrollAnimation
-                    key={item.title}
-                    variant="slide-right"
-                    delay={idx * 0.15}
-                    className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
-                  >
-                    <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
-                    <div className="flex flex-col items-start">
-                      <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
-                        {item.title}
-                      </p>
-                      <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[26px]">
-                        {item.text}
-                      </p>
-                    </div>
-                  </ScrollAnimation>
-                ))}
-              </div>
-
-              <div>
-                <PrimaryLinkButton href={featureData.block2.button.link}>
-                  {featureData.block2.button.text} <ArrowRight className="h-4 w-4" />
-                </PrimaryLinkButton>
-              </div>
+          )}
+        </div>
+      );
+    } else if (block.type === 'type2') {
+      return (
+        <div key={index} className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
+          {imageSide === 'left' && (
+            <ScrollAnimation variant="zoom-in" className="flex justify-center lg:justify-start">
+              {imageElement}
+            </ScrollAnimation>
+          )}
+          
+          <ScrollAnimation variant={imageSide === 'right' ? 'slide-right' : 'zoom-in'} delay={0.1}>
+            <div className="flex w-[549px] max-w-full min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
+              {block.items && block.items.length > 0 && (
+                <div className="w-full space-y-5">
+                  {block.items.map((item: any, idx: number) => (
+                    <ScrollAnimation
+                      key={idx}
+                      variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
+                      delay={idx * 0.15}
+                      className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                    >
+                      <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
+                      <div className="flex flex-col items-start">
+                        <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
+                          {item.title}
+                        </p>
+                        <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[26px]">
+                          {item.text}
+                        </p>
+                      </div>
+                    </ScrollAnimation>
+                  ))}
+                </div>
+              )}
+              
+              {block.button?.text && (
+                <div>
+                  <PrimaryLinkButton href={block.button.link || '#'}>
+                    {block.button.text} <ArrowRight className="h-4 w-4" />
+                  </PrimaryLinkButton>
+                </div>
+              )}
             </div>
           </ScrollAnimation>
+          
+          {imageSide === 'right' && (
+            <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
+              {imageElement}
+            </ScrollAnimation>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
-          <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
-            <FeatureImageFrame src={featureData.block2.image} alt="Business tech" />
-          </ScrollAnimation>
-          </div>
+  return (
+    <section
+      className="relative overflow-hidden mx-auto w-full max-w-[1920px] min-h-[2166px] flex justify-center items-start gap-[10px] py-[90px] px-[10px] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F9FD_100%)]"
+    >
+      <div className="relative z-10 w-full max-w-[1340px]">
+        {/* HEADER */}
+        <ScrollAnimation variant="blur-in" className="mx-auto mb-[46px] max-w-4xl text-center flex flex-col items-center gap-6">
+          <p className="text-[15px] font-medium uppercase text-[#1D8FCF]">
+            {header.sub}
+          </p>
 
-          {/* BLOCK 3 */}
-          <div className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
-          <ScrollAnimation variant="zoom-in" className="flex justify-center lg:justify-start">
-            <FeatureImageFrame src={featureData.block3.image} alt="Workflow" />
-          </ScrollAnimation>
+          <h2 className="text-[34px] sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
+            {header.title}
+          </h2>
 
-          <ScrollAnimation variant="zoom-in" delay={0.1}>
-            {/* ✅ bỏ shadow */}
-          <div className="flex w-[549px] max-w-full min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
-              <div className="w-full space-y-5">
-                {featureData.block3.items.map((item, idx) => (
-                  <ScrollAnimation
-                    key={item.title}
-                    variant="slide-left"
-                    delay={idx * 0.15}
-                    className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
-                  >
-                    <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
-                    <div className="flex flex-col items-start">
-                      <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
-                        {item.title}
-                      </p>
-                      <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[26px]">
-                        {item.text}
-                      </p>
-                    </div>
-                  </ScrollAnimation>
-                ))}
-              </div>
+          <p className="mx-auto max-w-3xl text-[16px] leading-[26px] text-[#0F172A]">
+            {header.description}
+          </p>
+        </ScrollAnimation>
 
-              <div>
-                <PrimaryLinkButton href={featureData.block3.button.link}>
-                  {featureData.block3.button.text} <ArrowRight className="h-4 w-4" />
-                </PrimaryLinkButton>
-              </div>
-            </div>
-          </ScrollAnimation>
-          </div>
+        <div className="flex flex-col gap-[90px]">
+          {displayBlocks.map((block: any, index: number) => renderBlock(block, index))}
         </div>
       </div>
     </section>

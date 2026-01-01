@@ -1,6 +1,15 @@
 const { pool } = require('../config/database');
 
-// Generic function to get section by type
+// Generic function to get section by type (any status) - for admin
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM about_sections WHERE section_type = $1',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
+// Generic function to get section by type (active only) - for public
 const getSection = async (sectionType) => {
   const { rows } = await pool.query(
     'SELECT * FROM about_sections WHERE section_type = $1 AND is_active = true',
@@ -21,7 +30,8 @@ const getItems = async (sectionId, sectionType) => {
 // ==================== HERO ====================
 exports.getHero = async (req, res, next) => {
   try {
-    const section = await getSection('hero');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('hero');
     
     if (!section) {
       return res.json({
@@ -65,28 +75,40 @@ exports.updateHero = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    const data = {
-      titleLine1: titleLine1 || '',
-      titleLine2: titleLine2 || '',
-      titleLine3: titleLine3 || '',
-      description: description || '',
-      buttonText: buttonText || '',
-      buttonLink: buttonLink || '',
-      image: image || '',
-      backgroundGradient: backgroundGradient || '',
-    };
-
-    const section = await getSection('hero');
+    const section = await getSectionAnyStatus('hero');
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        titleLine1: titleLine1 !== undefined && titleLine1 !== '' ? titleLine1 : (existingData.titleLine1 || ''),
+        titleLine2: titleLine2 !== undefined && titleLine2 !== '' ? titleLine2 : (existingData.titleLine2 || ''),
+        titleLine3: titleLine3 !== undefined && titleLine3 !== '' ? titleLine3 : (existingData.titleLine3 || ''),
+        description: description !== undefined && description !== '' ? description : (existingData.description || ''),
+        buttonText: buttonText !== undefined && buttonText !== '' ? buttonText : (existingData.buttonText || ''),
+        buttonLink: buttonLink !== undefined && buttonLink !== '' ? buttonLink : (existingData.buttonLink || ''),
+        image: image !== undefined && image !== '' ? image : (existingData.image || ''),
+        backgroundGradient: backgroundGradient !== undefined && backgroundGradient !== '' ? backgroundGradient : (existingData.backgroundGradient || ''),
+      };
       await pool.query(
-        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, section.id]
+        'UPDATE about_sections SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [JSON.stringify(dataToUpdate), isActive !== undefined ? isActive : true, section.id]
       );
     } else {
+      // Create new
+      const dataToInsert = {
+        titleLine1: titleLine1 || '',
+        titleLine2: titleLine2 || '',
+        titleLine3: titleLine3 || '',
+        description: description || '',
+        buttonText: buttonText || '',
+        buttonLink: buttonLink || '',
+        image: image || '',
+        backgroundGradient: backgroundGradient || '',
+      };
       await pool.query(
         'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3)',
-        ['hero', JSON.stringify(data), isActive !== undefined ? isActive : true]
+        ['hero', JSON.stringify(dataToInsert), isActive !== undefined ? isActive : true]
       );
     }
 
@@ -99,7 +121,8 @@ exports.updateHero = async (req, res, next) => {
 // ==================== COMPANY ====================
 exports.getCompany = async (req, res, next) => {
   try {
-    const section = await getSection('company');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('company');
     
     if (!section) {
       return res.json({
@@ -166,34 +189,49 @@ exports.updateCompany = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    const data = {
-      headerSub: headerSub || '',
-      headerTitleLine1: headerTitleLine1 || '',
-      headerTitleLine2: headerTitleLine2 || '',
-      contentImage1: contentImage1 || '',
-      contentTitle: contentTitle || '',
-      contentDescription: contentDescription || '',
-      contentButtonText: contentButtonText || '',
-      contentButtonLink: contentButtonLink || '',
-      contactImage2: contactImage2 || '',
-      contactButtonText: contactButtonText || '',
-      contactButtonLink: contactButtonLink || '',
-    };
-
-    const section = await getSection('company');
+    const section = await getSectionAnyStatus('company');
     let companyId;
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
       companyId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerSub: headerSub !== undefined && headerSub !== '' ? headerSub : (existingData.headerSub || ''),
+        headerTitleLine1: headerTitleLine1 !== undefined && headerTitleLine1 !== '' ? headerTitleLine1 : (existingData.headerTitleLine1 || ''),
+        headerTitleLine2: headerTitleLine2 !== undefined && headerTitleLine2 !== '' ? headerTitleLine2 : (existingData.headerTitleLine2 || ''),
+        contentImage1: contentImage1 !== undefined && contentImage1 !== '' ? contentImage1 : (existingData.contentImage1 || ''),
+        contentTitle: contentTitle !== undefined && contentTitle !== '' ? contentTitle : (existingData.contentTitle || ''),
+        contentDescription: contentDescription !== undefined && contentDescription !== '' ? contentDescription : (existingData.contentDescription || ''),
+        contentButtonText: contentButtonText !== undefined && contentButtonText !== '' ? contentButtonText : (existingData.contentButtonText || ''),
+        contentButtonLink: contentButtonLink !== undefined && contentButtonLink !== '' ? contentButtonLink : (existingData.contentButtonLink || ''),
+        contactImage2: contactImage2 !== undefined && contactImage2 !== '' ? contactImage2 : (existingData.contactImage2 || ''),
+        contactButtonText: contactButtonText !== undefined && contactButtonText !== '' ? contactButtonText : (existingData.contactButtonText || ''),
+        contactButtonLink: contactButtonLink !== undefined && contactButtonLink !== '' ? contactButtonLink : (existingData.contactButtonLink || ''),
+      };
       await client.query(
-        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, companyId]
+        'UPDATE about_sections SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [JSON.stringify(dataToUpdate), isActive !== undefined ? isActive : true, companyId]
       );
       await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [companyId, 'company']);
     } else {
+      // Create new
+      const dataToInsert = {
+        headerSub: headerSub || '',
+        headerTitleLine1: headerTitleLine1 || '',
+        headerTitleLine2: headerTitleLine2 || '',
+        contentImage1: contentImage1 || '',
+        contentTitle: contentTitle || '',
+        contentDescription: contentDescription || '',
+        contentButtonText: contentButtonText || '',
+        contentButtonLink: contentButtonLink || '',
+        contactImage2: contactImage2 || '',
+        contactButtonText: contactButtonText || '',
+        contactButtonLink: contactButtonLink || '',
+      };
       const { rows: inserted } = await client.query(
         'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
-        ['company', JSON.stringify(data), isActive !== undefined ? isActive : true]
+        ['company', JSON.stringify(dataToInsert), isActive !== undefined ? isActive : true]
       );
       companyId = inserted[0].id;
     }
@@ -226,7 +264,8 @@ exports.updateCompany = async (req, res, next) => {
 // ==================== VISION & MISSION ====================
 exports.getVisionMission = async (req, res, next) => {
   try {
-    const section = await getSection('vision-mission');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('vision-mission');
     
     if (!section) {
       return res.json({
@@ -267,25 +306,31 @@ exports.updateVisionMission = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    const data = {
-      headerTitle: headerTitle || '',
-      headerDescription: headerDescription || '',
-    };
-
-    const section = await getSection('vision-mission');
+    const section = await getSectionAnyStatus('vision-mission');
     let vmId;
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
       vmId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerTitle: headerTitle !== undefined && headerTitle !== '' ? headerTitle : (existingData.headerTitle || ''),
+        headerDescription: headerDescription !== undefined && headerDescription !== '' ? headerDescription : (existingData.headerDescription || ''),
+      };
       await client.query(
-        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, vmId]
+        'UPDATE about_sections SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [JSON.stringify(dataToUpdate), isActive !== undefined ? isActive : true, vmId]
       );
       await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [vmId, 'vision-mission']);
     } else {
+      // Create new
+      const dataToInsert = {
+        headerTitle: headerTitle || '',
+        headerDescription: headerDescription || '',
+      };
       const { rows: inserted } = await client.query(
         'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
-        ['vision-mission', JSON.stringify(data), isActive !== undefined ? isActive : true]
+        ['vision-mission', JSON.stringify(dataToInsert), isActive !== undefined ? isActive : true]
       );
       vmId = inserted[0].id;
     }
@@ -312,7 +357,8 @@ exports.updateVisionMission = async (req, res, next) => {
 // ==================== CORE VALUES ====================
 exports.getCoreValues = async (req, res, next) => {
   try {
-    const section = await getSection('core-values');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('core-values');
     
     if (!section) {
       return res.json({
@@ -357,25 +403,31 @@ exports.updateCoreValues = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    const data = {
-      headerTitle: headerTitle || '',
-      headerDescription: headerDescription || '',
-    };
-
-    const section = await getSection('core-values');
+    const section = await getSectionAnyStatus('core-values');
     let cvId;
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
       cvId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerTitle: headerTitle !== undefined && headerTitle !== '' ? headerTitle : (existingData.headerTitle || ''),
+        headerDescription: headerDescription !== undefined && headerDescription !== '' ? headerDescription : (existingData.headerDescription || ''),
+      };
       await client.query(
-        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, cvId]
+        'UPDATE about_sections SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [JSON.stringify(dataToUpdate), isActive !== undefined ? isActive : true, cvId]
       );
       await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [cvId, 'core-values']);
     } else {
+      // Create new
+      const dataToInsert = {
+        headerTitle: headerTitle || '',
+        headerDescription: headerDescription || '',
+      };
       const { rows: inserted } = await client.query(
         'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
-        ['core-values', JSON.stringify(data), isActive !== undefined ? isActive : true]
+        ['core-values', JSON.stringify(dataToInsert), isActive !== undefined ? isActive : true]
       );
       cvId = inserted[0].id;
     }
@@ -408,7 +460,8 @@ exports.updateCoreValues = async (req, res, next) => {
 // ==================== MILESTONES ====================
 exports.getMilestones = async (req, res, next) => {
   try {
-    const section = await getSection('milestones');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('milestones');
     
     if (!section) {
       return res.json({
@@ -453,25 +506,31 @@ exports.updateMilestones = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    const data = {
-      headerTitle: headerTitle || '',
-      headerDescription: headerDescription || '',
-    };
-
-    const section = await getSection('milestones');
+    const section = await getSectionAnyStatus('milestones');
     let msId;
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
       msId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerTitle: headerTitle !== undefined && headerTitle !== '' ? headerTitle : (existingData.headerTitle || ''),
+        headerDescription: headerDescription !== undefined && headerDescription !== '' ? headerDescription : (existingData.headerDescription || ''),
+      };
       await client.query(
-        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, msId]
+        'UPDATE about_sections SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [JSON.stringify(dataToUpdate), isActive !== undefined ? isActive : true, msId]
       );
       await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [msId, 'milestones']);
     } else {
+      // Create new
+      const dataToInsert = {
+        headerTitle: headerTitle || '',
+        headerDescription: headerDescription || '',
+      };
       const { rows: inserted } = await client.query(
         'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
-        ['milestones', JSON.stringify(data), isActive !== undefined ? isActive : true]
+        ['milestones', JSON.stringify(dataToInsert), isActive !== undefined ? isActive : true]
       );
       msId = inserted[0].id;
     }
@@ -504,7 +563,8 @@ exports.updateMilestones = async (req, res, next) => {
 // ==================== LEADERSHIP ====================
 exports.getLeadership = async (req, res, next) => {
   try {
-    const section = await getSection('leadership');
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('leadership');
     
     if (!section) {
       return res.json({
@@ -551,25 +611,31 @@ exports.updateLeadership = async (req, res, next) => {
 
     const { headerTitle, headerDescription, items = [], isActive } = req.body;
 
-    const data = {
-      headerTitle: headerTitle || '',
-      headerDescription: headerDescription || '',
-    };
-
-    const section = await getSection('leadership');
+    const section = await getSectionAnyStatus('leadership');
     let ldId;
 
     if (section) {
+      // Update existing - preserve existing data if new data is empty
       ldId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerTitle: headerTitle !== undefined && headerTitle !== '' ? headerTitle : (existingData.headerTitle || ''),
+        headerDescription: headerDescription !== undefined && headerDescription !== '' ? headerDescription : (existingData.headerDescription || ''),
+      };
       await client.query(
-        'UPDATE about_sections SET data = $1, is_active = $2 WHERE id = $3',
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, ldId]
+        'UPDATE about_sections SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
+        [JSON.stringify(dataToUpdate), isActive !== undefined ? isActive : true, ldId]
       );
       await client.query('DELETE FROM about_section_items WHERE section_id = $1 AND section_type = $2', [ldId, 'leadership']);
     } else {
+      // Create new
+      const dataToInsert = {
+        headerTitle: headerTitle || '',
+        headerDescription: headerDescription || '',
+      };
       const { rows: inserted } = await client.query(
         'INSERT INTO about_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',
-        ['leadership', JSON.stringify(data), isActive !== undefined ? isActive : true]
+        ['leadership', JSON.stringify(dataToInsert), isActive !== undefined ? isActive : true]
       );
       ldId = inserted[0].id;
     }

@@ -21,13 +21,19 @@ exports.getHero = async (req, res, next) => {
       success: true,
       data: {
         id: section.id,
-        titleLine1: data.titleLine1 || '',
-        titleLine2: data.titleLine2 || '',
-        description: data.description || '',
-        buttonText: data.buttonText || '',
-        buttonLink: data.buttonLink || '',
-        image: data.image || '',
-        backgroundGradient: data.backgroundGradient || '',
+        sectionType: 'hero',
+        data: {
+          titleLine1: data.titleLine1 || '',
+          titleLine2: data.titleLine2 || '',
+          description: data.description || '',
+          buttonText: data.buttonText || '',
+          buttonLink: data.buttonLink || '',
+          image: data.image || '',
+          backgroundGradient: data.backgroundGradient || '',
+        },
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -64,18 +70,27 @@ exports.getBenefits = async (req, res, next) => {
     return res.json({
       success: true,
       data: {
-        headerTitle: sectionData.headerTitle || '',
-        headerDescription: sectionData.headerDescription || '',
-        items: itemsRows.map((item) => {
-          const itemData = item.data || {};
-          return {
-            id: item.id,
-            iconName: itemData.iconName || '',
-            title: itemData.title || '',
-            description: itemData.description || '',
-            gradient: itemData.gradient || '',
-          };
-        }),
+        id: section.id,
+        sectionType: 'benefits',
+        data: {
+          headerTitle: sectionData.headerTitle || '',
+          headerDescription: sectionData.headerDescription || '',
+          items: itemsRows.map((item) => {
+            const itemData = item.data || {};
+            return {
+              id: item.id,
+              iconName: itemData.iconName || '',
+              title: itemData.title || '',
+              description: itemData.description || '',
+              gradient: itemData.gradient || '',
+              sortOrder: item.sort_order || 0,
+              isActive: item.is_active !== undefined ? item.is_active : true,
+            };
+          }),
+        },
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -112,23 +127,32 @@ exports.getPositions = async (req, res, next) => {
     return res.json({
       success: true,
       data: {
-        headerTitle: sectionData.headerTitle || '',
-        headerDescription: sectionData.headerDescription || '',
-        items: itemsRows.map((item) => {
-          const itemData = item.data || {};
-          return {
-            id: item.id,
-            title: itemData.title || '',
-            department: itemData.department || '',
-            type: itemData.type || '',
-            location: itemData.location || '',
-            salary: itemData.salary || '',
-            experience: itemData.experience || '',
-            description: itemData.description || '',
-            skills: itemData.skills || [],
-            gradient: itemData.gradient || '',
-          };
-        }),
+        id: section.id,
+        sectionType: 'positions',
+        data: {
+          headerTitle: sectionData.headerTitle || '',
+          headerDescription: sectionData.headerDescription || '',
+          items: itemsRows.map((item) => {
+            const itemData = item.data || {};
+            return {
+              id: item.id,
+              title: itemData.title || '',
+              department: itemData.department || '',
+              type: itemData.type || '',
+              location: itemData.location || '',
+              salary: itemData.salary || '',
+              experience: itemData.experience || '',
+              description: itemData.description || '',
+              skills: itemData.skills || [],
+              gradient: itemData.gradient || '',
+              sortOrder: item.sort_order || 0,
+              isActive: item.is_active !== undefined ? item.is_active : true,
+            };
+          }),
+        },
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -157,13 +181,19 @@ exports.getCTA = async (req, res, next) => {
       success: true,
       data: {
         id: section.id,
-        title: data.title || '',
-        description: data.description || '',
-        primaryButtonText: data.primaryButtonText || '',
-        primaryButtonLink: data.primaryButtonLink || '',
-        secondaryButtonText: data.secondaryButtonText || '',
-        secondaryButtonLink: data.secondaryButtonLink || '',
-        backgroundGradient: data.backgroundGradient || '',
+        sectionType: 'cta',
+        data: {
+          title: data.title || '',
+          description: data.description || '',
+          primaryButtonText: data.primaryButtonText || '',
+          primaryButtonLink: data.primaryButtonLink || '',
+          secondaryButtonText: data.secondaryButtonText || '',
+          secondaryButtonLink: data.secondaryButtonLink || '',
+          backgroundGradient: data.backgroundGradient || '',
+        },
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {

@@ -275,9 +275,28 @@ export default function AdminCareersPage() {
   const handleSaveHero = async () => {
     try {
       setLoadingHero(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.careers.hero.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        titleLine1: heroData.titleLine1 !== '' ? heroData.titleLine1 : (existingData.titleLine1 || ''),
+        titleLine2: heroData.titleLine2 !== '' ? heroData.titleLine2 : (existingData.titleLine2 || ''),
+        description: heroData.description !== '' ? heroData.description : (existingData.description || ''),
+        buttonText: heroData.buttonText !== '' ? heroData.buttonText : (existingData.buttonText || ''),
+        buttonLink: heroData.buttonLink !== '' ? heroData.buttonLink : (existingData.buttonLink || ''),
+        image: heroData.image !== '' ? heroData.image : (existingData.image || ''),
+        backgroundGradient: heroData.backgroundGradient !== '' ? heroData.backgroundGradient : (existingData.backgroundGradient || ''),
+        isActive: heroData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.careers.hero.update, {
         method: "PUT",
-        body: JSON.stringify(heroData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu hero");
       void fetchHero();
@@ -291,9 +310,24 @@ export default function AdminCareersPage() {
   const handleSaveBenefits = async () => {
     try {
       setLoadingBenefits(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.careers.benefits.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerTitle: benefitsData.headerTitle !== '' ? benefitsData.headerTitle : (existingData.headerTitle || ''),
+        headerDescription: benefitsData.headerDescription !== '' ? benefitsData.headerDescription : (existingData.headerDescription || ''),
+        items: benefitsData.items,
+        isActive: benefitsData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.careers.benefits.update, {
         method: "PUT",
-        body: JSON.stringify(benefitsData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu benefits");
       void fetchBenefits();
@@ -307,9 +341,24 @@ export default function AdminCareersPage() {
   const handleSavePositions = async () => {
     try {
       setLoadingPositions(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.careers.positions.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        headerTitle: positionsData.headerTitle !== '' ? positionsData.headerTitle : (existingData.headerTitle || ''),
+        headerDescription: positionsData.headerDescription !== '' ? positionsData.headerDescription : (existingData.headerDescription || ''),
+        items: positionsData.items,
+        isActive: positionsData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.careers.positions.update, {
         method: "PUT",
-        body: JSON.stringify(positionsData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu positions");
       void fetchPositions();
@@ -323,9 +372,28 @@ export default function AdminCareersPage() {
   const handleSaveCTA = async () => {
     try {
       setLoadingCTA(true);
+
+      // Fetch current data from DB to ensure we don't overwrite with empty fields
+      const currentDbData = await adminApiCall<{ success: boolean; data?: any }>(
+        AdminEndpoints.careers.cta.get,
+      );
+      const existingData = currentDbData?.data || {};
+
+      // Merge current frontend state with existing DB data, prioritizing frontend values if not empty
+      const mergedData = {
+        title: ctaData.title !== '' ? ctaData.title : (existingData.title || ''),
+        description: ctaData.description !== '' ? ctaData.description : (existingData.description || ''),
+        primaryButtonText: ctaData.primaryButtonText !== '' ? ctaData.primaryButtonText : (existingData.primaryButtonText || ''),
+        primaryButtonLink: ctaData.primaryButtonLink !== '' ? ctaData.primaryButtonLink : (existingData.primaryButtonLink || ''),
+        secondaryButtonText: ctaData.secondaryButtonText !== '' ? ctaData.secondaryButtonText : (existingData.secondaryButtonText || ''),
+        secondaryButtonLink: ctaData.secondaryButtonLink !== '' ? ctaData.secondaryButtonLink : (existingData.secondaryButtonLink || ''),
+        backgroundGradient: ctaData.backgroundGradient !== '' ? ctaData.backgroundGradient : (existingData.backgroundGradient || ''),
+        isActive: ctaData.isActive,
+      };
+
       await adminApiCall(AdminEndpoints.careers.cta.update, {
         method: "PUT",
-        body: JSON.stringify(ctaData),
+        body: JSON.stringify(mergedData),
       });
       toast.success("Đã lưu CTA");
       void fetchCTA();
@@ -591,7 +659,29 @@ export default function AdminCareersPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={heroData.isActive}
-                      onCheckedChange={(checked) => setHeroData({ ...heroData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If heroData is empty, fetch existing data first to preserve it
+                        if (!heroData.titleLine1 && !heroData.titleLine2 && !heroData.description) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.careers.hero.get,
+                            );
+                            if (data?.data) {
+                              setHeroData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setHeroData({ ...heroData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải hero để cập nhật trạng thái.");
+                            setHeroData({ ...heroData, isActive: checked });
+                          }
+                        } else {
+                          setHeroData({ ...heroData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -705,7 +795,29 @@ export default function AdminCareersPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={benefitsData.isActive}
-                      onCheckedChange={(checked) => setBenefitsData({ ...benefitsData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If benefitsData is empty, fetch existing data first to preserve it
+                        if (!benefitsData.headerTitle && !benefitsData.headerDescription && benefitsData.items.length === 0) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.careers.benefits.get,
+                            );
+                            if (data?.data) {
+                              setBenefitsData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setBenefitsData({ ...benefitsData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải benefits để cập nhật trạng thái.");
+                            setBenefitsData({ ...benefitsData, isActive: checked });
+                          }
+                        } else {
+                          setBenefitsData({ ...benefitsData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -990,7 +1102,29 @@ export default function AdminCareersPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={positionsData.isActive}
-                      onCheckedChange={(checked) => setPositionsData({ ...positionsData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If positionsData is empty, fetch existing data first to preserve it
+                        if (!positionsData.headerTitle && !positionsData.headerDescription && positionsData.items.length === 0) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.careers.positions.get,
+                            );
+                            if (data?.data) {
+                              setPositionsData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setPositionsData({ ...positionsData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải positions để cập nhật trạng thái.");
+                            setPositionsData({ ...positionsData, isActive: checked });
+                          }
+                        } else {
+                          setPositionsData({ ...positionsData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -1435,7 +1569,29 @@ export default function AdminCareersPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={ctaData.isActive}
-                      onCheckedChange={(checked) => setCtaData({ ...ctaData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If ctaData is empty, fetch existing data first to preserve it
+                        if (!ctaData.title && !ctaData.description && !ctaData.primaryButtonText) {
+                          try {
+                            const data = await adminApiCall<{ success: boolean; data?: any }>(
+                              AdminEndpoints.careers.cta.get,
+                            );
+                            if (data?.data) {
+                              setCtaData({
+                                ...data.data,
+                                isActive: checked,
+                              });
+                            } else {
+                              setCtaData({ ...ctaData, isActive: checked });
+                            }
+                          } catch (error) {
+                            toast.error("Không thể tải CTA để cập nhật trạng thái.");
+                            setCtaData({ ...ctaData, isActive: checked });
+                          }
+                        } else {
+                          setCtaData({ ...ctaData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>

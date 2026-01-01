@@ -48,37 +48,33 @@ export function HomepageContent() {
   }, []);
 
   // Chỉ render các blocks có isActive = true
+  // Nếu không có block trong API hoặc isActive = false thì không render (không fallback)
   const shouldRender = (sectionType: string) => {
     const block = blocks[sectionType];
-    // Nếu có block trong API và isActive = false thì không render
-    // Nếu không có block trong API (chưa fetch được hoặc chưa có data) thì render (fallback về static data)
-    return block ? block.isActive : true;
+    // Chỉ render nếu có block trong API và isActive = true
+    return block ? block.isActive : false;
   };
 
+  // Get block data, return null if not active or not found
+  const getBlockData = (sectionType: string) => {
+    const block = blocks[sectionType];
+    return block && block.isActive ? block.data : null;
+  };
+
+  // Khi loading, không render gì cả (hoặc có thể render loading state)
   if (loading) {
-    // Có thể hiển thị loading hoặc render với static data
-    return (
-      <>
-        <HeroBanner />
-        <AboutCompany />
-        <Features />
-        <Solutions />
-        <Trusts />
-        <Testimonials />
-        <Consult />
-      </>
-    );
+    return null; // Hoặc có thể return <div>Loading...</div>
   }
 
   return (
     <>
-      {shouldRender("hero") && <HeroBanner />}
-      {shouldRender("aboutCompany") && <AboutCompany />}
-      {shouldRender("features") && <Features />}
-      {shouldRender("solutions") && <Solutions />}
-      {shouldRender("trusts") && <Trusts />}
-      <Testimonials />
-      {shouldRender("consult") && <Consult />}
+      {shouldRender("hero") && <HeroBanner data={getBlockData("hero")} />}
+      {shouldRender("aboutCompany") && <AboutCompany data={getBlockData("aboutCompany")} />}
+      {shouldRender("features") && <Features data={getBlockData("features")} />}
+      {shouldRender("solutions") && <Solutions data={getBlockData("solutions")} />}
+      {shouldRender("trusts") && <Trusts data={getBlockData("trusts")} />}
+      {shouldRender("testimonials") && <Testimonials data={getBlockData("testimonials")} />}
+      {shouldRender("consult") && <Consult data={getBlockData("consult")} />}
     </>
   );
 }

@@ -3,8 +3,17 @@
 import { Sparkles, CheckCircle2 } from "lucide-react";
 import { fieldListSectionData } from "./data";
 import { FadeIn, SlideIn, StaggerContainer } from "../../components/ui/motion";
+import * as LucideIcons from "lucide-react";
 
-export function FieldList() {
+interface FieldListProps {
+    headerData?: any;
+    industries?: any[];
+}
+
+export function FieldList({ headerData, industries }: FieldListProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayHeader = headerData || fieldListSectionData.header;
+    const displayIndustries = industries || fieldListSectionData.items;
     return (
         <section className="py-[90px] relative overflow-hidden">
             <div className="relative z-10 w-full">
@@ -17,22 +26,28 @@ export function FieldList() {
                             lineHeight: "normal",
                         }}
                     >
-                        {fieldListSectionData.header.title}
+                        {displayHeader.title}
                     </h2>
-                    <p
-                        className="mx-auto w-[704px] max-w-full text-center font-['Plus_Jakarta_Sans'] text-base font-normal leading-[30px]"
-                        style={{
-                            color: "var(--Color-2, #0F172A)",
-                            fontFeatureSettings: "'liga' off, 'clig' off",
-                        }}
-                    >
-                        {fieldListSectionData.header.description}
-                    </p>
+                    {displayHeader.description && (
+                        <p
+                            className="mx-auto w-[704px] max-w-full text-center font-['Plus_Jakarta_Sans'] text-base font-normal leading-[30px]"
+                            style={{
+                                color: "var(--Color-2, #0F172A)",
+                                fontFeatureSettings: "'liga' off, 'clig' off",
+                            }}
+                        >
+                            {displayHeader.description}
+                        </p>
+                    )}
                 </FadeIn>
 
                 <div className="px-6 lg:px-[290px]">
                     <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {fieldListSectionData.items.map((field) => (
+                        {displayIndustries.map((field: any, index: number) => {
+                            const IconComponent = field.iconName 
+                                ? ((LucideIcons as any)[field.iconName] || LucideIcons.Code2)
+                                : (field.icon || LucideIcons.Code2);
+                            return (
                             <SlideIn
                                 direction="up"
                                 key={field.id}
@@ -45,7 +60,7 @@ export function FieldList() {
                             >
                                 <div className="flex items-start gap-4">
                                     <div className="flex-shrink-0 w-12 h-12 bg-[#008CCB] rounded-xl flex items-center justify-center text-white text-xl font-bold">
-                                        {field.id}
+                                        {index + 1}
                                     </div>
                                     <h3 className="text-lg font-bold text-gray-900 pt-1 leading-snug">
                                         {field.title}
@@ -57,7 +72,7 @@ export function FieldList() {
                                 </p>
 
                                 <ul className="space-y-3">
-                                    {field.points.map((point, idx) => (
+                                    {field.points.map((point: string, idx: number) => (
                                         <li key={idx} className="flex items-start gap-3">
                                             <div className="flex-shrink-0 mt-0.5">
                                                 <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
@@ -71,7 +86,8 @@ export function FieldList() {
                                     ))}
                                 </ul>
                             </SlideIn>
-                        ))}
+                            );
+                        })}
                     </StaggerContainer>
                 </div>
             </div>

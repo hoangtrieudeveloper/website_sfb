@@ -1,21 +1,27 @@
 const { pool } = require('../config/database');
 
+// Helper function to get section by type (any status) - for admin
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM career_sections WHERE section_type = $1',
+    [sectionType]
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
 // ==================== HERO ====================
 exports.getHero = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM career_sections WHERE section_type = $1 AND is_active = true',
-      ['hero'],
-    );
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('hero');
 
-    if (rows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const section = rows[0];
     const data = section.data || {};
     return res.json({
       success: true,
@@ -49,60 +55,30 @@ exports.updateHero = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    const data = {
-      titleLine1: titleLine1 || '',
-      titleLine2: titleLine2 || '',
-      description: description || '',
-      buttonText: buttonText || '',
-      buttonLink: buttonLink || '',
-      image: image || '',
-      backgroundGradient: backgroundGradient || '',
-    };
+    const section = await getSectionAnyStatus('hero');
 
-    // Check if exists
-    const { rows: existingRows } = await pool.query(
-      'SELECT id FROM career_sections WHERE section_type = $1',
-      ['hero'],
-    );
+    if (section) {
+      // Update existing - preserve existing data if new data is empty
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        titleLine1: titleLine1 !== undefined && titleLine1 !== '' ? titleLine1 : (existingData.titleLine1 || ''),
+        titleLine2: titleLine2 !== undefined && titleLine2 !== '' ? titleLine2 : (existingData.titleLine2 || ''),
+        description: description !== undefined && description !== '' ? description : (existingData.description || ''),
+        buttonText: buttonText !== undefined && buttonText !== '' ? buttonText : (existingData.buttonText || ''),
+        buttonLink: buttonLink !== undefined && buttonLink !== '' ? buttonLink : (existingData.buttonLink || ''),
+        image: image !== undefined && image !== '' ? image : (existingData.image || ''),
+        backgroundGradient: backgroundGradient !== undefined && backgroundGradient !== '' ? backgroundGradient : (existingData.backgroundGradient || ''),
+      };
 
-    if (existingRows.length === 0) {
-      // Create new
-      const { rows } = await pool.query(
-        `INSERT INTO career_sections (section_type, data, is_active)
-         VALUES ($1, $2, $3)
-         RETURNING *`,
-        [
-          'hero',
-          JSON.stringify(data),
-          isActive !== undefined ? isActive : true,
-        ],
-      );
-
-      return res.json({
-        success: true,
-        data: {
-          id: rows[0].id,
-          titleLine1: data.titleLine1,
-          titleLine2: data.titleLine2,
-          description: data.description,
-          buttonText: data.buttonText,
-          buttonLink: data.buttonLink,
-          image: data.image,
-          backgroundGradient: data.backgroundGradient,
-          isActive: rows[0].is_active,
-        },
-      });
-    } else {
-      // Update existing
       const { rows } = await pool.query(
         `UPDATE career_sections
          SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
          WHERE id = $3
          RETURNING *`,
         [
-          JSON.stringify(data),
+          JSON.stringify(dataToUpdate),
           isActive !== undefined ? isActive : true,
-          existingRows[0].id,
+          section.id,
         ],
       );
 
@@ -110,13 +86,50 @@ exports.updateHero = async (req, res, next) => {
         success: true,
         data: {
           id: rows[0].id,
-          titleLine1: data.titleLine1,
-          titleLine2: data.titleLine2,
-          description: data.description,
-          buttonText: data.buttonText,
-          buttonLink: data.buttonLink,
-          image: data.image,
-          backgroundGradient: data.backgroundGradient,
+          titleLine1: dataToUpdate.titleLine1,
+          titleLine2: dataToUpdate.titleLine2,
+          description: dataToUpdate.description,
+          buttonText: dataToUpdate.buttonText,
+          buttonLink: dataToUpdate.buttonLink,
+          image: dataToUpdate.image,
+          backgroundGradient: dataToUpdate.backgroundGradient,
+          isActive: rows[0].is_active,
+        },
+      });
+    } else {
+      // Create new
+      const dataToInsert = {
+        titleLine1: titleLine1 || '',
+        titleLine2: titleLine2 || '',
+        description: description || '',
+        buttonText: buttonText || '',
+        buttonLink: buttonLink || '',
+        image: image || '',
+        backgroundGradient: backgroundGradient || '',
+      };
+
+      const { rows } = await pool.query(
+        `INSERT INTO career_sections (section_type, data, is_active)
+         VALUES ($1, $2, $3)
+         RETURNING *`,
+        [
+          'hero',
+          JSON.stringify(dataToInsert),
+          isActive !== undefined ? isActive : true,
+        ],
+      );
+
+      return res.json({
+        success: true,
+        data: {
+          id: rows[0].id,
+          titleLine1: dataToInsert.titleLine1,
+          titleLine2: dataToInsert.titleLine2,
+          description: dataToInsert.description,
+          buttonText: dataToInsert.buttonText,
+          buttonLink: dataToInsert.buttonLink,
+          image: dataToInsert.image,
+          backgroundGradient: dataToInsert.backgroundGradient,
           isActive: rows[0].is_active,
         },
       });
@@ -129,12 +142,10 @@ exports.updateHero = async (req, res, next) => {
 // ==================== BENEFITS ====================
 exports.getBenefits = async (req, res, next) => {
   try {
-    const { rows: sectionRows } = await pool.query(
-      'SELECT * FROM career_sections WHERE section_type = $1 AND is_active = true',
-      ['benefits'],
-    );
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('benefits');
 
-    if (sectionRows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: {
@@ -146,7 +157,6 @@ exports.getBenefits = async (req, res, next) => {
       });
     }
 
-    const section = sectionRows[0];
     const sectionData = section.data || {};
     const { rows: itemsRows } = await pool.query(
       'SELECT * FROM career_section_items WHERE section_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
@@ -182,14 +192,28 @@ exports.updateBenefits = async (req, res, next) => {
   try {
     const { headerTitle, headerDescription, items, isActive } = req.body;
 
-    // Check if exists
-    const { rows: existingRows } = await pool.query(
-      'SELECT id FROM career_sections WHERE section_type = $1',
-      ['benefits'],
-    );
+    const section = await getSectionAnyStatus('benefits');
 
     let sectionId;
-    if (existingRows.length === 0) {
+    if (section) {
+      // Update existing - preserve existing data if new data is empty
+      sectionId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerTitle: headerTitle !== undefined && headerTitle !== '' ? headerTitle : (existingData.headerTitle || ''),
+        headerDescription: headerDescription !== undefined && headerDescription !== '' ? headerDescription : (existingData.headerDescription || ''),
+      };
+      await pool.query(
+        `UPDATE career_sections
+         SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3`,
+        [
+          JSON.stringify(dataToUpdate),
+          isActive !== undefined ? isActive : true,
+          sectionId,
+        ],
+      );
+    } else {
       // Create new
       const { rows } = await pool.query(
         `INSERT INTO career_sections (section_type, data, is_active)
@@ -205,22 +229,6 @@ exports.updateBenefits = async (req, res, next) => {
         ],
       );
       sectionId = rows[0].id;
-    } else {
-      // Update existing
-      sectionId = existingRows[0].id;
-      await pool.query(
-        `UPDATE career_sections
-         SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $3`,
-        [
-          JSON.stringify({
-            headerTitle: headerTitle || '',
-            headerDescription: headerDescription || '',
-          }),
-          isActive !== undefined ? isActive : true,
-          sectionId,
-        ],
-      );
     }
 
     // Handle items
@@ -262,12 +270,10 @@ exports.updateBenefits = async (req, res, next) => {
 // ==================== POSITIONS ====================
 exports.getPositions = async (req, res, next) => {
   try {
-    const { rows: sectionRows } = await pool.query(
-      'SELECT * FROM career_sections WHERE section_type = $1 AND is_active = true',
-      ['positions'],
-    );
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('positions');
 
-    if (sectionRows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: {
@@ -279,7 +285,6 @@ exports.getPositions = async (req, res, next) => {
       });
     }
 
-    const section = sectionRows[0];
     const sectionData = section.data || {};
     const { rows: itemsRows } = await pool.query(
       'SELECT * FROM career_section_items WHERE section_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
@@ -320,14 +325,28 @@ exports.updatePositions = async (req, res, next) => {
   try {
     const { headerTitle, headerDescription, items, isActive } = req.body;
 
-    // Check if exists
-    const { rows: existingRows } = await pool.query(
-      'SELECT id FROM career_sections WHERE section_type = $1',
-      ['positions'],
-    );
+    const section = await getSectionAnyStatus('positions');
 
     let sectionId;
-    if (existingRows.length === 0) {
+    if (section) {
+      // Update existing - preserve existing data if new data is empty
+      sectionId = section.id;
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        headerTitle: headerTitle !== undefined && headerTitle !== '' ? headerTitle : (existingData.headerTitle || ''),
+        headerDescription: headerDescription !== undefined && headerDescription !== '' ? headerDescription : (existingData.headerDescription || ''),
+      };
+      await pool.query(
+        `UPDATE career_sections
+         SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3`,
+        [
+          JSON.stringify(dataToUpdate),
+          isActive !== undefined ? isActive : true,
+          sectionId,
+        ],
+      );
+    } else {
       // Create new
       const { rows } = await pool.query(
         `INSERT INTO career_sections (section_type, data, is_active)
@@ -343,22 +362,6 @@ exports.updatePositions = async (req, res, next) => {
         ],
       );
       sectionId = rows[0].id;
-    } else {
-      // Update existing
-      sectionId = existingRows[0].id;
-      await pool.query(
-        `UPDATE career_sections
-         SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $3`,
-        [
-          JSON.stringify({
-            headerTitle: headerTitle || '',
-            headerDescription: headerDescription || '',
-          }),
-          isActive !== undefined ? isActive : true,
-          sectionId,
-        ],
-      );
     }
 
     // Handle items
@@ -405,19 +408,16 @@ exports.updatePositions = async (req, res, next) => {
 // ==================== CTA ====================
 exports.getCTA = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      'SELECT * FROM career_sections WHERE section_type = $1 AND is_active = true',
-      ['cta'],
-    );
+    // For admin, get section with any status
+    const section = await getSectionAnyStatus('cta');
 
-    if (rows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const section = rows[0];
     const data = section.data || {};
     return res.json({
       success: true,
@@ -451,60 +451,30 @@ exports.updateCTA = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    const data = {
-      title: title || '',
-      description: description || '',
-      primaryButtonText: primaryButtonText || '',
-      primaryButtonLink: primaryButtonLink || '',
-      secondaryButtonText: secondaryButtonText || '',
-      secondaryButtonLink: secondaryButtonLink || '',
-      backgroundGradient: backgroundGradient || '',
-    };
+    const section = await getSectionAnyStatus('cta');
 
-    // Check if exists
-    const { rows: existingRows } = await pool.query(
-      'SELECT id FROM career_sections WHERE section_type = $1',
-      ['cta'],
-    );
+    if (section) {
+      // Update existing - preserve existing data if new data is empty
+      const existingData = section.data || {};
+      const dataToUpdate = {
+        title: title !== undefined && title !== '' ? title : (existingData.title || ''),
+        description: description !== undefined && description !== '' ? description : (existingData.description || ''),
+        primaryButtonText: primaryButtonText !== undefined && primaryButtonText !== '' ? primaryButtonText : (existingData.primaryButtonText || ''),
+        primaryButtonLink: primaryButtonLink !== undefined && primaryButtonLink !== '' ? primaryButtonLink : (existingData.primaryButtonLink || ''),
+        secondaryButtonText: secondaryButtonText !== undefined && secondaryButtonText !== '' ? secondaryButtonText : (existingData.secondaryButtonText || ''),
+        secondaryButtonLink: secondaryButtonLink !== undefined && secondaryButtonLink !== '' ? secondaryButtonLink : (existingData.secondaryButtonLink || ''),
+        backgroundGradient: backgroundGradient !== undefined && backgroundGradient !== '' ? backgroundGradient : (existingData.backgroundGradient || ''),
+      };
 
-    if (existingRows.length === 0) {
-      // Create new
-      const { rows } = await pool.query(
-        `INSERT INTO career_sections (section_type, data, is_active)
-         VALUES ($1, $2, $3)
-         RETURNING *`,
-        [
-          'cta',
-          JSON.stringify(data),
-          isActive !== undefined ? isActive : true,
-        ],
-      );
-
-      return res.json({
-        success: true,
-        data: {
-          id: rows[0].id,
-          title: data.title,
-          description: data.description,
-          primaryButtonText: data.primaryButtonText,
-          primaryButtonLink: data.primaryButtonLink,
-          secondaryButtonText: data.secondaryButtonText,
-          secondaryButtonLink: data.secondaryButtonLink,
-          backgroundGradient: data.backgroundGradient,
-          isActive: rows[0].is_active,
-        },
-      });
-    } else {
-      // Update existing
       const { rows } = await pool.query(
         `UPDATE career_sections
          SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
          WHERE id = $3
          RETURNING *`,
         [
-          JSON.stringify(data),
+          JSON.stringify(dataToUpdate),
           isActive !== undefined ? isActive : true,
-          existingRows[0].id,
+          section.id,
         ],
       );
 
@@ -512,13 +482,50 @@ exports.updateCTA = async (req, res, next) => {
         success: true,
         data: {
           id: rows[0].id,
-          title: data.title,
-          description: data.description,
-          primaryButtonText: data.primaryButtonText,
-          primaryButtonLink: data.primaryButtonLink,
-          secondaryButtonText: data.secondaryButtonText,
-          secondaryButtonLink: data.secondaryButtonLink,
-          backgroundGradient: data.backgroundGradient,
+          title: dataToUpdate.title,
+          description: dataToUpdate.description,
+          primaryButtonText: dataToUpdate.primaryButtonText,
+          primaryButtonLink: dataToUpdate.primaryButtonLink,
+          secondaryButtonText: dataToUpdate.secondaryButtonText,
+          secondaryButtonLink: dataToUpdate.secondaryButtonLink,
+          backgroundGradient: dataToUpdate.backgroundGradient,
+          isActive: rows[0].is_active,
+        },
+      });
+    } else {
+      // Create new
+      const dataToInsert = {
+        title: title || '',
+        description: description || '',
+        primaryButtonText: primaryButtonText || '',
+        primaryButtonLink: primaryButtonLink || '',
+        secondaryButtonText: secondaryButtonText || '',
+        secondaryButtonLink: secondaryButtonLink || '',
+        backgroundGradient: backgroundGradient || '',
+      };
+
+      const { rows } = await pool.query(
+        `INSERT INTO career_sections (section_type, data, is_active)
+         VALUES ($1, $2, $3)
+         RETURNING *`,
+        [
+          'cta',
+          JSON.stringify(dataToInsert),
+          isActive !== undefined ? isActive : true,
+        ],
+      );
+
+      return res.json({
+        success: true,
+        data: {
+          id: rows[0].id,
+          title: dataToInsert.title,
+          description: dataToInsert.description,
+          primaryButtonText: dataToInsert.primaryButtonText,
+          primaryButtonLink: dataToInsert.primaryButtonLink,
+          secondaryButtonText: dataToInsert.secondaryButtonText,
+          secondaryButtonLink: dataToInsert.secondaryButtonLink,
+          backgroundGradient: dataToInsert.backgroundGradient,
           isActive: rows[0].is_active,
         },
       });

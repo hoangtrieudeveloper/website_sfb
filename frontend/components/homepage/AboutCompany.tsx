@@ -7,8 +7,17 @@ import { ScrollAnimation } from "../public/ScrollAnimation";
 
 import { aboutSlides, aboutCompanyData } from "./data";
 
-export function AboutCompany() {
-  const baseSlides = aboutSlides;
+interface AboutCompanyProps {
+  data?: any;
+}
+
+export function AboutCompany({ data }: AboutCompanyProps) {
+  // Use data from props if available, otherwise fallback to static data
+  const title = data?.title || aboutCompanyData.title;
+  const description = data?.description || aboutCompanyData.description;
+  const slidesData = data?.slides || aboutSlides;
+  
+  const baseSlides = slidesData;
   const slides = [...baseSlides, ...baseSlides, ...baseSlides];
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -85,21 +94,21 @@ export function AboutCompany() {
                 "
               >
                 <span className="lg:whitespace-nowrap">
-                  {aboutCompanyData.title.part1}
+                  {title.part1}
                   <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
-                    {aboutCompanyData.title.highlight1}
+                    {title.highlight1}
                   </span>
                   <span
                     className="text-[var(--Dark-Blue,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[inherit] lg:text-[56px] font-normal leading-[inherit] lg:leading-normal"
                   >
-                    {aboutCompanyData.title.part2}
+                    {title.part2}
                   </span>
                 </span>
                 <br className="hidden lg:block" />
                 <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
-                  {aboutCompanyData.title.highlight2}
+                  {title.highlight2}
                 </span>
-                {aboutCompanyData.title.part3}
+                {title.part3}
               </h2>
             </div>
 
@@ -111,7 +120,7 @@ export function AboutCompany() {
                 [font-feature-settings:'liga'_off,'clig'_off]
               "
             >
-              {aboutCompanyData.description}
+              {description}
             </p>
           </ScrollAnimation>
 
@@ -147,8 +156,8 @@ export function AboutCompany() {
                             <div className="rgb-frame p-[3px] rounded-[14px]">
                               <div className="relative w-full h-[234px] overflow-hidden rounded-lg bg-white">
                                 <img
-                                  src={slide.image}
-                                  alt={slide.title}
+                                  src={slide.image || "/images/card-consulting.jpg"}
+                                  alt={slide.title || "Slide"}
                                   className="
                                     w-full h-full object-cover
                                     transition-transform duration-500
@@ -175,7 +184,7 @@ export function AboutCompany() {
 
                             {/* BUTTON */}
                             <Link
-                              href={slide.buttonLink}
+                              href={slide.buttonLink || slide.button?.link || "#"}
                               className="
                                 relative mt-auto w-full h-12 rounded-lg
                                 flex items-center justify-center gap-2
@@ -190,7 +199,7 @@ export function AboutCompany() {
                               "
                             >
                               <span className="relative z-10 flex items-center gap-2">
-                                {slide.buttonText}
+                                {slide.buttonText || slide.button?.text || "Xem thêm"}
                                 <span className="transition-transform duration-300 group-hover:translate-x-1">
                                   →
                                 </span>
@@ -206,7 +215,7 @@ export function AboutCompany() {
 
               {/* Dots Pagination */}
               <div className="flex justify-center gap-2 mt-10 flex-wrap">
-                {baseSlides.map((_, index) => (
+                {baseSlides.map((_: any, index: number) => (
                   <button
                     key={index}
                     onClick={() => scrollToDot(index)}

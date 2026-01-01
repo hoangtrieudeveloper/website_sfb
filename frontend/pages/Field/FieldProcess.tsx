@@ -1,66 +1,86 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import { processSteps, fieldProcessSectionData } from "./data";
 import { FadeIn, SlideIn } from "../../components/ui/motion";
+import * as LucideIcons from "lucide-react";
 
-export function FieldProcess() {
+interface FieldProcessProps {
+    data?: any;
+}
+
+export function FieldProcess({ data }: FieldProcessProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data || {
+        header: fieldProcessSectionData.header,
+        steps: processSteps,
+    };
     return (
         <section className="py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
             <div className="relative z-10 w-full px-6 lg:px-[290px]">
                 {/* Header */}
-                <FadeIn className="text-center mb-[46px] max-w-3xl mx-auto">
-                    <div className="inline-block mb-4">
-                        <span
-                            className="text-center font-['Plus_Jakarta_Sans'] text-[15px] font-medium uppercase"
-                            style={{
-                                color: "var(--Color, #1D8FCF)",
-                                fontFeatureSettings: "'liga' off, 'clig' off",
-                                lineHeight: "normal",
-                            }}
-                        >
-                            {fieldProcessSectionData.header.subtitle}
-                        </span>
-                    </div>
-                    <h2
-                        className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-[56px] font-normal"
-                        style={{
-                            color: "var(--Color-2, #0F172A)",
-                            fontFeatureSettings: "'liga' off, 'clig' off",
-                            lineHeight: "normal",
-                        }}
-                    >
-                        {fieldProcessSectionData.header.title.part1}{" "}
-                        <span
-                            className="font-bold"
-                            style={{
-                                color: "var(--Color-2, #0F172A)",
-                                fontFeatureSettings: "'liga' off, 'clig' off",
-                                lineHeight: "normal",
-                            }}
-                        >
-                            {fieldProcessSectionData.header.title.highlight}
-                            <br />
-                            {fieldProcessSectionData.header.title.part2}
-                        </span>
-                    </h2>
-                </FadeIn>
+                {displayData.header && (
+                    <FadeIn className="text-center mb-[46px] max-w-3xl mx-auto">
+                        {displayData.header.subtitle && (
+                            <div className="inline-block mb-4">
+                                <span
+                                    className="text-center font-['Plus_Jakarta_Sans'] text-[15px] font-medium uppercase"
+                                    style={{
+                                        color: "var(--Color, #1D8FCF)",
+                                        fontFeatureSettings: "'liga' off, 'clig' off",
+                                        lineHeight: "normal",
+                                    }}
+                                >
+                                    {displayData.header.subtitle}
+                                </span>
+                            </div>
+                        )}
+                        {(displayData.header.titlePart1 || displayData.header.titleHighlight || displayData.header.titlePart2) && (
+                            <h2
+                                className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-[56px] font-normal"
+                                style={{
+                                    color: "var(--Color-2, #0F172A)",
+                                    fontFeatureSettings: "'liga' off, 'clig' off",
+                                    lineHeight: "normal",
+                                }}
+                            >
+                                {displayData.header.titlePart1}{" "}
+                                <span
+                                    className="font-bold"
+                                    style={{
+                                        color: "var(--Color-2, #0F172A)",
+                                        fontFeatureSettings: "'liga' off, 'clig' off",
+                                        lineHeight: "normal",
+                                    }}
+                                >
+                                    {displayData.header.titleHighlight}
+                                    <br />
+                                    {displayData.header.titlePart2}
+                                </span>
+                            </h2>
+                        )}
+                    </FadeIn>
+                )}
 
                 {/* Steps */}
-                <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-[90px]">
-                    {processSteps.map((step, index) => {
-                        const isEven = index % 2 !== 0; // 0 (odd visual) -> Image Left, 1 (even visual) -> Image Right? 
+                {displayData.steps && displayData.steps.length > 0 && (
+                    <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-[90px]">
+                        {displayData.steps.map((step: any, index: number) => {
+                            const isEven = index % 2 !== 0;
 
-                        const stepImageSrc =
-                            index === 0
-                                ? "/images/industries/industries1.png"
-                                : index === 1
-                                    ? "/images/industries/industries2.png"
-                                    : index === 2
-                                        ? "/images/industries/industries3.png"
-                                        : `/images/field_process_${index + 1}.png`;
+                            const stepImageSrc = step.image || (
+                                index === 0
+                                    ? "/images/industries/industries1.png"
+                                    : index === 1
+                                        ? "/images/industries/industries2.png"
+                                        : index === 2
+                                            ? "/images/industries/industries3.png"
+                                            : `/images/field_process_${index + 1}.png`
+                            );
 
-                        const ButtonIcon = step.button.icon;
+                            const ButtonIcon = step.button?.iconName
+                                ? ((LucideIcons as any)[step.button.iconName] || ArrowRight)
+                                : (step.button?.icon || ArrowRight);
 
                         return (
                             <div
@@ -103,7 +123,7 @@ export function FieldProcess() {
                                     </p>
 
                                     <ul className="space-y-4 mb-10">
-                                        {step.points.map((point, idx) => (
+                                        {step.points.map((point: string, idx: number) => (
                                             <li key={idx} className="flex items-start gap-3">
                                                 <div className="flex-shrink-0 mt-1">
                                                     <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
@@ -116,22 +136,29 @@ export function FieldProcess() {
                                     </ul>
 
                                     {/* Buttons from data */}
-                                    <div>
-                                        <a href={step.button.link} className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                                            {step.button.text === "Liên hệ với chúng tôi" ? step.button.text : (
-                                                <>
-                                                    <ButtonIcon size={step.button.iconSize} />
-                                                    {step.button.text}
-                                                </>
-                                            )}
-                                            {step.button.text === "Liên hệ với chúng tôi" && <ButtonIcon size={step.button.iconSize} />}
-                                        </a>
-                                    </div>
+                                    {step.button?.text && (
+                                        <div>
+                                            <a href={step.button.link || '#'} className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
+                                                {step.button.text === "Liên hệ với chúng tôi" ? (
+                                                    <>
+                                                        {step.button.text}
+                                                        <ButtonIcon size={step.button.iconSize || 18} />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <ButtonIcon size={step.button.iconSize || 18} />
+                                                        {step.button.text}
+                                                    </>
+                                                )}
+                                            </a>
+                                        </div>
+                                    )}
                                 </SlideIn>
                             </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </section>
     );

@@ -573,9 +573,34 @@ export default function AdminIndustriesPage() {
   const handleSaveProcess = async () => {
     try {
       setLoadingProcess(true);
+      // Ensure header data is complete before saving
+      // If header exists but has empty fields, fetch from DB first to preserve existing data
+      let dataToSave = { ...processData };
+      if (dataToSave.header) {
+        try {
+          const currentData = await adminApiCall<{ success: boolean; data?: ProcessData }>(
+            AdminEndpoints.industries.process.get,
+          );
+          if (currentData?.data?.header) {
+            // Merge: use new values if provided, otherwise keep existing
+            dataToSave.header = {
+              ...currentData.data.header,
+              ...dataToSave.header,
+              // Preserve existing values if new ones are empty
+              subtitle: dataToSave.header.subtitle || currentData.data.header.subtitle || '',
+              titlePart1: dataToSave.header.titlePart1 || currentData.data.header.titlePart1 || '',
+              titleHighlight: dataToSave.header.titleHighlight || currentData.data.header.titleHighlight || '',
+              titlePart2: dataToSave.header.titlePart2 || currentData.data.header.titlePart2 || '',
+            };
+          }
+        } catch (error) {
+          // If fetch fails, proceed with current data
+          console.error('Failed to fetch current process data:', error);
+        }
+      }
       await adminApiCall(AdminEndpoints.industries.process.update, {
         method: "PUT",
-        body: JSON.stringify(processData),
+        body: JSON.stringify(dataToSave),
       });
       toast.success("Đã lưu process");
       void fetchProcess();
@@ -954,7 +979,7 @@ export default function AdminIndustriesPage() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label className="pb-2">Kích hoạt</Label>
+                    <Label className="pb-2">Kích hoạt toàn bộ danh sách</Label>
                     <Switch
                       checked={listHeaderData.isActive}
                       onCheckedChange={(checked) => setListHeaderData({ ...listHeaderData, isActive: checked })}
@@ -1962,21 +1987,67 @@ export default function AdminIndustriesPage() {
                     <Label className="pb-2">Kích hoạt</Label>
                     <Switch
                       checked={processData.header?.isActive ?? true}
-                      onCheckedChange={(checked) =>
-                        setProcessData({
-                          ...processData,
-                          header: {
-                            ...(processData.header || {
-                              subtitle: "",
-                              titlePart1: "",
-                              titleHighlight: "",
-                              titlePart2: "",
-                              isActive: true,
-                            }),
-                            isActive: checked,
-                          },
-                        })
-                      }
+                      onCheckedChange={async (checked) => {
+                        // Always fetch latest data from DB to ensure we have complete header data
+                        try {
+                          const data = await adminApiCall<{ success: boolean; data?: ProcessData }>(
+                            AdminEndpoints.industries.process.get,
+                          );
+                          if (data?.data?.header) {
+                            // Use data from DB and only update isActive
+                            setProcessData({
+                              ...processData,
+                              header: {
+                                ...data.data.header,
+                                isActive: checked,
+                              },
+                            });
+                          } else if (processData.header) {
+                            // If DB has no header but state has, keep state data and update isActive
+                            setProcessData({
+                              ...processData,
+                              header: {
+                                ...processData.header,
+                                isActive: checked,
+                              },
+                            });
+                          } else {
+                            // No header exists, create new one
+                            setProcessData({
+                              ...processData,
+                              header: {
+                                subtitle: "",
+                                titlePart1: "",
+                                titleHighlight: "",
+                                titlePart2: "",
+                                isActive: checked,
+                              },
+                            });
+                          }
+                        } catch (error) {
+                          // If fetch fails, just toggle isActive with existing state
+                          if (processData.header) {
+                            setProcessData({
+                              ...processData,
+                              header: {
+                                ...processData.header,
+                                isActive: checked,
+                              },
+                            });
+                          } else {
+                            setProcessData({
+                              ...processData,
+                              header: {
+                                subtitle: "",
+                                titlePart1: "",
+                                titleHighlight: "",
+                                titlePart2: "",
+                                isActive: checked,
+                              },
+                            });
+                          }
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>

@@ -4,7 +4,16 @@ import { visionMissionSectionData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 
-export function AboutVisionMission() {
+interface AboutVisionMissionProps {
+  data?: any;
+}
+
+export function AboutVisionMission({ data }: AboutVisionMissionProps) {
+    // Use data from props if available, otherwise fallback to static data
+    const displayData = data?.data || visionMissionSectionData;
+    const headerTitle = displayData.headerTitle || visionMissionSectionData.header.title;
+    const headerDescription = displayData.headerDescription || visionMissionSectionData.header.description;
+    const items = displayData.items || visionMissionSectionData.items;
 
     return (
         <section className="py-20 bg-white overflow-hidden relative">
@@ -14,18 +23,22 @@ export function AboutVisionMission() {
             <div className="max-w-[1340px] mx-auto px-6 relative z-10">
                 {/* Section header */}
                 <FadeIn className="max-w-4xl mx-auto text-center mb-16">
-                    <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
-                        {visionMissionSectionData.header.title}
-                    </h2>
-                    <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
-                        {visionMissionSectionData.header.description}
-                    </p>
+                    {headerTitle && (
+                        <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
+                            {headerTitle}
+                        </h2>
+                    )}
+                    {headerDescription && (
+                        <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
+                            {headerDescription}
+                        </p>
+                    )}
                 </FadeIn>
 
                 {/* Cards Grid */}
                 <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {visionMissionSectionData.items.map((item) => (
-                        <FadeIn key={item.id}>
+                    {items.map((item: any, index: number) => (
+                        <FadeIn key={item.id || index}>
                             <motion.div
                                 whileHover={{ scale: 1.05, borderColor: "#2CA4E0", backgroundColor: "#F8FBFE" }}
                                 transition={{ duration: 0.3 }}
@@ -36,7 +49,7 @@ export function AboutVisionMission() {
 
                                 <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-[#2CA4E0] flex items-center justify-center bg-white/50 relative z-10 group-hover:bg-white transition-colors">
                                     <span className="text-[#2CA4E0] font-bold text-lg number-font">
-                                        {item.id}
+                                        {index + 1}
                                     </span>
                                 </div>
                                 <div className="mt-2.5 relative z-10">
