@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Search, Plus, Edit, Trash2, ChevronUp, ChevronDown, Save, ArrowRight, Target, Users, Award, Sparkles, Phone } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Search, Plus, Edit, Trash2, ChevronUp, ChevronDown, Save, ArrowRight, Target, Users, Award, Sparkles, Phone, Briefcase, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
 import {
@@ -784,6 +783,66 @@ export default function AdminIndustriesPage() {
 
   const activeIndustries = industries.filter((i) => i.isActive);
 
+  // Refs for scroll to section
+  const heroSectionRef = useRef<HTMLDivElement>(null);
+  const listSectionRef = useRef<HTMLDivElement>(null);
+  const processSectionRef = useRef<HTMLDivElement>(null);
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
+
+  // Active main tab state
+  const [activeMainTab, setActiveMainTab] = useState<string>("hero");
+
+  // Tab configuration with descriptions
+  const tabsConfig = [
+    {
+      value: "hero",
+      label: "Hero Banner",
+      description: "Phần banner đầu trang với tiêu đề, mô tả và thống kê",
+      icon: Target,
+    },
+    {
+      value: "list",
+      label: "Danh sách lĩnh vực",
+      description: "Quản lý danh sách các lĩnh vực hoạt động",
+      icon: Briefcase,
+    },
+    {
+      value: "process",
+      label: "Lộ trình đồng hành",
+      description: "Các bước trong quy trình làm việc với SFB",
+      icon: ArrowRight,
+    },
+    {
+      value: "cta",
+      label: "CTA",
+      description: "Phần kêu gọi hành động (Call to Action)",
+      icon: Phone,
+    },
+  ];
+
+  // Handle tab change with scroll
+  const handleTabChange = (value: string) => {
+    setActiveMainTab(value);
+    
+    // Scroll to corresponding section
+    setTimeout(() => {
+      switch (value) {
+        case "hero":
+          heroSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          break;
+        case "list":
+          listSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          break;
+        case "process":
+          processSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          break;
+        case "cta":
+          ctaSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          break;
+      }
+    }, 100);
+  };
+
   // Render icon component
   const renderIcon = (iconName: string) => {
     const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Code2;
@@ -799,16 +858,62 @@ export default function AdminIndustriesPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="hero" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="hero">Hero Banner</TabsTrigger>
-          <TabsTrigger value="list">Danh sách lĩnh vực</TabsTrigger>
-          <TabsTrigger value="process">Lộ trình đồng hành</TabsTrigger>
-          <TabsTrigger value="cta">CTA</TabsTrigger>
-        </TabsList>
+      {/* Progress Stepper */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            {tabsConfig.map((tab, index) => {
+              const Icon = tab.icon;
+              const isActive = activeMainTab === tab.value;
+              const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
+              
+              return (
+                <div key={tab.value} className="flex items-center flex-1">
+                  <button
+                    onClick={() => handleTabChange(tab.value)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
+                        : isCompleted
+                        ? "bg-green-50 text-green-700 border-2 border-green-300"
+                        : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      isActive
+                        ? "bg-blue-500 text-white"
+                        : isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        <span className="text-sm font-semibold">{index + 1}</span>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">{tab.label}</div>
+                      <div className="text-xs opacity-75">{tab.description}</div>
+                    </div>
+                  </button>
+                  {index < tabsConfig.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-2 ${
+                      isCompleted ? "bg-green-500" : "bg-gray-300"
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeMainTab} onValueChange={handleTabChange} className="w-full">
 
         {/* Tab: Danh sách lĩnh vực */}
         <TabsContent value="list" className="space-y-0">
+          <div ref={listSectionRef}>
           <Tabs defaultValue="config" className="w-full">
             <TabsList>
               <TabsTrigger value="config">Cấu hình</TabsTrigger>
@@ -1272,10 +1377,12 @@ export default function AdminIndustriesPage() {
               </Card>
             </TabsContent>
           </Tabs>
+          </div>
         </TabsContent>
 
         {/* Tab: Hero Banner */}
         <TabsContent value="hero" className="space-y-0">
+          <div ref={heroSectionRef}>
           <Tabs defaultValue="config" className="w-full">
             <TabsList>
               <TabsTrigger value="config">Cấu hình</TabsTrigger>
@@ -1731,10 +1838,12 @@ export default function AdminIndustriesPage() {
               </Card>
             </TabsContent>
           </Tabs>
+          </div>
         </TabsContent>
 
         {/* Tab: Process */}
         <TabsContent value="process" className="space-y-0">
+          <div ref={processSectionRef}>
           <Tabs defaultValue="config" className="w-full">
             <TabsList>
               <TabsTrigger value="config">Cấu hình</TabsTrigger>
@@ -2368,10 +2477,12 @@ export default function AdminIndustriesPage() {
               </Card>
             </TabsContent>
           </Tabs>
+          </div>
         </TabsContent>
 
         {/* Tab: CTA */}
         <TabsContent value="cta" className="space-y-0">
+          <div ref={ctaSectionRef}>
           <Tabs
             value={activeSubTabs?.cta || "config"}
             onValueChange={(value) => {
@@ -2537,6 +2648,7 @@ export default function AdminIndustriesPage() {
               </Card>
             </TabsContent>
           </Tabs>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

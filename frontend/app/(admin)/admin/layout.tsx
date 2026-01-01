@@ -25,6 +25,7 @@ import {
   MessageSquare,
   Briefcase,
   Info,
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +50,7 @@ import { removeAuthToken } from "@/lib/auth/token";
 import { Toaster } from "sonner";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers" | "homepage";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -67,7 +68,7 @@ const menuItems: AdminNavItem[] = [
   },
   {
     id: "news-group",
-    label: "Tin tức",
+    label: "Quản lý Tin tức",
     icon: Newspaper,
     requiredPermissions: ["news.view", "news.manage", "categories.view", "categories.manage", "admin"],
     children: [
@@ -88,8 +89,15 @@ const menuItems: AdminNavItem[] = [
     ],
   },
   {
+    id: "homepage",
+    label: "Quản lý Trang chủ",
+    href: "/admin/home",
+    icon: Home,
+    requiredPermissions: ["homepage.manage", "admin"],
+  },
+  {
     id: "industries",
-    label: "Quản lý lĩnh vực",
+    label: "Quản lý Lĩnh vực",
     href: "/admin/industries",
     icon: Briefcase,
     requiredPermissions: ["industries.view", "industries.manage", "admin"],
@@ -103,14 +111,14 @@ const menuItems: AdminNavItem[] = [
   },
   {
     id: "about",
-    label: "Quản lý trang Giới thiệu",
+    label: "Quản lý Giới thiệu",
     href: "/admin/about",
     icon: Info,
     requiredPermissions: ["about.manage", "admin"],
   },
   {
     id: "careers",
-    label: "Quản lý trang Tuyển dụng",
+    label: "Quản lý Tuyển dụng",
     href: "/admin/careers",
     icon: Briefcase,
     requiredPermissions: ["careers.manage", "admin"],

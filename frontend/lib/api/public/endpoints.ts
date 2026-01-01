@@ -24,6 +24,12 @@ export const PublicEndpoints = {
     submit: "/api/public/contact",
   },
   
+  // Public Homepage
+  homepage: {
+    list: "/api/public/homepage",
+    block: (sectionType: string) => `/api/public/homepage/${sectionType}`,
+  },
+  
   // Other public endpoints can be added here
 } as const;
 

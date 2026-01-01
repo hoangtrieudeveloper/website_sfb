@@ -181,5 +181,11 @@ export const AdminEndpoints = {
       update: "/api/admin/careers/cta",
     },
   },
+
+  // Homepage
+  homepage: {
+    list: "/api/admin/homepage",
+    block: (sectionType: string) => `/api/admin/homepage/${sectionType}`,
+  },
 } as const;
 

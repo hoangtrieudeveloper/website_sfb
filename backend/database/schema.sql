@@ -1761,3 +1761,310 @@ FROM roles r
 JOIN permissions p ON p.code = 'careers.manage'
 WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- ============================================================================
+-- HOMEPAGE BLOCKS MANAGEMENT SYSTEM SCHEMA
+-- ============================================================================
+
+-- Bảng homepage_blocks (Quản lý các khối trên trang chủ)
+-- section_type: 'hero', 'aboutCompany', 'features', 'solutions', 'trusts', 'consult'
+-- data: JSONB chứa tất cả các field riêng của từng section
+CREATE TABLE IF NOT EXISTS homepage_blocks (
+  id SERIAL PRIMARY KEY,
+  section_type VARCHAR(50) NOT NULL UNIQUE,
+  data JSONB DEFAULT '{}'::jsonb,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_homepage_blocks_type ON homepage_blocks(section_type);
+CREATE INDEX IF NOT EXISTS idx_homepage_blocks_active ON homepage_blocks(is_active);
+CREATE INDEX IF NOT EXISTS idx_homepage_blocks_data_gin ON homepage_blocks USING GIN (data);
+
+DROP TRIGGER IF EXISTS update_homepage_blocks_updated_at ON homepage_blocks;
+CREATE TRIGGER update_homepage_blocks_updated_at
+    BEFORE UPDATE ON homepage_blocks
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Seed dữ liệu mẫu cho Homepage Blocks
+INSERT INTO homepage_blocks (section_type, data, is_active)
+VALUES
+  (
+    'hero',
+    '{
+      "title": {
+        "line1": "Chuyển đổi số ",
+        "line2": "Thông minh ",
+        "line3": "Cho doanh nghiệp"
+      },
+      "description": "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến, tối ưu hóa quy trình và tăng trưởng bền vững.",
+      "primaryButton": {
+        "text": "Khám phá giải pháp",
+        "link": "/solutions"
+      },
+      "secondaryButton": {
+        "text": "Xem video"
+      },
+      "heroImage": "/images/hero.png",
+      "partners": [
+        "/images/partners/baohiem.png",
+        "/images/partners/botaichinh.png",
+        "/images/partners/hvcsnd.png",
+        "/images/partners/hưng-yên.png",
+        "/images/partners/logo3.png",
+        "/images/partners/namviet.png",
+        "/images/partners/sotttt-removebg-preview.png",
+        "/images/partners/usaid.png"
+      ]
+    }'::jsonb,
+    TRUE
+  ),
+  (
+    'aboutCompany',
+    '{
+      "title": {
+        "part1": "Chuyển đổi số ",
+        "highlight1": "không bắt đầu từ phần mềm",
+        "part2": " mà ",
+        "highlight2": "từ hiệu quả thực tế",
+        "part3": " của doanh nghiệp."
+      },
+      "description": "SFB giúp doanh nghiệp vận hành thông minh, giảm chi phí hạ tầng, tăng năng suất và bảo mật dữ liệu an toàn tuyệt đối.",
+      "slides": [
+        {
+          "title": "Tư vấn & Đánh giá hiện trạng",
+          "description": "Chúng tôi phân tích toàn diện hiện trạng vận hành, dữ liệu và quy trình của doanh nghiệp. Xác định điểm mạnh – điểm nghẽn – rủi ro tiềm ẩn để đưa ra bức tranh tổng thể.",
+          "buttonText": "Nhận tư vấn ngay",
+          "buttonLink": "/contact",
+          "image": "/images/card-consulting.jpg"
+        },
+        {
+          "title": "Thiết kế giải pháp phù hợp",
+          "description": "Xây dựng giải pháp tối ưu dựa trên nhu cầu thực tế và đặc thù ngành. Đảm bảo tính linh hoạt, khả năng mở rộng và hiệu quả vận hành lâu dài.",
+          "buttonText": "Xem case studies",
+          "buttonLink": "/products",
+          "image": "/images/card-solution.png"
+        },
+        {
+          "title": "Triển khai & Tích hợp hệ thống",
+          "description": "Thực hiện triển khai chuyên nghiệp, đảm bảo tiến độ và chất lượng. Kết nối liền mạch với các hệ thống hiện có để tối ưu vận hành tổng thể.",
+          "buttonText": "Tìm hiểu thêm",
+          "buttonLink": "/solutions",
+          "image": "/images/card-implementation.png"
+        }
+      ]
+    }'::jsonb,
+    TRUE
+  ),
+  (
+    'features',
+    '{
+      "header": {
+        "sub": "GIỚI THIỆU SFB",
+        "title": "Chúng tôi là ai?",
+        "description": "Đơn vị phát triển phần mềm với kinh nghiệm thực chiến, chuyên sâu công nghệ và định hướng xây dựng hệ thống bền vững."
+      },
+      "block1": {
+        "image": "/images/feature1.png",
+        "text": "SFB với kinh nghiệm qua nhiều dự án lớn nhỏ, tự tin xử lý các bài toán phần mềm phức tạp, yêu cầu chuyên môn sâu. Đội ngũ trẻ – đam mê – trách nhiệm giúp xây dựng hệ thống ổn định, hiệu quả và tối ưu chi phí.",
+        "list": [
+          "Tự tin trong các dự án phức tạp",
+          "Tối ưu quy trình và chi phí",
+          "Đồng hành trọn vòng đời sản phẩm"
+        ],
+        "button": {
+          "text": "Tìm hiểu thêm",
+          "link": "/about"
+        }
+      },
+      "block2": {
+        "image": "/images/feature2.png",
+        "button": {
+          "text": "Tìm hiểu cách SFB triển khai",
+          "link": "/solutions"
+        },
+        "items": [
+          {
+            "title": "Nhiều năm kinh nghiệm",
+            "text": "Thực hiện hàng trăm dự án từ nhỏ tới lớn, phức tạp."
+          },
+          {
+            "title": "Nhân viên nhiệt huyết",
+            "text": "Đội ngũ trẻ, chuyên sâu, giàu tinh thần trách nhiệm."
+          },
+          {
+            "title": "Dự án lớn liên tục hoàn thành",
+            "text": "Đáp ứng yêu cầu khó, nghiệp vụ đa ngành."
+          },
+          {
+            "title": "Làm chủ công nghệ",
+            "text": "Hạ tầng server riêng, khả năng mở rộng tức thời."
+          }
+        ]
+      },
+      "block3": {
+        "image": "/images/feature3.png",
+        "button": {
+          "text": "Liên hệ với chúng tôi",
+          "link": "/contact"
+        },
+        "items": [
+          {
+            "title": "Chúng tôi hiện diện để",
+            "text": "Cung cấp hệ thống hoạt động hiệu quả 24/7, đáp ứng mọi nghiệp vụ công nghệ thông tin."
+          },
+          {
+            "title": "Xây dựng niềm tin",
+            "text": "Lấy niềm tin khách hàng và uy tín thương hiệu làm triết lý kinh doanh."
+          },
+          {
+            "title": "Giá trị của nhân viên",
+            "text": "Đề cao trung thực – kinh nghiệm – sáng tạo – trách nhiệm."
+          }
+        ]
+      }
+    }'::jsonb,
+    TRUE
+  ),
+  (
+    'solutions',
+    '{
+      "subHeader": "GIẢI PHÁP CHUYÊN NGHIỆP",
+      "title": {
+        "part1": "Giải pháp phần mềm",
+        "part2": "đóng gói cho nhiều lĩnh vực"
+      },
+      "domains": [
+        "Chính phủ & cơ quan nhà nước",
+        "Doanh nghiệp",
+        "Ngân hàng & bảo hiểm",
+        "Giáo dục & đào tạo",
+        "Viễn thông & hạ tầng số"
+      ],
+      "items": [
+        {
+          "id": 1,
+          "iconName": "LineChart",
+          "title": "Quy trình được chuẩn hóa",
+          "description": "Tất cả công việc tại SFB đều được chuẩn hóa theo quy trình rõ ràng – từ tác vụ đơn giản đến các hạng mục phức tạp. Giúp kiểm soát chất lượng, tiến độ và rủi ro một cách nhất quán.",
+          "benefits": [
+            "Minh bạch & dễ kiểm soát",
+            "Giảm rủi ro dự án",
+            "Chất lượng đồng nhất"
+          ],
+          "buttonText": "Tìm hiểu cách SFB triển khai",
+          "buttonLink": "/contact",
+          "iconGradient": "from-cyan-400 to-blue-600"
+        },
+        {
+          "id": 2,
+          "iconName": "Code",
+          "title": "Công nghệ .Net của Microsoft",
+          "description": "Nền tảng phát triển mạnh mẽ, đa ngôn ngữ và đa hệ điều hành, hỗ trợ xây dựng ứng dụng từ web, mobile đến enterprise. .NET mang lại hiệu suất cao, bảo mật và tốc độ triển khai tối ưu.",
+          "benefits": [
+            "Bảo mật cao",
+            "Dễ bảo trì",
+            "Hệ sinh thái mạnh"
+          ],
+          "buttonText": "Xem case studies",
+          "buttonLink": "/industries",
+          "iconGradient": "from-fuchsia-400 to-indigo-600"
+        },
+        {
+          "id": 3,
+          "iconName": "Database",
+          "title": "Giải pháp lưu trữ hiện đại & Big Data",
+          "description": "Hạ tầng lưu trữ tiên tiến giúp xử lý và quản lý dữ liệu khổng lồ theo thời gian thực. Big Data cho phép phân tích sâu, phát hiện xu hướng và đưa ra quyết định dựa trên dữ liệu chính xác.",
+          "benefits": [
+            "Big Data-ready",
+            "Hiệu năng cao",
+            "An toàn dữ liệu"
+          ],
+          "buttonText": "Tư vấn miễn phí",
+          "buttonLink": "/contact",
+          "iconGradient": "from-emerald-400 to-green-600"
+        },
+        {
+          "id": 4,
+          "iconName": "Cloud",
+          "title": "Khả năng mở rộng linh hoạt",
+          "description": "Hệ thống được thiết kế để dễ dàng mở rộng theo nhu cầu: từ tăng tải người dùng đến mở rộng dịch vụ. Kiến trúc linh hoạt giúp tối ưu hiệu năng và đảm bảo hoạt động ổn định ngay cả khi quy mô tăng nhanh.",
+          "benefits": [
+            "n-Tier / n-Layer",
+            "Dễ mở rộng",
+            "Sẵn sàng quy mô lớn"
+          ],
+          "buttonText": "Tìm hiểu cách SFB triển khai",
+          "buttonLink": "/contact",
+          "iconGradient": "from-orange-400 to-pink-600"
+        }
+      ]
+    }'::jsonb,
+    TRUE
+  ),
+  (
+    'trusts',
+    '{
+      "subHeader": "SFB TECHNOLOGY",
+      "title": "Độ tin cậy của SFB Technology",
+      "description": "Năng lực thực chiến, đội ngũ chuyên gia và quy trình minh bạch giúp SFB trở thành đối tác công nghệ tin cậy của hàng trăm tổ chức, doanh nghiệp.",
+      "image": "/images/card-consulting.jpg",
+      "button": {
+        "text": "Tìm hiểu thêm",
+        "link": "/about"
+      },
+      "features": [
+        {
+          "iconName": "BarChart3",
+          "title": "Năng lực được chứng minh",
+          "description": "Triển khai nhiều dự án quy mô lớn cho cơ quan Nhà nước, doanh nghiệp và tổ chức trong các lĩnh vực Tài chính, Ngân hàng, Giáo dục, Viễn thông, Công nghiệp."
+        },
+        {
+          "iconName": "ShieldCheck",
+          "title": "Đội ngũ chuyên gia giàu kinh nghiệm",
+          "description": "Chuyên gia nhiều năm trong phát triển phần mềm, bảo mật, hạ tầng số và thiết kế hệ thống."
+        },
+        {
+          "iconName": "FileCheck",
+          "title": "Quy trình & cam kết minh bạch",
+          "description": "Quy trình quản lý dự án rõ ràng, từ khảo sát đến vận hành, luôn minh bạch với khách hàng."
+        }
+      ]
+    }'::jsonb,
+    TRUE
+  ),
+  (
+    'consult',
+    '{
+      "title": "Miễn phí tư vấn",
+      "description": "Đặt lịch tư vấn miễn phí với chuyên gia của SFB và khám phá cách chúng tôi có thể đồng hành cùng doanh nghiệp bạn trong hành trình chuyển đổi số.",
+      "buttons": {
+        "primary": {
+          "text": "Tư vấn miễn phí ngay",
+          "link": "/contact"
+        },
+        "secondary": {
+          "text": "Xem case studies",
+          "link": "/solutions"
+        }
+      }
+    }'::jsonb,
+    TRUE
+  )
+ON CONFLICT (section_type) DO NOTHING;
+
+-- Thêm permission cho homepage
+INSERT INTO permissions (code, name, module, description, is_active)
+VALUES
+  ('homepage.manage', 'Quản lý trang chủ', 'homepage', 'Quản lý toàn bộ nội dung các khối trên trang chủ', TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+-- Gán quyền homepage cho role admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON p.code = 'homepage.manage'
+WHERE r.code = 'admin'
+ON CONFLICT (role_id, permission_id) DO NOTHING;

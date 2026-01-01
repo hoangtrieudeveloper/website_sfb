@@ -13,6 +13,7 @@ const menuRoutes = require('./routes/menu.routes');
 const publicNewsRoutes = require('./routes/publicNews.routes');
 const publicCategoriesRoutes = require('./routes/publicCategories.routes');
 const publicCareersRoutes = require('./routes/publicCareers.routes');
+const publicHomepageRoutes = require('./routes/publicHomepage.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const mediaFoldersRoutes = require('./routes/mediaFolders.routes');
 const mediaFilesRoutes = require('./routes/mediaFiles.routes');
@@ -21,6 +22,7 @@ const testimonialsRoutes = require('./routes/testimonials.routes');
 const industriesRoutes = require('./routes/industries.routes');
 const aboutRoutes = require('./routes/about.routes');
 const careersRoutes = require('./routes/careers.routes');
+const homepageRoutes = require('./routes/homepage.routes');
 const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
@@ -95,6 +97,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/public/news', publicNewsRoutes);
 app.use('/api/public/categories', publicCategoriesRoutes);
 app.use('/api/public/careers', publicCareersRoutes);
+app.use('/api/public/homepage', publicHomepageRoutes);
 
 // Admin protected routes
 app.use('/api/admin/users', requireAuth, usersRoutes);
@@ -116,6 +119,8 @@ app.use('/api/admin/industries', requireAuth, industriesRoutes);
 app.use('/api/admin/about', requireAuth, aboutRoutes);
 // Careers routes
 app.use('/api/admin/careers', requireAuth, careersRoutes);
+// Homepage routes
+app.use('/api/admin/homepage', requireAuth, homepageRoutes);
 
 // 404 & error handlers
 app.use(notFound);
