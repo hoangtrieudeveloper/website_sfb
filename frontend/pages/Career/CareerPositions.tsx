@@ -104,7 +104,7 @@ export const CareerPositions = ({ data }: CareerPositionsProps) => {
                                         Kỹ năng yêu cầu:
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {position.skills.map((skill, idx) => (
+                                        {position.skills.map((skill: string, idx: number) => (
                                             <span
                                                 key={idx}
                                                 className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-sm font-medium"
