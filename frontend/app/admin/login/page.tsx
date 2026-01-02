@@ -22,6 +22,7 @@ export default function AdminLoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
+        credentials: "include", // Đảm bảo gửi và nhận cookies
       });
 
       const data = (await res.json().catch(() => null)) as
@@ -38,8 +39,10 @@ export default function AdminLoginPage() {
       }
 
       // Cookie JWT & user đã được set httpOnly ở API route
-      router.push("/admin");
-      router.refresh();
+      // Đợi một chút để đảm bảo cookie được set trước khi redirect
+      // Dùng window.location để force full page reload (đảm bảo cookie được gửi)
+      await new Promise(resolve => setTimeout(resolve, 100));
+      window.location.href = "/admin";
     } catch (err: any) {
       setError(err?.message || "Đăng nhập thất bại");
     } finally {
