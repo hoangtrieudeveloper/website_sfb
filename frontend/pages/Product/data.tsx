@@ -255,4 +255,6 @@ export const testimonials = [
 ];
 
 // Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
-export default {};
+export default function DataPage() {
+    return null;
+}
