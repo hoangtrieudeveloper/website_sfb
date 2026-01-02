@@ -50,12 +50,6 @@ export default function AdminLoginPage() {
         attempts++;
       }
       
-      console.log("[Login] Cookie check:", {
-        cookieSet,
-        attempts,
-        cookies: document.cookie,
-      });
-      
       // Dùng window.location để force full page reload (đảm bảo cookie được gửi)
       // Không cần đợi thêm vì đã kiểm tra cookie ở trên
       window.location.href = "/admin";
