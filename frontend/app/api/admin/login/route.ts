@@ -7,6 +7,7 @@ const API_BASE_URL =
 
 export async function POST(req: Request) {
   try {
+    const requestUrl = req.url || "";
     const { email, password } = (await req.json()) as {
       email?: string;
       password?: string;
@@ -65,23 +66,41 @@ export async function POST(req: Request) {
       token: data.token, // Trả về token để client lưu vào localStorage
     });
 
+    // Xác định secure flag: chỉ dùng secure khi có HTTPS
+    // Trên server với IP address thường dùng HTTP, không nên set secure=true
+    const isSecure = process.env.NODE_ENV === "production" && 
+                     (requestUrl.startsWith("https://") || process.env.FORCE_SECURE_COOKIES === "true");
+
     // Lưu JWT vào cookie httpOnly (chỉ server / middleware đọc được)
     response.cookies.set("cms_sfb_token", data.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isSecure, // Chỉ secure khi có HTTPS
+      sameSite: "lax", // Cho phép cross-site requests nhưng bảo mật
       path: "/",
       maxAge,
+      // Không set domain để cookie hoạt động với cả localhost và IP address
     });
 
     // Lưu thông tin user (không nhạy cảm) để client hiển thị UI
     if (data.user) {
       response.cookies.set("cms_sfb_user", JSON.stringify(data.user), {
         httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
+        secure: isSecure,
         sameSite: "lax",
         path: "/",
         maxAge,
+      });
+    }
+
+    // Debug log (chỉ trong development)
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[Login API] Cookie settings:", {
+        tokenSet: !!data.token,
+        secure: isSecure,
+        sameSite: "lax",
+        path: "/",
+        maxAge,
+        url: requestUrl,
       });
     }
 

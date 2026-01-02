@@ -39,9 +39,25 @@ export default function AdminLoginPage() {
       }
 
       // Cookie JWT & user đã được set httpOnly ở API route
-      // Đợi một chút để đảm bảo cookie được set trước khi redirect
+      // Kiểm tra cookie đã được set chưa (kiểm tra cms_sfb_user vì không httpOnly)
+      let cookieSet = false;
+      let attempts = 0;
+      const maxAttempts = 20; // Tối đa 2 giây
+      
+      while (!cookieSet && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        cookieSet = document.cookie.includes("cms_sfb_user=");
+        attempts++;
+      }
+      
+      console.log("[Login] Cookie check:", {
+        cookieSet,
+        attempts,
+        cookies: document.cookie,
+      });
+      
       // Dùng window.location để force full page reload (đảm bảo cookie được gửi)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Không cần đợi thêm vì đã kiểm tra cookie ở trên
       window.location.href = "/admin";
     } catch (err: any) {
       setError(err?.message || "Đăng nhập thất bại");
