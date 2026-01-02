@@ -1,3 +1,5 @@
+import React from 'react';
+
 export type ProductOverviewCard = {
     step: number;
     title: string;
@@ -303,4 +305,9 @@ export const productDetails: ProductDetail[] = [
 
 export function getProductBySlug(slug: string) {
     return productDetails.find((p) => p.slug === slug);
+}
+
+// Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
+export default function DataPage(): React.ReactElement {
+    return React.createElement('div', null);
 }
