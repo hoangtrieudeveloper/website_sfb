@@ -5,12 +5,17 @@ import { OverviewSection } from "./OverviewSection";
 import { ShowcaseSection } from "./ShowcaseSection";
 import { ProductFeatureSection } from "./ProductFeatureSection";
 import { ExpandSection } from "./ExpandSection";
+import { GetStaticProps } from "next";
 
 interface ProductDetailViewProps {
-    product: ProductDetail;
+    product: ProductDetail | null;
 }
 
-export default function ProductDetailView({ product }: ProductDetailViewProps) {
+// Component được sử dụng bởi App Router
+export function ProductDetailView({ product }: ProductDetailViewProps) {
+    if (!product || !product.numberedSections) {
+        return null;
+    }
     const numberedSections = product.numberedSections.sort((a, b) => a.no - b.no);
 
     return (
@@ -36,3 +41,16 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
         </div>
     );
 }
+
+// Default export cho Pages Router - trả về empty page vì route thực tế nằm ở App Router
+export default function ProductDetailPage() {
+    return null;
+}
+
+// Đánh dấu page này không cần pre-render
+export const getStaticProps: GetStaticProps = async () => {
+    return {
+        props: {},
+        notFound: true, // Không render page này trong Pages Router
+    };
+};

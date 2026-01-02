@@ -33,10 +33,10 @@ interface NewsPageClientProps {
 export function NewsPageClient({
   initialNews,
   initialFeatured,
-  categories,
+  categories = [],
 }: NewsPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [news, setNews] = useState<NewsItem[]>(initialNews);
+  const [news, setNews] = useState<NewsItem[]>(initialNews || []);
   const [loading, setLoading] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [pageSize, setPageSize] = useState<number>(6);
@@ -123,6 +123,9 @@ export function NewsPageClient({
 
   // Map categories with counts
   const categoriesWithCount = useMemo(() => {
+    if (!categories || !Array.isArray(categories)) {
+      return [];
+    }
     return categories.map((cat) => ({
       ...cat,
       count: categoryCounts[cat.id] ?? 0,
@@ -254,4 +257,7 @@ export function NewsPageClient({
   );
 }
 
-export default NewsPageClient;
+// Default export cho Pages Router - trả về empty page vì route thực tế nằm ở App Router
+export default function NewsPageClientPage() {
+    return null;
+}

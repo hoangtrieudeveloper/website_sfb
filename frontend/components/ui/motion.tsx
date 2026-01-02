@@ -108,7 +108,7 @@ export function FadeIn({ children, delay = 0, className, ...props }: MotionProps
 }
 
 export function SlideIn({ children, className, direction = "left", delay = 0, ...props }: SlideInProps) {
-    const variants = {
+    const variants: Variants = {
         hidden: {
             opacity: 0,
             x: direction === "left" ? -60 : direction === "right" ? 60 : 0,
@@ -118,7 +118,7 @@ export function SlideIn({ children, className, direction = "left", delay = 0, ..
             opacity: 1,
             x: 0,
             y: 0,
-            transition: { duration: 0.8, ease: "easeOut", delay: delay }
+            transition: { duration: 0.8, ease: "easeOut" as const, delay: delay }
         }
     };
 

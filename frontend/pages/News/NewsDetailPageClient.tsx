@@ -49,6 +49,10 @@ export function NewsDetailPageClient({
   article,
   relatedArticles = [],
 }: NewsDetailPageClientProps) {
+  if (!article) {
+    return null;
+  }
+  
   const featuredImageSrc = article?.imageUrl;
   const isTuyenSinhDauCap =
     article?.slug === "he-thong-tuyen-sinh-dau-cap" ||
@@ -274,4 +278,7 @@ export function NewsDetailPageClient({
   );
 }
 
-export default NewsDetailPageClient;
+// Default export cho Pages Router - trả về empty page vì route thực tế nằm ở App Router
+export default function NewsDetailPageClientPage() {
+    return null;
+}
