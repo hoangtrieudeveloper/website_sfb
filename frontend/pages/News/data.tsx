@@ -389,3 +389,6 @@ export const conclusionData = {
         "Nếu doanh nghiệp của bạn cũng đang tìm kiếm một đối tác công nghệ uy tín để triển khai AI/ML hoặc các giải pháp chuyển đổi số khác, hãy liên hệ với chúng tôi để được tư vấn chi tiết."
     ]
 };
+
+// Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
+export default {};

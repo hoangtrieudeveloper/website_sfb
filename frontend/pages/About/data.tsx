@@ -130,6 +130,9 @@ export const visionMission = [
     },
 ];
 
+// Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
+export default {};
+
 export const coreValues = [
     {
         icon: Lightbulb,

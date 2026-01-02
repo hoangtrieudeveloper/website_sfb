@@ -111,3 +111,6 @@ export const ctaData = {
         link: "tel:+842812345678"
     }
 };
+
+// Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
+export default {};

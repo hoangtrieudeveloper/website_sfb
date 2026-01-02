@@ -130,3 +130,6 @@ export const contactSidebarData = {
         items: socialLinks // Using the export above
     }
 };
+
+// Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
+export default {};

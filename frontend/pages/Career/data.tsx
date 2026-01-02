@@ -132,3 +132,6 @@ export const positions = [
         gradient: "from-rose-500 to-pink-500",
     },
 ];
+
+// Default export để tránh lỗi Next.js build (file này chỉ chứa data, không phải page)
+export default {};
