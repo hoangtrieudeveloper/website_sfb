@@ -78,6 +78,11 @@ FRONTEND_PORT=3000       # Port frontend (có thể đổi nếu muốn)
 # ⚠️ QUAN TRỌNG: Thay đổi IP/domain của VPS
 NEXT_PUBLIC_API_URL=http://YOUR_VPS_IP:5000
 NEXT_PUBLIC_BACKEND_URL=http://YOUR_VPS_IP:5000
+
+# API_SFB_URL và NEXT_PUBLIC_API_SFB_URL (dùng trong một số file)
+# Nếu không set, code sẽ fallback về NEXT_PUBLIC_API_URL
+API_SFB_URL=http://YOUR_VPS_IP:5000
+NEXT_PUBLIC_API_SFB_URL=http://YOUR_VPS_IP:5000
 ```
 
 **Lấy IP của VPS:**
@@ -120,6 +125,8 @@ NODE_ENV=production
 FRONTEND_PORT=3000
 NEXT_PUBLIC_API_URL=http://123.456.789.10:5000
 NEXT_PUBLIC_BACKEND_URL=http://123.456.789.10:5000
+API_SFB_URL=http://123.456.789.10:5000
+NEXT_PUBLIC_API_SFB_URL=http://123.456.789.10:5000
 ```
 
 ## Lưu ý bảo mật
