@@ -6,7 +6,7 @@ import ProductForm from "../../ProductForm";
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
-  const id = Number(params.id);
+  const id = Number(params?.id);
 
   return (
     <div className="container mx-auto p-6">
