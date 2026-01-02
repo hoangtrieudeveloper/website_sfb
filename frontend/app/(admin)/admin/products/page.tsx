@@ -493,9 +493,43 @@ export default function AdminProductsPage() {
   const handleSaveHero = async () => {
     try {
       setLoadingHero(true);
+      
+      // Fetch current data from backend to preserve fields not in form
+      let currentData = heroData;
+      try {
+        const response = await adminApiCall<{ success: boolean; data?: HeroFormData }>(
+          AdminEndpoints.productHero.get,
+        );
+        if (response?.data) {
+          currentData = response.data;
+        }
+      } catch (error) {
+        // If fetch fails, use current state
+        console.error("Error fetching current hero data:", error);
+      }
+
+      // Merge: prioritize form values if they are not empty, otherwise use existing values
+      const dataToSave: HeroFormData = {
+        title: (heroData.title && heroData.title.trim() !== '') ? heroData.title : (currentData?.title || ''),
+        subtitle: (heroData.subtitle && heroData.subtitle.trim() !== '') ? heroData.subtitle : (currentData?.subtitle || ''),
+        description: (heroData.description && heroData.description.trim() !== '') ? heroData.description : (currentData?.description || ''),
+        primaryCtaText: (heroData.primaryCtaText && heroData.primaryCtaText.trim() !== '') ? heroData.primaryCtaText : (currentData?.primaryCtaText || ''),
+        primaryCtaLink: (heroData.primaryCtaLink && heroData.primaryCtaLink.trim() !== '') ? heroData.primaryCtaLink : (currentData?.primaryCtaLink || ''),
+        secondaryCtaText: (heroData.secondaryCtaText && heroData.secondaryCtaText.trim() !== '') ? heroData.secondaryCtaText : (currentData?.secondaryCtaText || ''),
+        secondaryCtaLink: (heroData.secondaryCtaLink && heroData.secondaryCtaLink.trim() !== '') ? heroData.secondaryCtaLink : (currentData?.secondaryCtaLink || ''),
+        stat1Label: (heroData.stat1Label && heroData.stat1Label.trim() !== '') ? heroData.stat1Label : (currentData?.stat1Label || ''),
+        stat1Value: (heroData.stat1Value && heroData.stat1Value.trim() !== '') ? heroData.stat1Value : (currentData?.stat1Value || ''),
+        stat2Label: (heroData.stat2Label && heroData.stat2Label.trim() !== '') ? heroData.stat2Label : (currentData?.stat2Label || ''),
+        stat2Value: (heroData.stat2Value && heroData.stat2Value.trim() !== '') ? heroData.stat2Value : (currentData?.stat2Value || ''),
+        stat3Label: (heroData.stat3Label && heroData.stat3Label.trim() !== '') ? heroData.stat3Label : (currentData?.stat3Label || ''),
+        stat3Value: (heroData.stat3Value && heroData.stat3Value.trim() !== '') ? heroData.stat3Value : (currentData?.stat3Value || ''),
+        backgroundGradient: (heroData.backgroundGradient && heroData.backgroundGradient.trim() !== '') ? heroData.backgroundGradient : (currentData?.backgroundGradient || GRADIENT_OPTIONS[0].value),
+        isActive: heroData.isActive !== undefined ? heroData.isActive : (currentData?.isActive !== undefined ? currentData.isActive : true),
+      };
+
       await adminApiCall(AdminEndpoints.productHero.update, {
         method: "PUT",
-        body: JSON.stringify(heroData),
+        body: JSON.stringify(dataToSave),
       });
       toast.success("Đã lưu hero section thành công");
       void fetchHero();
@@ -828,9 +862,32 @@ export default function AdminProductsPage() {
   const handleSaveListHeader = async () => {
     try {
       setLoadingListHeader(true);
+      
+      // Fetch current data from backend to preserve fields not in form
+      let currentData = listHeaderData;
+      try {
+        const response = await adminApiCall<{ success: boolean; data?: ListHeaderFormData }>(
+          AdminEndpoints.productListHeader.get,
+        );
+        if (response?.data) {
+          currentData = response.data;
+        }
+      } catch (error) {
+        // If fetch fails, use current state
+        console.error("Error fetching current list header data:", error);
+      }
+
+      // Merge: prioritize form values if they are not empty, otherwise use existing values
+      const dataToSave: ListHeaderFormData = {
+        subtitle: (listHeaderData.subtitle && listHeaderData.subtitle.trim() !== '') ? listHeaderData.subtitle : (currentData?.subtitle || ''),
+        title: (listHeaderData.title && listHeaderData.title.trim() !== '') ? listHeaderData.title : (currentData?.title || ''),
+        description: (listHeaderData.description && listHeaderData.description.trim() !== '') ? listHeaderData.description : (currentData?.description || ''),
+        isActive: listHeaderData.isActive !== undefined ? listHeaderData.isActive : (currentData?.isActive !== undefined ? currentData.isActive : true),
+      };
+
       await adminApiCall(AdminEndpoints.productListHeader.update, {
         method: "PUT",
-        body: JSON.stringify(listHeaderData),
+        body: JSON.stringify(dataToSave),
       });
       toast.success("Đã lưu list header thành công");
       void fetchListHeader();
@@ -845,9 +902,36 @@ export default function AdminProductsPage() {
   const handleSaveCta = async () => {
     try {
       setLoadingCta(true);
+      
+      // Fetch current data from backend to preserve fields not in form
+      let currentData = ctaData;
+      try {
+        const response = await adminApiCall<{ success: boolean; data?: CtaFormData }>(
+          AdminEndpoints.productCta.get,
+        );
+        if (response?.data) {
+          currentData = response.data;
+        }
+      } catch (error) {
+        // If fetch fails, use current state
+        console.error("Error fetching current CTA data:", error);
+      }
+
+      // Merge: prioritize form values if they are not empty, otherwise use existing values
+      const dataToSave: CtaFormData = {
+        title: (ctaData.title && ctaData.title.trim() !== '') ? ctaData.title : (currentData?.title || ''),
+        description: (ctaData.description && ctaData.description.trim() !== '') ? ctaData.description : (currentData?.description || ''),
+        primaryButtonText: (ctaData.primaryButtonText && ctaData.primaryButtonText.trim() !== '') ? ctaData.primaryButtonText : (currentData?.primaryButtonText || ''),
+        primaryButtonLink: (ctaData.primaryButtonLink && ctaData.primaryButtonLink.trim() !== '') ? ctaData.primaryButtonLink : (currentData?.primaryButtonLink || ''),
+        secondaryButtonText: (ctaData.secondaryButtonText && ctaData.secondaryButtonText.trim() !== '') ? ctaData.secondaryButtonText : (currentData?.secondaryButtonText || ''),
+        secondaryButtonLink: (ctaData.secondaryButtonLink && ctaData.secondaryButtonLink.trim() !== '') ? ctaData.secondaryButtonLink : (currentData?.secondaryButtonLink || ''),
+        backgroundColor: (ctaData.backgroundColor && ctaData.backgroundColor.trim() !== '') ? ctaData.backgroundColor : (currentData?.backgroundColor || '#29A3DD'),
+        isActive: ctaData.isActive !== undefined ? ctaData.isActive : (currentData?.isActive !== undefined ? currentData.isActive : true),
+      };
+
       await adminApiCall(AdminEndpoints.productCta.update, {
         method: "PUT",
-        body: JSON.stringify(ctaData),
+        body: JSON.stringify(dataToSave),
       });
       toast.success("Đã lưu CTA thành công");
       void fetchCta();
@@ -1160,7 +1244,43 @@ export default function AdminProductsPage() {
                     <Label>Kích hoạt</Label>
                     <Switch
                       checked={heroData.isActive}
-                      onCheckedChange={(checked) => setHeroData({ ...heroData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If heroData is null or missing title (indicates no data loaded), fetch from backend first
+                        if (!heroData || !heroData.title) {
+                          try {
+                            const response = await adminApiCall<{ success: boolean; data?: HeroFormData }>(
+                              AdminEndpoints.productHero.get,
+                            );
+                            if (response?.data) {
+                              setHeroData({ ...response.data, isActive: checked });
+                            } else {
+                              // Initialize with empty data if not found
+                              setHeroData({
+                                title: "",
+                                subtitle: "",
+                                description: "",
+                                primaryCtaText: "",
+                                primaryCtaLink: "",
+                                secondaryCtaText: "",
+                                secondaryCtaLink: "",
+                                stat1Label: "",
+                                stat1Value: "",
+                                stat2Label: "",
+                                stat2Value: "",
+                                stat3Label: "",
+                                stat3Value: "",
+                                backgroundGradient: GRADIENT_OPTIONS[0].value,
+                                isActive: checked,
+                              });
+                            }
+                          } catch (error) {
+                            console.error("Error fetching hero data:", error);
+                            setHeroData({ ...heroData, isActive: checked });
+                          }
+                        } else {
+                          setHeroData({ ...heroData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>
@@ -1851,7 +1971,36 @@ export default function AdminProductsPage() {
                       <Switch
                         id="cta-isActive"
                         checked={ctaData.isActive}
-                        onCheckedChange={(checked) => setCtaData({ ...ctaData, isActive: checked })}
+                        onCheckedChange={async (checked) => {
+                          // If ctaData is null or missing title (indicates no data loaded), fetch from backend first
+                          if (!ctaData || !ctaData.title) {
+                            try {
+                              const response = await adminApiCall<{ success: boolean; data?: CtaFormData }>(
+                                AdminEndpoints.productCta.get,
+                              );
+                              if (response?.data) {
+                                setCtaData({ ...response.data, isActive: checked });
+                              } else {
+                                // Initialize with empty data if not found
+                                setCtaData({
+                                  title: "",
+                                  description: "",
+                                  primaryButtonText: "",
+                                  primaryButtonLink: "",
+                                  secondaryButtonText: "",
+                                  secondaryButtonLink: "",
+                                  backgroundColor: "#29A3DD",
+                                  isActive: checked,
+                                });
+                              }
+                            } catch (error) {
+                              console.error("Error fetching CTA data:", error);
+                              setCtaData({ ...ctaData, isActive: checked });
+                            }
+                          } else {
+                            setCtaData({ ...ctaData, isActive: checked });
+                          }
+                        }}
                       />
                     </div>
                   </div>
@@ -1973,7 +2122,32 @@ export default function AdminProductsPage() {
                     <Label>Kích hoạt</Label>
                     <Switch
                       checked={listHeaderData.isActive}
-                      onCheckedChange={(checked) => setListHeaderData({ ...listHeaderData, isActive: checked })}
+                      onCheckedChange={async (checked) => {
+                        // If listHeaderData is null or missing title (indicates no data loaded), fetch from backend first
+                        if (!listHeaderData || !listHeaderData.title) {
+                          try {
+                            const response = await adminApiCall<{ success: boolean; data?: ListHeaderFormData }>(
+                              AdminEndpoints.productListHeader.get,
+                            );
+                            if (response?.data) {
+                              setListHeaderData({ ...response.data, isActive: checked });
+                            } else {
+                              // Initialize with empty data if not found
+                              setListHeaderData({
+                                subtitle: "",
+                                title: "",
+                                description: "",
+                                isActive: checked,
+                              });
+                            }
+                          } catch (error) {
+                            console.error("Error fetching list header data:", error);
+                            setListHeaderData({ ...listHeaderData, isActive: checked });
+                          }
+                        } else {
+                          setListHeaderData({ ...listHeaderData, isActive: checked });
+                        }
+                      }}
                     />
                   </div>
                 </CardContent>

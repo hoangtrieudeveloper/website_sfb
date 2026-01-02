@@ -16,6 +16,7 @@ const publicCareersRoutes = require('./routes/publicCareers.routes');
 const publicHomepageRoutes = require('./routes/publicHomepage.routes');
 const publicIndustriesRoutes = require('./routes/publicIndustries.routes');
 const publicAboutRoutes = require('./routes/publicAbout.routes');
+const publicProductsRoutes = require('./routes/publicProducts.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const mediaFoldersRoutes = require('./routes/mediaFolders.routes');
 const mediaFilesRoutes = require('./routes/mediaFiles.routes');
@@ -102,6 +103,7 @@ app.use('/api/public/careers', publicCareersRoutes);
 app.use('/api/public/homepage', publicHomepageRoutes);
 app.use('/api/public/industries', publicIndustriesRoutes);
 app.use('/api/public/about', publicAboutRoutes);
+app.use('/api/public/products', publicProductsRoutes);
 
 // Admin protected routes
 app.use('/api/admin/users', requireAuth, usersRoutes);

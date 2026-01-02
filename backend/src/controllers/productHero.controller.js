@@ -1,29 +1,35 @@
 const { pool } = require('../config/database');
 
+// Helper function to get section regardless of is_active status (for admin)
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    `SELECT id, data, is_active, created_at, updated_at 
+     FROM products_sections 
+     WHERE section_type = $1 
+     ORDER BY id DESC LIMIT 1`,
+    [sectionType],
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
 // GET /api/admin/products/hero
 exports.getHero = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT id, data, is_active, created_at, updated_at 
-       FROM products_sections 
-       WHERE section_type = 'hero' AND is_active = true 
-       ORDER BY id DESC LIMIT 1`,
-    );
+    const section = await getSectionAnyStatus('hero');
 
-    if (rows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const row = rows[0];
-    const data = row.data || {};
+    const data = section.data || {};
     
     return res.json({
       success: true,
       data: {
-        id: row.id,
+        id: section.id,
         title: data.title || '',
         subtitle: data.subtitle || '',
         description: data.description || '',
@@ -38,9 +44,9 @@ exports.getHero = async (req, res, next) => {
         stat3Label: data.stat3Label || '',
         stat3Value: data.stat3Value || '',
         backgroundGradient: data.backgroundGradient || '',
-        isActive: row.is_active !== undefined ? row.is_active : true,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -69,40 +75,39 @@ exports.updateHero = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    // Kiểm tra xem đã có hero chưa
-    const { rows: existing } = await pool.query(
-      `SELECT id FROM products_sections 
-       WHERE section_type = 'hero' AND is_active = true 
-       ORDER BY id DESC LIMIT 1`,
-    );
+    // Kiểm tra xem đã có hero chưa (bất kể is_active status)
+    const existing = await getSectionAnyStatus('hero');
+
+    // Get existing data to preserve fields that are not provided
+    const existingData = existing?.data || {};
 
     const data = {
-      title: title || '',
-      subtitle: subtitle || '',
-      description: description || '',
-      primaryCtaText: primaryCtaText || '',
-      primaryCtaLink: primaryCtaLink || '',
-      secondaryCtaText: secondaryCtaText || '',
-      secondaryCtaLink: secondaryCtaLink || '',
-      stat1Label: stat1Label || '',
-      stat1Value: stat1Value || '',
-      stat2Label: stat2Label || '',
-      stat2Value: stat2Value || '',
-      stat3Label: stat3Label || '',
-      stat3Value: stat3Value || '',
-      backgroundGradient: backgroundGradient || '',
+      title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
+      subtitle: (subtitle !== undefined && subtitle !== null && subtitle.trim() !== '') ? subtitle : (existingData.subtitle || ''),
+      description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
+      primaryCtaText: (primaryCtaText !== undefined && primaryCtaText !== null && primaryCtaText.trim() !== '') ? primaryCtaText : (existingData.primaryCtaText || ''),
+      primaryCtaLink: (primaryCtaLink !== undefined && primaryCtaLink !== null && primaryCtaLink.trim() !== '') ? primaryCtaLink : (existingData.primaryCtaLink || ''),
+      secondaryCtaText: (secondaryCtaText !== undefined && secondaryCtaText !== null && secondaryCtaText.trim() !== '') ? secondaryCtaText : (existingData.secondaryCtaText || ''),
+      secondaryCtaLink: (secondaryCtaLink !== undefined && secondaryCtaLink !== null && secondaryCtaLink.trim() !== '') ? secondaryCtaLink : (existingData.secondaryCtaLink || ''),
+      stat1Label: (stat1Label !== undefined && stat1Label !== null && stat1Label.trim() !== '') ? stat1Label : (existingData.stat1Label || ''),
+      stat1Value: (stat1Value !== undefined && stat1Value !== null && stat1Value.trim() !== '') ? stat1Value : (existingData.stat1Value || ''),
+      stat2Label: (stat2Label !== undefined && stat2Label !== null && stat2Label.trim() !== '') ? stat2Label : (existingData.stat2Label || ''),
+      stat2Value: (stat2Value !== undefined && stat2Value !== null && stat2Value.trim() !== '') ? stat2Value : (existingData.stat2Value || ''),
+      stat3Label: (stat3Label !== undefined && stat3Label !== null && stat3Label.trim() !== '') ? stat3Label : (existingData.stat3Label || ''),
+      stat3Value: (stat3Value !== undefined && stat3Value !== null && stat3Value.trim() !== '') ? stat3Value : (existingData.stat3Value || ''),
+      backgroundGradient: (backgroundGradient !== undefined && backgroundGradient !== null && backgroundGradient.trim() !== '') ? backgroundGradient : (existingData.backgroundGradient || ''),
     };
 
     let result;
 
-    if (existing.length > 0) {
+    if (existing) {
       // Update existing
       const { rows } = await pool.query(
         `UPDATE products_sections
          SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
          WHERE id = $3
          RETURNING *`,
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, existing[0].id],
+        [JSON.stringify(data), isActive !== undefined ? isActive : (existing.is_active !== undefined ? existing.is_active : true), existing.id],
       );
       result = rows[0];
     } else {

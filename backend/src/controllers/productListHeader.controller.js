@@ -1,35 +1,41 @@
 const { pool } = require('../config/database');
 
+// Helper function to get section regardless of is_active status (for admin)
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    `SELECT id, data, is_active, created_at, updated_at 
+     FROM products_sections 
+     WHERE section_type = $1 
+     ORDER BY id DESC LIMIT 1`,
+    [sectionType],
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
 // GET /api/admin/products/list-header
 exports.getListHeader = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT id, data, is_active, created_at, updated_at 
-       FROM products_sections 
-       WHERE section_type = 'list-header' AND is_active = true 
-       ORDER BY id DESC LIMIT 1`,
-    );
+    const section = await getSectionAnyStatus('list-header');
 
-    if (rows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: null,
       });
     }
 
-    const row = rows[0];
-    const data = row.data || {};
+    const data = section.data || {};
 
     return res.json({
       success: true,
       data: {
-        id: row.id,
+        id: section.id,
         subtitle: data.subtitle || '',
         title: data.title || '',
         description: data.description || '',
-        isActive: row.is_active !== undefined ? row.is_active : true,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -42,29 +48,28 @@ exports.updateListHeader = async (req, res, next) => {
   try {
     const { subtitle, title, description, isActive } = req.body;
 
-    // Kiểm tra xem đã có list header chưa
-    const { rows: existing } = await pool.query(
-      `SELECT id FROM products_sections 
-       WHERE section_type = 'list-header' AND is_active = true 
-       ORDER BY id DESC LIMIT 1`,
-    );
+    // Kiểm tra xem đã có list header chưa (bất kể is_active status)
+    const existing = await getSectionAnyStatus('list-header');
+
+    // Get existing data to preserve fields that are not provided
+    const existingData = existing?.data || {};
 
     const data = {
-      subtitle: subtitle || '',
-      title: title || '',
-      description: description || '',
+      subtitle: (subtitle !== undefined && subtitle !== null && subtitle.trim() !== '') ? subtitle : (existingData.subtitle || ''),
+      title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
+      description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
     };
 
     let result;
 
-    if (existing.length > 0) {
+    if (existing) {
       // Update existing
       const { rows } = await pool.query(
         `UPDATE products_sections
          SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
          WHERE id = $3
          RETURNING *`,
-        [JSON.stringify(data), isActive !== undefined ? isActive : true, existing[0].id],
+        [JSON.stringify(data), isActive !== undefined ? isActive : (existing.is_active !== undefined ? existing.is_active : true), existing.id],
       );
       result = rows[0];
     } else {

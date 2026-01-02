@@ -1,16 +1,23 @@
 const { pool } = require('../config/database');
 
+// Helper function to get section regardless of is_active status (for admin)
+const getSectionAnyStatus = async (sectionType) => {
+  const { rows } = await pool.query(
+    `SELECT id, data, is_active, created_at, updated_at 
+     FROM products_sections 
+     WHERE section_type = $1 
+     ORDER BY id DESC LIMIT 1`,
+    [sectionType],
+  );
+  return rows.length > 0 ? rows[0] : null;
+};
+
 // GET /api/admin/products/cta
 exports.getCta = async (req, res, next) => {
   try {
-    const { rows } = await pool.query(
-      `SELECT id, data, is_active, created_at, updated_at 
-       FROM products_sections 
-       WHERE section_type = 'cta' AND is_active = true 
-       ORDER BY id DESC LIMIT 1`,
-    );
+    const section = await getSectionAnyStatus('cta');
 
-    if (rows.length === 0) {
+    if (!section) {
       return res.json({
         success: true,
         data: {
@@ -26,13 +33,12 @@ exports.getCta = async (req, res, next) => {
       });
     }
 
-    const row = rows[0];
-    const data = row.data || {};
+    const data = section.data || {};
     
     return res.json({
       success: true,
       data: {
-        id: row.id,
+        id: section.id,
         title: data.title || '',
         description: data.description || '',
         primaryButtonText: data.primaryButtonText || data.primary?.text || '',
@@ -40,9 +46,9 @@ exports.getCta = async (req, res, next) => {
         secondaryButtonText: data.secondaryButtonText || data.secondary?.text || '',
         secondaryButtonLink: data.secondaryButtonLink || data.secondary?.link || '',
         backgroundColor: data.backgroundColor || '#29A3DD',
-        isActive: row.is_active !== undefined ? row.is_active : true,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+        isActive: section.is_active !== undefined ? section.is_active : true,
+        createdAt: section.created_at,
+        updatedAt: section.updated_at,
       },
     });
   } catch (error) {
@@ -64,32 +70,36 @@ exports.updateCta = async (req, res, next) => {
       isActive,
     } = req.body;
 
-    // Check if CTA section exists
-    let { rows: existingRows } = await pool.query(
-      `SELECT id FROM products_sections WHERE section_type = 'cta' LIMIT 1`,
-    );
+    // Check if CTA section exists (regardless of is_active status)
+    const existing = await getSectionAnyStatus('cta');
+
+    // Get existing data to preserve fields that are not provided
+    const existingData = existing?.data || {};
+
+    const data = {
+      title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
+      description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
+      primaryButtonText: (primaryButtonText !== undefined && primaryButtonText !== null && primaryButtonText.trim() !== '') ? primaryButtonText : (existingData.primaryButtonText || ''),
+      primaryButtonLink: (primaryButtonLink !== undefined && primaryButtonLink !== null && primaryButtonLink.trim() !== '') ? primaryButtonLink : (existingData.primaryButtonLink || ''),
+      secondaryButtonText: (secondaryButtonText !== undefined && secondaryButtonText !== null && secondaryButtonText.trim() !== '') ? secondaryButtonText : (existingData.secondaryButtonText || ''),
+      secondaryButtonLink: (secondaryButtonLink !== undefined && secondaryButtonLink !== null && secondaryButtonLink.trim() !== '') ? secondaryButtonLink : (existingData.secondaryButtonLink || ''),
+      backgroundColor: (backgroundColor !== undefined && backgroundColor !== null && backgroundColor.trim() !== '') ? backgroundColor : (existingData.backgroundColor || '#29A3DD'),
+    };
 
     let result;
-    if (existingRows.length > 0) {
+    if (existing) {
       // Update existing
       await pool.query(
         `UPDATE products_sections 
          SET data = $1, is_active = $2, updated_at = CURRENT_TIMESTAMP
-         WHERE section_type = 'cta'`,
+         WHERE id = $3`,
         [
-          JSON.stringify({
-            title: title || '',
-            description: description || '',
-            primaryButtonText: primaryButtonText || '',
-            primaryButtonLink: primaryButtonLink || '',
-            secondaryButtonText: secondaryButtonText || '',
-            secondaryButtonLink: secondaryButtonLink || '',
-            backgroundColor: backgroundColor || '#29A3DD',
-          }),
-          isActive !== undefined ? isActive : true,
+          JSON.stringify(data),
+          isActive !== undefined ? isActive : (existing.is_active !== undefined ? existing.is_active : true),
+          existing.id,
         ],
       );
-      result = existingRows[0];
+      result = { id: existing.id };
     } else {
       // Create new
       const { rows: newRows } = await pool.query(
@@ -97,15 +107,7 @@ exports.updateCta = async (req, res, next) => {
          VALUES ('cta', $1, $2)
          RETURNING id`,
         [
-          JSON.stringify({
-            title: title || '',
-            description: description || '',
-            primaryButtonText: primaryButtonText || '',
-            primaryButtonLink: primaryButtonLink || '',
-            secondaryButtonText: secondaryButtonText || '',
-            secondaryButtonLink: secondaryButtonLink || '',
-            backgroundColor: backgroundColor || '#29A3DD',
-          }),
+          JSON.stringify(data),
           isActive !== undefined ? isActive : true,
         ],
       );

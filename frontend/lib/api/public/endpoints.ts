@@ -57,6 +57,17 @@ export const PublicEndpoints = {
     cta: "/api/public/careers/cta",
   },
   
+  // Public Products
+  products: {
+    hero: "/api/public/products/hero",
+    benefits: "/api/public/products/benefits",
+    listHeader: "/api/public/products/list-header",
+    cta: "/api/public/products/cta",
+    testimonials: "/api/public/products/testimonials",
+    list: "/api/public/products/list",
+    categories: "/api/public/products/categories",
+  },
+  
   // Other public endpoints can be added here
 } as const;
 
