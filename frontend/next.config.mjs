@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   
+  // Output standalone for Docker
+  output: 'standalone',
+  
   // Performance optimizations
   swcMinify: true,
   compress: true,

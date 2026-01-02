@@ -26,6 +26,7 @@ const industriesRoutes = require('./routes/industries.routes');
 const aboutRoutes = require('./routes/about.routes');
 const careersRoutes = require('./routes/careers.routes');
 const homepageRoutes = require('./routes/homepage.routes');
+const healthRoutes = require('./routes/health.routes');
 const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
 const notFound = require('./middlewares/notFound.middleware');
@@ -88,6 +89,9 @@ ensureTablesOnce().then(() => {
 app.get('/', (req, res) => {
   res.json({ status: 'API SFB is running' });
 });
+
+// Health check route
+app.use('/api', healthRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
