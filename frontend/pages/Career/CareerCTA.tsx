@@ -69,3 +69,8 @@ export const CareerCTA = ({ data }: CareerCTAProps) => {
         </section>
     );
 };
+
+// Default export để tránh lỗi Next.js build (file này là component, không phải page)
+export default function CareerCTAPage() {
+    return null;
+}

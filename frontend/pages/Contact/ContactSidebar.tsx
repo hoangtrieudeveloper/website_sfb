@@ -105,3 +105,8 @@ export function ContactSidebar() {
         </div>
     );
 }
+
+// Default export để tránh lỗi Next.js build (file này là component, không phải page)
+export default function ContactSidebarPage() {
+    return null;
+}

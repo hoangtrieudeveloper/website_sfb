@@ -54,3 +54,8 @@ export function ProductBenefits({ data }: ProductBenefitsProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build (file này là component, không phải page)
+export default function ProductBenefitsPage() {
+    return null;
+}

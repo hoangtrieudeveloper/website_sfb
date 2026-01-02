@@ -131,3 +131,8 @@ export const CareerPositions = ({ data }: CareerPositionsProps) => {
         </section>
     );
 };
+
+// Default export để tránh lỗi Next.js build (file này là component, không phải page)
+export default function CareerPositionsPage() {
+    return null;
+}

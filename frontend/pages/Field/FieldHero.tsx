@@ -173,3 +173,8 @@ export function FieldHero({ data }: FieldHeroProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build (file này là component, không phải page)
+export default function FieldHeroPage() {
+    return null;
+}
