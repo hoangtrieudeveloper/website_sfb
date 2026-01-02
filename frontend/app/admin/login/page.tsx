@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
       // Cookie JWT & user đã được set httpOnly ở API route
       // Đợi một chút để đảm bảo cookie được set trước khi redirect
       // Dùng window.location để force full page reload (đảm bảo cookie được gửi)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       window.location.href = "/admin";
     } catch (err: any) {
       setError(err?.message || "Đăng nhập thất bại");
