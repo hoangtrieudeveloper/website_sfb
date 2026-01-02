@@ -7,7 +7,8 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-RUN npm ci
+# Use npm install instead of npm ci (more flexible, works without package-lock.json)
+RUN npm install --no-audit --no-fund
 
 # Rebuild the source code only when needed
 FROM base AS builder
