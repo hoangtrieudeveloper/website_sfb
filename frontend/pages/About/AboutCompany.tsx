@@ -143,3 +143,6 @@ export function AboutCompany({ data }: AboutCompanyProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build
+export default AboutCompany;

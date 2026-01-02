@@ -106,3 +106,6 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build
+export default AboutLeadership;

@@ -65,3 +65,6 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build
+export default AboutVisionMission;

@@ -6,12 +6,20 @@ const nextConfig = {
   output: 'standalone',
   
   // Performance optimizations
-  swcMinify: true,
   compress: true,
   
   // Image optimization
   images: {
-    domains: ['images.unsplash.com', 'sfb.vn'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'sfb.vn',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
   

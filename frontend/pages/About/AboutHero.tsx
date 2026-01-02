@@ -88,3 +88,6 @@ export function AboutHero({ data }: AboutHeroProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build
+export default AboutHero;

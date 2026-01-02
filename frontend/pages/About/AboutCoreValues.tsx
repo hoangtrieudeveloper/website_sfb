@@ -69,3 +69,6 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build
+export default AboutCoreValues;

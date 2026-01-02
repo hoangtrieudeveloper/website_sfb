@@ -148,3 +148,6 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
         </section>
     );
 }
+
+// Default export để tránh lỗi Next.js build
+export default AboutMilestones;
