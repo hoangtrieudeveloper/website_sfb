@@ -58,16 +58,16 @@ async function setupAll() {
     client = await pool.connect();
     console.log('✅ Connected\n');
 
-    // Bước 3: Chạy schema.sql (bao gồm tất cả: bảng cơ bản + products + industries + about + media tables + permissions)
+    // Bước 3: Chạy schema.sql (bao gồm tất cả: bảng cơ bản + products + industries + about + contact + media tables + permissions)
     console.log('📄 Step 3/6: Running complete schema (schema.sql)...');
-    console.log('   This includes: main tables, products (optimized), industries, about, media tables, and permissions');
+    console.log('   This includes: main tables, products (optimized), industries, about, contact, media tables, and permissions');
     const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');
     if (!fs.existsSync(schemaPath)) {
       throw new Error(`Schema file not found at: ${schemaPath}`);
     }
     const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
     await client.query(schemaSQL);
-    console.log('✅ Complete schema executed (includes optimized products tables: products_sections, products_section_items)\n');
+    console.log('✅ Complete schema executed (includes: products_sections, products_section_items, contact_sections, contact_section_items)\n');
 
     // Bước 3.5: Đảm bảo cột features tồn tại trong products table (cho database cũ)
     console.log('🔧 Step 3.5/6: Ensuring products.features column exists...');
@@ -327,6 +327,10 @@ async function setupAll() {
       r.table_name.includes('products_sections') || 
       r.table_name.includes('products_section_items')
     );
+    const contactTables = result.rows.filter(r => 
+      r.table_name.includes('contact_sections') || 
+      r.table_name.includes('contact_section_items')
+    );
     const oldProductTables = result.rows.filter(r => 
       r.table_name.startsWith('product_') && 
       !r.table_name.includes('products_sections') &&
@@ -343,6 +347,13 @@ async function setupAll() {
       });
     }
     
+    if (contactTables.length > 0) {
+      console.log('\n   📧 Contact tables:');
+      contactTables.forEach((row) => {
+        console.log(`      ✅ ${row.table_name}`);
+      });
+    }
+    
     if (oldProductTables.length > 0) {
       console.log('\n   📋 Legacy Products tables (cũ - đã được xóa):');
       oldProductTables.forEach((row) => {
@@ -353,6 +364,8 @@ async function setupAll() {
     const otherTables = result.rows.filter(r => 
       !r.table_name.includes('products_sections') &&
       !r.table_name.includes('products_section_items') &&
+      !r.table_name.includes('contact_sections') &&
+      !r.table_name.includes('contact_section_items') &&
       !oldProductTables.some(ot => ot.table_name === r.table_name)
     );
     

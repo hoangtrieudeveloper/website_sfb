@@ -81,11 +81,12 @@ npm run setup
 
 Lệnh này sẽ tự động:
 - ✅ Tạo database `sfb_db` nếu chưa tồn tại
-- ✅ Tạo tất cả bảng (users, roles, permissions, news, categories, media_folders, media_files, ...)
-- ✅ Thêm permissions cho media library
+- ✅ Tạo tất cả bảng (users, roles, permissions, news, categories, media_folders, media_files, products_sections, products_section_items, contact_sections, contact_section_items, ...)
+- ✅ Thêm permissions cho media library và contact module
 - ✅ Tạo các thư mục mặc định cho media
 - ✅ Gán permissions cho các roles (admin, editor, user)
 - ✅ Tạo user admin mặc định
+- ✅ Insert seed data mẫu cho tất cả modules (bao gồm contact page)
 
 ### Lưu ý
 

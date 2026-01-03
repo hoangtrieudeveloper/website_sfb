@@ -11,15 +11,15 @@ npm run setup
 
 Lệnh này sẽ tự động:
 1. ✅ Tạo database nếu chưa tồn tại
-2. ✅ Chạy schema.sql (bao gồm tất cả: users, roles, news, media, products, industries, about, permissions, và seed data)
+2. ✅ Chạy schema.sql (bao gồm tất cả: users, roles, news, media, products, industries, about, contact, permissions, và seed data)
 3. ✅ Tạo các thư mục mặc định cho media
 4. ✅ Gán permissions cho các roles
-5. ✅ Insert seed data mẫu cho tất cả modules
+5. ✅ Insert seed data mẫu cho tất cả modules (bao gồm contact_sections, contact_section_items)
 
 ## 📁 Files Structure
 
 ### Files chính:
-- **`schema.sql`** - Schema tổng hợp (đã bao gồm tất cả: users, roles, news, media, products, industries, about, permissions, và seed data)
+- **`schema.sql`** - Schema tổng hợp (đã bao gồm tất cả: users, roles, news, media, products, industries, about, contact, permissions, và seed data)
 
 ### Files đã loại bỏ (đã gộp vào schema.sql):
 - `products_schema.sql` - ĐÃ XOÁ, nội dung đã gộp vào `schema.sql`

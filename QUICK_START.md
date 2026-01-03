@@ -42,14 +42,30 @@ docker-compose build
 docker-compose up -d
 ```
 
-### 4. Kiểm tra:
+### 4. Setup Database:
+
+Sau khi containers đã chạy, chạy lệnh setup database:
+
+```bash
+docker-compose exec backend npm run setup
+```
+
+Lệnh này sẽ:
+- ✅ Tạo tất cả bảng (users, roles, news, products, industries, about, contact, ...)
+- ✅ Thêm permissions cho các modules
+- ✅ Tạo user admin mặc định (email: `admin@sfb.local`, password: `admin123`)
+- ✅ Insert seed data mẫu cho tất cả modules (bao gồm contact page)
+
+**Lưu ý**: Nếu database đã được khởi tạo tự động từ `schema.sql` (khi container PostgreSQL khởi động lần đầu), lệnh này vẫn an toàn để chạy và sẽ không tạo duplicate data.
+
+### 5. Kiểm tra:
 
 ```bash
 docker-compose ps
 docker-compose logs -f
 ```
 
-### 5. Truy cập:
+### 6. Truy cập:
 
 - Frontend: `http://your-vps-ip:3000`
 - Backend: `http://your-vps-ip:5000`
