@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, MapPin, Phone, Mail, Building2 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { aboutCompanySectionData } from "./data";
 import { FadeIn, TechBorderReveal } from "../../components/ui/motion";
@@ -22,7 +22,8 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
     return (
         <section className="py-20 bg-[#F8FBFE] overflow-hidden">
-            <div className="max-w-[1340px] mx-auto px-6">
+            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
+                <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}
                 <FadeIn className="text-center mb-16">
                     {displayData.headerSub && (
@@ -31,10 +32,14 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         </span>
                     )}
                     {(displayData.headerTitleLine1 || displayData.headerTitleLine2) && (
-                        <h2 className="text-[#1A202C] text-3xl md:text-4xl font-bold leading-tight">
-                            {displayData.headerTitleLine1}
+                        <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[56px] leading-[normal]">
+                            <span className="font-bold">
+                                {displayData.headerTitleLine1}
+                            </span>
                             <br />
-                            {displayData.headerTitleLine2}
+                            <span className="font-medium">
+                                {displayData.headerTitleLine2}
+                            </span>
                         </h2>
                     )}
                 </FadeIn>
@@ -42,7 +47,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                 {/* Section 1: Intro + Handshake Image */}
                 <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center mb-32">
                     {/* Left: Image Card */}
-                    <FadeIn className="relative w-full lg:w-[701px] flex-shrink-0" delay={0.2}>
+                    <FadeIn className="relative w-full max-w-[701px] flex-shrink-0" delay={0.2}>
                         <TechBorderReveal className="rounded-[24px] p-1">
                             <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
                                 <ImageWithFallback
@@ -55,19 +60,23 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     </FadeIn>
 
                     {/* Right: Content */}
-                    <FadeIn className="space-y-6 flex-1" delay={0.4}>
-                        {displayData.contentTitle && (
-                            <h3 className="text-gray-900 text-lg font-bold leading-relaxed">
-                                {displayData.contentTitle}
-                            </h3>
-                        )}
-                        {displayData.contentDescription && (
-                            <p className="text-gray-600 leading-relaxed font-light">
-                                {displayData.contentDescription}
-                            </p>
+                    <FadeIn className="flex-1" delay={0.4}>
+                        {(displayData.contentTitle || displayData.contentDescription) && (
+                            <div className="space-y-6 mb-[30px]">
+                                {displayData.contentTitle && (
+                                    <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
+                                        {displayData.contentTitle}
+                                    </h3>
+                                )}
+                                {displayData.contentDescription && (
+                                    <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
+                                        {displayData.contentDescription}
+                                    </p>
+                                )}
+                            </div>
                         )}
                         {displayData.contentButtonText && (
-                            <div className="pt-4">
+                            <div>
                                 <a
                                     href={displayData.contentButtonLink || content?.button?.link || '#'}
                                     className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105 shadow-md hover:shadow-cyan-500/30"
@@ -127,7 +136,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     </FadeIn>
 
                     {/* Right: Building Image */}
-                    <FadeIn className="order-1 lg:order-2 relative w-full lg:w-[701px] flex-shrink-0" delay={0.4}>
+                    <FadeIn className="order-1 lg:order-2 relative w-full max-w-[701px] flex-shrink-0" delay={0.4}>
                         <TechBorderReveal className="rounded-[24px] p-1">
                             <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
                                 <ImageWithFallback
@@ -138,6 +147,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             </div>
                         </TechBorderReveal>
                     </FadeIn>
+                </div>
                 </div>
             </div>
         </section>

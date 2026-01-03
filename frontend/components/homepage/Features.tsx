@@ -72,9 +72,9 @@ export function Features({ data }: FeaturesProps) {
 
     if (block.type === 'type1') {
       return (
-        <div key={index} className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
+        <div key={index} className="mx-auto flex flex-col xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full">
           {imageSide === 'left' && (
-            <ScrollAnimation variant="slide-right" className="flex justify-center lg:justify-start">
+            <ScrollAnimation variant="slide-right" className="flex justify-center xl:justify-start">
               {imageElement}
             </ScrollAnimation>
           )}
@@ -116,7 +116,7 @@ export function Features({ data }: FeaturesProps) {
           </ScrollAnimation>
           
           {imageSide === 'right' && (
-            <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
+            <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center xl:justify-end">
               {imageElement}
             </ScrollAnimation>
           )}
@@ -124,9 +124,9 @@ export function Features({ data }: FeaturesProps) {
       );
     } else if (block.type === 'type2') {
       return (
-        <div key={index} className="mx-auto flex flex-col lg:flex-row justify-center items-center gap-10 lg:gap-[90px] lg:min-h-[511px] w-full">
+        <div key={index} className="mx-auto flex flex-col xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full">
           {imageSide === 'left' && (
-            <ScrollAnimation variant="zoom-in" className="flex justify-center lg:justify-start">
+            <ScrollAnimation variant="zoom-in" className="flex justify-center xl:justify-start">
               {imageElement}
             </ScrollAnimation>
           )}
@@ -167,7 +167,7 @@ export function Features({ data }: FeaturesProps) {
           </ScrollAnimation>
           
           {imageSide === 'right' && (
-            <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center lg:justify-end">
+            <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center xl:justify-end">
               {imageElement}
             </ScrollAnimation>
           )}
@@ -179,7 +179,7 @@ export function Features({ data }: FeaturesProps) {
 
   return (
     <section
-      className="relative overflow-hidden mx-auto w-full max-w-[1920px] min-h-[2166px] flex justify-center items-start gap-[10px] py-[90px] px-[10px] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F9FD_100%)]"
+      className="relative overflow-hidden mx-auto w-full max-w-[1920px] min-h-[2166px] flex justify-center items-start gap-[10px] py-[90px] px-6 xl:px-[clamp(24px,7.8125vw,150px)] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F9FD_100%)]"
     >
       <div className="relative z-10 w-full max-w-[1340px]">
         {/* HEADER */}

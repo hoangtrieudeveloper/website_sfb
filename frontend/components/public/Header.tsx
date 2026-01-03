@@ -201,12 +201,12 @@ export function Header() {
           : "bg-transparent shadow-none backdrop-blur-none"
           } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'} p-2.5 gap-2.5`}
       >
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between gap-8 h-full">
+        <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-[clamp(24px,calc((100vw-1280px)/2),320px)]">
+          <div className="flex items-center justify-between lg:justify-center gap-4 lg:gap-[60px] h-full min-w-0">
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center group relative z-50"
+              className="flex items-center group relative z-50 shrink-0"
               style={{ height: "67px", gap: "10px" }}
             >
               <div className="relative">
@@ -227,7 +227,7 @@ export function Header() {
             </Link>
 
             {/* Desktop Navigation - Centered */}
-            <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+            <nav className="hidden lg:flex items-center gap-1 min-w-0 shrink-0">
               {navLinks.map((link) => (
                 <div
                   key={link.href}
@@ -237,7 +237,7 @@ export function Header() {
                 >
                   <Link
                     href={link.href}
-                    className={`px-4 py-2 transition-all duration-500 relative group text-xs font-bold uppercase tracking-wide flex items-center gap-1 ${isActivePath(link.href)
+                    className={`px-2.5 xl:px-3 min-[1920px]:px-4 py-2 transition-all duration-500 relative group text-[11px] xl:text-xs font-bold uppercase tracking-wide flex items-center gap-1 whitespace-nowrap ${isActivePath(link.href)
                       ? useDarkText
                         ? "text-[#006FB3]"
                         : "text-white"
@@ -324,21 +324,19 @@ export function Header() {
             </nav>
 
             {/* Contact Info & CTA */}
-            <div className="hidden lg:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-3 shrink-0">
               <div className="text-right group">
-                <a href="mailto:info@sfb.vn" className={`block text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
+                <a href="mailto:info@sfb.vn" className={`block text-[11px] xl:text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
                   info@sfb.vn
                 </a>
-                <a href="tel:0888917999" className={`block text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
+                <a href="tel:0888917999" className={`block text-xs xl:text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
                   0888.917.999
                 </a>
               </div>
               <Link
                 href="/contact"
-                className="relative text-white hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 text-xs font-bold uppercase tracking-wide overflow-hidden group flex items-center justify-center"
+                className="relative text-white hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 text-[11px] xl:text-xs font-bold uppercase tracking-wide overflow-hidden group flex items-center justify-center h-[50px] px-4 xl:px-5 min-[1920px]:px-[30px] py-[7px] whitespace-nowrap"
                 style={{
-                  height: "50px",
-                  padding: "7px 30px",
                   gap: "0px",
                   borderRadius: "12px",
                   border: "1px solid rgba(255, 255, 255, 0.40)",

@@ -14,7 +14,19 @@ export { API_BASE_URL };
  * Build full URL from endpoint
  */
 export function buildUrl(endpoint: string): string {
-  return endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
+  if (endpoint.startsWith("http")) return endpoint;
+
+  // In the browser, proxy public news requests through Next.js API routes.
+  // This avoids depending on the backend being directly reachable from the client
+  // (CORS/host resolution/misconfigured NEXT_PUBLIC_API_SFB_URL).
+  if (
+    typeof window !== "undefined" &&
+    (endpoint === "/api/public/news" || endpoint.startsWith("/api/public/news/"))
+  ) {
+    return endpoint;
+  }
+
+  return `${API_BASE_URL}${endpoint}`;
 }
 
 /**

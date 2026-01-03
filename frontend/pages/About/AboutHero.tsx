@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { aboutHeroData } from "./data";
@@ -21,6 +22,30 @@ export function AboutHero({ data }: AboutHeroProps) {
     const buttonLink = displayData.buttonLink || displayData.button?.link || aboutHeroData.button.link;
     const image = displayData.image || aboutHeroData.image;
 
+    const titleRef = useRef<HTMLHeadingElement | null>(null);
+    const [titleWidth, setTitleWidth] = useState<number | null>(null);
+
+    useEffect(() => {
+        const el = titleRef.current;
+        if (!el) return;
+
+        const update = () => {
+            const next = Math.ceil(el.getBoundingClientRect().width);
+            setTitleWidth((prev) => (prev === next ? prev : next));
+        };
+
+        update();
+
+        if (typeof ResizeObserver === "undefined") {
+            window.addEventListener("resize", update);
+            return () => window.removeEventListener("resize", update);
+        }
+
+        const ro = new ResizeObserver(() => update());
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [titleLine1, titleLine2, titleLine3]);
+
     return (
         <section
             className="relative w-full flex justify-center items-center overflow-hidden"
@@ -37,26 +62,31 @@ export function AboutHero({ data }: AboutHeroProps) {
             <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-white/10 rounded-full blur-[100px] animate-pulse pointer-events-none" />
             <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-400/20 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="container mx-auto px-6 relative z-10 w-full">
-                <div className="flex flex-col lg:flex-row items-center justify-center gap-16 lg:gap-[98px]">
+            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] min-[1920px]:px-0 min-[1920px]:pl-[269px] relative z-10">
+                <div className="flex flex-col lg:flex-row items-center justify-center min-[1920px]:justify-start gap-16 lg:gap-[clamp(48px,5.1042vw,98px)] min-[1920px]:gap-[45px]">
                     {/* Text Content */}
-                    <StaggerContainer className="text-white lg:max-w-[45%]">
-                        <FadeIn>
-                            <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                                {titleLine1}
-                                <span className="block mt-2">
-                                    {titleLine2}
-                                    <br />
-                                    {titleLine3}
-                                </span>
-                            </h1>
-                        </FadeIn>
+                    <StaggerContainer className="text-white lg:max-w-[45%] min-[1920px]:max-w-none min-[1920px]:w-[851px]">
+                        <div className="inline-block max-w-full">
+                            <FadeIn>
+                                <h1 ref={titleRef} className="inline-block max-w-full text-5xl md:text-6xl font-bold leading-tight mb-6">
+                                    {titleLine1}
+                                    <span className="block mt-2 text-white font-medium text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
+                                        {titleLine2}
+                                        <br />
+                                        {titleLine3}
+                                    </span>
+                                </h1>
+                            </FadeIn>
 
-                        <FadeIn delay={0.2}>
-                            <p className="text-base md:text-lg text-white/90 mb-10 leading-relaxed font-light">
-                                {description}
-                            </p>
-                        </FadeIn>
+                            <FadeIn delay={0.2}>
+                                <p
+                                    className="max-w-full text-[16px] text-white/90 mb-10 leading-relaxed font-light"
+                                    style={titleWidth ? { width: `${titleWidth}px` } : undefined}
+                                >
+                                    {description}
+                                </p>
+                            </FadeIn>
+                        </div>
 
                         <FadeIn delay={0.4}>
                             <a
@@ -71,7 +101,7 @@ export function AboutHero({ data }: AboutHeroProps) {
 
                     {/* Image Content */}
                     <FadeIn delay={0.5} className="w-full lg:w-auto">
-                        <div className="relative flex-none lg:w-[851px] lg:h-[512px] w-full h-auto flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
+                        <div className="relative box-border flex-none w-full max-w-[851px] aspect-[851/512] min-[1920px]:w-[710px] flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
                             <div className="w-full h-full rounded-[14px] overflow-hidden relative">
                                 <ImageWithFallback
                                     src={image}

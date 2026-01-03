@@ -21,7 +21,7 @@ export function Trusts({ data }: TrustsProps) {
 
   return (
     <section className="bg-white py-24 overflow-hidden">
-      <div className="container mx-auto px-6">
+      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
         {/* Header */}
         <ScrollAnimation variant="fade-up" className="text-center mb-16">
           <span className="text-[#0088D9] font-bold text-sm tracking-widest uppercase mb-3 block">
@@ -35,15 +35,12 @@ export function Trusts({ data }: TrustsProps) {
           </p>
         </ScrollAnimation>
 
-        <div className="flex flex-col lg:flex-row justify-center items-center gap-12 lg:gap-20">
+        <div className="flex flex-col xl:flex-row justify-center items-center gap-12 xl:gap-20">
           {/* Left Column - Image */}
           <ScrollAnimation variant="slide-right" className="relative group">
             <div
-              className="relative"
+              className="relative box-border w-full max-w-[701px] aspect-[701/555]"
               style={{
-                width: "701px",
-                height: "555px",
-                maxWidth: "100%",
                 flexShrink: 0,
                 borderRadius: "24px",
                 background: `url(${image}) lightgray -51.4px 0px / 140.667% 100% no-repeat`,
@@ -53,17 +50,7 @@ export function Trusts({ data }: TrustsProps) {
           </ScrollAnimation>
 
           {/* Right Column - Content */}
-          <div
-            style={{
-              display: "flex",
-              width: "549px",
-              maxWidth: "100%",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: "30px",
-              flexShrink: 0,
-            }}
-          >
+          <div className="flex w-full max-w-[549px] flex-col items-start gap-[30px] min-w-0">
             {features.map((feature: any, idx: number) => {
               const IconComponent = feature.iconName ? (LucideIcons as any)[feature.iconName] : feature.icon;
               const Icon = IconComponent || LucideIcons.BarChart3;
@@ -73,7 +60,7 @@ export function Trusts({ data }: TrustsProps) {
                 key={idx}
                 variant="flip-up"
                 delay={idx * 0.1}
-                className="flex gap-4 items-start flex-1 min-w-[300px]"
+                className="flex gap-4 items-start flex-1 min-w-0"
               >
                 <div className="flex-shrink-0 pt-1">
                   {Icon ? <Icon className="w-6 h-6 text-[#1D8FCF]" /> : (

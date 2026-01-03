@@ -75,12 +75,12 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
   return (
     <section id="about" className="py-[90px] bg-[#F4FAFE] overflow-hidden">
-      <div className="mx-auto w-full max-w-[1920px] px-6 2xl:px-0">
+      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
         <div className="flex flex-col gap-[69px]">
           {/* Header */}
           <ScrollAnimation
             variant="fade-down"
-            className="text-center mx-auto px-6"
+            className="text-center mx-auto"
           >
             <div className="mx-auto mb-6 w-full max-w-[1244px]">
               <h2

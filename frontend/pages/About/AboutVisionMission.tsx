@@ -20,7 +20,8 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
             {/* Background Tech Pattern */}
             <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#2CA4E0_1px,transparent_1px)] bg-[size:20px_20px]" />
 
-            <div className="max-w-[1340px] mx-auto px-6 relative z-10">
+            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] relative z-10">
+                <div className="mx-auto w-full max-w-[1340px]">
                 {/* Section header */}
                 <FadeIn className="max-w-4xl mx-auto text-center mb-16">
                     {headerTitle && (
@@ -61,6 +62,7 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
                         </FadeIn>
                     ))}
                 </StaggerContainer>
+                </div>
             </div>
         </section>
     );
