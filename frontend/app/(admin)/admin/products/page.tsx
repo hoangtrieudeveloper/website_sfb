@@ -926,13 +926,13 @@ export default function AdminProductsPage() {
         console.error("Error fetching current list header data:", error);
       }
 
-      // Merge: prioritize form values if they are not empty, otherwise use existing values
+      // Merge: prioritize form values (including empty strings for images to allow deletion)
       const dataToSave: ListHeaderFormData = {
-        subtitle: (listHeaderData.subtitle && listHeaderData.subtitle.trim() !== '') ? listHeaderData.subtitle : (currentData?.subtitle || ''),
-        title: (listHeaderData.title && listHeaderData.title.trim() !== '') ? listHeaderData.title : (currentData?.title || ''),
-        description: (listHeaderData.description && listHeaderData.description.trim() !== '') ? listHeaderData.description : (currentData?.description || ''),
-        imageBack: listHeaderData.imageBack || currentData?.imageBack || '',
-        imageFront: listHeaderData.imageFront || currentData?.imageFront || '',
+        subtitle: (listHeaderData.subtitle !== undefined && listHeaderData.subtitle !== null && listHeaderData.subtitle.trim() !== '') ? listHeaderData.subtitle : (currentData?.subtitle || ''),
+        title: (listHeaderData.title !== undefined && listHeaderData.title !== null && listHeaderData.title.trim() !== '') ? listHeaderData.title : (currentData?.title || ''),
+        description: (listHeaderData.description !== undefined && listHeaderData.description !== null && listHeaderData.description.trim() !== '') ? listHeaderData.description : (currentData?.description || ''),
+        imageBack: listHeaderData.imageBack !== undefined ? listHeaderData.imageBack : (currentData?.imageBack || ''),
+        imageFront: listHeaderData.imageFront !== undefined ? listHeaderData.imageFront : (currentData?.imageFront || ''),
         isActive: listHeaderData.isActive !== undefined ? listHeaderData.isActive : (currentData?.isActive !== undefined ? currentData.isActive : true),
       };
 
@@ -2212,23 +2212,25 @@ export default function AdminProductsPage() {
                       placeholder="Danh sách các hệ thống phần mềm đang được SFB triển khai..."
                     />
                   </div>
-                  <div>
-                    <Label className="mb-2">Ảnh nền (Back)</Label>
-                    <ImageUpload
-                      currentImage={listHeaderData.imageBack || ""}
-                      onImageSelect={(url: string) => {
-                        setListHeaderData({ ...listHeaderData, imageBack: url });
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <Label className="mb-2">Ảnh phía trước (Front)</Label>
-                    <ImageUpload
-                      currentImage={listHeaderData.imageFront || ""}
-                      onImageSelect={(url: string) => {
-                        setListHeaderData({ ...listHeaderData, imageFront: url });
-                      }}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="mb-2">Ảnh nền (Back)</Label>
+                      <ImageUpload
+                        currentImage={listHeaderData.imageBack || ""}
+                        onImageSelect={(url: string) => {
+                          setListHeaderData({ ...listHeaderData, imageBack: url });
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-2">Ảnh phía trước (Front)</Label>
+                      <ImageUpload
+                        currentImage={listHeaderData.imageFront || ""}
+                        onImageSelect={(url: string) => {
+                          setListHeaderData({ ...listHeaderData, imageFront: url });
+                        }}
+                      />
+                    </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <Label>Kích hoạt</Label>
@@ -2474,7 +2476,7 @@ export default function AdminProductsPage() {
                       const hasAnyImage = hasBackImage || hasFrontImage;
 
                       return (
-                        <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[60px] px-6 lg:px-10">
+                        <div className="flex flex-row items-center justify-between gap-10 sm:gap-12 lg:gap-[60px] px-6 lg:px-10">
                           {/* Left: Text */}
                           <div className="flex w-full max-w-[549px] flex-col items-start gap-6">
                             {listHeaderData.subtitle && (
@@ -2495,8 +2497,8 @@ export default function AdminProductsPage() {
                           </div>
 
                           {/* Right: Images (nếu có) */}
-                          {hasAnyImage && (
-                            <div className="relative w-full lg:w-auto flex justify-center lg:justify-start">
+                          {hasAnyImage ? (
+                            <div className="relative w-full lg:w-auto flex justify-center lg:justify-end flex-shrink-0">
                               <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
                                 {hasBackImage ? (
                                   <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
@@ -2533,62 +2535,54 @@ export default function AdminProductsPage() {
                                 )}
                               </div>
                             </div>
-                          )}
-
-                          {/* Nếu không có ảnh, chỉ hiển thị text center */}
-                          {!hasAnyImage && (
-                            <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px] w-full">
-                              {listHeaderData.subtitle && (
-                                <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
-                                  {listHeaderData.subtitle}
-                                </div>
-                              )}
-                              {listHeaderData.title && (
-                                <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
-                                  {listHeaderData.title}
-                                </h2>
-                              )}
-                              {listHeaderData.description && (
-                                <p className="text-gray-600 leading-relaxed">
-                                  {listHeaderData.description}
-                                </p>
-                              )}
+                          ) : (
+                            <div className="relative w-full lg:w-auto flex justify-center lg:justify-end flex-shrink-0">
+                              <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden flex items-center justify-center">
+                                <img
+                                  src="/images/no_cover.jpeg"
+                                  alt="No cover"
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
                             </div>
                           )}
                         </div>
                       );
                     })()}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {paginatedProducts
-                        .filter((p) => p.isActive !== false)
-                        .slice(0, 6)
-                        .map((product) => (
-                          <Card key={product.id} className="overflow-hidden">
-                            {product.image && (
-                              <div className="aspect-video w-full overflow-hidden bg-muted">
-                                <img
-                                  src={product.image}
-                                  alt={product.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            )}
-                            <CardHeader>
-                              <CardTitle className="text-lg">{product.name}</CardTitle>
-                              {product.tagline && (
-                                <p className="text-sm text-muted-foreground">{product.tagline}</p>
+                    <div className="mt-12">
+                      <h3 className="text-2xl font-bold text-gray-900 mb-6">Danh sách Sản phẩm</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {paginatedProducts
+                          .filter((p) => p.isActive !== false)
+                          .slice(0, 6)
+                          .map((product) => (
+                            <Card key={product.id} className="overflow-hidden">
+                              {product.image && (
+                                <div className="aspect-video w-full overflow-hidden bg-muted">
+                                  <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
                               )}
-                            </CardHeader>
-                            <CardContent>
-                              {product.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {product.description}
-                                </p>
-                              )}
-                            </CardContent>
-                          </Card>
-                        ))}
+                              <CardHeader>
+                                <CardTitle className="text-lg">{product.name}</CardTitle>
+                                {product.tagline && (
+                                  <p className="text-sm text-muted-foreground">{product.tagline}</p>
+                                )}
+                              </CardHeader>
+                              <CardContent>
+                                {product.description && (
+                                  <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {product.description}
+                                  </p>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

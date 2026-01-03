@@ -33,6 +33,8 @@ exports.getListHeader = async (req, res, next) => {
         subtitle: data.subtitle || '',
         title: data.title || '',
         description: data.description || '',
+        imageBack: data.imageBack || '',
+        imageFront: data.imageFront || '',
         isActive: section.is_active !== undefined ? section.is_active : true,
         createdAt: section.created_at,
         updatedAt: section.updated_at,
@@ -46,7 +48,7 @@ exports.getListHeader = async (req, res, next) => {
 // PUT /api/admin/products/list-header
 exports.updateListHeader = async (req, res, next) => {
   try {
-    const { subtitle, title, description, isActive } = req.body;
+    const { subtitle, title, description, imageBack, imageFront, isActive } = req.body;
 
     // Kiểm tra xem đã có list header chưa (bất kể is_active status)
     const existing = await getSectionAnyStatus('list-header');
@@ -58,6 +60,8 @@ exports.updateListHeader = async (req, res, next) => {
       subtitle: (subtitle !== undefined && subtitle !== null && subtitle.trim() !== '') ? subtitle : (existingData.subtitle || ''),
       title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
       description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
+      imageBack: imageBack !== undefined ? imageBack : (existingData.imageBack || ''),
+      imageFront: imageFront !== undefined ? imageFront : (existingData.imageFront || ''),
     };
 
     let result;
@@ -87,11 +91,14 @@ exports.updateListHeader = async (req, res, next) => {
 
     return res.json({
       success: true,
+      message: 'Đã cập nhật list header thành công',
       data: {
         id: result.id,
         subtitle: resultData.subtitle || '',
         title: resultData.title || '',
         description: resultData.description || '',
+        imageBack: resultData.imageBack || '',
+        imageFront: resultData.imageFront || '',
         isActive: result.is_active !== undefined ? result.is_active : true,
         createdAt: result.created_at,
         updatedAt: result.updated_at,

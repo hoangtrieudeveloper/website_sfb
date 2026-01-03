@@ -749,7 +749,7 @@ export default function AdminContactPage() {
                 <CardContent>
                   {heroData.isActive && (
                     <div className="border rounded-lg p-4">
-                      <ContactHero />
+                      <ContactHero data={heroData} />
                     </div>
                   )}
                 </CardContent>
@@ -921,7 +921,7 @@ export default function AdminContactPage() {
                 <CardContent>
                   {infoCardsData.isActive && (
                     <div className="border rounded-lg p-4">
-                      <ContactInfoCards />
+                      <ContactInfoCards data={infoCardsData.items} />
                     </div>
                   )}
                 </CardContent>
@@ -1036,6 +1036,72 @@ export default function AdminContactPage() {
                       />
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Company Label</Label>
+                      <Input
+                        value={formData.fields.company.label}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          fields: { ...formData.fields, company: { ...formData.fields.company, label: e.target.value } },
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Company Placeholder</Label>
+                      <Input
+                        value={formData.fields.company.placeholder}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          fields: { ...formData.fields, company: { ...formData.fields.company, placeholder: e.target.value } },
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Service Label</Label>
+                      <Input
+                        value={formData.fields.service.label}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          fields: { ...formData.fields, service: { ...formData.fields.service, label: e.target.value } },
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Service Placeholder</Label>
+                      <Input
+                        value={formData.fields.service.placeholder}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          fields: { ...formData.fields, service: { ...formData.fields.service, placeholder: e.target.value } },
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Message Label</Label>
+                      <Input
+                        value={formData.fields.message.label}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          fields: { ...formData.fields, message: { ...formData.fields.message, label: e.target.value } },
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Message Placeholder</Label>
+                      <Input
+                        value={formData.fields.message.placeholder}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          fields: { ...formData.fields, message: { ...formData.fields.message, placeholder: e.target.value } },
+                        })}
+                      />
+                    </div>
+                  </div>
                   <div>
                     <Label>Services</Label>
                     <div className="flex gap-2 mb-2">
@@ -1077,7 +1143,7 @@ export default function AdminContactPage() {
                 <CardContent>
                   {formData.isActive && (
                     <div className="border rounded-lg p-4">
-                      <ContactForm />
+                      <ContactForm data={formData} />
                     </div>
                   )}
                 </CardContent>
@@ -1158,6 +1224,72 @@ export default function AdminContactPage() {
                             buttons: {
                               ...sidebarData.quickActions.buttons,
                               hotline: { ...sidebarData.quickActions.buttons.hotline, value: e.target.value },
+                            },
+                          },
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Hotline Href</Label>
+                      <Input
+                        value={sidebarData.quickActions.buttons.hotline.href}
+                        onChange={(e) => setSidebarData({
+                          ...sidebarData,
+                          quickActions: {
+                            ...sidebarData.quickActions,
+                            buttons: {
+                              ...sidebarData.quickActions.buttons,
+                              hotline: { ...sidebarData.quickActions.buttons.hotline, href: e.target.value },
+                            },
+                          },
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Appointment Label</Label>
+                      <Input
+                        value={sidebarData.quickActions.buttons.appointment.label}
+                        onChange={(e) => setSidebarData({
+                          ...sidebarData,
+                          quickActions: {
+                            ...sidebarData.quickActions,
+                            buttons: {
+                              ...sidebarData.quickActions.buttons,
+                              appointment: { ...sidebarData.quickActions.buttons.appointment, label: e.target.value },
+                            },
+                          },
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Appointment Value</Label>
+                      <Input
+                        value={sidebarData.quickActions.buttons.appointment.value}
+                        onChange={(e) => setSidebarData({
+                          ...sidebarData,
+                          quickActions: {
+                            ...sidebarData.quickActions,
+                            buttons: {
+                              ...sidebarData.quickActions.buttons,
+                              appointment: { ...sidebarData.quickActions.buttons.appointment, value: e.target.value },
+                            },
+                          },
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Appointment Href</Label>
+                      <Input
+                        value={sidebarData.quickActions.buttons.appointment.href}
+                        onChange={(e) => setSidebarData({
+                          ...sidebarData,
+                          quickActions: {
+                            ...sidebarData.quickActions,
+                            buttons: {
+                              ...sidebarData.quickActions.buttons,
+                              appointment: { ...sidebarData.quickActions.buttons.appointment, href: e.target.value },
                             },
                           },
                         })}
@@ -1368,7 +1500,7 @@ export default function AdminContactPage() {
                 <CardContent>
                   {sidebarData.isActive && (
                     <div className="border rounded-lg p-4">
-                      <ContactSidebar />
+                      <ContactSidebar data={sidebarData} />
                     </div>
                   )}
                 </CardContent>
@@ -1436,7 +1568,7 @@ export default function AdminContactPage() {
                 <CardContent>
                   {mapData.isActive && (
                     <div className="border rounded-lg p-4">
-                      <ContactMap />
+                      <ContactMap data={mapData} />
                     </div>
                   )}
                 </CardContent>

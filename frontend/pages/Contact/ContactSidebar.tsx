@@ -27,14 +27,13 @@ interface ContactSidebarProps {
 export function ContactSidebar({ data }: ContactSidebarProps = {}) {
     const sidebarConfig = data || contactSidebarData;
     const { quickActions, offices: officesData, socials: socialsData } = sidebarConfig;
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Handle offices - có thể là array hoặc object với items
-    const offices = Array.isArray(officesData) 
-        ? officesData 
+    const offices = Array.isArray(officesData)
+        ? officesData
         : ((officesData && 'items' in officesData) ? officesData.items : (contactSidebarData.offices?.items || []));
-    const officesTitle = (officesData && 'title' in officesData) 
-        ? officesData.title 
+    const officesTitle = (officesData && 'title' in officesData)
+        ? officesData.title
         : (contactSidebarData.offices?.title || "Văn phòng chi nhánh");
 
     // Handle socials - có thể là array hoặc object với items
@@ -47,7 +46,6 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
 
     return (
         <div className="space-y-8">
-            <AppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
             {/* Quick Actions */}
             <div className="bg-gradient-to-br from-[#0870B4] to-[#2EABE2] rounded-3xl p-10 text-white relative overflow-hidden">
@@ -74,7 +72,6 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
                         </a>
 
                         <button
-                            onClick={() => setIsModalOpen(true)}
                             className="w-full flex items-center gap-4 p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/20 transition-all group text-left"
                         >
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -90,11 +87,11 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
             </div>
 
             {/* Office Locations */}
-            <div className="bg-gray-50 rounded-3xl p-10 border border-gray-100">
-                <h3 className="text-gray-900 mb-6">{officesTitle}</h3>
-                <div className="space-y-6">
-                    {offices.map((office: any, idx: number) => (
-                        <div key={idx} className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
+            {offices.map((office: any, idx: number) => (
+                <div key={idx} className="bg-gray-50 rounded-3xl p-10 border border-gray-100">
+                    <h3 className="text-gray-900 mb-6">{officesTitle}</h3>
+                    <div className="space-y-6">
+                        <div className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
                             <div className="font-semibold text-gray-900 mb-3">{office.city}</div>
                             <div className="space-y-2 text-sm text-gray-600">
                                 <div className="flex items-start gap-2">
@@ -115,10 +112,9 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    </div>
                 </div>
-            </div>
-
+            ))}
             {/* Social Media */}
             <div className="bg-white rounded-3xl p-10 border-2 border-gray-100">
                 <h4 className="text-gray-900 mb-6">{socialsTitle}</h4>
