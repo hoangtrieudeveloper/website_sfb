@@ -50,7 +50,7 @@ import { removeAuthToken } from "@/lib/auth/token";
 import { Toaster } from "sonner";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers" | "homepage";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers" | "homepage" | "contact";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -122,6 +122,13 @@ const menuItems: AdminNavItem[] = [
     href: "/admin/careers",
     icon: Briefcase,
     requiredPermissions: ["careers.manage", "admin"],
+  },
+  {
+    id: "contact",
+    label: "Quản lý Liên hệ",
+    href: "/admin/contact",
+    icon: Phone,
+    requiredPermissions: ["contact.view", "contact.manage", "admin"],
   },
   {
     id: "system",

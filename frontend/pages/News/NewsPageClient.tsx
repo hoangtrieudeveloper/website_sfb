@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { TrendingUp, Filter, Tag } from "lucide-react";
+import { TrendingUp, Filter, Tag, Inbox } from "lucide-react";
 import { FeaturedNews } from "../../components/news/FeaturedNews";
 import { NewsList } from "../../components/news/NewsList";
 import { publicApiCall, PublicEndpoints } from "@/lib/api/public";
@@ -213,8 +213,14 @@ export function NewsPageClient({
               <p className="mt-4">{uiText.loading}</p>
             </div>
           ) : news.length === 0 ? (
-            <div className="text-center text-gray-500 py-12">
-              {uiText.noResults}
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                <Inbox className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Chưa có bài viết</h3>
+              <p className="text-sm text-gray-500 max-w-md mx-auto">
+                Hiện tại chưa có bài viết nào để hiển thị. Vui lòng quay lại sau.
+              </p>
             </div>
           ) : (
             <AnimatePresence mode="wait">

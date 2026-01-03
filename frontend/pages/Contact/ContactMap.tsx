@@ -1,10 +1,18 @@
 import { mapData } from './data';
 
-export function ContactMap() {
+interface ContactMapProps {
+    data?: {
+        address?: string;
+        iframeSrc?: string;
+    };
+}
+
+export function ContactMap({ data }: ContactMapProps = {}) {
+    const mapConfig = data || mapData;
     return (
         <section className="h-[500px] w-full relative bg-gray-100">
             <iframe
-                src={mapData.iframeSrc}
+                src={mapConfig.iframeSrc || mapData.iframeSrc}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}

@@ -2101,3 +2101,249 @@ FROM roles r
 JOIN permissions p ON p.code = 'homepage.manage'
 WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- ============================================================================
+-- CONTACT PAGE MANAGEMENT SCHEMA
+-- ============================================================================
+
+-- Bảng contact_sections (Gộp hero, info-cards, form, sidebar, map)
+-- section_type: 'hero', 'info-cards', 'form', 'sidebar', 'map'
+-- data: JSONB chứa tất cả các field riêng của từng section
+CREATE TABLE IF NOT EXISTS contact_sections (
+  id SERIAL PRIMARY KEY,
+  section_type VARCHAR(50) NOT NULL UNIQUE,
+  data JSONB DEFAULT '{}'::jsonb,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_contact_sections_type ON contact_sections(section_type);
+CREATE INDEX IF NOT EXISTS idx_contact_sections_active ON contact_sections(is_active);
+CREATE INDEX IF NOT EXISTS idx_contact_sections_data_gin ON contact_sections USING GIN (data);
+
+DROP TRIGGER IF EXISTS update_contact_sections_updated_at ON contact_sections;
+CREATE TRIGGER update_contact_sections_updated_at
+    BEFORE UPDATE ON contact_sections
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Bảng contact_section_items (Gộp info-cards items, offices items, social links)
+-- section_id: FK đến contact_sections
+-- section_type: 'info-cards' (items), 'offices' (items), 'socials' (items)
+-- data: JSONB chứa tất cả các field riêng của từng item type
+CREATE TABLE IF NOT EXISTS contact_section_items (
+  id SERIAL PRIMARY KEY,
+  section_id INTEGER NOT NULL REFERENCES contact_sections(id) ON DELETE CASCADE,
+  section_type VARCHAR(50) NOT NULL,
+  data JSONB DEFAULT '{}'::jsonb,
+  sort_order INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_contact_section_items_section ON contact_section_items(section_id);
+CREATE INDEX IF NOT EXISTS idx_contact_section_items_type ON contact_section_items(section_type);
+CREATE INDEX IF NOT EXISTS idx_contact_section_items_sort ON contact_section_items(sort_order);
+CREATE INDEX IF NOT EXISTS idx_contact_section_items_active ON contact_section_items(is_active);
+CREATE INDEX IF NOT EXISTS idx_contact_section_items_data_gin ON contact_section_items USING GIN (data);
+
+DROP TRIGGER IF EXISTS update_contact_section_items_updated_at ON contact_section_items;
+CREATE TRIGGER update_contact_section_items_updated_at
+    BEFORE UPDATE ON contact_section_items
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Seed dữ liệu mẫu cho Contact Page
+DO $$
+DECLARE
+  info_cards_id_val INTEGER;
+BEGIN
+  -- Contact Hero
+  INSERT INTO contact_sections (section_type, data, is_active)
+  VALUES (
+    'hero',
+    '{
+      "badge": "LIÊN HỆ VỚI CHÚNG TÔI",
+      "title": {
+        "prefix": "Hãy để chúng tôi",
+        "highlight": "hỗ trợ bạn"
+      },
+      "description": "Đội ngũ chuyên gia của chúng tôi luôn sẵn sàng tư vấn và hỗ trợ bạn 24/7",
+      "iconName": "MessageCircle",
+      "image": "/images/contact_hero.png"
+    }'::jsonb,
+    TRUE
+  )
+  ON CONFLICT (section_type) DO NOTHING;
+
+  -- Contact Info Cards
+  INSERT INTO contact_sections (section_type, data, is_active)
+  VALUES (
+    'info-cards',
+    '{}'::jsonb,
+    TRUE
+  )
+  ON CONFLICT (section_type) DO NOTHING
+  RETURNING id INTO info_cards_id_val;
+
+  -- Contact Info Cards Items
+  IF info_cards_id_val IS NOT NULL THEN
+    INSERT INTO contact_section_items (section_id, section_type, data, sort_order, is_active)
+    VALUES
+      (info_cards_id_val, 'info-cards', '{
+        "iconName": "MapPin",
+        "title": "Địa chỉ văn phòng",
+        "content": "P303, Tầng 3, Khách sạn Thể Thao, Số 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.",
+        "link": "https://maps.google.com",
+        "gradient": "from-blue-500 to-cyan-500"
+      }'::jsonb, 0, TRUE),
+      (info_cards_id_val, 'info-cards', '{
+        "iconName": "Phone",
+        "title": "Điện thoại",
+        "content": "(+84) 888 917 999",
+        "link": "tel:+84888917999",
+        "gradient": "from-emerald-500 to-teal-500"
+      }'::jsonb, 1, TRUE),
+      (info_cards_id_val, 'info-cards', '{
+        "iconName": "Mail",
+        "title": "Email",
+        "content": "info@sfb.vn",
+        "link": "mailto:info@sfb.vn",
+        "gradient": "from-purple-500 to-pink-500"
+      }'::jsonb, 2, TRUE),
+      (info_cards_id_val, 'info-cards', '{
+        "iconName": "Clock",
+        "title": "Giờ làm việc",
+        "content": "T2 - T6: 8:00 - 17:30, T7: 8:00 - 12:00",
+        "link": null,
+        "gradient": "from-orange-500 to-amber-500"
+      }'::jsonb, 3, TRUE)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  -- Contact Form
+  INSERT INTO contact_sections (section_type, data, is_active)
+  VALUES (
+    'form',
+    '{
+      "header": "Gửi yêu cầu tư vấn",
+      "description": "Điền thông tin bên dưới, chúng tôi sẽ phản hồi trong vòng 24h",
+      "fields": {
+        "name": { "label": "Họ và tên", "placeholder": "Nguyễn Văn A" },
+        "email": { "label": "Email", "placeholder": "email@example.com" },
+        "phone": { "label": "Số điện thoại", "placeholder": "0901234567" },
+        "company": { "label": "Công ty", "placeholder": "Tên công ty" },
+        "service": { "label": "Dịch vụ quan tâm", "placeholder": "Chọn dịch vụ" },
+        "message": { "label": "Nội dung", "placeholder": "Mô tả chi tiết nhu cầu của bạn..." }
+      },
+      "button": {
+        "submit": "Gửi yêu cầu",
+        "success": "Đã gửi thành công!"
+      },
+      "services": [
+        "Cloud Computing",
+        "Phát triển phần mềm",
+        "Quản trị dữ liệu",
+        "Business Intelligence",
+        "AI & Machine Learning",
+        "Cybersecurity",
+        "Khác"
+      ]
+    }'::jsonb,
+    TRUE
+  )
+  ON CONFLICT (section_type) DO NOTHING;
+
+  -- Contact Sidebar
+  INSERT INTO contact_sections (section_type, data, is_active)
+  VALUES (
+    'sidebar',
+    '{
+      "quickActions": {
+        "title": "Cần tư vấn ngay?",
+        "description": "Liên hệ trực tiếp với chúng tôi qua hotline hoặc đặt lịch hẹn tư vấn",
+        "buttons": {
+          "hotline": { "label": "Hotline", "value": "(+84) 888 917 999", "href": "tel:+84888917999" },
+          "appointment": { "label": "Đặt lịch hẹn", "value": "Tư vấn 1-1 với chuyên gia", "href": "#" }
+        }
+      }
+    }'::jsonb,
+    TRUE
+  )
+  ON CONFLICT (section_type) DO NOTHING
+  RETURNING id INTO info_cards_id_val;
+
+  -- Contact Offices
+  IF info_cards_id_val IS NOT NULL THEN
+    INSERT INTO contact_section_items (section_id, section_type, data, sort_order, is_active)
+    VALUES
+      (info_cards_id_val, 'offices', '{
+        "city": "Hà Nội",
+        "address": "Số 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.",
+        "phone": "(+84) 888 917 999",
+        "email": "info@sfb.vn"
+      }'::jsonb, 0, TRUE)
+    ON CONFLICT DO NOTHING;
+
+    -- Contact Social Links
+    INSERT INTO contact_section_items (section_id, section_type, data, sort_order, is_active)
+    VALUES
+      (info_cards_id_val, 'socials', '{
+        "iconName": "Facebook",
+        "href": "#",
+        "label": "Facebook",
+        "gradient": "from-blue-600 to-blue-700"
+      }'::jsonb, 0, TRUE),
+      (info_cards_id_val, 'socials', '{
+        "iconName": "Linkedin",
+        "href": "#",
+        "label": "LinkedIn",
+        "gradient": "from-blue-700 to-blue-800"
+      }'::jsonb, 1, TRUE),
+      (info_cards_id_val, 'socials', '{
+        "iconName": "Twitter",
+        "href": "#",
+        "label": "Twitter",
+        "gradient": "from-sky-500 to-sky-600"
+      }'::jsonb, 2, TRUE),
+      (info_cards_id_val, 'socials', '{
+        "iconName": "Youtube",
+        "href": "#",
+        "label": "YouTube",
+        "gradient": "from-red-600 to-red-700"
+      }'::jsonb, 3, TRUE)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  -- Contact Map
+  INSERT INTO contact_sections (section_type, data, is_active)
+  VALUES (
+    'map',
+    '{
+      "address": "Khách sạn Thể Thao, P306, Tầng 3, Số 15 P. Lê Văn Thiêm, Thanh Xuân, Hà Nội",
+      "iframeSrc": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.7819253605126!2d105.8003122759699!3d21.001376980641176!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acc9f0d65555%3A0x6a092258a61f4c4a!2zQ8O0bmcgVHkgQ-G7lSBQaOG6p24gQ8O0bmcgTmdo4buHIFNmYg!5e0!3m2!1svi!2s!4v1766463463476!5m2!1svi!2s"
+    }'::jsonb,
+    TRUE
+  )
+  ON CONFLICT (section_type) DO NOTHING;
+END $$;
+
+-- Thêm permissions cho contact module
+INSERT INTO permissions (code, name, module, description, is_active)
+VALUES
+  ('contact.view', 'Xem trang liên hệ', 'contact', 'Xem nội dung trang liên hệ', TRUE),
+  ('contact.manage', 'Quản lý trang liên hệ', 'contact', 'Thêm, sửa, xóa nội dung trang liên hệ', TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+-- Gán quyền contact cho role admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON p.code IN (
+  'contact.view',
+  'contact.manage'
+)
+WHERE r.code = 'admin'
+ON CONFLICT (role_id, permission_id) DO NOTHING;

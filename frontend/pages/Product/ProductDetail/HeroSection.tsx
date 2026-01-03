@@ -62,7 +62,7 @@ export function HeroSection({ product }: HeroSectionProps) {
                           shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden"
                             >
                                 <ImageWithFallback
-                                    src={product.heroImage}
+                                    src={product.heroImage || "/images/no_cover.jpeg"}
                                     alt={product.name}
                                     className="w-full h-full object-cover"
                                 />

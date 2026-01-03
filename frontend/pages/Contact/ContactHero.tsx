@@ -1,7 +1,26 @@
-import { contactHeroData } from "./data";
+"use client";
 
-export function ContactHero() {
-    const Icon = contactHeroData.icon;
+import { contactHeroData } from "./data";
+import * as LucideIcons from "lucide-react";
+
+interface ContactHeroProps {
+    data?: {
+        badge?: string;
+        title?: { prefix?: string; highlight?: string };
+        description?: string;
+        iconName?: string;
+        image?: string;
+    };
+}
+
+export function ContactHero({ data }: ContactHeroProps = {}) {
+    const heroData = data || contactHeroData;
+    let Icon: any = LucideIcons.MessageCircle;
+    if (data?.iconName && (LucideIcons as any)[data.iconName]) {
+        Icon = (LucideIcons as any)[data.iconName];
+    } else if (contactHeroData.icon) {
+        Icon = contactHeroData.icon;
+    }
 
     return (
         <section
@@ -19,24 +38,24 @@ export function ContactHero() {
             </div>
 
             <div className="container mx-auto px-6 relative z-10 h-full flex items-center">
-                <div className="flex flex-col lg:flex-row items-center justify-between w-full gap-12 lg:gap-20">
+                <div className="flex flex-row items-center justify-between w-full gap-12 lg:gap-20">
 
                     {/* Left Column: Content */}
                     <div className="lg:w-1/2 text-left">
                         <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-8">
                             <Icon className="text-cyan-400" size={20} />
-                            <span className="text-white font-semibold text-sm">{contactHeroData.badge}</span>
+                            <span className="text-white font-semibold text-sm">{heroData.badge || contactHeroData.badge}</span>
                         </div>
 
                         <h1 className="text-white mb-8 text-5xl md:text-6xl font-bold leading-tight">
-                            {contactHeroData.title.prefix} <br />
+                            {(heroData.title?.prefix || contactHeroData.title.prefix)} <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-white">
-                                {contactHeroData.title.highlight}
+                                {(heroData.title?.highlight || contactHeroData.title.highlight)}
                             </span>
                         </h1>
 
                         <p className="text-xl text-blue-50 leading-relaxed max-w-xl">
-                            {contactHeroData.description}
+                            {(heroData.description || contactHeroData.description)}
                         </p>
                     </div>
 
@@ -46,7 +65,7 @@ export function ContactHero() {
                             <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full filter blur-3xl opacity-40 transform scale-90 animate-pulse" />
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
                                 <img
-                                    src={contactHeroData.image}
+                                    src={(heroData.image || contactHeroData.image)}
                                     alt="Contact Support"
                                     className="w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                                     onError={(e) => {

@@ -4,23 +4,35 @@ import { ContactForm } from "./ContactForm";
 import { ContactSidebar } from "./ContactSidebar";
 import { ContactMap } from "./ContactMap";
 
-export function ContactPage() {
+interface ContactPageProps {
+    contactData?: {
+        hero?: any;
+        infoCards?: any[];
+        form?: any;
+        sidebar?: any;
+        map?: any;
+    } | null;
+}
+
+export function ContactPage({ contactData }: ContactPageProps) {
     return (
         <div className="min-h-screen">
-            <ContactHero />
-            <ContactInfoCards />
+            {contactData?.hero && <ContactHero data={contactData.hero} />}
+            {contactData?.infoCards && contactData.infoCards.length > 0 && (
+                <ContactInfoCards data={contactData.infoCards} />
+            )}
 
             {/* Main Contact Section */}
             <section className="py-28 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="grid lg:grid-cols-2 gap-16 items-start">
-                        <ContactForm />
-                        <ContactSidebar />
+                        {contactData?.form && <ContactForm data={contactData.form} />}
+                        {contactData?.sidebar && <ContactSidebar data={contactData.sidebar} />}
                     </div>
                 </div>
             </section>
 
-            <ContactMap />
+            {contactData?.map && <ContactMap data={contactData.map} />}
         </div>
     );
 }

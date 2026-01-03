@@ -19,8 +19,9 @@ export const PublicEndpoints = {
     detail: (code: string) => `/api/public/categories/${code}`,
   },
   
-  // Contact Form
+  // Contact
   contact: {
+    get: "/api/public/contact",
     submit: "/api/public/contact",
   },
   
@@ -66,6 +67,7 @@ export const PublicEndpoints = {
     testimonials: "/api/public/products/testimonials",
     list: "/api/public/products/list",
     categories: "/api/public/products/categories",
+    detail: (slug: string) => `/api/public/products/${slug}`,
   },
   
   // Other public endpoints can be added here

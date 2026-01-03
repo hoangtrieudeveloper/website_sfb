@@ -187,5 +187,29 @@ export const AdminEndpoints = {
     list: "/api/admin/homepage",
     block: (sectionType: string) => `/api/admin/homepage/${sectionType}`,
   },
+
+  // Contact
+  contact: {
+    hero: {
+      get: "/api/admin/contact/hero",
+      update: "/api/admin/contact/hero",
+    },
+    infoCards: {
+      get: "/api/admin/contact/info-cards",
+      update: "/api/admin/contact/info-cards",
+    },
+    form: {
+      get: "/api/admin/contact/form",
+      update: "/api/admin/contact/form",
+    },
+    sidebar: {
+      get: "/api/admin/contact/sidebar",
+      update: "/api/admin/contact/sidebar",
+    },
+    map: {
+      get: "/api/admin/contact/map",
+      update: "/api/admin/contact/map",
+    },
+  },
 } as const;
 

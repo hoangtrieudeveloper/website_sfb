@@ -322,3 +322,230 @@ exports.getPublicCategories = async (req, res, next) => {
   }
 };
 
+// GET /api/public/products/:slug
+exports.getPublicProductBySlug = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+
+    // Lấy product basic info
+    const { rows: products } = await pool.query(
+      `SELECT 
+        p.id,
+        p.category_id,
+        pc.name as category_name,
+        pc.slug as category_slug,
+        p.slug,
+        p.name,
+        p.tagline,
+        p.meta,
+        p.description,
+        p.image,
+        p.gradient,
+        p.pricing,
+        p.badge,
+        p.stats_users,
+        p.stats_rating,
+        p.stats_deploy,
+        p.sort_order,
+        p.is_featured,
+        p.is_active,
+        p.features,
+        p.created_at,
+        p.updated_at
+      FROM products p
+      LEFT JOIN product_categories pc ON p.category_id = pc.id
+      WHERE p.slug = $1 AND p.is_active = true`,
+      [slug]
+    );
+
+    if (products.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy sản phẩm',
+      });
+    }
+
+    const product = products[0];
+    const productId = product.id;
+
+    // Lấy product detail
+    const { rows: details } = await pool.query(
+      'SELECT * FROM product_details WHERE product_id = $1',
+      [productId]
+    );
+
+    // Nếu không có detail, trả về product basic info
+    if (details.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          id: product.id,
+          categoryId: product.category_id,
+          category: product.category_name || product.category_slug || '',
+          slug: product.slug,
+          name: product.name,
+          tagline: product.tagline || '',
+          meta: product.meta || '',
+          description: product.description || '',
+          image: product.image || '',
+          gradient: product.gradient || '',
+          pricing: product.pricing || '',
+          badge: product.badge || null,
+          statsUsers: product.stats_users || '',
+          statsRating: product.stats_rating || 0,
+          statsDeploy: product.stats_deploy || '',
+          sortOrder: product.sort_order || 0,
+          isFeatured: product.is_featured || false,
+          isActive: product.is_active !== undefined ? product.is_active : true,
+          createdAt: product.created_at,
+          updatedAt: product.updated_at,
+          features: Array.isArray(product.features) ? product.features : [],
+          detail: null,
+        },
+      });
+    }
+
+    const detail = details[0];
+
+    // Lấy overview cards
+    const { rows: overviewCardsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'overview-cards']
+    );
+
+    // Lấy showcase bullets
+    const { rows: showcaseBulletsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'showcase-bullets']
+    );
+
+    // Lấy numbered sections
+    const { rows: numberedSectionsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'numbered-sections']
+    );
+
+    // Lấy paragraphs cho từng section
+    const sectionIds = numberedSectionsRows.map(s => s.id);
+    let paragraphsMap = {};
+    
+    if (sectionIds.length > 0) {
+      const { rows: paragraphsRows } = await pool.query(
+        'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+        [detail.id, 'section-paragraphs']
+      );
+      
+      paragraphsRows.forEach(p => {
+        const data = p.data || {};
+        const parentId = parseInt(data.parent_id || data.numbered_section_id || '0');
+        if (parentId && sectionIds.includes(parentId)) {
+          if (!paragraphsMap[parentId]) {
+            paragraphsMap[parentId] = [];
+          }
+          paragraphsMap[parentId].push(data.paragraph_text || data.text || '');
+        }
+      });
+    }
+
+    // Lấy expand bullets
+    const { rows: expandBulletsRows } = await pool.query(
+      'SELECT * FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 ORDER BY sort_order ASC',
+      [detail.id, 'expand-bullets']
+    );
+
+    // Parse overview cards
+    const overviewCards = overviewCardsRows.map(row => ({
+      step: row.data?.step || 0,
+      title: row.data?.title || '',
+      description: row.data?.description || row.data?.desc || '',
+      desc: row.data?.description || row.data?.desc || '',
+    }));
+
+    // Parse showcase bullets
+    const showcaseBullets = showcaseBulletsRows.map(row => 
+      row.data?.bullet_text || row.data?.text || ''
+    );
+
+    // Parse numbered sections
+    const numberedSections = numberedSectionsRows.map(section => ({
+      sectionNo: section.data?.section_no || section.data?.sectionNo || section.data?.no || 0,
+      no: section.data?.section_no || section.data?.sectionNo || section.data?.no || 0,
+      title: section.data?.title || '',
+      image: section.data?.image || section.data?.overlay_back_image || section.data?.imageBack || '',
+      imageBack: section.data?.overlay_back_image || section.data?.imageBack || section.data?.image || '',
+      imageFront: section.data?.overlay_front_image || section.data?.imageFront || '',
+      imageSide: section.data?.image_side || section.data?.imageSide || 'left',
+      paragraphs: paragraphsMap[section.id] || [],
+    }));
+
+    // Parse expand bullets
+    const expandBullets = expandBulletsRows.map(b => 
+      b.data?.bullet_text || b.data?.text || ''
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        // Product basic info
+        id: product.id,
+        categoryId: product.category_id,
+        category: product.category_name || product.category_slug || '',
+        slug: product.slug,
+        name: product.name,
+        tagline: product.tagline || '',
+        meta: product.meta || '',
+        description: product.description || '',
+        image: product.image || '',
+        gradient: product.gradient || '',
+        pricing: product.pricing || '',
+        badge: product.badge || null,
+        statsUsers: product.stats_users || '',
+        statsRating: product.stats_rating || 0,
+        statsDeploy: product.stats_deploy || '',
+        sortOrder: product.sort_order || 0,
+        isFeatured: product.is_featured || false,
+        isActive: product.is_active !== undefined ? product.is_active : true,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at,
+        features: Array.isArray(product.features) ? product.features : [],
+        // Product detail info
+        detail: {
+          metaTop: detail.meta_top || '',
+          heroDescription: detail.hero_description || '',
+          heroImage: detail.hero_image || '',
+          ctaContactText: detail.cta_contact_text || '',
+          ctaContactHref: detail.cta_contact_href || '',
+          ctaDemoText: detail.cta_demo_text || '',
+          ctaDemoHref: detail.cta_demo_href || '',
+          overviewKicker: detail.overview_kicker || '',
+          overviewTitle: detail.overview_title || '',
+          overviewCards: overviewCards,
+          showcase: {
+            title: detail.showcase_title || '',
+            desc: detail.showcase_desc || '',
+            bullets: showcaseBullets,
+            ctaText: detail.showcase_cta_text || '',
+            ctaHref: detail.showcase_cta_href || '',
+            imageBack: detail.showcase_image_back || '',
+            imageFront: detail.showcase_image_front || '',
+            overlay: {
+              back: { src: detail.showcase_image_back || '' },
+              front: { src: detail.showcase_image_front || '' },
+            },
+          },
+          numberedSections: numberedSections,
+          expand: {
+            title: detail.expand_title || '',
+            bullets: expandBullets,
+            ctaText: detail.expand_cta_text || '',
+            ctaHref: detail.expand_cta_href || '',
+            image: detail.expand_image || '',
+          },
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+

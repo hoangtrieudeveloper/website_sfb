@@ -21,7 +21,7 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                                 }`}
                         >
                             <ImageWithFallback
-                                src={section.overlay?.back.src ?? section.image}
+                                src={section.overlay?.back.src ?? section.image ?? "/images/no_cover.jpeg"}
                                 alt={
                                     section.overlay?.back.alt ?? section.imageAlt ?? section.title
                                 }
@@ -43,7 +43,7 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                                 }
                             >
                                 <ImageWithFallback
-                                    src={section.overlay.front.src}
+                                    src={section.overlay.front.src || "/images/no_cover.jpeg"}
                                     alt={
                                         section.overlay.front.alt ??
                                         section.imageAlt ??

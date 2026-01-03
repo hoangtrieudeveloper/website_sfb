@@ -7,6 +7,7 @@ const {
   getPublicTestimonials,
   getPublicProducts,
   getPublicCategories,
+  getPublicProductBySlug,
 } = require('../controllers/publicProducts.controller');
 
 const router = express.Router();
@@ -114,6 +115,27 @@ router.get('/list', getPublicProducts);
  *         description: Categories list
  */
 router.get('/categories', getPublicCategories);
+
+/**
+ * @openapi
+ * /api/public/products/{slug}:
+ *   get:
+ *     tags:
+ *       - Public Products
+ *     summary: Lấy chi tiết sản phẩm theo slug (public)
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product detail data
+ *       404:
+ *         description: Product not found
+ */
+router.get('/:slug', getPublicProductBySlug);
 
 module.exports = router;
 

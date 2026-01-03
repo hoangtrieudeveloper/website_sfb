@@ -37,7 +37,7 @@ export function ExpandSection({ product }: ExpandSectionProps) {
                         <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_14px_40px_rgba(0,0,0,0.08)] overflow-hidden">
                             <div className="relative w-full aspect-[701/511] min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
                                 <ImageWithFallback
-                                    src={product.expandImage}
+                                    src={product.expandImage || "/images/no_cover.jpeg"}
                                     alt={product.expandTitle}
                                     className="w-full h-full object-cover"
                                 />

@@ -82,6 +82,7 @@ export function Header() {
     { href: "/industries", label: language === "vi" ? "Lĩnh vực" : "Industries" },
     { href: "/news", label: language === "vi" ? "Tin tức" : "News" },
     { href: "/careers", label: language === "vi" ? "Tuyển dụng" : "Careers" },
+    { href: "/contact", label: language === "vi" ? "Liên hệ ngay" : "Contact" },
   ];
 
   // Debounced scroll handler for performance

@@ -79,15 +79,13 @@ export function NewsDetailPageClient({
           </nav>
 
           {/* Banner image */}
-          {featuredImageSrc && (
-            <div className="w-full rounded-2xl overflow-hidden bg-gray-100">
-              <ImageWithFallback
-                src={featuredImageSrc}
-                alt={article.title}
-                className="w-full h-[220px] md:h-[420px] object-cover"
-              />
-            </div>
-          )}
+          <div className="w-full rounded-2xl overflow-hidden bg-gray-100">
+            <ImageWithFallback
+              src={featuredImageSrc || "/images/no_cover.jpeg"}
+              alt={article.title}
+              className="w-full h-[220px] md:h-[420px] object-cover"
+            />
+          </div>
 
           {/* Title + meta */}
           <div className="mt-10">

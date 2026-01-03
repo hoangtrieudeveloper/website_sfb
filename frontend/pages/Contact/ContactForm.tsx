@@ -4,7 +4,17 @@ import { useState } from 'react';
 import { Send, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { services, contactFormData } from './data';
 
-export function ContactForm() {
+interface ContactFormProps {
+    data?: {
+        header?: string;
+        description?: string;
+        fields?: any;
+        button?: { submit?: string; success?: string };
+        services?: string[];
+    };
+}
+
+export function ContactForm({ data }: ContactFormProps = {}) {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -15,7 +25,10 @@ export function ContactForm() {
     });
 
     const [submitted, setSubmitted] = useState(false);
-    const { header, description, fields, button } = contactFormData;
+    const formConfig = data || contactFormData;
+    const { header, description, fields, button } = formConfig;
+    const buttonConfig = button || contactFormData.button;
+    const servicesList = (data?.services && data.services.length > 0) ? data.services : services;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -114,7 +127,7 @@ export function ContactForm() {
                         className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                     >
                         <option value="">{fields.service.placeholder}</option>
-                        {services.map((service, idx) => (
+                        {servicesList.map((service, idx) => (
                             <option key={idx} value={service}>{service}</option>
                         ))}
                     </select>
@@ -142,12 +155,12 @@ export function ContactForm() {
                     {submitted ? (
                         <>
                             <CheckCircle2 size={24} />
-                            {button.success}
+                            {buttonConfig.success}
                         </>
                     ) : (
                         <>
                             <Send size={20} />
-                            {button.submit}
+                            {buttonConfig.submit}
                             <ArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
                         </>
                     )}

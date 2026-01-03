@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, ArrowRight, Briefcase, MapPin, DollarSign, Clock, Award } from "lucide-react";
+import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, ArrowRight, Briefcase, MapPin, DollarSign, Clock, Award, CheckCircle2, Target, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,6 +123,39 @@ export default function AdminCareersPage() {
       localStorage.setItem('careers-sub-tabs', JSON.stringify(activeSubTabs));
     }
   }, [activeSubTabs]);
+
+  // Tab configuration with descriptions
+  const tabsConfig = [
+    {
+      value: "hero",
+      label: "Hero",
+      description: "Banner đầu trang với tiêu đề..",
+      icon: Target,
+    },
+    {
+      value: "benefits",
+      label: "Phúc lợi & Đãi ngộ",
+      description: "Quản lý các phúc lợi..",
+      icon: Award,
+    },
+    {
+      value: "positions",
+      label: "Vị trí đang tuyển",
+      description: "Quản lý các vị trí..",
+      icon: Briefcase,
+    },
+    {
+      value: "cta",
+      label: "CTA",
+      description: "Phần kêu gọi hành động..",
+      icon: Phone,
+    },
+  ];
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveMainTab(value);
+  };
 
   // Hero State
   const [heroData, setHeroData] = useState({
@@ -548,13 +581,58 @@ export default function AdminCareersPage() {
         </div>
       </div>
 
-      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="hero">Hero</TabsTrigger>
-          <TabsTrigger value="benefits">Phúc lợi & Đãi ngộ</TabsTrigger>
-          <TabsTrigger value="positions">Vị trí đang tuyển</TabsTrigger>
-          <TabsTrigger value="cta">CTA</TabsTrigger>
-        </TabsList>
+      {/* Progress Stepper */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            {tabsConfig.map((tab, index) => {
+              const Icon = tab.icon;
+              const isActive = activeMainTab === tab.value;
+              const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
+              
+              return (
+                <div key={tab.value} className="flex items-center flex-1">
+                  <button
+                    onClick={() => handleTabChange(tab.value)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
+                        : isCompleted
+                        ? "bg-green-50 text-green-700 border-2 border-green-300"
+                        : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      isActive
+                        ? "bg-blue-500 text-white"
+                        : isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        <span className="text-sm font-semibold">{index + 1}</span>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">{tab.label}</div>
+                      <div className="text-xs opacity-75">{tab.description}</div>
+                    </div>
+                  </button>
+                  {index < tabsConfig.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-2 ${
+                      isCompleted ? "bg-green-500" : "bg-gray-300"
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeMainTab} onValueChange={handleTabChange} className="w-full">
 
         {/* Hero Tab */}
         <TabsContent value="hero" className="space-y-0">

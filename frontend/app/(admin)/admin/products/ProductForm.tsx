@@ -1186,24 +1186,48 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     placeholder="Tiêu đề section"
                                   />
                                 </div>
-                                <div>
-                                  <Label className="mb-2">Ảnh minh họa</Label>
-                                  <ImageUpload
-                                    currentImage={section.image || section.overlay?.back?.src || ""}
-                                    onImageSelect={(url: string) => {
-                                      const newSections = [...detailData.numberedSections];
-                                      const overlay = section.overlay || {};
-                                      newSections[index] = {
-                                        ...section,
-                                        image: url,
-                                        overlay: {
-                                          ...overlay,
-                                          back: { ...overlay.back, src: url },
-                                        },
-                                      };
-                                      setDetailData({ ...detailData, numberedSections: newSections });
-                                    }}
-                                  />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label className="mb-2">Ảnh nền (Back)</Label>
+                                    <ImageUpload
+                                      currentImage={section.imageBack || section.overlayBackImage || section.overlay?.back?.src || section.image || ""}
+                                      onImageSelect={(url: string) => {
+                                        const newSections = [...detailData.numberedSections];
+                                        const overlay = section.overlay || {};
+                                        newSections[index] = {
+                                          ...section,
+                                          image: url, // Giữ tương thích
+                                          imageBack: url, // Backend cần field này
+                                          overlayBackImage: url, // Backend cũng hỗ trợ field này
+                                          overlay: {
+                                            ...overlay,
+                                            back: { ...overlay.back, src: url },
+                                          },
+                                        };
+                                        setDetailData({ ...detailData, numberedSections: newSections });
+                                      }}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Ảnh phía trước (Front)</Label>
+                                    <ImageUpload
+                                      currentImage={section.imageFront || section.overlayFrontImage || section.overlay?.front?.src || ""}
+                                      onImageSelect={(url: string) => {
+                                        const newSections = [...detailData.numberedSections];
+                                        const overlay = section.overlay || {};
+                                        newSections[index] = {
+                                          ...section,
+                                          imageFront: url, // Backend cần field này
+                                          overlayFrontImage: url, // Backend cũng hỗ trợ field này
+                                          overlay: {
+                                            ...overlay,
+                                            front: { ...overlay.front, src: url },
+                                          },
+                                        };
+                                        setDetailData({ ...detailData, numberedSections: newSections });
+                                      }}
+                                    />
+                                  </div>
                                 </div>
                                 <div>
                                   <Label className="mb-2">Vị trí ảnh</Label>

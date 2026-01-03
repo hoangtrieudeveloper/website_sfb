@@ -13,33 +13,45 @@ export function ShowcaseSection({ product }: ShowcaseSectionProps) {
             <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-10 min-[1920px]:px-[243px]">
                 <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[60px] min-[1920px]:gap-[90px]  min-[1920px]:py-0 min-[1920px]:h-[567px]">
                     <div className="relative w-full lg:w-auto flex justify-center lg:justify-start">
-                        {product.showcase.overlay ? (
+                        {product.showcase.overlay && (product.showcase.overlay.back || product.showcase.overlay.front) ? (
                             <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
-                                <div
-                                    className={`${product.showcase.overlay.back.sizeClass} ${product.showcase.overlay.back.frameClass ?? ""}`}
-                                >
-                                    <ImageWithFallback
-                                        src={product.showcase.overlay.back.src}
-                                        alt={
-                                            product.showcase.overlay.back.alt ??
-                                            product.showcase.title
-                                        }
-                                        className={`w-full h-full ${product.showcase.overlay.back.objectClass ?? "object-contain"}`}
-                                    />
-                                </div>
+                                {/* Back image - Chỉ hiển thị nếu có */}
+                                {product.showcase.overlay.back && (
+                                    <div
+                                        className={`${product.showcase.overlay.back.sizeClass ?? "w-[701px] h-[511px]"} ${product.showcase.overlay.back.frameClass ?? "rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden"}`}
+                                    >
+                                        <ImageWithFallback
+                                            src={product.showcase.overlay.back.src}
+                                            alt={
+                                                product.showcase.overlay.back.alt ??
+                                                product.showcase.title
+                                            }
+                                            className={`w-full h-full ${product.showcase.overlay.back.objectClass ?? "object-contain"}`}
+                                        />
+                                    </div>
+                                )}
 
-                                <div
-                                    className={`${product.showcase.overlay.front.positionClass ?? ""} ${product.showcase.overlay.front.frameClass ?? ""} ${product.showcase.overlay.front.sizeClass}`}
-                                >
-                                    <ImageWithFallback
-                                        src={product.showcase.overlay.front.src}
-                                        alt={
-                                            product.showcase.overlay.front.alt ??
-                                            product.showcase.title
-                                        }
-                                        className={`w-full h-full ${product.showcase.overlay.front.objectClass ?? "object-contain"}`}
-                                    />
-                                </div>
+                                {/* Front image - Chỉ hiển thị nếu có */}
+                                {/* Nếu có back: front sẽ absolute (overlay) */}
+                                {/* Nếu không có back: front sẽ relative (hiển thị như ảnh đơn) */}
+                                {product.showcase.overlay.front && (
+                                    <div
+                                        className={`${
+                                            product.showcase.overlay.back 
+                                                ? (product.showcase.overlay.front.positionClass ?? "absolute left-[183.5px] bottom-0")
+                                                : "relative"
+                                        } ${product.showcase.overlay.front.frameClass ?? "rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden"} ${product.showcase.overlay.front.sizeClass ?? (product.showcase.overlay.back ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]")}`}
+                                    >
+                                        <ImageWithFallback
+                                            src={product.showcase.overlay.front.src}
+                                            alt={
+                                                product.showcase.overlay.front.alt ??
+                                                product.showcase.title
+                                            }
+                                            className={`w-full h-full ${product.showcase.overlay.front.objectClass ?? "object-contain"}`}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             // Nếu chỉ có 1 ảnh (sản phẩm khác vẫn dùng được)
@@ -49,7 +61,7 @@ export function ShowcaseSection({ product }: ShowcaseSectionProps) {
                             >
                                 <ImageWithFallback
                                     src={
-                                        product.showcase.single?.src ?? "/images/placeholder.png"
+                                        product.showcase.single?.src ?? "/images/no_cover.jpeg"
                                     }
                                     alt={product.showcase.single?.alt ?? product.showcase.title}
                                     className={`w-full h-full ${product.showcase.single?.objectClass ?? "object-contain"}`}

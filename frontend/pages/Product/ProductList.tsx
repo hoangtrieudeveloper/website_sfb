@@ -98,28 +98,81 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
 
     const displayHeader = headerData || defaultHeader;
 
+    // Kiểm tra xem có ảnh back hoặc front không
+    const hasBackImage = headerData?.imageBack && headerData.imageBack.trim() !== '';
+    const hasFrontImage = headerData?.imageFront && headerData.imageFront.trim() !== '';
+
     return (
         <section id="products" className="bg-white">
             <div className="w-full max-w-[1920px] mx-auto pb-[120px]">
-                {/* Title */}
-                <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px]">
-                    {displayHeader.subtitle && (
-                        <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
-                            {displayHeader.subtitle}
+                {/* Header với ảnh (nếu có) */}
+                <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[60px] min-[1920px]:gap-[90px] px-6 lg:px-10 min-[1920px]:px-[243px] mb-10">
+                    {/* Left: Text */}
+                    <div className="flex w-full max-w-[549px] flex-col items-start gap-6">
+                        {displayHeader.subtitle && (
+                            <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+                                {displayHeader.subtitle}
+                            </div>
+                        )}
+
+                        {displayHeader.title && (
+                            <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
+                                {displayHeader.title}
+                            </h2>
+                        )}
+
+                        {displayHeader.description && (
+                            <p className="text-gray-600 leading-relaxed">
+                                {displayHeader.description}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Right: Images */}
+                    <div className="relative w-full lg:w-auto flex justify-center lg:justify-start">
+                        <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
+                            {/* Chỉ hiển thị no-cover khi CẢ 2 ảnh đều không có */}
+                            {!hasBackImage && !hasFrontImage ? (
+                                <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
+                                    <ImageWithFallback
+                                        src="/images/no_cover.jpeg"
+                                        alt="No cover image"
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Back image - Chỉ hiển thị nếu có */}
+                                    {hasBackImage && (
+                                        <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
+                                            <ImageWithFallback
+                                                src={headerData.imageBack}
+                                                alt={displayHeader.title || "Product list header"}
+                                                className="w-full h-full object-contain"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Front image - Chỉ hiển thị nếu có */}
+                                    {hasFrontImage && (
+                                        <div
+                                            className={`${
+                                                hasBackImage 
+                                                    ? "absolute left-[183.5px] bottom-0"
+                                                    : "relative"
+                                            } rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden ${hasBackImage ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]"}`}
+                                        >
+                                            <ImageWithFallback
+                                                src={headerData.imageFront}
+                                                alt={displayHeader.title || "Product list header"}
+                                                className="w-full h-full object-contain"
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
-                    )}
-
-                    {displayHeader.title && (
-                        <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
-                            {displayHeader.title}
-                        </h2>
-                    )}
-
-                    {displayHeader.description && (
-                        <p className="text-gray-600 leading-relaxed">
-                            {displayHeader.description}
-                        </p>
-                    )}
+                    </div>
                 </div>
 
                 {/* Pills filter ngay dưới title */}

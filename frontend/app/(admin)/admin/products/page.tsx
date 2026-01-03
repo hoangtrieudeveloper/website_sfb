@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Plus, Edit, Trash2, Eye, EyeOff, Star, Package, Save, ChevronUp, ChevronDown, X } from "lucide-react";
+import { Search, Plus, Edit, Trash2, Eye, EyeOff, Star, Package, Save, ChevronUp, ChevronDown, X, CheckCircle2, Target, Award, FolderTree, MessageSquare, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +104,8 @@ interface ListHeaderFormData {
   subtitle: string;
   title: string;
   description: string;
+  imageBack?: string;
+  imageFront?: string;
   isActive: boolean;
 }
 
@@ -214,6 +216,8 @@ export default function AdminProductsPage() {
     subtitle: "",
     title: "",
     description: "",
+    imageBack: "",
+    imageFront: "",
     isActive: true,
   });
   const [loadingListHeader, setLoadingListHeader] = useState(false);
@@ -266,6 +270,51 @@ export default function AdminProductsPage() {
       localStorage.setItem("products_active_sub_tabs", JSON.stringify(activeSubTabs));
     }
   }, [activeSubTabs]);
+
+  // Tab configuration with descriptions
+  const tabsConfig = [
+    {
+      value: "hero",
+      label: "Hero Banner",
+      description: "Banner đầu trang với tiêu đề..",
+      icon: Target,
+    },
+    {
+      value: "benefits",
+      label: "Lợi ích Sản phẩm",
+      description: "Quản lý các lợi ích..",
+      icon: Award,
+    },
+    {
+      value: "categories",
+      label: "Danh mục",
+      description: "Quản lý danh mục sản phẩm..",
+      icon: FolderTree,
+    },
+    {
+      value: "testimonials",
+      label: "Khách hàng nói về SFB",
+      description: "Đánh giá từ khách hàng..",
+      icon: MessageSquare,
+    },
+    {
+      value: "cta",
+      label: "CTA",
+      description: "Phần kêu gọi hành động..",
+      icon: Phone,
+    },
+    {
+      value: "products",
+      label: "Danh sách Sản phẩm",
+      description: "Quản lý danh sách sản phẩm..",
+      icon: Package,
+    },
+  ];
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveMainTab(value);
+  };
 
   // Fetch functions
   const fetchProducts = async () => {
@@ -882,6 +931,8 @@ export default function AdminProductsPage() {
         subtitle: (listHeaderData.subtitle && listHeaderData.subtitle.trim() !== '') ? listHeaderData.subtitle : (currentData?.subtitle || ''),
         title: (listHeaderData.title && listHeaderData.title.trim() !== '') ? listHeaderData.title : (currentData?.title || ''),
         description: (listHeaderData.description && listHeaderData.description.trim() !== '') ? listHeaderData.description : (currentData?.description || ''),
+        imageBack: listHeaderData.imageBack || currentData?.imageBack || '',
+        imageFront: listHeaderData.imageFront || currentData?.imageFront || '',
         isActive: listHeaderData.isActive !== undefined ? listHeaderData.isActive : (currentData?.isActive !== undefined ? currentData.isActive : true),
       };
 
@@ -1065,15 +1116,58 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="hero">Hero Banner</TabsTrigger>
-          <TabsTrigger value="benefits">Lợi ích Sản phẩm</TabsTrigger>
-          <TabsTrigger value="categories">Danh mục</TabsTrigger>
-          <TabsTrigger value="testimonials">Khách hàng nói về SFB</TabsTrigger>
-          <TabsTrigger value="cta">CTA</TabsTrigger>
-          <TabsTrigger value="products">Danh sách Sản phẩm</TabsTrigger>
-        </TabsList>
+      {/* Progress Stepper */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            {tabsConfig.map((tab, index) => {
+              const Icon = tab.icon;
+              const isActive = activeMainTab === tab.value;
+              const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
+              
+              return (
+                <div key={tab.value} className="flex items-center flex-1">
+                  <button
+                    onClick={() => handleTabChange(tab.value)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
+                        : isCompleted
+                        ? "bg-green-50 text-green-700 border-2 border-green-300"
+                        : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      isActive
+                        ? "bg-blue-500 text-white"
+                        : isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        <span className="text-sm font-semibold">{index + 1}</span>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">{tab.label}</div>
+                      <div className="text-xs opacity-75">{tab.description}</div>
+                    </div>
+                  </button>
+                  {index < tabsConfig.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-2 ${
+                      isCompleted ? "bg-green-500" : "bg-gray-300"
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeMainTab} onValueChange={handleTabChange} className="w-full">
 
         {/* Tab: Hero Banner */}
         <TabsContent value="hero" className="space-y-0">
@@ -2118,6 +2212,24 @@ export default function AdminProductsPage() {
                       placeholder="Danh sách các hệ thống phần mềm đang được SFB triển khai..."
                     />
                   </div>
+                  <div>
+                    <Label className="mb-2">Ảnh nền (Back)</Label>
+                    <ImageUpload
+                      currentImage={listHeaderData.imageBack || ""}
+                      onImageSelect={(url: string) => {
+                        setListHeaderData({ ...listHeaderData, imageBack: url });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="mb-2">Ảnh phía trước (Front)</Label>
+                    <ImageUpload
+                      currentImage={listHeaderData.imageFront || ""}
+                      onImageSelect={(url: string) => {
+                        setListHeaderData({ ...listHeaderData, imageFront: url });
+                      }}
+                    />
+                  </div>
                   <div className="flex items-center justify-between">
                     <Label>Kích hoạt</Label>
                     <Switch
@@ -2355,23 +2467,97 @@ export default function AdminProductsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px]">
-                      {listHeaderData.subtitle && (
-                        <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
-                          {listHeaderData.subtitle}
+                    {/* Preview Header với ảnh */}
+                    {(() => {
+                      const hasBackImage = listHeaderData.imageBack && listHeaderData.imageBack.trim() !== '';
+                      const hasFrontImage = listHeaderData.imageFront && listHeaderData.imageFront.trim() !== '';
+                      const hasAnyImage = hasBackImage || hasFrontImage;
+
+                      return (
+                        <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[60px] px-6 lg:px-10">
+                          {/* Left: Text */}
+                          <div className="flex w-full max-w-[549px] flex-col items-start gap-6">
+                            {listHeaderData.subtitle && (
+                              <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+                                {listHeaderData.subtitle}
+                              </div>
+                            )}
+                            {listHeaderData.title && (
+                              <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
+                                {listHeaderData.title}
+                              </h2>
+                            )}
+                            {listHeaderData.description && (
+                              <p className="text-gray-600 leading-relaxed">
+                                {listHeaderData.description}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Right: Images (nếu có) */}
+                          {hasAnyImage && (
+                            <div className="relative w-full lg:w-auto flex justify-center lg:justify-start">
+                              <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
+                                {hasBackImage ? (
+                                  <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
+                                    <img
+                                      src={listHeaderData.imageBack}
+                                      alt={listHeaderData.title || "Preview"}
+                                      className="w-full h-full object-contain"
+                                    />
+                                  </div>
+                                ) : !hasFrontImage ? (
+                                  <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
+                                    <img
+                                      src="/images/no_cover.jpeg"
+                                      alt="No cover"
+                                      className="w-full h-full object-contain"
+                                    />
+                                  </div>
+                                ) : null}
+
+                                {hasFrontImage && (
+                                  <div
+                                    className={`${
+                                      hasBackImage 
+                                        ? "absolute left-[183.5px] bottom-0"
+                                        : "relative"
+                                    } rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden ${hasBackImage ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]"}`}
+                                  >
+                                    <img
+                                      src={listHeaderData.imageFront}
+                                      alt={listHeaderData.title || "Preview"}
+                                      className="w-full h-full object-contain"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Nếu không có ảnh, chỉ hiển thị text center */}
+                          {!hasAnyImage && (
+                            <div className="text-center max-w-3xl mx-auto flex flex-col gap-[24px] w-full">
+                              {listHeaderData.subtitle && (
+                                <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+                                  {listHeaderData.subtitle}
+                                </div>
+                              )}
+                              {listHeaderData.title && (
+                                <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
+                                  {listHeaderData.title}
+                                </h2>
+                              )}
+                              {listHeaderData.description && (
+                                <p className="text-gray-600 leading-relaxed">
+                                  {listHeaderData.description}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {listHeaderData.title && (
-                        <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
-                          {listHeaderData.title}
-                        </h2>
-                      )}
-                      {listHeaderData.description && (
-                        <p className="text-gray-600 leading-relaxed">
-                          {listHeaderData.description}
-                        </p>
-                      )}
-                    </div>
+                      );
+                    })()}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {paginatedProducts

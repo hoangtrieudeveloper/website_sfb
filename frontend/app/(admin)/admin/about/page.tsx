@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, Mail, Phone } from "lucide-react";
+import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, Mail, Phone, CheckCircle2, Target, Briefcase, Users, Award, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,6 +124,51 @@ export default function AdminAboutPage() {
       localStorage.setItem('about-sub-tabs', JSON.stringify(activeSubTabs));
     }
   }, [activeSubTabs]);
+
+  // Tab configuration with descriptions
+  const tabsConfig = [
+    {
+      value: "hero",
+      label: "Hero",
+      description: "Banner đầu trang với tiêu đề..",
+      icon: Target,
+    },
+    {
+      value: "company",
+      label: "Giới thiệu công ty",
+      description: "Thông tin về công ty..",
+      icon: Briefcase,
+    },
+    {
+      value: "vision-mission",
+      label: "Tầm nhìn & sứ mệnh",
+      description: "Tầm nhìn và sứ mệnh..",
+      icon: Sparkles,
+    },
+    {
+      value: "core-values",
+      label: "Giá trị cốt lõi",
+      description: "Các giá trị cốt lõi..",
+      icon: Award,
+    },
+    {
+      value: "milestones",
+      label: "Hành trình & phát triển",
+      description: "Các mốc phát triển..",
+      icon: Briefcase,
+    },
+    {
+      value: "leadership",
+      label: "Ban lãnh đạo",
+      description: "Thông tin ban lãnh đạo..",
+      icon: Users,
+    },
+  ];
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveMainTab(value);
+  };
 
   // Hero State
   const [heroData, setHeroData] = useState({
@@ -837,15 +882,58 @@ export default function AdminAboutPage() {
         </div>
       </div>
 
-      <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="hero">Hero</TabsTrigger>
-          <TabsTrigger value="company">Giới thiệu công ty</TabsTrigger>
-          <TabsTrigger value="vision-mission">Tầm nhìn & sứ mệnh</TabsTrigger>
-          <TabsTrigger value="core-values">Giá trị cốt lõi</TabsTrigger>
-          <TabsTrigger value="milestones">Hành trình & phát triển</TabsTrigger>
-          <TabsTrigger value="leadership">Ban lãnh đạo</TabsTrigger>
-        </TabsList>
+      {/* Progress Stepper */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            {tabsConfig.map((tab, index) => {
+              const Icon = tab.icon;
+              const isActive = activeMainTab === tab.value;
+              const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
+              
+              return (
+                <div key={tab.value} className="flex items-center flex-1">
+                  <button
+                    onClick={() => handleTabChange(tab.value)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
+                        : isCompleted
+                        ? "bg-green-50 text-green-700 border-2 border-green-300"
+                        : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                      isActive
+                        ? "bg-blue-500 text-white"
+                        : isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-300 text-gray-600"
+                    }`}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        <span className="text-sm font-semibold">{index + 1}</span>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">{tab.label}</div>
+                      <div className="text-xs opacity-75">{tab.description}</div>
+                    </div>
+                  </button>
+                  {index < tabsConfig.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-2 ${
+                      isCompleted ? "bg-green-500" : "bg-gray-300"
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeMainTab} onValueChange={handleTabChange} className="w-full">
 
         {/* Hero Tab */}
         <TabsContent value="hero" className="space-y-0">

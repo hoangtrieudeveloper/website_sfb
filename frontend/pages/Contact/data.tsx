@@ -25,22 +25,22 @@ export const contactInfo = [
     {
         icon: MapPin,
         title: 'Địa chỉ văn phòng',
-        content: '123 Đường ABC, Quận 1, TP. Hồ Chí Minh, Việt Nam',
+        content: 'P303, Tầng 3, Khách sạn Thể Thao, Số 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.',
         link: 'https://maps.google.com',
         gradient: 'from-blue-500 to-cyan-500'
     },
     {
         icon: Phone,
         title: 'Điện thoại',
-        content: '(+84) 28 1234 5678',
-        link: 'tel:+842812345678',
+        content: '(+84) 888 917 999',
+        link: 'tel:+84888917999',
         gradient: 'from-emerald-500 to-teal-500'
     },
     {
         icon: Mail,
         title: 'Email',
-        content: 'contact@sfb.vn',
-        link: 'mailto:contact@sfb.vn',
+        content: 'info@sfb.vn',
+        link: 'mailto:info@sfb.vn',
         gradient: 'from-purple-500 to-pink-500'
     },
     {
@@ -71,22 +71,10 @@ export const socialLinks = [
 
 export const offices = [
     {
-        city: 'TP. Hồ Chí Minh',
-        address: '123 Đường ABC, Quận 1',
-        phone: '(+84) 28 1234 5678',
-        email: 'hcm@sfb.vn'
-    },
-    {
         city: 'Hà Nội',
-        address: '456 Đường XYZ, Quận Ba Đình',
-        phone: '(+84) 24 8765 4321',
-        email: 'hn@sfb.vn'
-    },
-    {
-        city: 'Đà Nẵng',
-        address: '789 Đường DEF, Quận Hải Châu',
-        phone: '(+84) 236 987 6543',
-        email: 'dn@sfb.vn'
+        address: 'Số 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.',
+        phone: '(+84) 888 917 999',
+        email: 'info@sfb.vn'
     }
 ];
 
@@ -117,7 +105,7 @@ export const contactSidebarData = {
         title: "Cần tư vấn ngay?",
         description: "Liên hệ trực tiếp với chúng tôi qua hotline hoặc đặt lịch hẹn tư vấn",
         buttons: {
-            hotline: { label: "Hotline", value: "(+84) 28 1234 5678", href: "tel:+842812345678" },
+            hotline: { label: "Hotline", value: "(+84) 888 917 999", href: "tel:+84888917999" },
             appointment: { label: "Đặt lịch hẹn", value: "Tư vấn 1-1 với chuyên gia", href: "#" }
         }
     },

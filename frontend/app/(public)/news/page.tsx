@@ -1,5 +1,4 @@
 import { NewsPageClient } from "../../../pages/News/NewsPageClient";
-import { newsList as mockNewsList, categories as mockCategories, featuredNewsData as mockFeatured } from "../../../pages/News/data";
 
 // Enable ISR - revalidate every 30 seconds for news page
 export const revalidate = 30;
@@ -92,47 +91,20 @@ export default async function NewsRoute() {
     getCategories(),
   ]);
 
-  const useMockData = process.env.NEXT_PUBLIC_NEWS_USE_MOCK === "1" || process.env.NODE_ENV !== "production";
-
-  const categoryNameFromId = (categoryId?: string) => {
-    if (!categoryId) return undefined;
-    return (mockCategories as readonly { id: string; name: string }[]).find((c) => c.id === categoryId)?.name;
-  };
-
-  const mapMockItem = (item: any) => ({
-    id: item.id,
-    title: item.title,
-    slug: item.slug,
-    excerpt: item.excerpt,
-    imageUrl: item.imageUrl,
-    publishedDate: item.publishedDate,
-    categoryId: item.categoryId,
-    categoryName: item.categoryName || categoryNameFromId(item.categoryId),
-    author: item.author,
-    readTime: item.readTime,
-    gradient: item.gradient,
-  });
-
-  const effectiveNews = useMockData ? mockNewsList.map(mapMockItem) : newsData.news;
-  const effectiveFeatured = useMockData ? mapMockItem(mockFeatured) : newsData.featured;
-  const effectiveCategoriesData = useMockData ? [] : categoriesData;
-
   // Map categories for the filter
-  const categories = useMockData
-    ? (mockCategories as readonly { id: string; name: string }[]).map((c) => ({ id: c.id, name: c.name, code: c.id }))
-    : [
-        { id: "all", name: "Tất cả", code: "all" },
-        ...effectiveCategoriesData.map((cat: any) => ({
-          id: cat.code,
-          name: cat.name,
-          code: cat.code,
-        })),
-      ];
+  const categories = [
+    { id: "all", name: "Tất cả", code: "all" },
+    ...(categoriesData || []).map((cat: any) => ({
+      id: cat.code,
+      name: cat.name,
+      code: cat.code,
+    })),
+  ];
 
   return (
     <NewsPageClient
-      initialNews={effectiveNews}
-      initialFeatured={effectiveFeatured}
+      initialNews={newsData.news || []}
+      initialFeatured={newsData.featured || null}
       categories={categories}
     />
   );
