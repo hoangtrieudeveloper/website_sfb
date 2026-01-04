@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, MessageCircle, MapPin, Phone, Mail, Clock, Facebook, Linkedin, Twitter, Youtube, CheckCircle2 } from "lucide-react";
+import { Save, MessageCircle, MapPin, Phone, Mail, Clock, Facebook, Linkedin, Twitter, Youtube, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -302,6 +302,22 @@ export default function AdminContactPage() {
     void fetchSidebar();
     void fetchMap();
   }, []);
+
+  // Collapse state for config blocks (default: all hidden)
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Record<string, boolean>>({
+    heroSection: true,
+    infoCards: true,
+    contactForm: true,
+    sidebar: true,
+    mapSection: true,
+  });
+
+  const toggleBlock = (blockKey: string) => {
+    setCollapsedBlocks(prev => ({
+      ...prev,
+      [blockKey]: !prev[blockKey]
+    }));
+  };
 
   // Save handlers
   const handleSaveHero = async () => {
@@ -655,19 +671,30 @@ export default function AdminContactPage() {
 
             <TabsContent value="config" className="space-y-4 mt-4">
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Hero Section</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">Cấu hình phần hero của trang liên hệ</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("heroSection")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.heroSection ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Hero Section
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Cấu hình phần hero của trang liên hệ</p>
                     </div>
-                    <Button onClick={handleSaveHero} disabled={loadingHero} size="sm">
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveHero(); }} disabled={loadingHero} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {loadingHero ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.heroSection && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div>
                     <Label>Badge</Label>
                     <Input
@@ -737,7 +764,8 @@ export default function AdminContactPage() {
                       onCheckedChange={(checked) => setHeroData({ ...heroData, isActive: checked })}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -768,24 +796,35 @@ export default function AdminContactPage() {
 
             <TabsContent value="config" className="space-y-4 mt-4">
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Info Cards</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">Quản lý các thẻ thông tin liên hệ</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("infoCards")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.infoCards ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Info Cards
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Quản lý các thẻ thông tin liên hệ</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleAddInfoCard} size="sm" variant="outline">
+                      <Button onClick={(e) => { e.stopPropagation(); handleAddInfoCard(); }} size="sm" variant="outline">
                         Thêm Card
                       </Button>
-                      <Button onClick={handleSaveInfoCards} disabled={loadingInfoCards} size="sm">
+                      <Button onClick={(e) => { e.stopPropagation(); handleSaveInfoCards(); }} disabled={loadingInfoCards} size="sm">
                         <Save className="h-4 w-4 mr-2" />
                         {loadingInfoCards ? "Đang lưu..." : "Lưu"}
                       </Button>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.infoCards && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   {infoCardsData.items.map((item, index) => (
                     <Card key={index}>
                       <CardContent className="pt-6">
@@ -817,7 +856,8 @@ export default function AdminContactPage() {
                       </CardContent>
                     </Card>
                   ))}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Edit Dialog */}
@@ -940,19 +980,30 @@ export default function AdminContactPage() {
 
             <TabsContent value="config" className="space-y-4 mt-4">
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Contact Form</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">Cấu hình form liên hệ</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("contactForm")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.contactForm ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Contact Form
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Cấu hình form liên hệ</p>
                     </div>
-                    <Button onClick={handleSaveForm} disabled={loadingForm} size="sm">
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveForm(); }} disabled={loadingForm} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {loadingForm ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.contactForm && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div>
                     <Label>Header</Label>
                     <Input
@@ -1131,7 +1182,8 @@ export default function AdminContactPage() {
                       onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -1164,17 +1216,28 @@ export default function AdminContactPage() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Sidebar</CardTitle>
+                    <div
+                      className="flex-1 cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded transition-colors"
+                      onClick={() => toggleBlock("sidebar")}
+                    >
+                      <CardTitle className="flex items-center gap-2">
+                        {collapsedBlocks.sidebar ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4" />
+                        )}
+                        Sidebar
+                      </CardTitle>
                       <p className="text-sm text-gray-600 mt-1">Cấu hình sidebar liên hệ</p>
                     </div>
-                    <Button onClick={handleSaveSidebar} disabled={loadingSidebar} size="sm">
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveSidebar(); }} disabled={loadingSidebar} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {loadingSidebar ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                {!collapsedBlocks.sidebar && (
+                  <CardContent className="space-y-6">
                   <div>
                     <Label>Quick Actions Title</Label>
                     <Input
@@ -1359,7 +1422,8 @@ export default function AdminContactPage() {
                       onCheckedChange={(checked) => setSidebarData({ ...sidebarData, isActive: checked })}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Office Edit Dialog */}
@@ -1519,19 +1583,30 @@ export default function AdminContactPage() {
 
             <TabsContent value="config" className="space-y-4 mt-4">
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Map Section</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">Cấu hình bản đồ</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("mapSection")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.mapSection ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Map Section
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Cấu hình bản đồ</p>
                     </div>
-                    <Button onClick={handleSaveMap} disabled={loadingMap} size="sm">
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveMap(); }} disabled={loadingMap} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {loadingMap ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.mapSection && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div>
                     <Label>Address</Label>
                     <Input
@@ -1556,7 +1631,8 @@ export default function AdminContactPage() {
                       onCheckedChange={(checked) => setMapData({ ...mapData, isActive: checked })}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 

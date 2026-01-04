@@ -125,6 +125,29 @@ export default function AdminAboutPage() {
     }
   }, [activeSubTabs]);
 
+  // Collapse state for config blocks (default: all hidden)
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Record<string, boolean>>({
+    heroMainInfo: true,
+    companyHeader: true,
+    companyContent: true,
+    companyContact: true,
+    visionMissionHeader: true,
+    visionMissionItems: true,
+    coreValuesHeader: true,
+    coreValuesItems: true,
+    milestonesHeader: true,
+    milestonesItems: true,
+    leadershipHeader: true,
+    leadershipItems: true,
+  });
+
+  const toggleBlock = (blockKey: string) => {
+    setCollapsedBlocks(prev => ({
+      ...prev,
+      [blockKey]: !prev[blockKey]
+    }));
+  };
+
   // Tab configuration with descriptions
   const tabsConfig = [
     {
@@ -960,10 +983,23 @@ export default function AdminAboutPage() {
               </div>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Thông tin chính</CardTitle>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("heroMainInfo")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.heroMainInfo ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Thông tin chính
+                    </CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.heroMainInfo && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label className="pb-2">Tiêu đề dòng 1 *</Label>
@@ -1071,7 +1107,8 @@ export default function AdminAboutPage() {
                       }}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -1158,102 +1195,141 @@ export default function AdminAboutPage() {
 
               {/* Header */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Header</CardTitle>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("companyHeader")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.companyHeader ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Header
+                    </CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="pb-2">Sub Tiêu đề</Label>
-                    <Input
-                      value={companyData.headerSub}
-                      onChange={(e) => setCompanyData({ ...companyData, headerSub: e.target.value })}
-                      placeholder="GIỚI THIỆU SFB"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                {!collapsedBlocks.companyHeader && (
+                  <CardContent className="space-y-4 px-6 py-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề dòng 1</Label>
+                      <Label className="pb-2">Sub Tiêu đề</Label>
                       <Input
-                        value={companyData.headerTitleLine1}
-                        onChange={(e) => setCompanyData({ ...companyData, headerTitleLine1: e.target.value })}
-                        placeholder="Đối tác công nghệ chiến lược"
+                        value={companyData.headerSub}
+                        onChange={(e) => setCompanyData({ ...companyData, headerSub: e.target.value })}
+                        placeholder="GIỚI THIỆU SFB"
                       />
                     </div>
-                    <div>
-                      <Label className="pb-2">Tiêu đề dòng 2</Label>
-                      <Input
-                        value={companyData.headerTitleLine2}
-                        onChange={(e) => setCompanyData({ ...companyData, headerTitleLine2: e.target.value })}
-                        placeholder="cho doanh nghiệp Việt"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="pb-2">Tiêu đề dòng 1</Label>
+                        <Input
+                          value={companyData.headerTitleLine1}
+                          onChange={(e) => setCompanyData({ ...companyData, headerTitleLine1: e.target.value })}
+                          placeholder="Đối tác công nghệ chiến lược"
+                        />
+                      </div>
+                      <div>
+                        <Label className="pb-2">Tiêu đề dòng 2</Label>
+                        <Input
+                          value={companyData.headerTitleLine2}
+                          onChange={(e) => setCompanyData({ ...companyData, headerTitleLine2: e.target.value })}
+                          placeholder="cho doanh nghiệp Việt"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Content */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Nội dung</CardTitle>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("companyContent")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.companyContent ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Nội dung
+                    </CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="pb-2">Ảnh 1</Label>
-                    <ImageUpload
-                      currentImage={companyData.contentImage1}
-                      onImageSelect={(url) => setCompanyData({ ...companyData, contentImage1: url })}
-                    />
-                  </div>
-                  <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={companyData.contentTitle}
-                      onChange={(e) => setCompanyData({ ...companyData, contentTitle: e.target.value })}
-                      placeholder="CÔNG TY CỔ PHẦN CÔNG NGHỆ SFB..."
-                    />
-                  </div>
-                  <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={companyData.contentDescription}
-                      onChange={(e) => setCompanyData({ ...companyData, contentDescription: e.target.value })}
-                      placeholder="Mô tả..."
-                      rows={4}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
+                {!collapsedBlocks.companyContent && (
+                  <CardContent className="space-y-4 px-6 py-4">
                     <div>
-                      <Label className="pb-2">Văn bản nút</Label>
-                      <Input
-                        value={companyData.contentButtonText}
-                        onChange={(e) => setCompanyData({ ...companyData, contentButtonText: e.target.value })}
-                        placeholder="Liên hệ với chúng tôi"
+                      <Label className="pb-2">Ảnh 1</Label>
+                      <ImageUpload
+                        currentImage={companyData.contentImage1}
+                        onImageSelect={(url) => setCompanyData({ ...companyData, contentImage1: url })}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Liên kết nút</Label>
+                      <Label className="pb-2">Tiêu đề</Label>
                       <Input
-                        value={companyData.contentButtonLink}
-                        onChange={(e) => setCompanyData({ ...companyData, contentButtonLink: e.target.value })}
-                        placeholder="/contact"
+                        value={companyData.contentTitle}
+                        onChange={(e) => setCompanyData({ ...companyData, contentTitle: e.target.value })}
+                        placeholder="CÔNG TY CỔ PHẦN CÔNG NGHỆ SFB..."
                       />
                     </div>
-                  </div>
-                </CardContent>
+                    <div>
+                      <Label className="pb-2">Mô tả</Label>
+                      <Textarea
+                        value={companyData.contentDescription}
+                        onChange={(e) => setCompanyData({ ...companyData, contentDescription: e.target.value })}
+                        placeholder="Mô tả..."
+                        rows={4}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="pb-2">Văn bản nút</Label>
+                        <Input
+                          value={companyData.contentButtonText}
+                          onChange={(e) => setCompanyData({ ...companyData, contentButtonText: e.target.value })}
+                          placeholder="Liên hệ với chúng tôi"
+                        />
+                      </div>
+                      <div>
+                        <Label className="pb-2">Liên kết nút</Label>
+                        <Input
+                          value={companyData.contentButtonLink}
+                          onChange={(e) => setCompanyData({ ...companyData, contentButtonLink: e.target.value })}
+                          placeholder="/contact"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Contact */}
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Thông tin liên hệ</CardTitle>
-                    <Button variant="outline" size="sm" onClick={handleAddContact}>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("companyContact")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.companyContact ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Thông tin liên hệ
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleAddContact(); }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Thêm Contact
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                {!collapsedBlocks.companyContact && (
+                  <CardContent className="space-y-6 px-6 py-4">
                   {/* Contact Items */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-700 mb-4">
@@ -1392,7 +1468,8 @@ export default function AdminAboutPage() {
                       </div>
                     </div>
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Dialog Contact Form */}
@@ -1622,71 +1699,96 @@ export default function AdminAboutPage() {
 
               {/* Header */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Header</CardTitle>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("visionMissionHeader")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.visionMissionHeader ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Header
+                    </CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={visionMissionData.headerTitle}
-                      onChange={(e) => setVisionMissionData({ ...visionMissionData, headerTitle: e.target.value })}
-                      placeholder="Tầm nhìn & Sứ mệnh"
-                    />
-                  </div>
-                  <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={visionMissionData.headerDescription}
-                      onChange={(e) => setVisionMissionData({ ...visionMissionData, headerDescription: e.target.value })}
-                      placeholder="Mô tả..."
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="pb-2">Kích hoạt</Label>
-                    <Switch
-                      checked={visionMissionData.isActive}
-                      onCheckedChange={async (checked) => {
-                        // If visionMissionData is empty, fetch existing data first to preserve it
-                        if (!visionMissionData.headerTitle && !visionMissionData.headerDescription && visionMissionData.items.length === 0) {
-                          try {
-                            const data = await adminApiCall<{ success: boolean; data?: any }>(
-                              AdminEndpoints.about.visionMission.get,
-                            );
-                            if (data?.data) {
-                              setVisionMissionData({
-                                ...data.data,
-                                isActive: checked,
-                              });
-                            } else {
+                {!collapsedBlocks.visionMissionHeader && (
+                  <CardContent className="space-y-4 px-6 py-4">
+                    <div>
+                      <Label className="pb-2">Tiêu đề</Label>
+                      <Input
+                        value={visionMissionData.headerTitle}
+                        onChange={(e) => setVisionMissionData({ ...visionMissionData, headerTitle: e.target.value })}
+                        placeholder="Tầm nhìn & Sứ mệnh"
+                      />
+                    </div>
+                    <div>
+                      <Label className="pb-2">Mô tả</Label>
+                      <Textarea
+                        value={visionMissionData.headerDescription}
+                        onChange={(e) => setVisionMissionData({ ...visionMissionData, headerDescription: e.target.value })}
+                        placeholder="Mô tả..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="pb-2">Kích hoạt</Label>
+                      <Switch
+                        checked={visionMissionData.isActive}
+                        onCheckedChange={async (checked) => {
+                          // If visionMissionData is empty, fetch existing data first to preserve it
+                          if (!visionMissionData.headerTitle && !visionMissionData.headerDescription && visionMissionData.items.length === 0) {
+                            try {
+                              const data = await adminApiCall<{ success: boolean; data?: any }>(
+                                AdminEndpoints.about.visionMission.get,
+                              );
+                              if (data?.data) {
+                                setVisionMissionData({
+                                  ...data.data,
+                                  isActive: checked,
+                                });
+                              } else {
+                                setVisionMissionData({ ...visionMissionData, isActive: checked });
+                              }
+                            } catch (error) {
+                              toast.error("Không thể tải vision & mission để cập nhật trạng thái.");
                               setVisionMissionData({ ...visionMissionData, isActive: checked });
                             }
-                          } catch (error) {
-                            toast.error("Không thể tải vision & mission để cập nhật trạng thái.");
+                          } else {
                             setVisionMissionData({ ...visionMissionData, isActive: checked });
                           }
-                        } else {
-                          setVisionMissionData({ ...visionMissionData, isActive: checked });
-                        }
-                      }}
-                    />
-                  </div>
-                </CardContent>
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Items */}
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Items ({visionMissionData.items.length})</CardTitle>
-                    <Button variant="outline" size="sm" onClick={handleAddVisionMissionItem}>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("visionMissionItems")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.visionMissionItems ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Items ({visionMissionData.items.length})
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleAddVisionMissionItem(); }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Thêm Item
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.visionMissionItems && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   {visionMissionData.items.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       Chưa có item nào. Nhấn "Thêm Item" để thêm.
@@ -1756,7 +1858,8 @@ export default function AdminAboutPage() {
                         ))}
                     </div>
                   )}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 

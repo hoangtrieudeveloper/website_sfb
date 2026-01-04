@@ -100,6 +100,24 @@ export default function AdminHomepagePage() {
     void fetchAllBlocks();
   }, []);
 
+  // Collapse state for config blocks (default: all hidden)
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Record<string, boolean>>({
+    hero: true,
+    aboutCompany: true,
+    features: true,
+    solutions: true,
+    trusts: true,
+    testimonials: true,
+    consult: true,
+  });
+
+  const toggleBlock = (blockKey: string) => {
+    setCollapsedBlocks(prev => ({
+      ...prev,
+      [blockKey]: !prev[blockKey]
+    }));
+  };
+
   const fetchAllBlocks = async () => {
     try {
       for (const blockType of BLOCK_TYPES) {
@@ -333,14 +351,24 @@ export default function AdminHomepagePage() {
 
                 <TabsContent value="config" className="space-y-4 mt-4">
                   <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>{tabConfig?.label}</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">{tabConfig?.description}</p>
+                    <CardHeader className="p-0">
+                      <div
+                        className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                        onClick={() => toggleBlock(blockType)}
+                      >
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                            {collapsedBlocks[blockType] ? (
+                              <ChevronDown className="h-5 w-5 text-gray-500" />
+                            ) : (
+                              <ChevronUp className="h-5 w-5 text-gray-500" />
+                            )}
+                            {tabConfig?.label}
+                          </CardTitle>
+                          <p className="text-sm text-gray-600 ml-8">{tabConfig?.description}</p>
                         </div>
                         <Button 
-                          onClick={() => handleSaveBlock(blockType)} 
+                          onClick={(e) => { e.stopPropagation(); handleSaveBlock(blockType); }} 
                           disabled={loading[blockType]} 
                           size="sm"
                         >
@@ -349,7 +377,8 @@ export default function AdminHomepagePage() {
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    {!collapsedBlocks[blockType] && (
+                      <CardContent className="space-y-4 px-6 py-4">
                       {/* Render form based on block type */}
                       {blockType === 'hero' && (
                         <>
@@ -1205,7 +1234,8 @@ export default function AdminHomepagePage() {
                           </div>
                         </>
                       )}
-                    </CardContent>
+                      </CardContent>
+                    )}
                   </Card>
                 </TabsContent>
 

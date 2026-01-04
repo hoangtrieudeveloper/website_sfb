@@ -259,6 +259,23 @@ export default function AdminProductsPage() {
     return { hero: "config", benefits: "config", categories: "config", testimonials: "config", cta: "config", products: "config" };
   });
 
+  // Collapse state for config blocks (default: all hidden)
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Record<string, boolean>>({
+    heroSection: true,
+    categoriesList: true,
+    testimonialsList: true,
+    ctaConfig: true,
+    productsListHeader: true,
+    productsList: true,
+  });
+
+  const toggleBlock = (blockKey: string) => {
+    setCollapsedBlocks(prev => ({
+      ...prev,
+      [blockKey]: !prev[blockKey]
+    }));
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("products_active_main_tab", activeMainTab);
@@ -1183,19 +1200,30 @@ export default function AdminProductsPage() {
 
             <TabsContent value="config" className="space-y-4 mt-4">
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Hero Section</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">Cấu hình hero section cho trang sản phẩm</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("heroSection")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.heroSection ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Hero Section
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Cấu hình hero section cho trang sản phẩm</p>
                     </div>
-                    <Button onClick={handleSaveHero} disabled={loadingHero} size="sm">
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveHero(); }} disabled={loadingHero} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {loadingHero ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.heroSection && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div>
                     <Label>Tiêu đề chính *</Label>
                     <Input
@@ -1377,7 +1405,8 @@ export default function AdminProductsPage() {
                       }}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -1624,10 +1653,21 @@ export default function AdminProductsPage() {
               </div>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Danh sách danh mục</CardTitle>
+                <CardHeader
+                  onClick={() => toggleBlock("categoriesList")}
+                  className="cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <CardTitle className="flex items-center gap-2">
+                    {collapsedBlocks.categoriesList ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronUp className="h-4 w-4" />
+                    )}
+                    Danh sách danh mục
+                  </CardTitle>
                 </CardHeader>
-                <CardContent>
+                {!collapsedBlocks.categoriesList && (
+                  <CardContent>
                   {loadingCategoriesForManagement ? (
                     <div className="text-center py-8">Đang tải...</div>
                   ) : sortedCategories.length === 0 ? (
@@ -1681,7 +1721,8 @@ export default function AdminProductsPage() {
                       ))}
                     </div>
                   )}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -1732,17 +1773,28 @@ export default function AdminProductsPage() {
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Quản lý đánh giá khách hàng</CardTitle>
+                    <div
+                      className="flex-1 cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded transition-colors"
+                      onClick={() => toggleBlock("testimonialsList")}
+                    >
+                      <CardTitle className="flex items-center gap-2">
+                        {collapsedBlocks.testimonialsList ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4" />
+                        )}
+                        Quản lý đánh giá khách hàng
+                      </CardTitle>
                       <p className="text-sm text-gray-600 mt-1">Quản lý các đánh giá/testimonials của khách hàng về SFB</p>
                     </div>
-                    <Button onClick={handleCreateTestimonial} className="gap-2">
+                    <Button onClick={(e) => { e.stopPropagation(); handleCreateTestimonial(); }} className="gap-2">
                       <Plus className="w-4 h-4" />
                       Thêm đánh giá
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
+                {!collapsedBlocks.testimonialsList && (
+                  <CardContent>
                   {/* Form Create/Edit Modal */}
                   <Dialog open={testimonialModalOpen} onOpenChange={(open) => !open && handleCancelTestimonial()}>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -1921,7 +1973,8 @@ export default function AdminProductsPage() {
                         ))}
                     </div>
                   )}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -1983,11 +2036,26 @@ export default function AdminProductsPage() {
 
             <TabsContent value="config" className="space-y-4 mt-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Cấu hình CTA</CardTitle>
-                  <p className="text-sm text-gray-600 mt-1">Quản lý phần CTA (Call to Action) cho trang sản phẩm</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("ctaConfig")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.ctaConfig ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Cấu hình CTA
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Quản lý phần CTA (Call to Action) cho trang sản phẩm</p>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.ctaConfig && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Label htmlFor="cta-title">Tiêu đề *</Label>
@@ -2104,7 +2172,8 @@ export default function AdminProductsPage() {
                       {loadingCta ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 
@@ -2174,19 +2243,30 @@ export default function AdminProductsPage() {
             <TabsContent value="config" className="space-y-4 mt-4">
               {/* List Header Config */}
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Header Danh sách Sản phẩm</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">Cấu hình header cho phần danh sách sản phẩm</p>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("productsListHeader")}
+                  >
+                    <div className="flex-1">
+                      <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900 mb-1">
+                        {collapsedBlocks.productsListHeader ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Header Danh sách Sản phẩm
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 ml-8">Cấu hình header cho phần danh sách sản phẩm</p>
                     </div>
-                    <Button onClick={handleSaveListHeader} disabled={loadingListHeader} size="sm">
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveListHeader(); }} disabled={loadingListHeader} size="sm">
                       <Save className="h-4 w-4 mr-2" />
                       {loadingListHeader ? "Đang lưu..." : "Lưu"}
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.productsListHeader && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   <div>
                     <Label>Subtitle (Label trên cùng)</Label>
                     <Input
@@ -2264,20 +2344,35 @@ export default function AdminProductsPage() {
                       }}
                     />
                   </div>
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold">Danh sách Sản phẩm</h2>
-                  <p className="text-gray-600 mt-1">Quản lý danh sách sản phẩm và giải pháp</p>
-                </div>
-                <Button onClick={handleCreateNew} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Tạo sản phẩm mới
-                </Button>
-              </div>
-
+              <Card>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("productsList")}
+                  >
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3 mb-1">
+                        {collapsedBlocks.productsList ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5 text-gray-500" />
+                        )}
+                        Danh sách Sản phẩm
+                      </h2>
+                      <p className="text-sm text-gray-600 ml-8">Quản lý danh sách sản phẩm và giải pháp</p>
+                    </div>
+                    <Button onClick={(e) => { e.stopPropagation(); handleCreateNew(); }} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Tạo sản phẩm mới
+                    </Button>
+                  </div>
+                </CardHeader>
+                {!collapsedBlocks.productsList && (
+                  <CardContent className="space-y-4 px-6 py-4">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="border-0 shadow-lg overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/50">
@@ -2459,6 +2554,9 @@ export default function AdminProductsPage() {
                     </div>
                   )}
                 </CardContent>
+              </Card>
+                  </CardContent>
+                )}
               </Card>
             </TabsContent>
 

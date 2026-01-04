@@ -2347,3 +2347,49 @@ JOIN permissions p ON p.code IN (
 )
 WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- ============================================================================
+-- Bảng contact_requests: Lưu các yêu cầu tư vấn từ form liên hệ
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS contact_requests (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(50) NOT NULL,
+  company VARCHAR(255),
+  service VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'cancelled')),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_contact_requests_status ON contact_requests(status);
+CREATE INDEX IF NOT EXISTS idx_contact_requests_created_at ON contact_requests(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contact_requests_email ON contact_requests(email);
+
+DROP TRIGGER IF EXISTS update_contact_requests_updated_at ON contact_requests;
+CREATE TRIGGER update_contact_requests_updated_at
+    BEFORE UPDATE ON contact_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Thêm permissions cho contact requests
+INSERT INTO permissions (code, name, module, description, is_active)
+VALUES
+  ('contact_requests.view', 'Xem yêu cầu tư vấn', 'contact', 'Xem danh sách yêu cầu tư vấn', TRUE),
+  ('contact_requests.manage', 'Quản lý yêu cầu tư vấn', 'contact', 'Cập nhật, xóa yêu cầu tư vấn', TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+-- Gán quyền contact_requests cho role admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON p.code IN (
+  'contact_requests.view',
+  'contact_requests.manage'
+)
+WHERE r.code = 'admin'
+ON CONFLICT (role_id, permission_id) DO NOTHING;

@@ -210,6 +210,12 @@ export const AdminEndpoints = {
       get: "/api/admin/contact/map",
       update: "/api/admin/contact/map",
     },
+    requests: {
+      list: "/api/admin/contact/requests",
+      detail: (id: number) => `/api/admin/contact/requests/${id}`,
+      update: (id: number) => `/api/admin/contact/requests/${id}`,
+      delete: (id: number) => `/api/admin/contact/requests/${id}`,
+    },
   },
 } as const;
 

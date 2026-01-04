@@ -124,6 +124,22 @@ export default function AdminCareersPage() {
     }
   }, [activeSubTabs]);
 
+  // Collapse state for config blocks (default: all hidden)
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Record<string, boolean>>({
+    heroMainInfo: true,
+    benefitsList: true,
+    positionsHeader: true,
+    positionsItems: true,
+    ctaConfig: true,
+  });
+
+  const toggleBlock = (blockKey: string) => {
+    setCollapsedBlocks(prev => ({
+      ...prev,
+      [blockKey]: !prev[blockKey]
+    }));
+  };
+
   // Tab configuration with descriptions
   const tabsConfig = [
     {
@@ -1155,71 +1171,96 @@ export default function AdminCareersPage() {
 
               {/* Header */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Tiêu đề</CardTitle>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("positionsHeader")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.positionsHeader ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Tiêu đề
+                    </CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={positionsData.headerTitle}
-                      onChange={(e) => setPositionsData({ ...positionsData, headerTitle: e.target.value })}
-                      placeholder="Vị trí đang tuyển"
-                    />
-                  </div>
-                  <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={positionsData.headerDescription}
-                      onChange={(e) => setPositionsData({ ...positionsData, headerDescription: e.target.value })}
-                      placeholder="Mô tả..."
-                      rows={3}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="pb-2">Kích hoạt</Label>
-                    <Switch
-                      checked={positionsData.isActive}
-                      onCheckedChange={async (checked) => {
-                        // If positionsData is empty, fetch existing data first to preserve it
-                        if (!positionsData.headerTitle && !positionsData.headerDescription && positionsData.items.length === 0) {
-                          try {
-                            const data = await adminApiCall<{ success: boolean; data?: any }>(
-                              AdminEndpoints.careers.positions.get,
-                            );
-                            if (data?.data) {
-                              setPositionsData({
-                                ...data.data,
-                                isActive: checked,
-                              });
-                            } else {
+                {!collapsedBlocks.positionsHeader && (
+                  <CardContent className="space-y-4 px-6 py-4">
+                    <div>
+                      <Label className="pb-2">Tiêu đề</Label>
+                      <Input
+                        value={positionsData.headerTitle}
+                        onChange={(e) => setPositionsData({ ...positionsData, headerTitle: e.target.value })}
+                        placeholder="Vị trí đang tuyển"
+                      />
+                    </div>
+                    <div>
+                      <Label className="pb-2">Mô tả</Label>
+                      <Textarea
+                        value={positionsData.headerDescription}
+                        onChange={(e) => setPositionsData({ ...positionsData, headerDescription: e.target.value })}
+                        placeholder="Mô tả..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label className="pb-2">Kích hoạt</Label>
+                      <Switch
+                        checked={positionsData.isActive}
+                        onCheckedChange={async (checked) => {
+                          // If positionsData is empty, fetch existing data first to preserve it
+                          if (!positionsData.headerTitle && !positionsData.headerDescription && positionsData.items.length === 0) {
+                            try {
+                              const data = await adminApiCall<{ success: boolean; data?: any }>(
+                                AdminEndpoints.careers.positions.get,
+                              );
+                              if (data?.data) {
+                                setPositionsData({
+                                  ...data.data,
+                                  isActive: checked,
+                                });
+                              } else {
+                                setPositionsData({ ...positionsData, isActive: checked });
+                              }
+                            } catch (error) {
+                              toast.error("Không thể tải positions để cập nhật trạng thái.");
                               setPositionsData({ ...positionsData, isActive: checked });
                             }
-                          } catch (error) {
-                            toast.error("Không thể tải positions để cập nhật trạng thái.");
+                          } else {
                             setPositionsData({ ...positionsData, isActive: checked });
                           }
-                        } else {
-                          setPositionsData({ ...positionsData, isActive: checked });
-                        }
-                      }}
-                    />
-                  </div>
-                </CardContent>
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Items */}
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Positions Items ({positionsData.items.length})</CardTitle>
-                    <Button variant="outline" size="sm" onClick={handleAddPosition}>
+                <CardHeader className="p-0">
+                  <div
+                    className="flex items-center justify-between w-full px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-t-lg"
+                    onClick={() => toggleBlock("positionsItems")}
+                  >
+                    <CardTitle className="flex items-center gap-3 text-lg font-semibold text-gray-900">
+                      {collapsedBlocks.positionsItems ? (
+                        <ChevronDown className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChevronUp className="h-5 w-5 text-gray-500" />
+                      )}
+                      Positions Items ({positionsData.items.length})
+                    </CardTitle>
+                    <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleAddPosition(); }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Thêm Position
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                {!collapsedBlocks.positionsItems && (
+                  <CardContent className="space-y-4 px-6 py-4">
                   {positionsData.items.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       Chưa có position nào. Nhấn "Thêm Position" để thêm.
@@ -1279,7 +1320,8 @@ export default function AdminCareersPage() {
                         ))}
                     </div>
                   )}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Dialog Position Form */}

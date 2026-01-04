@@ -50,7 +50,7 @@ import { removeAuthToken } from "@/lib/auth/token";
 import { Toaster } from "sonner";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers" | "homepage" | "contact";
+  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers" | "homepage" | "contact" | "contact-requests" | "contact-group" | "content-group";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -89,46 +89,69 @@ const menuItems: AdminNavItem[] = [
     ],
   },
   {
-    id: "homepage",
-    label: "Quản lý Trang chủ",
-    href: "/admin/home",
+    id: "content-group",
+    label: "Quản lý Nội dung",
     icon: Home,
-    requiredPermissions: ["homepage.manage", "admin"],
+    requiredPermissions: ["homepage.manage", "industries.view", "industries.manage", "products.view", "products.manage", "about.manage", "careers.manage", "admin"],
+    children: [
+      {
+        id: "homepage",
+        label: "Trang chủ",
+        href: "/admin/home",
+        icon: Home,
+        requiredPermissions: ["homepage.manage", "admin"],
+      },
+      {
+        id: "industries",
+        label: "Lĩnh vực",
+        href: "/admin/industries",
+        icon: Briefcase,
+        requiredPermissions: ["industries.view", "industries.manage", "admin"],
+      },
+      {
+        id: "products",
+        label: "Sản phẩm",
+        href: "/admin/products",
+        icon: Package,
+        requiredPermissions: ["products.view", "products.manage", "product_categories.view", "product_categories.manage", "product_benefits.manage", "product_hero.manage", "admin"],
+      },
+      {
+        id: "about",
+        label: "Giới thiệu",
+        href: "/admin/about",
+        icon: Info,
+        requiredPermissions: ["about.manage", "admin"],
+      },
+      {
+        id: "careers",
+        label: "Tuyển dụng",
+        href: "/admin/careers",
+        icon: Briefcase,
+        requiredPermissions: ["careers.manage", "admin"],
+      },
+    ],
   },
   {
-    id: "industries",
-    label: "Quản lý Lĩnh vực",
-    href: "/admin/industries",
-    icon: Briefcase,
-    requiredPermissions: ["industries.view", "industries.manage", "admin"],
-  },
-  {
-    id: "products",
-    label: "Quản lý Sản phẩm",
-    href: "/admin/products",
-    icon: Package,
-    requiredPermissions: ["products.view", "products.manage", "product_categories.view", "product_categories.manage", "product_benefits.manage", "product_hero.manage", "admin"],
-  },
-  {
-    id: "about",
-    label: "Quản lý Giới thiệu",
-    href: "/admin/about",
-    icon: Info,
-    requiredPermissions: ["about.manage", "admin"],
-  },
-  {
-    id: "careers",
-    label: "Quản lý Tuyển dụng",
-    href: "/admin/careers",
-    icon: Briefcase,
-    requiredPermissions: ["careers.manage", "admin"],
-  },
-  {
-    id: "contact",
+    id: "contact-group",
     label: "Quản lý Liên hệ",
-    href: "/admin/contact",
     icon: Phone,
-    requiredPermissions: ["contact.view", "contact.manage", "admin"],
+    requiredPermissions: ["contact.view", "contact.manage", "contact_requests.view", "contact_requests.manage", "admin"],
+    children: [
+      {
+        id: "contact",
+        label: "Trang liên hệ",
+        href: "/admin/contact",
+        icon: Phone,
+        requiredPermissions: ["contact.view", "contact.manage", "admin"],
+      },
+      {
+        id: "contact-requests",
+        label: "Yêu cầu tư vấn",
+        href: "/admin/contact-requests",
+        icon: MessageSquare,
+        requiredPermissions: ["contact_requests.view", "contact_requests.manage", "admin"],
+      },
+    ],
   },
   {
     id: "system",
@@ -513,7 +536,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="p-6">{children}</div>
         </main>
       </div>
-      <Toaster position="top-right" richColors />
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }

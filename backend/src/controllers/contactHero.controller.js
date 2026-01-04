@@ -83,7 +83,7 @@ exports.updateHero = async (req, res, next) => {
         title: title || existingData.title || { prefix: '', highlight: '' },
         description: description !== undefined && description !== '' ? description : (existingData.description || ''),
         iconName: iconName || existingData.iconName || 'MessageCircle',
-        image: image !== undefined && image !== '' ? image : (existingData.image || ''),
+        image: image !== undefined ? image : (existingData.image || ''),
       };
       await client.query(
         'UPDATE contact_sections SET data = $1, is_active = $2 WHERE id = $3',

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Send, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { services, contactFormData } from './data';
+import { PublicEndpoints } from '@/lib/api/public/endpoints';
+import { baseFetch } from '@/lib/api/base';
 
 interface ContactFormProps {
     data?: {
@@ -25,16 +27,43 @@ export function ContactForm({ data }: ContactFormProps = {}) {
     });
 
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const formConfig = data || contactFormData;
     const { header, description, fields, button } = formConfig;
     const buttonConfig = button || contactFormData.button;
     const servicesList = (data?.services && data.services.length > 0) ? data.services : services;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission
-        setSubmitted(true);
-        setTimeout(() => setSubmitted(false), 3000);
+        setError(null);
+        setLoading(true);
+
+        try {
+            await baseFetch(PublicEndpoints.contact.submit, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            setSubmitted(true);
+            // Reset form
+            setFormData({
+                name: '',
+                email: '',
+                phone: '',
+                company: '',
+                service: '',
+                message: ''
+            });
+            setTimeout(() => setSubmitted(false), 3000);
+        } catch (err: any) {
+            setError(err?.message || 'Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -148,9 +177,16 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                     />
                 </div>
 
+                {error && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
+                        {error}
+                    </div>
+                )}
+
                 <button
                     type="submit"
-                    className="group w-full px-8 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-2xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 flex items-center justify-center gap-3 font-semibold"
+                    disabled={loading || submitted}
+                    className="group w-full px-8 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-2xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 flex items-center justify-center gap-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                     {submitted ? (
                         <>
@@ -160,8 +196,8 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                     ) : (
                         <>
                             <Send size={20} />
-                            {buttonConfig.submit}
-                            <ArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
+                            {loading ? 'Đang gửi...' : buttonConfig.submit}
+                            {!loading && <ArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />}
                         </>
                     )}
                 </button>

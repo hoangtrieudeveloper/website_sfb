@@ -19,6 +19,12 @@ const {
   getMap,
   updateMap,
 } = require('../controllers/contactMap.controller');
+const {
+  getRequests,
+  getRequest,
+  updateRequest,
+  deleteRequest,
+} = require('../controllers/contactRequests.controller');
 
 const router = express.Router();
 
@@ -41,6 +47,12 @@ router.put('/sidebar', updateSidebar);
 // Map routes
 router.get('/map', getMap);
 router.put('/map', updateMap);
+
+// Contact Requests routes
+router.get('/requests', getRequests);
+router.get('/requests/:id', getRequest);
+router.put('/requests/:id', updateRequest);
+router.delete('/requests/:id', deleteRequest);
 
 module.exports = router;
 
