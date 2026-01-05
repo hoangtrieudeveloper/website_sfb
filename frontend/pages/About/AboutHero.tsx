@@ -7,7 +7,7 @@ import { aboutHeroData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 
 interface AboutHeroProps {
-  data?: any;
+    data?: any;
 }
 
 export function AboutHero({ data }: AboutHeroProps) {

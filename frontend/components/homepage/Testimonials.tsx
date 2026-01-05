@@ -15,7 +15,7 @@ export function Testimonials({ data }: TestimonialsProps) {
   // Use data from props if available, otherwise fallback to static data
   const title = data?.title || testimonialsSectionData.title;
   const reviewsData = data?.reviews || testimonialsSectionData.reviews;
-  
+
   const baseTestimonials = reviewsData;
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,

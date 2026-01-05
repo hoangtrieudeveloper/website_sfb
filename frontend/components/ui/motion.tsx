@@ -12,7 +12,7 @@ export const fadeInUp: Variants = {
         y: 0,
         filter: "blur(0px)",
         transition: {
-            duration: 0.8,
+            duration: 0.6,
             ease: [0.22, 1, 0.36, 1] // Custom refined bezier
         }
     }
@@ -23,8 +23,8 @@ export const staggerContainer: Variants = {
     visible: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.1
+            staggerChildren: 0.1,
+            delayChildren: 0.05
         }
     }
 };
@@ -46,7 +46,7 @@ export const slideInLeft: Variants = {
     visible: {
         opacity: 1,
         x: 0,
-        transition: { duration: 0.8, ease: "easeOut" }
+        transition: { duration: 0.6, ease: "easeOut" }
     }
 };
 
@@ -55,7 +55,7 @@ export const slideInRight: Variants = {
     visible: {
         opacity: 1,
         x: 0,
-        transition: { duration: 0.8, ease: "easeOut" }
+        transition: { duration: 0.6, ease: "easeOut" }
     }
 };
 
@@ -64,7 +64,7 @@ export const zoomInVariant: Variants = {
     visible: {
         opacity: 1,
         scale: 1,
-        transition: { duration: 0.6, ease: "easeOut" }
+        transition: { duration: 0.5, ease: "easeOut" }
     }
 };
 
@@ -74,18 +74,20 @@ interface MotionProps extends HTMLMotionProps<"div"> {
     children: ReactNode;
     delay?: number;
     viewport?: UseInViewOptions;
+    /** If true, this component will NOT trigger on its own viewport entry, but wait for parent propagation. */
+    manualTrigger?: boolean;
 }
 
 interface SlideInProps extends MotionProps {
     direction?: "left" | "right" | "up" | "down";
 }
 
-export function FadeIn({ children, delay = 0, className, ...props }: MotionProps) {
+export function FadeIn({ children, delay = 0, className, manualTrigger = false, ...props }: MotionProps) {
     return (
         <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-100px" }}
+            whileInView={manualTrigger ? undefined : "visible"}
+            viewport={manualTrigger ? undefined : { once: true, margin: "-20px" }}
             variants={{
                 hidden: { opacity: 0, y: 20, filter: "blur(5px)" },
                 visible: {
@@ -93,7 +95,7 @@ export function FadeIn({ children, delay = 0, className, ...props }: MotionProps
                     y: 0,
                     filter: "blur(0px)",
                     transition: {
-                        duration: 0.7,
+                        duration: 0.5,
                         delay: delay,
                         ease: "easeOut"
                     }
@@ -107,7 +109,7 @@ export function FadeIn({ children, delay = 0, className, ...props }: MotionProps
     );
 }
 
-export function SlideIn({ children, className, direction = "left", delay = 0, ...props }: SlideInProps) {
+export function SlideIn({ children, className, direction = "left", delay = 0, manualTrigger = false, ...props }: SlideInProps) {
     const variants: Variants = {
         hidden: {
             opacity: 0,
@@ -118,15 +120,15 @@ export function SlideIn({ children, className, direction = "left", delay = 0, ..
             opacity: 1,
             x: 0,
             y: 0,
-            transition: { duration: 0.8, ease: "easeOut" as const, delay: delay }
+            transition: { duration: 0.6, ease: "easeOut" as const, delay: delay }
         }
     };
 
     return (
         <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-100px" }}
+            whileInView={manualTrigger ? undefined : "visible"}
+            viewport={manualTrigger ? undefined : { once: true, margin: "-20px" }}
             variants={variants}
             className={className}
             {...props}
@@ -136,18 +138,18 @@ export function SlideIn({ children, className, direction = "left", delay = 0, ..
     );
 }
 
-export function ZoomIn({ children, className, delay = 0, ...props }: MotionProps) {
+export function ZoomIn({ children, className, delay = 0, manualTrigger = false, ...props }: MotionProps) {
     return (
         <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-100px" }}
+            whileInView={manualTrigger ? undefined : "visible"}
+            viewport={manualTrigger ? undefined : { once: true, margin: "-20px" }}
             variants={{
                 hidden: { opacity: 0, scale: 0.8 },
                 visible: {
                     opacity: 1,
                     scale: 1,
-                    transition: { duration: 0.6, ease: "easeOut", delay: delay }
+                    transition: { duration: 0.5, ease: "easeOut", delay: delay }
                 }
             }}
             className={className}
@@ -158,12 +160,12 @@ export function ZoomIn({ children, className, delay = 0, ...props }: MotionProps
     );
 }
 
-export function StaggerContainer({ children, className, delay = 0, ...props }: MotionProps) {
+export function StaggerContainer({ children, className, delay = 0, manualTrigger = false, ...props }: MotionProps) {
     return (
         <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, margin: "-100px" }}
+            whileInView={manualTrigger ? undefined : "visible"}
+            viewport={manualTrigger ? undefined : { once: true, margin: "-20px" }}
             variants={{
                 hidden: { opacity: 0 },
                 visible: {
@@ -207,7 +209,7 @@ export function DrawLine({ className }: { className?: string }) {
         <motion.div
             initial={{ pathLength: 0, opacity: 0 }}
             whileInView={{ pathLength: 1, opacity: 1 }}
-            viewport={{ once: false }}
+            viewport={{ once: true }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
             className={className}
         >
@@ -219,5 +221,34 @@ export function DrawLine({ className }: { className?: string }) {
                 />
             </svg>
         </motion.div>
+    );
+}
+
+/**
+ * A wrapper that triggers "visible" state for all child motion components when
+ * ANY part of this section enters the viewport (with small margin).
+ * Useful for when you want a whole section to animate in together.
+ */
+export function InViewSection({ children, className, stagger = 0.1, ...props }: MotionProps & { stagger?: number }) {
+    return (
+        <motion.section
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-10% 0px -10% 0px", amount: 0.1 }}
+            variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                    opacity: 1,
+                    transition: {
+                        staggerChildren: stagger,
+                        when: "beforeChildren"
+                    }
+                }
+            }}
+            className={className}
+            {...props}
+        >
+            {children}
+        </motion.section>
     );
 }
