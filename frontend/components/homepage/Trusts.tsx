@@ -41,6 +41,9 @@ export function Trusts({ data }: TrustsProps) {
             <div
               className="relative box-border w-full max-w-[701px] aspect-[701/555]"
               style={{
+                width: "701px",
+                height: "555px",
+                maxWidth: "100%",
                 flexShrink: 0,
                 borderRadius: "24px",
                 background: `url(${image}) lightgray -51.4px 0px / 140.667% 100% no-repeat`,
