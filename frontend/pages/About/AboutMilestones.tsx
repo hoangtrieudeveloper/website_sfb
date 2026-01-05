@@ -56,7 +56,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
-                    <FadeIn manualTrigger className="text-center mb-24 max-w-4xl mx-auto">
+                    <FadeIn className="text-center mb-24 max-w-4xl mx-auto">
                         {headerTitle && (
                             <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
                                 {headerTitle}

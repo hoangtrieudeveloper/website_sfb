@@ -1,15 +1,11 @@
 "use client";
 
-import {
-  Calendar,
-  User,
-  ArrowRight,
-  Clock,
-  Eye,
-} from "lucide-react";
+import { Calendar, User, ArrowRight, Clock, Eye } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "@/lib/api/base";
+import { formatDateVN } from "@/lib/date";
 
 interface FeaturedNewsProps {
   article: {
@@ -27,10 +23,20 @@ interface FeaturedNewsProps {
 }
 
 export function FeaturedNews({ article }: FeaturedNewsProps) {
-  const isTuyenSinh = article?.title === "Hệ thống tuyển sinh đầu cấp";
+  const isTuyenSinh = article?.title === "";
+  const apiBase = API_BASE_URL;
+
+  // Gradient cho từng bài viết (lưu trong DB từ admin)
+  const gradient = article.gradient || "from-blue-600 to-cyan-600";
+  const gradientBg = `bg-gradient-to-r ${gradient}`;
+
   const imageSrc = isTuyenSinh
-    ? "/images/news/news1.png"
-    : (article.imageUrl || "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80");
+    ? `${apiBase}/images/news/news1.png`
+    : article.imageUrl
+      ? article.imageUrl.startsWith("http")
+        ? article.imageUrl
+        : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
+      : "/images/no_cover.jpeg";
 
   return (
     <motion.div
@@ -59,7 +65,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
       {/* Content - Right Side (Span 5) */}
       <div className="lg:col-span-5 flex flex-col justify-center space-y-6 relative z-10">
 
-        {/* Meta Row */}
+        {/* Meta Row */} 
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -68,21 +74,17 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           className="flex flex-wrap items-center gap-4 text-sm"
         >
           {/* Category Name */}
-          <span className="text-[#0870B4] font-medium px-3 py-1 bg-[#0870B4]/10 rounded-full border border-[#0870B4]/20">
-            {article.categoryName || "Tin sản phẩm & giải pháp"}
+          <span
+            className={`${gradientBg} text-white font-medium px-3 py-1 rounded-full border border-white/40 shadow-sm`}
+          >
+            {article.categoryName || ""}
           </span>
 
           {/* Date */}
           {article.publishedDate && (
             <div className="flex items-center gap-1.5 text-gray-500">
               <Calendar size={14} />
-              <span>
-                {new Date(article.publishedDate).toLocaleDateString("vi-VN", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
+              <span>{formatDateVN(article.publishedDate)}</span>
             </div>
           )}
 
@@ -94,15 +96,23 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         </motion.div>
 
         {/* Title */}
-        <motion.h2
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: false }}
           transition={{ delay: 0.3 }}
-          className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight group-hover:text-[#0870B4] transition-colors"
+          className="relative"
         >
-          {article.title}
-        </motion.h2>
+          <h2 className="text-3xl lg:text-4xl font-bold leading-tight text-gray-900 transition-all group-hover:text-transparent group-hover:bg-clip-text">
+            {article.title}
+          </h2>
+          <h2
+            className={`absolute inset-0 text-3xl lg:text-4xl font-bold leading-tight text-transparent bg-clip-text opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${gradientBg}`}
+            aria-hidden="true"
+          >
+            {article.title}
+          </h2>
+        </motion.div>
 
         {/* Excerpt */}
         {article.excerpt && (
@@ -127,7 +137,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         >
           <Link
             href={`/news/${article.slug}`}
-            className="inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium shadow-sm hover:shadow-[0_0_20px_rgba(45,156,219,0.4)] transform hover:-translate-y-1 transition-all"
+            className={`inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white text-white font-medium shadow-sm transform hover:-translate-y-1 transition-all ${gradientBg} hover:shadow-[0_0_20px_rgba(45,156,219,0.4)]`}
             prefetch={true}
           >
             Đọc ngay

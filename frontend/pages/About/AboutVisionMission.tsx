@@ -23,7 +23,7 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] relative z-10">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Section header */}
-                    <FadeIn manualTrigger className="max-w-4xl mx-auto text-center mb-16">
+                    <FadeIn className="max-w-4xl mx-auto text-center mb-16">
                         {headerTitle && (
                             <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
                                 {headerTitle}
@@ -37,9 +37,9 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
                     </FadeIn>
 
                     {/* Cards Grid */}
-                    <StaggerContainer manualTrigger className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {items.map((item: any, index: number) => (
-                            <FadeIn manualTrigger key={item.id || index}>
+                            <FadeIn key={item.id || index}>
                                 <motion.div
                                     whileHover={{ scale: 1.05, borderColor: "#2CA4E0", backgroundColor: "#F8FBFE" }}
                                     transition={{ duration: 0.3 }}

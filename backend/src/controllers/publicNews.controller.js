@@ -1,27 +1,40 @@
 const { pool } = require('../config/database');
 
-const mapNews = (row) => ({
-  id: row.id,
-  title: row.title,
-  slug: row.slug,
-  excerpt: row.excerpt,
-  content: row.content,
-  category: row.category,
-  categoryId: row.category_id,
-  categoryName: row.category_name,
-  status: row.status,
-  imageUrl: row.image_url,
-  author: row.author,
-  readTime: row.read_time,
-  gradient: row.gradient,
-  isFeatured: row.is_featured,
-  seoTitle: row.seo_title,
-  seoDescription: row.seo_description,
-  seoKeywords: row.seo_keywords,
-  publishedDate: row.published_date,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-});
+const mapNews = (row) => {
+  // Format published_date để tránh timezone issues
+  let publishedDate = row.published_date;
+  if (publishedDate instanceof Date) {
+    const year = publishedDate.getFullYear();
+    const month = String(publishedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(publishedDate.getDate()).padStart(2, '0');
+    publishedDate = `${year}-${month}-${day}`;
+  } else if (publishedDate && typeof publishedDate === 'string' && publishedDate.includes('T')) {
+    publishedDate = publishedDate.split('T')[0];
+  }
+  
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    excerpt: row.excerpt,
+    content: row.content,
+    category: row.category,
+    categoryId: row.category_id,
+    categoryName: row.category_name,
+    status: row.status,
+    imageUrl: row.image_url,
+    author: row.author,
+    readTime: row.read_time,
+    gradient: row.gradient,
+    isFeatured: row.is_featured,
+    seoTitle: row.seo_title,
+    seoDescription: row.seo_description,
+    seoKeywords: row.seo_keywords,
+    publishedDate: publishedDate || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
 
 // GET /api/public/news - Chỉ lấy bài viết đã published
 exports.getPublicNews = async (req, res, next) => {
@@ -66,7 +79,7 @@ exports.getPublicNews = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
-        n.published_date,
+        TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at
       FROM news n
@@ -108,7 +121,7 @@ exports.getFeaturedNews = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
-        n.published_date,
+        TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at
       FROM news n
@@ -153,7 +166,7 @@ exports.getPublicNewsBySlug = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
-        n.published_date,
+        TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at
       FROM news n

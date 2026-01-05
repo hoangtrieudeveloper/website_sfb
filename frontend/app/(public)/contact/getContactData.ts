@@ -1,10 +1,9 @@
 import { PublicEndpoints } from "@/lib/api/public";
-
-const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { buildUrl } from "@/lib/api/base";
 
 export async function getContactData() {
   try {
-    const response = await fetch(`${baseUrl}${PublicEndpoints.contact.get}`, {
+    const response = await fetch(buildUrl(PublicEndpoints.contact.get), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

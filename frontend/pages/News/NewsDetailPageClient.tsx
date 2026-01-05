@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Calendar,
   ChevronRight,
@@ -11,12 +12,22 @@ import {
   Twitter,
   Bookmark,
   Share2,
+  Linkedin,
+  Copy,
+  Check,
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import Link from "next/link";
 import { newsDetailData, newsSectionHeaders } from "./data";
 import { NewsList } from "../../components/news/NewsList";
 import { Consult } from "../../components/public/Consult";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface NewsDetailPageClientProps {
   article: {
@@ -49,6 +60,16 @@ export function NewsDetailPageClient({
   article,
   relatedArticles = [],
 }: NewsDetailPageClientProps) {
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [supportsWebShare, setSupportsWebShare] = useState(false);
+  
+  // Kiểm tra Web Share API support
+  useEffect(() => {
+    if (typeof window !== "undefined" && "navigator" in window && "share" in navigator) {
+      setSupportsWebShare(true);
+    }
+  }, []);
+  
   if (!article) {
     return null;
   }
@@ -57,6 +78,77 @@ export function NewsDetailPageClient({
   const isTuyenSinhDauCap =
     article?.slug === "he-thong-tuyen-sinh-dau-cap" ||
     article?.title === "Hệ thống tuyển sinh đầu cấp";
+
+  // Lấy URL hiện tại của trang
+  const currentUrl = typeof window !== "undefined" 
+    ? window.location.href 
+    : "";
+  const shareTitle = article.title;
+  const shareDescription = article.excerpt || "";
+
+  // Hàm chia sẻ Facebook
+  const shareToFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+    window.open(url, "_blank", "width=600,height=400");
+  };
+
+  // Hàm chia sẻ Twitter
+  const shareToTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(shareTitle)}`;
+    window.open(url, "_blank", "width=600,height=400");
+  };
+
+  // Hàm chia sẻ LinkedIn
+  const shareToLinkedIn = () => {
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`;
+    window.open(url, "_blank", "width=600,height=400");
+  };
+
+  // Hàm copy link
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      setLinkCopied(true);
+      toast.success("Đã sao chép liên kết!");
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (err) {
+      // Fallback cho trình duyệt không hỗ trợ clipboard API
+      const textArea = document.createElement("textarea");
+      textArea.value = currentUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        setLinkCopied(true);
+        toast.success("Đã sao chép liên kết!");
+        setTimeout(() => setLinkCopied(false), 2000);
+      } catch (e) {
+        toast.error("Không thể sao chép liên kết");
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  // Hàm chia sẻ bằng Web Share API (nếu trình duyệt hỗ trợ)
+  const shareViaWebShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareDescription,
+          url: currentUrl,
+        });
+      } catch (err) {
+        // User cancelled hoặc có lỗi
+        if ((err as Error).name !== "AbortError") {
+          console.error("Error sharing:", err);
+        }
+      }
+    } else {
+      // Fallback: mở dropdown menu
+      toast.info("Trình duyệt không hỗ trợ chia sẻ trực tiếp");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -100,35 +192,97 @@ export function NewsDetailPageClient({
                   <Facebook size={14} />
                   <span>Thích 1,7k</span>
                 </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium"
-                  aria-label="Chia sẻ"
-                >
-                  <Share2 size={14} />
-                  <span>Chia sẻ</span>
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium hover:bg-[#166FE5] transition-colors"
+                      aria-label="Chia sẻ"
+                    >
+                      <Share2 size={14} />
+                      <span>Chia sẻ</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={shareToFacebook}
+                      className="cursor-pointer"
+                    >
+                      <Facebook size={16} className="mr-2 text-[#1877F2]" />
+                      Chia sẻ Facebook
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={shareToTwitter}
+                      className="cursor-pointer"
+                    >
+                      <Twitter size={16} className="mr-2 text-[#1DA1F2]" />
+                      Chia sẻ Twitter
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={shareToLinkedIn}
+                      className="cursor-pointer"
+                    >
+                      <Linkedin size={16} className="mr-2 text-[#0077B5]" />
+                      Chia sẻ LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={copyToClipboard}
+                      className="cursor-pointer"
+                    >
+                      {linkCopied ? (
+                        <>
+                          <Check size={16} className="mr-2 text-green-600" />
+                          Đã sao chép
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={16} className="mr-2" />
+                          Sao chép liên kết
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    {supportsWebShare && (
+                      <DropdownMenuItem
+                        onClick={shareViaWebShare}
+                        className="cursor-pointer"
+                      >
+                        <Share2 size={16} className="mr-2" />
+                        Chia sẻ khác...
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div className="flex items-center gap-3 text-gray-400">
                 <button
                   type="button"
+                  onClick={copyToClipboard}
                   aria-label="Copy link"
                   className="hover:text-gray-600 transition-colors"
+                  title="Sao chép liên kết"
                 >
-                  <LinkIcon size={18} />
+                  {linkCopied ? (
+                    <Check size={18} className="text-green-600" />
+                  ) : (
+                    <LinkIcon size={18} />
+                  )}
                 </button>
                 <button
                   type="button"
+                  onClick={shareToFacebook}
                   aria-label="Chia sẻ Facebook"
-                  className="hover:text-gray-600 transition-colors"
+                  className="hover:text-[#1877F2] transition-colors"
+                  title="Chia sẻ Facebook"
                 >
                   <Facebook size={18} />
                 </button>
                 <button
                   type="button"
+                  onClick={shareToTwitter}
                   aria-label="Chia sẻ Twitter"
-                  className="hover:text-gray-600 transition-colors"
+                  className="hover:text-[#1DA1F2] transition-colors"
+                  title="Chia sẻ Twitter"
                 >
                   <Twitter size={18} />
                 </button>
@@ -136,6 +290,7 @@ export function NewsDetailPageClient({
                   type="button"
                   aria-label="Lưu bài viết"
                   className="hover:text-gray-600 transition-colors"
+                  title="Lưu bài viết"
                 >
                   <Bookmark size={18} />
                 </button>
@@ -263,7 +418,7 @@ export function NewsDetailPageClient({
               <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>
             </div>
 
-            <NewsList news={relatedArticles} />
+            <NewsList news={relatedArticles.slice(0, 6)} />
           </div>
         </section>
       )}

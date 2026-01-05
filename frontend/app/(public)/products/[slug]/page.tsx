@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 import { ProductDetailView } from "@/pages/Product/ProductDetail";
+import { generateSeoMetadata } from "@/lib/seo";
+import { generateProductSchema } from "@/lib/structured-data";
+import { API_BASE_URL } from "@/lib/api/base";
 
 // Enable ISR - revalidate every 60 seconds for product detail
 export const revalidate = 60;
 
 async function getProductBySlugFromAPI(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
-      process.env.API_SFB_URL ||
-      "http://localhost:4000";
+    const baseUrl = API_BASE_URL;
     
     console.log(`[Product API] Fetching product from: ${baseUrl}/api/public/products/${slug}`);
     
@@ -161,7 +162,22 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  return <ProductDetailView product={product} />;
+  // Generate structured data for product
+  const productSchema = generateProductSchema({
+    name: product.name,
+    description: product.heroDescription,
+    heroImage: product.heroImage,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <ProductDetailView product={product} />
+    </>
+  );
 }
 
 // Generate metadata for SEO
@@ -181,13 +197,15 @@ export async function generateMetadata({
     };
   }
 
-  return {
+  const pagePath = `/products/${slug}`;
+
+  return await generateSeoMetadata(pagePath, {
     title: product.name || "Sản phẩm",
     description: product.heroDescription || "",
-    openGraph: {
-      title: product.name || "Sản phẩm",
-      description: product.heroDescription || "",
-      images: product.heroImage ? [product.heroImage] : [],
-    },
-  };
+    og_title: product.name || "Sản phẩm",
+    og_description: product.heroDescription || "",
+    og_image: product.heroImage,
+    og_type: 'website', // Next.js chỉ hỗ trợ 'website', 'article', 'book', 'profile'
+    canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'}${pagePath}`,
+  });
 }

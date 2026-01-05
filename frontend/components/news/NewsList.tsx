@@ -40,12 +40,10 @@ export function NewsList({ news }: NewsListProps) {
     >
       <AnimatePresence>
         {news.map((article, index) => {
-          const img =
-            article.imageUrl ||
-            "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&w=900&q=80";
+          const img = article.imageUrl || "/images/no_cover.jpeg";
 
-          const likes = article.likes ?? 20;
-          const comments = article.comments ?? 16;
+          const likes = article.likes ?? 0;
+          const comments = article.comments ?? 0;
 
           const dateText = article.publishedDate
             ? new Date(article.publishedDate).toLocaleDateString("vi-VN")

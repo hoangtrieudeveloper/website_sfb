@@ -45,7 +45,6 @@ export function AboutPage() {
           publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.milestones),
           publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.leadership),
         ]);
-
         if (heroResponse.success && heroResponse.data) setHeroData(heroResponse.data);
         if (companyResponse.success && companyResponse.data) setCompanyData(companyResponse.data);
         if (visionMissionResponse.success && visionMissionResponse.data) setVisionMissionData(visionMissionResponse.data);

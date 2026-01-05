@@ -2393,3 +2393,120 @@ JOIN permissions p ON p.code IN (
 )
 WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- ============================================================================
+-- SEO MANAGEMENT SCHEMA
+-- ============================================================================
+
+-- Bảng seo_pages (Quản lý SEO cho tất cả các trang)
+CREATE TABLE IF NOT EXISTS seo_pages (
+  id SERIAL PRIMARY KEY,
+  page_path VARCHAR(255) NOT NULL UNIQUE,  -- '/', '/products', '/about', '/news/[slug]', etc.
+  page_type VARCHAR(50),                    -- 'home', 'products', 'about', 'contact', 'news', 'product-detail', 'news-detail'
+  
+  -- Basic SEO
+  title VARCHAR(255),
+  description TEXT,
+  keywords TEXT,
+  
+  -- Open Graph
+  og_title VARCHAR(255),
+  og_description TEXT,
+  og_image TEXT,
+  og_type VARCHAR(50) DEFAULT 'website',
+  
+  -- Twitter Card
+  twitter_card VARCHAR(20) DEFAULT 'summary_large_image',
+  twitter_title VARCHAR(255),
+  twitter_description TEXT,
+  twitter_image TEXT,
+  
+  -- Advanced
+  canonical_url TEXT,
+  robots_index BOOLEAN DEFAULT TRUE,
+  robots_follow BOOLEAN DEFAULT TRUE,
+  robots_noarchive BOOLEAN DEFAULT FALSE,
+  robots_nosnippet BOOLEAN DEFAULT FALSE,
+  
+  -- Structured Data (JSON-LD)
+  structured_data JSONB,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_seo_pages_path ON seo_pages(page_path);
+CREATE INDEX IF NOT EXISTS idx_seo_pages_type ON seo_pages(page_type);
+CREATE INDEX IF NOT EXISTS idx_seo_pages_structured_data_gin ON seo_pages USING GIN (structured_data);
+
+-- Trigger cập nhật updated_at cho seo_pages
+DROP TRIGGER IF EXISTS update_seo_pages_updated_at ON seo_pages;
+CREATE TRIGGER update_seo_pages_updated_at
+    BEFORE UPDATE ON seo_pages
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Seed dữ liệu mẫu cho SEO pages
+INSERT INTO seo_pages (page_path, page_type, title, description, keywords, og_title, og_description, canonical_url)
+VALUES
+  ('/', 'home', 'SFB Technology - Giải pháp công nghệ hàng đầu Việt Nam', 
+   'SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến', 
+   'SFB Technology, giải pháp công nghệ, chuyển đổi số, phần mềm Việt Nam',
+   'SFB Technology - Giải pháp công nghệ hàng đầu Việt Nam',
+   'SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số',
+   'https://sfb.vn/'),
+  ('/products', 'products', 'Sản phẩm & Giải pháp - SFB Technology',
+   'Khám phá các sản phẩm và giải pháp công nghệ của SFB Technology',
+   'sản phẩm, giải pháp, phần mềm, công nghệ',
+   'Sản phẩm & Giải pháp - SFB Technology',
+   'Khám phá các sản phẩm và giải pháp công nghệ của SFB Technology',
+   'https://sfb.vn/products'),
+  ('/about', 'about', 'Về chúng tôi - SFB Technology',
+   'Tìm hiểu về SFB Technology - Công ty công nghệ hàng đầu Việt Nam',
+   'về chúng tôi, SFB Technology, công ty công nghệ',
+   'Về chúng tôi - SFB Technology',
+   'Tìm hiểu về SFB Technology - Công ty công nghệ hàng đầu Việt Nam',
+   'https://sfb.vn/about'),
+  ('/contact', 'contact', 'Liên hệ - SFB Technology',
+   'Liên hệ với SFB Technology để được tư vấn về các giải pháp công nghệ',
+   'liên hệ, tư vấn, SFB Technology',
+   'Liên hệ - SFB Technology',
+   'Liên hệ với SFB Technology để được tư vấn về các giải pháp công nghệ',
+   'https://sfb.vn/contact'),
+  ('/news', 'news', 'Tin tức - SFB Technology',
+   'Cập nhật tin tức mới nhất về công nghệ, sản phẩm và hoạt động của SFB Technology',
+   'tin tức, công nghệ, SFB Technology',
+   'Tin tức - SFB Technology',
+   'Cập nhật tin tức mới nhất về công nghệ, sản phẩm và hoạt động của SFB Technology',
+   'https://sfb.vn/news'),
+  ('/industries', 'industries', 'Lĩnh vực - SFB Technology',
+   'Khám phá các lĩnh vực ứng dụng của SFB Technology',
+   'lĩnh vực, ứng dụng, SFB Technology',
+   'Lĩnh vực - SFB Technology',
+   'Khám phá các lĩnh vực ứng dụng của SFB Technology',
+   'https://sfb.vn/industries'),
+  ('/careers', 'careers', 'Tuyển dụng - SFB Technology',
+   'Cơ hội nghề nghiệp tại SFB Technology',
+   'tuyển dụng, nghề nghiệp, SFB Technology',
+   'Tuyển dụng - SFB Technology',
+   'Cơ hội nghề nghiệp tại SFB Technology',
+   'https://sfb.vn/careers')
+ON CONFLICT (page_path) DO NOTHING;
+
+-- Thêm permissions cho SEO module
+INSERT INTO permissions (code, name, module, description, is_active)
+VALUES
+  ('seo.view', 'Xem cấu hình SEO', 'seo', 'Xem cấu hình SEO của các trang', TRUE),
+  ('seo.manage', 'Quản lý SEO', 'seo', 'Thêm, sửa, xóa cấu hình SEO', TRUE)
+ON CONFLICT (code) DO NOTHING;
+
+-- Gán quyền SEO cho role admin
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM roles r
+JOIN permissions p ON p.code IN (
+  'seo.view',
+  'seo.manage'
+)
+WHERE r.code = 'admin'
+ON CONFLICT (role_id, permission_id) DO NOTHING;

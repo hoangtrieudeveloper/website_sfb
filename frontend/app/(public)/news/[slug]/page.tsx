@@ -1,14 +1,15 @@
 import { NewsDetailPageClient } from "../../../../pages/News/NewsDetailPageClient";
 import { notFound } from "next/navigation";
+import { generateSeoMetadata } from "@/lib/seo";
+import { generateArticleSchema } from "@/lib/structured-data";
+import { API_BASE_URL } from "@/lib/api/base";
 
 // Enable ISR - revalidate every 60 seconds for news detail
 export const revalidate = 60;
 
 async function getNewsBySlug(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
-      process.env.API_SFB_URL ||
-      "http://localhost:4000";
+    const baseUrl = API_BASE_URL;
 
     const res = await fetch(`${baseUrl}/api/public/news/${slug}`, {
       next: { revalidate: 60 },
@@ -30,9 +31,7 @@ async function getRelatedNews(categoryId: string | undefined, excludeId: number 
   if (!categoryId) return [];
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
-      process.env.API_SFB_URL ||
-      "http://localhost:4000";
+    const baseUrl = API_BASE_URL;
 
     const res = await fetch(`${baseUrl}/api/public/news?category=${encodeURIComponent(categoryId)}`, {
       next: { revalidate: 60 },
@@ -66,7 +65,25 @@ export default async function NewsDetailRoute({
 
   const relatedArticles = await getRelatedNews(article.categoryId, article.id);
 
-  return <NewsDetailPageClient article={article} relatedArticles={relatedArticles} />;
+  // Generate structured data for article
+  const articleSchema = generateArticleSchema({
+    title: article.title,
+    excerpt: article.excerpt,
+    imageUrl: article.imageUrl,
+    publishedDate: article.publishedDate,
+    updatedAt: article.updatedAt,
+    author: article.author,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <NewsDetailPageClient article={article} relatedArticles={relatedArticles} />
+    </>
+  );
 }
 
 // Generate metadata for SEO
@@ -85,15 +102,17 @@ export async function generateMetadata({
     };
   }
 
-  return {
+  const pagePath = `/news/${slug}`;
+  
+  return await generateSeoMetadata(pagePath, {
     title: article.seoTitle || article.title,
     description: article.seoDescription || article.excerpt,
     keywords: article.seoKeywords,
-    openGraph: {
-      title: article.title,
-      description: article.excerpt,
-      images: article.imageUrl ? [article.imageUrl] : [],
-    },
-  };
+    og_title: article.seoTitle || article.title,
+    og_description: article.seoDescription || article.excerpt,
+    og_image: article.imageUrl,
+    og_type: 'article',
+    canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'}${pagePath}`,
+  });
 }
 

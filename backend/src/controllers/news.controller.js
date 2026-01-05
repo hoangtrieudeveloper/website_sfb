@@ -1,28 +1,45 @@
 const { pool } = require('../config/database');
 
 // Chuẩn hóa dữ liệu trả về cho frontend
-const mapNews = (row) => ({
-  id: row.id,
-  title: row.title,
-  excerpt: row.excerpt || '',
-  category: row.category || row.category_name || '',
-  categoryId: row.category_id || row.category_code || '',
-  categoryName: row.category_name || row.category || '',
-  status: row.status,
-  imageUrl: row.image_url || '',
-  author: row.author || '',
-  readTime: row.read_time || '',
-  gradient: row.gradient || '',
-  isFeatured: row.is_featured || false,
-  link: row.slug || '',
-  publishedDate: row.published_date,
-  seoTitle: row.seo_title || '',
-  seoDescription: row.seo_description || '',
-  seoKeywords: row.seo_keywords || '',
-  content: row.content || '',
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-});
+const mapNews = (row) => {
+  // Format published_date để tránh timezone issues
+  // Nếu là Date object, format thành YYYY-MM-DD
+  // Nếu đã là string YYYY-MM-DD, giữ nguyên
+  let publishedDate = row.published_date;
+  if (publishedDate instanceof Date) {
+    // Nếu là Date object, format thành YYYY-MM-DD
+    const year = publishedDate.getFullYear();
+    const month = String(publishedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(publishedDate.getDate()).padStart(2, '0');
+    publishedDate = `${year}-${month}-${day}`;
+  } else if (publishedDate && typeof publishedDate === 'string' && publishedDate.includes('T')) {
+    // Nếu là ISO string, chỉ lấy phần date
+    publishedDate = publishedDate.split('T')[0];
+  }
+  
+  return {
+    id: row.id,
+    title: row.title,
+    excerpt: row.excerpt || '',
+    category: row.category || row.category_name || '',
+    categoryId: row.category_id || row.category_code || '',
+    categoryName: row.category_name || row.category || '',
+    status: row.status,
+    imageUrl: row.image_url || '',
+    author: row.author || '',
+    readTime: row.read_time || '',
+    gradient: row.gradient || '',
+    isFeatured: row.is_featured || false,
+    link: row.slug || '',
+    publishedDate: publishedDate || '',
+    seoTitle: row.seo_title || '',
+    seoDescription: row.seo_description || '',
+    seoKeywords: row.seo_keywords || '',
+    content: row.content || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+};
 
 // GET /api/admin/news
 exports.getNews = async (req, res, next) => {
@@ -73,7 +90,7 @@ exports.getNews = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
-        n.published_date,
+        TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at
       FROM news n
@@ -118,7 +135,7 @@ exports.getNewsById = async (req, res, next) => {
           n.seo_title,
           n.seo_description,
           n.seo_keywords,
-          n.published_date,
+          TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
           n.created_at,
           n.updated_at
         FROM news n
@@ -180,7 +197,12 @@ exports.createNews = async (req, res, next) => {
         seo_title, seo_description, seo_keywords, is_featured
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-      RETURNING *
+      RETURNING 
+        id, title, slug, excerpt, content, category, category_id,
+        status, image_url, author, read_time, gradient, 
+        TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
+        seo_title, seo_description, seo_keywords, is_featured,
+        created_at, updated_at
     `;
 
     const params = [
@@ -274,7 +296,12 @@ exports.updateNews = async (req, res, next) => {
       UPDATE news
       SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
       WHERE id = $${params.length}
-      RETURNING *
+      RETURNING 
+        id, title, slug, excerpt, content, category, category_id,
+        status, image_url, author, read_time, gradient, 
+        TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
+        seo_title, seo_description, seo_keywords, is_featured,
+        created_at, updated_at
     `;
 
     const { rows } = await pool.query(updateQuery, params);

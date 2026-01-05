@@ -91,9 +91,9 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
 
     // Default header data
     const defaultHeader = {
-        subtitle: "GIẢI PHÁP CHUYÊN NGHIỆP",
-        title: "Sản phẩm & giải pháp nổi bật",
-        description: "Danh sách các hệ thống phần mềm đang được SFB triển khai cho nhà trường, cơ quan Nhà nước và doanh nghiệp.",
+        subtitle: "",
+        title: "",
+        description: "",
     };
 
     const displayHeader = headerData || defaultHeader;
@@ -156,11 +156,10 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                     {/* Front image - Chỉ hiển thị nếu có */}
                                     {hasFrontImage && (
                                         <div
-                                            className={`${
-                                                hasBackImage 
+                                            className={`${hasBackImage
                                                     ? "absolute left-[183.5px] bottom-0"
                                                     : "relative"
-                                            } rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden ${hasBackImage ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]"}`}
+                                                } rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden ${hasBackImage ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]"}`}
                                         >
                                             <ImageWithFallback
                                                 src={headerData.imageFront}
@@ -283,7 +282,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                 )}
                             </div>
 
-                            
+
                             <div className="w-full flex items-center justify-between gap-4 flex-wrap">
                                 <div>
                                     <div className="text-xs text-gray-500">Giá tham khảo</div>

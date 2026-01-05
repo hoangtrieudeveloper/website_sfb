@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-
-const API_BASE_URL =
-  process.env.API_SFB_URL ||
-  process.env.NEXT_PUBLIC_API_SFB_URL ||
-  "http://localhost:4000";
+import { API_BASE_URL } from "@/lib/api/base";
 
 export async function GET(
   request: Request,

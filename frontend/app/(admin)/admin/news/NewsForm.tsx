@@ -42,6 +42,7 @@ import ImageUpload from "@/components/admin/ImageUpload";
 import { buildUrl } from "@/lib/api/base";
 import MediaLibraryPicker from "./MediaLibraryPicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDateForInput, generateSlug } from "@/lib/date";
 
 // Types
 
@@ -149,6 +150,9 @@ export default function NewsForm({
   const [categories, setCategories] = useState<NewsCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [imageTab, setImageTab] = useState<"library" | "upload">("library");
+  const [activeTab, setActiveTab] = useState<"content" | "basic" | "seo">("content");
+  // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!(isEditing && initialData?.link));
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -172,6 +176,20 @@ export default function NewsForm({
 
     fetchCategories();
   }, []);
+
+  // Tự động generate slug từ title khi title thay đổi (chỉ khi chưa chỉnh sửa thủ công và không có slug từ DB)
+  useEffect(() => {
+    // Chỉ tự động generate khi:
+    // 1. Chưa chỉnh sửa thủ công
+    // 2. Có tiêu đề
+    // 3. Không phải đang edit với slug đã có từ DB
+    if (!slugManuallyEdited && formData.title && !(isEditing && initialData?.link)) {
+      const autoSlug = generateSlug(formData.title);
+      if (autoSlug) {
+        setFormData(prev => ({ ...prev, link: autoSlug }));
+      }
+    }
+  }, [formData.title, slugManuallyEdited, isEditing, initialData?.link]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,35 +272,68 @@ export default function NewsForm({
       <div className="max-w-7xl mx-auto px-4 py-4">
         <form onSubmit={handleSubmit}>
           <Tabs
-            defaultValue="content"
-            className="flex flex-col md:flex-row gap-6"
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as "content" | "basic" | "seo")}
+            className="w-full space-y-6"
           >
-            {/* Vertical tabs navigation */}
-            <TabsList className="md:flex-col md:w-56 md:h-auto bg-white border border-gray-200 rounded-2xl p-1 shadow-sm">
-              <TabsTrigger
-                value="content"
-                className="justify-start px-3 py-2 text-sm gap-2"
-              >
-                <Info className="w-4 h-4 text-blue-600" />
-                <span>Nội dung bài viết</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="basic"
-                className="justify-start px-3 py-2 text-sm gap-2"
-              >
-                <Settings className="w-4 h-4 text-sky-600" />
-                <span>Thông tin cơ bản</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="seo"
-                className="justify-start px-3 py-2 text-sm gap-2"
-              >
-                <SearchIcon className="w-4 h-4 text-indigo-600" />
-                <span>SEO & hiển thị nâng cao</span>
-              </TabsTrigger>
-            </TabsList>
+            {/* Horizontal tabs navigation */}
+            <Card className="mb-6">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  {[
+                    {
+                      value: "content",
+                      label: "Nội dung bài viết",
+                      description: "Tiêu đề, tóm tắt, nội dung",
+                      icon: Info,
+                    },
+                    {
+                      value: "basic",
+                      label: "Thông tin cơ bản",
+                      description: "Danh mục, trạng thái, ảnh bìa, cài đặt",
+                      icon: Settings,
+                    },
+                    {
+                      value: "seo",
+                      label: "SEO & hiển thị nâng cao",
+                      description: "Tối ưu SEO",
+                      icon: SearchIcon,
+                    },
+                  ].map((tab, index) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.value;
+                    return (
+                      <div key={tab.value} className="flex items-center flex-1">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab(tab.value as "content" | "basic" | "seo")}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
+                            ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
+                            : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
+                            }`}
+                        >
+                          <div className={`flex items-center justify-center w-8 h-8 rounded-full ${isActive
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-300 text-gray-600"
+                            }`}>
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <div className="text-left">
+                            <div className="font-semibold text-sm">{tab.label}</div>
+                            <div className="text-xs opacity-75">{tab.description}</div>
+                          </div>
+                        </button>
+                        {index < 2 && (
+                          <div className="flex-1 h-0.5 mx-2 bg-gray-300" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </Card>
 
-            <div className="flex-1 space-y-6">
+            <div className="w-full space-y-6">
               <TabsContent value="content" className="space-y-6">
                 {/* Nội dung bài viết */}
                 <section className="space-y-4 lg:space-y-5">
@@ -326,10 +377,11 @@ export default function NewsForm({
                           <Input
                             id="link"
                             value={formData.link}
-                            onChange={(e) =>
-                              setFormData({ ...formData, link: e.target.value })
-                            }
-                            placeholder="/tin-tuc-slug"
+                            onChange={(e) => {
+                              setSlugManuallyEdited(true);
+                              setFormData({ ...formData, link: e.target.value });
+                            }}
+                            placeholder="tin-tuc-slug"
                           />
                           <p className="text-[11px] text-gray-500">
                             Dùng tiếng Việt không dấu, cách nhau bằng dấu gạch ngang.
@@ -356,13 +408,12 @@ export default function NewsForm({
                             Tóm tắt sẽ hiển thị trong danh sách tin tức và hỗ trợ SEO.
                           </p>
                           <span
-                            className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                              formData.excerpt.length > 200
-                                ? "text-red-600 bg-red-50"
-                                : formData.excerpt.length > 150
+                            className={`text-xs font-semibold px-2 py-0.5 rounded ${formData.excerpt.length > 200
+                              ? "text-red-600 bg-red-50"
+                              : formData.excerpt.length > 150
                                 ? "text-yellow-600 bg-yellow-50"
                                 : "text-gray-400 bg-gray-50"
-                            }`}
+                              }`}
                           >
                             {formData.excerpt.length}/200
                           </span>
@@ -396,171 +447,246 @@ export default function NewsForm({
                 <section className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
                   <div className="md:col-span-6 lg:col-span-5 space-y-4 lg:space-y-5">
                     <Card className="border border-gray-100 shadow-sm">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <div className="flex flex-col gap-1">
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        Thông tin cơ bản
-                      </h2>
-                      <p className="text-xs text-gray-500">
-                        Nhập thông tin cơ bản cho bài viết tin tức.
-                      </p>
-                    </div>
-                  </div>
-                    <div className="p-4 space-y-5">
-                      {/* Nhóm phân loại */}
-                      <div className="space-y-2">
-                        <Label htmlFor="categoryId" className="text-sm font-semibold">
-                          Danh mục <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                          value={formData.categoryId}
-                          onValueChange={(value: CategoryId) => {
-                            const selectedCategory = categories.find(
-                              (c) => c.id === value && c.isActive !== false,
-                            );
-                            setFormData({
-                              ...formData,
-                              categoryId: value,
-                              category: selectedCategory?.name || "",
-                            });
-                          }}
-                          disabled={loadingCategories}
-                        >
-                          <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                loadingCategories ? "Đang tải..." : "Chọn danh mục"
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories
-                              .filter((cat) => cat.isActive !== false)
-                              .map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                        <div className="flex flex-col gap-1">
+                          <h2 className="text-lg font-semibold text-gray-900">
+                            Thông tin cơ bản
+                          </h2>
+                          <p className="text-xs text-gray-500">
+                            Nhập thông tin cơ bản cho bài viết tin tức.
+                          </p>
+                        </div>
                       </div>
-
-                      {/* Nhóm trạng thái xuất bản */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 space-y-5">
+                        {/* Nhóm phân loại */}
                         <div className="space-y-2">
-                          <Label className="text-sm font-semibold">Trạng thái</Label>
+                          <Label htmlFor="categoryId" className="text-sm font-semibold">
+                            Danh mục <span className="text-red-500">*</span>
+                          </Label>
                           <Select
-                            value={formData.status}
-                            onValueChange={(value: NewsStatus) =>
-                              setFormData({ ...formData, status: value })
-                            }
+                            value={formData.categoryId}
+                            onValueChange={(value: CategoryId) => {
+                              const selectedCategory = categories.find(
+                                (c) => c.id === value && c.isActive !== false,
+                              );
+                              setFormData({
+                                ...formData,
+                                categoryId: value,
+                                category: selectedCategory?.name || "",
+                              });
+                            }}
+                            disabled={loadingCategories}
                           >
-                            <SelectTrigger className="w-full">
-                              <SelectValue />
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  loadingCategories ? "Đang tải..." : "Chọn danh mục"
+                                }
+                              />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="draft">Bản nháp</SelectItem>
-                              <SelectItem value="pending">Chờ duyệt</SelectItem>
-                              <SelectItem value="approved">Đã duyệt</SelectItem>
-                              <SelectItem value="rejected">Từ chối</SelectItem>
-                              <SelectItem value="published">Xuất bản</SelectItem>
+                              {categories
+                                .filter((cat) => cat.isActive !== false)
+                                .map((cat) => (
+                                  <SelectItem key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="publishedDate" className="text-sm font-semibold">
-                            <Calendar className="w-3 h-3 inline mr-1" />
-                            Ngày xuất bản
-                          </Label>
-                          <Input
-                            id="publishedDate"
-                            type="date"
-                            value={formData.publishedDate}
-                            onChange={(e) =>
-                              setFormData({ ...formData, publishedDate: e.target.value })
+                        {/* Nhóm trạng thái xuất bản */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-semibold">Trạng thái</Label>
+                            <Select
+                              value={formData.status}
+                              onValueChange={(value: NewsStatus) =>
+                                setFormData({ ...formData, status: value })
+                              }
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="draft">Bản nháp</SelectItem>
+                                <SelectItem value="pending">Chờ duyệt</SelectItem>
+                                <SelectItem value="approved">Đã duyệt</SelectItem>
+                                <SelectItem value="rejected">Từ chối</SelectItem>
+                                <SelectItem value="published">Xuất bản</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="publishedDate" className="text-sm font-semibold">
+                              <Calendar className="w-3 h-3 inline mr-1" />
+                              Ngày xuất bản
+                            </Label>
+                            <Input
+                              id="publishedDate"
+                              type="date"
+                              value={formatDateForInput(formData.publishedDate)}
+                              onChange={(e) =>
+                                setFormData({ ...formData, publishedDate: e.target.value })
+                              }
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <Switch
+                            id="isFeatured"
+                            checked={formData.isFeatured}
+                            onCheckedChange={(checked: boolean) =>
+                              setFormData({ ...formData, isFeatured: checked })
                             }
-                            className="w-full"
                           />
+                          <Label htmlFor="isFeatured" className="text-sm font-semibold">
+                            Bài viết nổi bật
+                          </Label>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 pt-1">
-                        <Switch
-                          id="isFeatured"
-                          checked={formData.isFeatured}
-                          onCheckedChange={(checked: boolean) =>
-                            setFormData({ ...formData, isFeatured: checked })
-                          }
-                        />
-                        <Label htmlFor="isFeatured" className="text-sm font-semibold">
-                          Bài viết nổi bật
-                        </Label>
-                      </div>
-                    </div>
                     </Card>
                   </div>
 
                   <div className="md:col-span-6 lg:col-span-7 space-y-4 lg:space-y-5">
                     {/* Ảnh bìa */}
                     <Card className="border border-gray-100 shadow-sm">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <ImageIcon className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-lg font-semibold text-gray-900">Ảnh bìa</h2>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <div className="space-y-3">
-                      <div
-                        className="w-full border-2 border-dashed border-gray-300 rounded-lg h-40 flex items-center justify-center bg-gray-50 cursor-pointer hover:border-blue-500 transition-colors"
-                        onClick={() => setShowImageDialog(true)}
-                      >
-                        {formData.imageUrl ? (
-                          <img
-                            src={
-                              formData.imageUrl.startsWith("/")
-                                ? buildUrl(formData.imageUrl)
-                                : formData.imageUrl
-                            }
-                            alt="Ảnh đại diện"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center gap-1 text-gray-500">
-                            <ImageIcon className="w-8 h-8 text-gray-400" />
-                            <span className="text-sm font-medium">Chọn ảnh bìa</span>
-                            <span className="text-xs text-gray-400">
-                              Click để mở thư viện media
-                            </span>
-                          </div>
-                        )}
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                        <div className="flex items-center gap-2">
+                          <ImageIcon className="w-5 h-5 text-blue-600" />
+                          <h2 className="text-lg font-semibold text-gray-900">Ảnh bìa</h2>
+                        </div>
                       </div>
-                      {formData.imageUrl && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => setShowImageDialog(true)}
-                        >
-                          Thay đổi ảnh
-                        </Button>
-                      )}
-                      {!formData.imageUrl && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => setShowImageDialog(true)}
-                        >
-                          Chọn ảnh
-                        </Button>
-                      )}
-                      <p className="text-xs text-gray-500">
-                        Khuyến nghị: 1200x600px. Dùng ảnh rõ nét, tối ưu dung lượng (&lt; 10MB).
-                      </p>
-                    </div>
+                      <div className="p-4">
+                        <div className="space-y-3">
+                          <div
+                            className="w-full border-2 border-dashed border-gray-300 rounded-lg h-40 flex items-center justify-center bg-gray-50 cursor-pointer hover:border-blue-500 transition-colors"
+                            onClick={() => setShowImageDialog(true)}
+                          >
+                            {formData.imageUrl ? (
+                              <img
+                                src={
+                                  formData.imageUrl.startsWith("/")
+                                    ? buildUrl(formData.imageUrl)
+                                    : formData.imageUrl
+                                }
+                                alt="Ảnh đại diện"
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="flex flex-col items-center gap-1 text-gray-500">
+                                <ImageIcon className="w-8 h-8 text-gray-400" />
+                                <span className="text-sm font-medium">Chọn ảnh bìa</span>
+                                <span className="text-xs text-gray-400">
+                                  Click để mở thư viện media
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          {formData.imageUrl && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => setShowImageDialog(true)}
+                            >
+                              Thay đổi ảnh
+                            </Button>
+                          )}
+                          {!formData.imageUrl && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full"
+                              onClick={() => setShowImageDialog(true)}
+                            >
+                              Chọn ảnh
+                            </Button>
+                          )}
+                          <p className="text-xs text-gray-500">
+                            Khuyến nghị: 1200x600px. Dùng ảnh rõ nét, tối ưu dung lượng (&lt; 10MB).
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
                   </div>
+
+                  {/* Cài đặt hiển thị */}
+                  <div className="md:col-span-12 space-y-4 lg:space-y-5">
+                    <Card className="border border-gray-100 shadow-sm">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                        <div className="flex items-center gap-2">
+                          <Settings className="w-5 h-5 text-blue-600" />
+                          <h2 className="text-lg font-semibold text-gray-900">
+                            Cài đặt hiển thị
+                          </h2>
+                        </div>
+                      </div>
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="author" className="text-sm font-semibold">
+                              <User className="w-3 h-3 inline mr-1" />
+                              Tác giả
+                            </Label>
+                            <Input
+                              id="author"
+                              value={formData.author}
+                              onChange={(e) =>
+                                setFormData({ ...formData, author: e.target.value })
+                              }
+                              placeholder="SFB Technology"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="readTime" className="text-sm font-semibold">
+                              <Clock className="w-3 h-3 inline mr-1" />
+                              Thời gian đọc
+                            </Label>
+                            <Input
+                              id="readTime"
+                              value={formData.readTime}
+                              onChange={(e) =>
+                                setFormData({ ...formData, readTime: e.target.value })
+                              }
+                              placeholder="5 phút đọc"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="gradient" className="text-sm font-semibold">
+                            Màu gradient
+                          </Label>
+                          <Select
+                            value={formData.gradient}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, gradient: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GRADIENT_OPTIONS.map((grad) => (
+                                <SelectItem key={grad.value} value={grad.value}>
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className={`w-4 h-4 rounded ${grad.preview}`}
+                                    />
+                                    <span>{grad.label}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </Card>
                   </div>
                 </section>
@@ -570,279 +696,203 @@ export default function NewsForm({
                 {/* Khu vực SEO & Cài đặt nâng cao */}
                 <section className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
                   <div className="md:col-span-7 lg:col-span-8 space-y-4 lg:space-y-5">
-                <Card className="border border-gray-100 shadow-sm">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <div className="flex items-center gap-2">
-                      <SearchIcon className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        Tối ưu hóa SEO
-                      </h2>
-                    </div>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-3 shadow-sm">
-                      <div className="flex items-start gap-2">
-                        <div className="bg-blue-100 rounded-full p-1.5">
-                          <Sparkles className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-semibold text-blue-900 mb-1">
+                    <Card className="border border-gray-100 shadow-sm">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <div className="flex items-center gap-2">
+                          <SearchIcon className="w-5 h-5 text-blue-600" />
+                          <h2 className="text-lg font-semibold text-gray-900">
                             Tối ưu hóa SEO
-                          </p>
-                          <p className="text-xs text-blue-700 leading-relaxed">
-                            Điền đầy đủ thông tin SEO để bài viết dễ dàng được tìm thấy trên
-                            Google. Nhấn "Tự động" để sử dụng tiêu đề và mô tả hiện có.
-                          </p>
+                          </h2>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify giữa">
-                          <Label htmlFor="seoTitle" className="text-sm font-semibold">
-                            Tiêu đề SEO
-                          </Label>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={() => {
-                              if (formData.title) {
-                                const autoTitle =
-                                  formData.title.length > 60
-                                    ? formData.title.substring(0, 57) + "..."
-                                    : formData.title;
-                                setFormData({ ...formData, seoTitle: autoTitle });
-                              }
-                            }}
-                            disabled={!formData.title}
-                          >
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Tự động
-                          </Button>
-                        </div>
-                        <Input
-                          id="seoTitle"
-                          value={formData.seoTitle}
-                          onChange={(e) =>
-                            setFormData({ ...formData, seoTitle: e.target.value })
-                          }
-                          placeholder={
-                            formData.title
-                              ? `Tự động: ${formData.title.substring(0, 40)}...`
-                              : "Nhập tiêu đề SEO..."
-                          }
-                          maxLength={60}
-                          className="text-sm"
-                        />
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
-                          <span
-                            className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                              formData.seoTitle.length > 60
-                                ? "text-red-600 bg-red-50"
-                                : formData.seoTitle.length >= 50 &&
-                                  formData.seoTitle.length <= 60
-                                ? "text-green-600 bg-green-50"
-                                : formData.seoTitle.length > 0
-                                ? "text-yellow-600 bg-yellow-50"
-                                : "text-gray-400 bg-gray-50"
-                            }`}
-                          >
-                            {formData.seoTitle.length}/60
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label
-                            htmlFor="seoDescription"
-                            className="text-sm font-semibold"
-                          >
-                            Mô tả SEO
-                          </Label>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={() => {
-                              if (formData.excerpt) {
-                                const autoDesc =
-                                  formData.excerpt.length > 160
-                                    ? formData.excerpt.substring(0, 157) + "..."
-                                    : formData.excerpt;
-                                setFormData({
-                                  ...formData,
-                                  seoDescription: autoDesc,
-                                });
-                              }
-                            }}
-                            disabled={!formData.excerpt}
-                          >
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            Tự động
-                          </Button>
-                        </div>
-                        <Textarea
-                          id="seoDescription"
-                          value={formData.seoDescription}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              seoDescription: e.target.value,
-                            })
-                          }
-                          placeholder={
-                            formData.excerpt
-                              ? `Tự động: ${formData.excerpt.substring(0, 60)}...`
-                              : "Nhập mô tả SEO..."
-                          }
-                          rows={3}
-                          maxLength={160}
-                          className="resize-none text-sm"
-                        />
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500">
-                            Khuyến nghị: 150-160 ký tự
-                          </p>
-                          <span
-                            className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                              formData.seoDescription.length > 160
-                                ? "text-red-600 bg-red-50"
-                                : formData.seoDescription.length >= 150 &&
-                                  formData.seoDescription.length <= 160
-                                ? "text-green-600 bg-green-50"
-                                : formData.seoDescription.length > 0
-                                ? "text-yellow-600 bg-yellow-50"
-                                : "text-gray-400 bg-gray-50"
-                            }`}
-                          >
-                            {formData.seoDescription.length}/160
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="seoKeywords" className="text-sm font-semibold">
-                          Từ khóa SEO
-                        </Label>
-                        <Input
-                          id="seoKeywords"
-                          value={formData.seoKeywords}
-                          onChange={(e) =>
-                            setFormData({ ...formData, seoKeywords: e.target.value })
-                          }
-                          placeholder="từ khóa 1, từ khóa 2..."
-                          className="text-sm"
-                        />
-                        <p className="text-xs text-gray-500">
-                          Phân cách bằng dấu phẩy
-                        </p>
-                      </div>
-
-                      {(formData.seoTitle || formData.seoDescription) && (
-                        <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                          <p className="text-xs font-semibold text-gray-700 mb-2">
-                            Xem trước:
-                          </p>
-                          <div className="space-y-1">
-                            <div className="text-xs text-blue-600 font-medium line-clamp-1">
-                              {formData.seoTitle || formData.title || "Tiêu đề bài viết"}
+                      <div className="p-4 space-y-4">
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-3 shadow-sm">
+                          <div className="flex items-start gap-2">
+                            <div className="bg-blue-100 rounded-full p-1.5">
+                              <Sparkles className="w-4 h-4 text-blue-600" />
                             </div>
-                            <div className="text-xs text-green-700">
-                              {formData.link || "/news/..."}
-                            </div>
-                            <div className="text-xs text-gray-600 line-clamp-2">
-                              {formData.seoDescription ||
-                                formData.excerpt ||
-                                "Mô tả bài viết..."}
+                            <div className="flex-1">
+                              <p className="text-xs font-semibold text-blue-900 mb-1">
+                                Tối ưu hóa SEO
+                              </p>
+                              <p className="text-xs text-blue-700 leading-relaxed">
+                                Điền đầy đủ thông tin SEO để bài viết dễ dàng được tìm thấy trên
+                                Google. Nhấn "Tự động" để sử dụng tiêu đề và mô tả hiện có.
+                              </p>
                             </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              </div>
 
-                  <div className="md:col-span-5 lg:col-span-4 space-y-4 lg:space-y-5 lg:sticky lg:top-24">
-                <Card className="border border-gray-100 shadow-sm">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        Cài đặt hiển thị
-                      </h2>
-                    </div>
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="author" className="text-sm font-semibold">
-                          <User className="w-3 h-3 inline mr-1" />
-                          Tác giả
-                        </Label>
-                        <Input
-                          id="author"
-                          value={formData.author}
-                          onChange={(e) =>
-                            setFormData({ ...formData, author: e.target.value })
-                          }
-                          placeholder="SFB Technology"
-                        />
-                      </div>
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify giữa">
+                              <Label htmlFor="seoTitle" className="text-sm font-semibold">
+                                Tiêu đề SEO
+                              </Label>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-xs px-2"
+                                onClick={() => {
+                                  if (formData.title) {
+                                    const autoTitle =
+                                      formData.title.length > 60
+                                        ? formData.title.substring(0, 57) + "..."
+                                        : formData.title;
+                                    setFormData({ ...formData, seoTitle: autoTitle });
+                                  }
+                                }}
+                                disabled={!formData.title}
+                              >
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                Tự động
+                              </Button>
+                            </div>
+                            <Input
+                              id="seoTitle"
+                              value={formData.seoTitle}
+                              onChange={(e) =>
+                                setFormData({ ...formData, seoTitle: e.target.value })
+                              }
+                              placeholder={
+                                formData.title
+                                  ? `Tự động: ${formData.title.substring(0, 40)}...`
+                                  : "Nhập tiêu đề SEO..."
+                              }
+                              maxLength={60}
+                              className="text-sm"
+                            />
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
+                              <span
+                                className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoTitle.length > 60
+                                  ? "text-red-600 bg-red-50"
+                                  : formData.seoTitle.length >= 50 &&
+                                    formData.seoTitle.length <= 60
+                                    ? "text-green-600 bg-green-50"
+                                    : formData.seoTitle.length > 0
+                                      ? "text-yellow-600 bg-yellow-50"
+                                      : "text-gray-400 bg-gray-50"
+                                  }`}
+                              >
+                                {formData.seoTitle.length}/60
+                              </span>
+                            </div>
+                          </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="readTime" className="text-sm font-semibold">
-                          <Clock className="w-3 h-3 inline mr-1" />
-                          Thời gian đọc
-                        </Label>
-                        <Input
-                          id="readTime"
-                          value={formData.readTime}
-                          onChange={(e) =>
-                            setFormData({ ...formData, readTime: e.target.value })
-                          }
-                          placeholder="5 phút đọc"
-                        />
-                      </div>
-                    </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="seoDescription"
+                                className="text-sm font-semibold"
+                              >
+                                Mô tả SEO
+                              </Label>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-xs px-2"
+                                onClick={() => {
+                                  if (formData.excerpt) {
+                                    const autoDesc =
+                                      formData.excerpt.length > 160
+                                        ? formData.excerpt.substring(0, 157) + "..."
+                                        : formData.excerpt;
+                                    setFormData({
+                                      ...formData,
+                                      seoDescription: autoDesc,
+                                    });
+                                  }
+                                }}
+                                disabled={!formData.excerpt}
+                              >
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                Tự động
+                              </Button>
+                            </div>
+                            <Textarea
+                              id="seoDescription"
+                              value={formData.seoDescription}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  seoDescription: e.target.value,
+                                })
+                              }
+                              placeholder={
+                                formData.excerpt
+                                  ? `Tự động: ${formData.excerpt.substring(0, 60)}...`
+                                  : "Nhập mô tả SEO..."
+                              }
+                              rows={3}
+                              maxLength={160}
+                              className="resize-none text-sm"
+                            />
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs text-gray-500">
+                                Khuyến nghị: 150-160 ký tự
+                              </p>
+                              <span
+                                className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoDescription.length > 160
+                                  ? "text-red-600 bg-red-50"
+                                  : formData.seoDescription.length >= 150 &&
+                                    formData.seoDescription.length <= 160
+                                    ? "text-green-600 bg-green-50"
+                                    : formData.seoDescription.length > 0
+                                      ? "text-yellow-600 bg-yellow-50"
+                                      : "text-gray-400 bg-gray-50"
+                                  }`}
+                              >
+                                {formData.seoDescription.length}/160
+                              </span>
+                            </div>
+                          </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="gradient" className="text-sm font-semibold">
-                        Màu gradient
-                      </Label>
-                      <Select
-                        value={formData.gradient}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, gradient: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {GRADIENT_OPTIONS.map((grad) => (
-                            <SelectItem key={grad.value} value={grad.value}>
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`w-4 h-4 rounded ${grad.preview}`}
-                                />
-                                <span>{grad.label}</span>
+                          <div className="space-y-2">
+                            <Label htmlFor="seoKeywords" className="text-sm font-semibold">
+                              Từ khóa SEO
+                            </Label>
+                            <Input
+                              id="seoKeywords"
+                              value={formData.seoKeywords}
+                              onChange={(e) =>
+                                setFormData({ ...formData, seoKeywords: e.target.value })
+                              }
+                              placeholder="từ khóa 1, từ khóa 2..."
+                              className="text-sm"
+                            />
+                            <p className="text-xs text-gray-500">
+                              Phân cách bằng dấu phẩy
+                            </p>
+                          </div>
+
+                          {(formData.seoTitle || formData.seoDescription) && (
+                            <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                              <p className="text-xs font-semibold text-gray-700 mb-2">
+                                Xem trước:
+                              </p>
+                              <div className="space-y-1">
+                                <div className="text-xs text-blue-600 font-medium line-clamp-1">
+                                  {formData.seoTitle || formData.title || "Tiêu đề bài viết"}
+                                </div>
+                                <div className="text-xs text-green-700">
+                                  {formData.link || "/news/..."}
+                                </div>
+                                <div className="text-xs text-gray-600 line-clamp-2">
+                                  {formData.seoDescription ||
+                                    formData.excerpt ||
+                                    "Mô tả bài viết..."}
+                                </div>
                               </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
                   </div>
-                </Card>
-              </div>
-            </section>
+                </section>
               </TabsContent>
             </div>
           </Tabs>

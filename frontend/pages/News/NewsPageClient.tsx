@@ -40,6 +40,7 @@ export function NewsPageClient({
   const [loading, setLoading] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [pageSize, setPageSize] = useState<number>(6);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Fetch news with filters
   const fetchNews = useCallback(async (category: string) => {
@@ -121,6 +122,11 @@ export function NewsPageClient({
     fetchNews(selectedCategory);
   }, [selectedCategory, fetchNews, initialNews]);
 
+  // Reset to page 1 when category or pageSize changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, pageSize]);
+
   // Map categories with counts
   const categoriesWithCount = useMemo(() => {
     if (!categories || !Array.isArray(categories)) {
@@ -131,6 +137,68 @@ export function NewsPageClient({
       count: categoryCounts[cat.id] ?? 0,
     }));
   }, [categories, categoryCounts]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(news.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedNews = news.slice(startIndex, endIndex);
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5; // Maximum visible page numbers
+
+    if (totalPages <= maxVisible) {
+      // Show all pages if total is less than maxVisible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage <= 3) {
+        // Near the start
+        for (let i = 2; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Near the end
+        pages.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // In the middle
+        pages.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      // Scroll to top of news section
+      const newsSection = document.querySelector('[data-news-section]');
+      if (newsSection) {
+        const top = newsSection.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({
+          top: top,
+          behavior: "smooth",
+        });
+      }
+    }
+  };
 
   const HeroIcon = newsHeroData.icon;
   const NewsletterIcon = newsletterData.icon;
@@ -190,7 +258,10 @@ export function NewsPageClient({
               <div className="relative">
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1); // Reset to first page when changing page size
+                  }}
                   className="appearance-none bg-white border border-gray-200 rounded-lg pl-4 pr-10 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:border-[#0870B4] focus:ring-1 focus:ring-[#0870B4] transition-all cursor-pointer hover:border-gray-300"
                 >
                   <option value={6}>6 bài viết</option>
@@ -223,33 +294,79 @@ export function NewsPageClient({
               </p>
             </div>
           ) : (
-            <AnimatePresence mode="wait">
-              <NewsList
-                news={news.slice(0, pageSize)}
-              />
+            <>
+              <div data-news-section>
+                <AnimatePresence mode="wait">
+                  <NewsList key={`page-${currentPage}`} news={paginatedNews} />
+                </AnimatePresence>
+              </div>
 
-              {/* Pagination Mock - Hide if less items than pageSize */}
-              {news.length > pageSize && (
+              {/* Pagination */}
+              {totalPages > 1 && (
                 <div className="flex justify-center mt-16 gap-2">
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] transition-colors">
+                  {/* Previous button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
+                      currentPage === 1
+                        ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                        : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                    }`}
+                    aria-label="Trang trước"
+                  >
                     &lt;
                   </button>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#0870B4] text-white shadow-md font-medium">
-                    1
-                  </button>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] transition-colors font-medium">
-                    2
-                  </button>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] transition-colors font-medium">
-                    3
-                  </button>
-                  <span className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
-                  <button className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] transition-colors">
+
+                  {/* Page numbers */}
+                  {getPageNumbers().map((page, index) => {
+                    if (page === "...") {
+                      return (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="w-10 h-10 flex items-center justify-center text-gray-400"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const pageNum = page as number;
+                    const isActive = pageNum === currentPage;
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors font-medium ${
+                          isActive
+                            ? "bg-[#0870B4] text-white border-[#0870B4] shadow-md"
+                            : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                        }`}
+                        aria-label={`Trang ${pageNum}`}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+
+                  {/* Next button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
+                      currentPage === totalPages
+                        ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                        : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                    }`}
+                    aria-label="Trang sau"
+                  >
                     &gt;
                   </button>
                 </div>
               )}
-            </AnimatePresence>
+            </>
           )}
         </div>
       </section>

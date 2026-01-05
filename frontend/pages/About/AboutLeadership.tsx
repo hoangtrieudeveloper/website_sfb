@@ -30,7 +30,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
-                    <FadeIn manualTrigger className="text-center mb-16 max-w-4xl mx-auto">
+                    <FadeIn className="text-center mb-16 max-w-4xl mx-auto">
                         {headerTitle && (
                             <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
                                 {headerTitle}
@@ -44,7 +44,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                     </FadeIn>
 
                     {/* Carousel */}
-                    <FadeIn manualTrigger delay={0.2} className="px-[clamp(16px,3.125vw,48px)] relative animate-in fade-in zoom-in duration-700">
+                    <FadeIn delay={0.2} className="px-[clamp(16px,3.125vw,48px)] relative animate-in fade-in zoom-in duration-700">
                         <Carousel
                             opts={{
                                 align: "start",

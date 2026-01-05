@@ -50,7 +50,31 @@ import { removeAuthToken } from "@/lib/auth/token";
 import { Toaster } from "sonner";
 
 type AdminNavItem = {
-  id: "dashboard" | "news" | "category" | "system" | "users" | "roles" | "permissions" | "settings" | "news-group" | "media" | "products" | "product-categories" | "product-benefits" | "product-hero" | "menus" | "industries" | "about" | "careers" | "homepage" | "contact" | "contact-requests" | "contact-group" | "content-group";
+  id:
+    | "dashboard"
+    | "news"
+    | "category"
+    | "system"
+    | "users"
+    | "roles"
+    | "permissions"
+    | "settings"
+    | "news-group"
+    | "media"
+    | "products"
+    | "product-categories"
+    | "product-benefits"
+    | "product-hero"
+    | "menus"
+    | "industries"
+    | "about"
+    | "careers"
+    | "homepage"
+    | "contact"
+    | "contact-requests"
+    | "contact-group"
+    | "content-group"
+    | "seo";
   label: string;
   href?: string;
   icon: ComponentType<{ className?: string }>;
@@ -87,7 +111,7 @@ const menuItems: AdminNavItem[] = [
         requiredPermissions: ["categories.view", "categories.manage", "admin"],
       },
     ],
-  },
+  },  
   {
     id: "content-group",
     label: "Quản lý Nội dung",
@@ -163,6 +187,8 @@ const menuItems: AdminNavItem[] = [
       "roles.view",
       "roles.manage",
       "permissions.manage",
+      "seo.view",
+      "seo.manage",
       "admin",
     ],
     children: [
@@ -186,6 +212,13 @@ const menuItems: AdminNavItem[] = [
         href: "/admin/permissions",
         icon: ShieldCheck,
         requiredPermissions: ["roles.manage", "permissions.manage", "admin"],
+      },
+      {
+        id: "seo",
+        label: "Cấu hình SEO",
+        href: "/admin/seo",
+        icon: Settings2,
+        requiredPermissions: ["seo.view", "seo.manage", "admin"],
       },
     ],
   },

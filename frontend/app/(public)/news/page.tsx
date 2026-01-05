@@ -1,13 +1,12 @@
 import { NewsPageClient } from "../../../pages/News/NewsPageClient";
+import { API_BASE_URL } from "@/lib/api/base";
 
 // Enable ISR - revalidate every 30 seconds for news page
 export const revalidate = 30;
 
 async function getNews() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
-      process.env.API_SFB_URL ||
-      "http://localhost:4000";
+    const baseUrl = API_BASE_URL;
 
     // Fetch both all news and featured news
     const [newsRes, featuredRes] = await Promise.all([
@@ -62,9 +61,7 @@ async function getNews() {
 
 async function getCategories() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_SFB_URL ||
-      process.env.API_SFB_URL ||
-      "http://localhost:4000";
+    const baseUrl = API_BASE_URL;
 
     const res = await fetch(`${baseUrl}/api/public/categories`, {
       next: { revalidate: 3600 }, // Cache categories for 1 hour
@@ -83,6 +80,15 @@ async function getCategories() {
     console.error("Error fetching categories:", error);
     return [];
   }
+}
+
+import { generateSeoMetadata } from "@/lib/seo";
+
+export async function generateMetadata() {
+  return await generateSeoMetadata('/news', {
+    title: 'Tin tức - SFB Technology',
+    description: 'Cập nhật tin tức mới nhất về công nghệ, sản phẩm và hoạt động của SFB Technology',
+  });
 }
 
 export default async function NewsRoute() {

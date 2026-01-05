@@ -25,7 +25,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
-                    <FadeIn manualTrigger className="text-center mb-16">
+                    <FadeIn  className="text-center mb-16">
                         {displayData.headerSub && (
                             <span className="text-[#2CA4E0] font-semibold text-sm tracking-wider uppercase mb-3 block">
                                 {displayData.headerSub}
@@ -47,7 +47,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     {/* Section 1: Intro + Handshake Image */}
                     <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center mb-32">
                         {/* Left: Image Card */}
-                        <FadeIn manualTrigger className="relative w-full max-w-[701px] flex-shrink-0" delay={0.2}>
+                        <FadeIn className="relative w-full max-w-[701px] flex-shrink-0" delay={0.2}>
                             <TechBorderReveal className="rounded-[24px] p-1">
                                 <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
                                     <ImageWithFallback
@@ -60,7 +60,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         </FadeIn>
 
                         {/* Right: Content */}
-                        <FadeIn manualTrigger className="flex-1" delay={0.4}>
+                        <FadeIn className="flex-1" delay={0.4}>
                             {(displayData.contentTitle || displayData.contentDescription) && (
                                 <div className="space-y-6 mb-[30px]">
                                     {displayData.contentTitle && (
@@ -92,7 +92,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     {/* Section 2: Contact Info + Building Image */}
                     <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center">
                         {/* Left: Contact Info */}
-                        <FadeIn manualTrigger className="order-2 lg:order-1 space-y-8 flex-1 pl-4 lg:pl-0" delay={0.2}>
+                        <FadeIn className="order-2 lg:order-1 space-y-8 flex-1 pl-4 lg:pl-0" delay={0.2}>
                             <div className="space-y-6">
                                 {contacts.map((item: any, idx: number) => {
                                     const IconComponent = item.iconName
@@ -136,7 +136,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         </FadeIn>
 
                         {/* Right: Building Image */}
-                        <FadeIn manualTrigger className="order-1 lg:order-2 relative w-full max-w-[701px] flex-shrink-0" delay={0.4}>
+                        <FadeIn className="order-1 lg:order-2 relative w-full max-w-[701px] flex-shrink-0" delay={0.4}>
                             <TechBorderReveal className="rounded-[24px] p-1">
                                 <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
                                     <ImageWithFallback
