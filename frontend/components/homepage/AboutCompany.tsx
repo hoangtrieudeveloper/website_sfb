@@ -16,7 +16,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
   const title = data?.title || aboutCompanyData.title;
   const description = data?.description || aboutCompanyData.description;
   const slidesData = data?.slides || aboutSlides;
-  
+
   const baseSlides = slidesData;
   const slides = [...baseSlides, ...baseSlides, ...baseSlides];
 
@@ -219,11 +219,10 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                   <button
                     key={index}
                     onClick={() => scrollToDot(index)}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                      index === (selectedIndex % baseSlides.length)
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === (selectedIndex % baseSlides.length)
                         ? "bg-[#0F172A] w-6"
                         : "bg-[#94A3B8] hover:bg-[#64748B]"
-                    }`}
+                      }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}

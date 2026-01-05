@@ -7,7 +7,7 @@ import { ScrollAnimation } from "./ScrollAnimation";
 import { consultData } from "./data";
 
 interface ConsultProps {
-  data?: any;
+    data?: any;
 }
 
 export function Consult({ data }: ConsultProps) {
@@ -16,12 +16,12 @@ export function Consult({ data }: ConsultProps) {
     const description = data?.description || consultData.description;
     const buttons = data?.buttons || consultData.buttons;
     const backgroundColor = data?.backgroundColor || '#29A3DD';
-    
+
     return (
         <section className="py-10 px-4 flex justify-center">
             <div className="container mx-auto flex justify-center">
                 <ScrollAnimation variant="elastic-up" className="w-full flex justify-center">
-                    <div 
+                    <div
                         className="
                             flex flex-col justify-center items-center
                             w-full max-w-[1298px]

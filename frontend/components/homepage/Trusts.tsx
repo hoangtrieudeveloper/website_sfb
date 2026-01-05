@@ -54,51 +54,51 @@ export function Trusts({ data }: TrustsProps) {
             {features.map((feature: any, idx: number) => {
               const IconComponent = feature.iconName ? (LucideIcons as any)[feature.iconName] : feature.icon;
               const Icon = IconComponent || LucideIcons.BarChart3;
-              
+
               return (
-              <ScrollAnimation
-                key={idx}
-                variant="flip-up"
-                delay={idx * 0.1}
-                className="flex gap-4 items-start flex-1 min-w-0"
-              >
-                <div className="flex-shrink-0 pt-1">
-                  {Icon ? <Icon className="w-6 h-6 text-[#1D8FCF]" /> : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M3 15.0002V16.8C3 17.9201 3 18.4798 3.21799 18.9076C3.40973 19.2839 3.71547 19.5905 4.0918 19.7822C4.5192 20 5.07899 20 6.19691 20H21.0002M3 15.0002V5M3 15.0002L6.8534 11.7891L6.85658 11.7865C7.55366 11.2056 7.90288 10.9146 8.28154 10.7964C8.72887 10.6567 9.21071 10.6788 9.64355 10.8584C10.0105 11.0106 10.3323 11.3324 10.9758 11.9759L10.9822 11.9823C11.6357 12.6358 11.9633 12.9635 12.3362 13.1153C12.7774 13.2951 13.2685 13.3106 13.7207 13.1606C14.1041 13.0334 14.4542 12.7275 15.1543 12.115L21 7" stroke="#1D8FCF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  )}
-                </div>
-                <div>
-                  <h3
-                    className="self-stretch text-[#0F172A] mb-2 group-hover:text-[#006FB3] transition-colors"
-                    style={{
-                      fontFamily: '"Plus Jakarta Sans"',
-                      fontSize: "20px",
-                      fontStyle: "normal",
-                      fontWeight: 600,
-                      lineHeight: "30px",
-                      fontFeatureSettings: "'liga' off, 'clig' off",
-                    }}
-                  >
-                    {feature.title}
-                  </h3>
-                  <p
-                    className="self-stretch text-[#0F172A]"
-                    style={{
-                      textAlign: "justify",
-                      fontFamily: '"Plus Jakarta Sans"',
-                      fontSize: "16px",
-                      fontStyle: "normal",
-                      fontWeight: 400,
-                      lineHeight: "30px",
-                      fontFeatureSettings: "'liga' off, 'clig' off",
-                    }}
-                  >
-                    {feature.description}
-                  </p>
-                </div>
-              </ScrollAnimation>
+                <ScrollAnimation
+                  key={idx}
+                  variant="flip-up"
+                  delay={idx * 0.1}
+                  className="flex gap-4 items-start flex-1 min-w-0"
+                >
+                  <div className="flex-shrink-0 pt-1">
+                    {Icon ? <Icon className="w-6 h-6 text-[#1D8FCF]" /> : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 15.0002V16.8C3 17.9201 3 18.4798 3.21799 18.9076C3.40973 19.2839 3.71547 19.5905 4.0918 19.7822C4.5192 20 5.07899 20 6.19691 20H21.0002M3 15.0002V5M3 15.0002L6.8534 11.7891L6.85658 11.7865C7.55366 11.2056 7.90288 10.9146 8.28154 10.7964C8.72887 10.6567 9.21071 10.6788 9.64355 10.8584C10.0105 11.0106 10.3323 11.3324 10.9758 11.9759L10.9822 11.9823C11.6357 12.6358 11.9633 12.9635 12.3362 13.1153C12.7774 13.2951 13.2685 13.3106 13.7207 13.1606C14.1041 13.0334 14.4542 12.7275 15.1543 12.115L21 7" stroke="#1D8FCF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3
+                      className="self-stretch text-[#0F172A] mb-2 group-hover:text-[#006FB3] transition-colors"
+                      style={{
+                        fontFamily: '"Plus Jakarta Sans"',
+                        fontSize: "20px",
+                        fontStyle: "normal",
+                        fontWeight: 600,
+                        lineHeight: "30px",
+                        fontFeatureSettings: "'liga' off, 'clig' off",
+                      }}
+                    >
+                      {feature.title}
+                    </h3>
+                    <p
+                      className="self-stretch text-[#0F172A]"
+                      style={{
+                        textAlign: "justify",
+                        fontFamily: '"Plus Jakarta Sans"',
+                        fontSize: "16px",
+                        fontStyle: "normal",
+                        fontWeight: 400,
+                        lineHeight: "30px",
+                        fontFeatureSettings: "'liga' off, 'clig' off",
+                      }}
+                    >
+                      {feature.description}
+                    </p>
+                  </div>
+                </ScrollAnimation>
               );
             })}
 
