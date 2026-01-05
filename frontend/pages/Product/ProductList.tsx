@@ -103,76 +103,32 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
     const hasFrontImage = headerData?.imageFront && headerData.imageFront.trim() !== '';
 
     return (
-        <section id="products" className="bg-white">
+        <section id="products" className="bg-[#F8FBFE]">
             <div className="w-full max-w-[1920px] mx-auto pb-[120px]">
                 {/* Header với ảnh (nếu có) */}
-                <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[60px] min-[1920px]:gap-[90px] px-6 lg:px-10 min-[1920px]:px-[243px] mb-10">
-                    {/* Left: Text */}
-                    <div className="flex w-full max-w-[549px] flex-col items-start gap-6">
+                <div className="flex flex-col items-center justify-center gap-10 sm:gap-12 px-6 lg:px-10 min-[1920px]:px-[243px] mb-10 text-center">
+                    {/* Text */}
+                    <div className="flex w-full max-w-[840px] flex-col items-center gap-6">
                         {displayHeader.subtitle && (
-                            <div className="text-[15px] font-semibold tracking-widest text-[#2EABE2] uppercase">
+                            <div className="self-stretch text-[#1D8FCF] text-center [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[15px] font-medium leading-normal uppercase">
                                 {displayHeader.subtitle}
                             </div>
                         )}
 
                         {displayHeader.title && (
-                            <h2 className="text-gray-900 text-4xl md:text-5xl font-extrabold">
+                            <h2 className="w-full max-w-[840px] text-[#0F172A] text-center [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[56px] font-bold leading-normal">
                                 {displayHeader.title}
                             </h2>
                         )}
 
                         {displayHeader.description && (
-                            <p className="text-gray-600 leading-relaxed">
+                            <p className="w-full max-w-[610px] text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[16px] font-medium leading-[26px]">
                                 {displayHeader.description}
                             </p>
                         )}
                     </div>
 
-                    {/* Right: Images */}
-                    <div className="relative w-full lg:w-auto flex justify-center lg:justify-start">
-                        <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
-                            {/* Chỉ hiển thị no-cover khi CẢ 2 ảnh đều không có */}
-                            {!hasBackImage && !hasFrontImage ? (
-                                <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
-                                    <ImageWithFallback
-                                        src="/images/no_cover.jpeg"
-                                        alt="No cover image"
-                                        className="w-full h-full object-contain"
-                                    />
-                                </div>
-                            ) : (
-                                <>
-                                    {/* Back image - Chỉ hiển thị nếu có */}
-                                    {hasBackImage && (
-                                        <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
-                                            <ImageWithFallback
-                                                src={headerData.imageBack}
-                                                alt={displayHeader.title || "Product list header"}
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                    )}
 
-                                    {/* Front image - Chỉ hiển thị nếu có */}
-                                    {hasFrontImage && (
-                                        <div
-                                            className={`${
-                                                hasBackImage 
-                                                    ? "absolute left-[183.5px] bottom-0"
-                                                    : "relative"
-                                            } rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden ${hasBackImage ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]"}`}
-                                        >
-                                            <ImageWithFallback
-                                                src={headerData.imageFront}
-                                                alt={displayHeader.title || "Product list header"}
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
                 </div>
 
                 {/* Pills filter ngay dưới title */}
@@ -185,10 +141,10 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                             <button
                                 key={category.id}
                                 onClick={() => setSelectedCategory(category.id)}
-                                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2
+                                className={`h-[44px] px-6 py-3 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2 border
               ${active
-                                        ? "bg-[#0870B4] text-white shadow-md"
-                                        : "bg-[#EAF5FF] text-[#0870B4] hover:bg-[#DCEFFF]"
+                                        ? "border-[#1D8FCF] bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white shadow-md"
+                                        : "border-transparent bg-[#EAF5FF] text-[#0870B4] hover:bg-[#DCEFFF]"
                                     }`}
                             >
                                 <Icon size={16} />
@@ -283,7 +239,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                 )}
                             </div>
 
-                            
+
                             <div className="w-full flex items-center justify-between gap-4 flex-wrap">
                                 <div>
                                     <div className="text-xs text-gray-500">Giá tham khảo</div>
@@ -294,9 +250,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
 
                                 <div className="flex gap-3">
                                     <button
-                                        className="px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
-                            font-semibold text-sm hover:bg-[#DCEFFF] transition
-                             inline-flex items-center gap-2"
+                                        className="flex h-[48px] px-6 py-[7px] items-center gap-3 rounded-[12px] border border-[rgba(29,143,207,0.20)] bg-[linear-gradient(237deg,rgba(128,192,228,0.10)_7%,rgba(29,143,207,0.10)_71.94%)] text-[#0870B4] font-semibold text-sm transition hover:shadow-sm"
                                     >
                                         Demo nhanh
                                         <img
@@ -308,7 +262,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
 
                                     <Link
                                         href={`/products/${product.slug || slugify(product.name || '')}`}
-                                        className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                                        className="flex h-[48px] px-6 py-[7px] items-center gap-3 rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-semibold text-sm transition hover:shadow-md"
                                     >
                                         Tìm hiểu thêm <ArrowRight size={16} />
                                     </Link>

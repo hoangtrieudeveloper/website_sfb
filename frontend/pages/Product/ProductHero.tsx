@@ -62,7 +62,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                         {displayData.primaryCtaText && (
                             <a
                                 href={displayData.primaryCtaLink || "#products"}
-                                className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
+                                className="group inline-flex items-center justify-center h-[56px] px-[30px] py-[7px] gap-[12px] rounded-[12px] border border-[#29A3DD] bg-white text-[#29A3DD] font-semibold hover:shadow-lg hover:scale-105 transition-all"
                             >
                                 {displayData.primaryCtaText}
                                 <ArrowRight
@@ -74,7 +74,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                         {displayData.secondaryCtaText && (
                             <a
                                 href={displayData.secondaryCtaLink || "/contact"}
-                                className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
+                                className="group inline-flex items-center justify-center h-[56px] px-[30px] py-[7px] gap-[12px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-semibold hover:shadow-lg hover:scale-105 transition-all"
                             >
                                 {displayData.secondaryCtaText}
                                 <ArrowRight
