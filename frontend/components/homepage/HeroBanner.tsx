@@ -3,7 +3,6 @@
 import {
   ArrowRight,
   Play,
-  Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion"; // Add Framer Motion
 import { ImageWithFallback } from "../figma/ImageWithFallback";
@@ -37,13 +36,13 @@ export function HeroBanner({ data }: HeroBannerProps) {
         <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-[#006FB3]/15 rounded-full blur-3xl opacity-30 animate-blob animation-delay-4000" />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-[45px] items-center">
+      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:pl-[clamp(24px,17.45vw,335px)] xl:pr-[clamp(24px,7.8125vw,150px)] relative z-10">
+        <div className="grid lg:grid-cols-2 xl:[grid-template-columns:minmax(0,486px)_minmax(0,851px)] gap-[45px] xl:gap-[clamp(45px,5.1042vw,98px)] items-center">
           {/* Left */}
           <div className="space-y-8">
             <ScrollAnimation variant="blur-in" delay={0.2}>
               <h1
-                className="text-[#0F172A] font-bold self-stretch text-4xl md:text-5xl lg:text-[56px] text-center lg:text-left"
+                className="text-[#0F172A] font-bold self-stretch text-4xl md:text-5xl lg:text-[54px] text-center lg:text-left"
                 style={{
                   fontFamily: '"Plus Jakarta Sans", sans-serif',
                   lineHeight: "1.2",
@@ -119,10 +118,10 @@ export function HeroBanner({ data }: HeroBannerProps) {
             variant="zoom-in"
             delay={0.3}
             duration={0.8}
-            className="block"
+            className="block lg:justify-self-end"
           >
             <div
-              className="relative overflow-hidden"
+              className="relative overflow-hidden box-border w-full max-w-[851px] aspect-[851/505] lg:ml-auto min-[1920px]:w-[851px] min-[1920px]:h-[505px] min-[1920px]:aspect-auto"
               style={{
                 display: "flex",
                 justifyContent: "flex-end",
@@ -136,7 +135,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
               <ImageWithFallback
                 src={heroImage}
                 alt="SFB Technology Office"
-                className="w-full h-auto"
+                className="w-full h-full object-cover"
               />
             </div>
           </ScrollAnimation>

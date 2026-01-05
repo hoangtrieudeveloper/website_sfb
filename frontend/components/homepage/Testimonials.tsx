@@ -79,7 +79,7 @@ export function Testimonials({ data }: TestimonialsProps) {
 
   return (
     <section className="bg-[#eff8ff] py-24 overflow-hidden">
-      <div className="container mx-auto px-6">
+      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
         {/* Header */}
         <ScrollAnimation variant="blur-in">
           <h2 className="text-center text-[#0F172A] text-4xl md:text-5xl font-bold mb-16">

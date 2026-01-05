@@ -20,7 +20,8 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
 
     return (
         <section className="py-20 bg-[#F8FBFE]">
-            <div className="max-w-[1340px] mx-auto px-6">
+            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
+                <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}
                 <FadeIn className="text-center mb-16">
                     {headerTitle && (
@@ -65,6 +66,7 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
                         );
                     })}
                 </StaggerContainer>
+                </div>
             </div>
         </section>
     );

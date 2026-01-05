@@ -27,7 +27,7 @@ export function Solutions({ data }: SolutionsProps) {
       id="solutions"
       className="relative py-[120px] overflow-visible bg-[linear-gradient(236.99deg,#80C0E4_7%,#1D8FCF_71.94%)]"
     >
-      <div className="container mx-auto px-6">
+      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
         {/* Header */}
         <ScrollAnimation
           variant="fade-down"

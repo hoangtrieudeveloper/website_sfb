@@ -52,8 +52,9 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
     const items = displayData.items || milestones;
 
     return (
-        <section className="py-20 bg-[#F8FBFE] overflow-hidden">
-            <div className="max-w-[1340px] mx-auto px-6">
+        <section className="py-20 bg-[#80C0E4]  overflow-hidden">
+            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
+                <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}
                 <FadeIn className="text-center mb-24 max-w-4xl mx-auto">
                     {headerTitle && (
@@ -81,7 +82,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                     </div>
 
                                     {/* Left Side */}
-                                    <div className={`flex-1 w-full lg:w-auto flex ${isLeft ? 'justify-end lg:pr-40' : 'justify-start lg:pl-40 order-last'}`}>
+                                    <div className={`flex-1 w-full lg:w-auto flex ${isLeft ? 'justify-end lg:pr-[clamp(24px,8.333vw,160px)]' : 'justify-start lg:pl-[clamp(24px,8.333vw,160px)] order-last'}`}>
                                         <motion.div
                                             custom={isLeft}
                                             initial="hidden"
@@ -138,11 +139,12 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                     </div>
 
                                     {/* Right Side Spacer/Content */}
-                                    <div className={`flex-1 hidden lg:block ${isLeft ? 'pl-40' : 'pr-40'}`}></div>
+                                    <div className={`flex-1 hidden lg:block ${isLeft ? 'pl-[clamp(24px,8.333vw,160px)]' : 'pr-[clamp(24px,8.333vw,160px)]'}`}></div>
                                 </div>
                             )
                         })}
                     </div>
+                </div>
                 </div>
             </div>
         </section>

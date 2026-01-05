@@ -27,7 +27,8 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
 
     return (
         <section className="py-20 bg-white">
-            <div className="max-w-[1340px] mx-auto px-6">
+            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
+                <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}
                 <FadeIn className="text-center mb-16 max-w-4xl mx-auto">
                     {headerTitle && (
@@ -43,7 +44,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                 </FadeIn>
 
                 {/* Carousel */}
-                <FadeIn delay={0.2} className="px-12 relative animate-in fade-in zoom-in duration-700">
+                <FadeIn delay={0.2} className="px-[clamp(16px,3.125vw,48px)] relative animate-in fade-in zoom-in duration-700">
                     <Carousel
                         opts={{
                             align: "start",
@@ -102,6 +103,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                         <CarouselNext className="hidden md:flex -right-12 border-[#2CA4E0] text-[#2CA4E0] hover:bg-[#2CA4E0] hover:text-white" />
                     </Carousel>
                 </FadeIn>
+                </div>
             </div>
         </section>
     );
