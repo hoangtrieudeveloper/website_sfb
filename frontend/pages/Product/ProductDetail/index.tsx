@@ -59,25 +59,45 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
         (product.expandBullets && product.expandBullets.length > 0) || 
         hasValue(product.expandImage);
 
+    // Kiểm tra contentMode: nếu là 'content' thì hiển thị HTML, nếu là 'config' thì hiển thị widget
+    const isContentMode = product.contentMode === 'content';
+    const hasContentHtml = isContentMode && hasValue(product.contentHtml);
+
     return (
         <div className="bg-white">
             {hasHeroData && <HeroSection product={product} />}
 
-            {hasOverviewData && <OverviewSection product={product} />}
-
-            {hasShowcaseData && <ShowcaseSection product={product} />}
-
-            {hasNumberedSections && (
+            {/* Hiển thị theo chế độ: Content HTML hoặc Widget */}
+            {hasContentHtml ? (
+                // Chế độ Content: Hiển thị HTML từ RichTextEditor
                 <section className="w-full bg-white">
-                    <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
-                        {numberedSections.map((section) => (
-                            <ProductFeatureSection key={section.no} section={section} />
-                        ))}
+                    <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px]">
+                        <div 
+                            className="prose prose-lg max-w-none"
+                            dangerouslySetInnerHTML={{ __html: product.contentHtml || '' }}
+                        />
                     </div>
                 </section>
-            )}
+            ) : (
+                // Chế độ Widget: Hiển thị các section như bình thường
+                <>
+                    {hasOverviewData && <OverviewSection product={product} />}
 
-            {hasExpandData && <ExpandSection product={product} />}
+                    {hasShowcaseData && <ShowcaseSection product={product} />}
+
+                    {hasNumberedSections && (
+                        <section className="w-full bg-white">
+                            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
+                                {numberedSections.map((section) => (
+                                    <ProductFeatureSection key={section.no} section={section} />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {hasExpandData && <ExpandSection product={product} />}
+                </>
+            )}
 
             <div id="demo" />
             <Consult />

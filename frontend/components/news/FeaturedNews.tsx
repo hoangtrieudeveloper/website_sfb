@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { API_BASE_URL } from "@/lib/api/base";
 import { formatDateVN } from "@/lib/date";
+import { PLACEHOLDER_CATEGORY } from "@/lib/placeholders";
 
 interface FeaturedNewsProps {
   article: {
@@ -74,11 +75,13 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           className="flex flex-wrap items-center gap-4 text-sm"
         >
           {/* Category Name */}
-          <span
-            className={`${gradientBg} text-white font-medium px-3 py-1 rounded-full border border-white/40 shadow-sm`}
-          >
-            {article.categoryName || ""}
-          </span>
+          {article.categoryName && (
+            <span
+              className={`${gradientBg} text-white font-medium px-3 py-1 rounded-full border border-white/40 shadow-sm`}
+            >
+              {article.categoryName}
+            </span>
+          )}
 
           {/* Date */}
           {article.publishedDate && (

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { API_BASE_URL } from '@/lib/api/base';
+import { PLACEHOLDER_DESCRIPTION, PLACEHOLDER_NOT_AVAILABLE } from '@/lib/placeholders';
 
 interface SeoData {
   title?: string;
@@ -71,7 +72,7 @@ export async function generateSeoMetadata(
   const seoData = await fetchSeoData(pagePath);
 
   const title = seoData?.title || defaultData?.title || 'SFB Technology';
-  const description = seoData?.description || defaultData?.description || '';
+  const description = seoData?.description || defaultData?.description || PLACEHOLDER_DESCRIPTION;
   const keywords = seoData?.keywords || defaultData?.keywords;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
   const canonicalUrl = seoData?.canonical_url || defaultData?.canonical_url || `${baseUrl}${pagePath}`;
@@ -101,7 +102,7 @@ export async function generateSeoMetadata(
       description: seoData?.og_description || defaultData?.og_description || description,
       images: (seoData?.og_image || defaultData?.og_image) ? [
         {
-          url: seoData?.og_image || defaultData?.og_image || '',
+          url: seoData?.og_image || defaultData?.og_image || PLACEHOLDER_NOT_AVAILABLE,
           width: 1200,
           height: 630,
           alt: title,
@@ -114,7 +115,7 @@ export async function generateSeoMetadata(
       card: (seoData?.twitter_card || defaultData?.twitter_card || 'summary_large_image') as 'summary' | 'summary_large_image',
       title: seoData?.twitter_title || defaultData?.twitter_title || title,
       description: seoData?.twitter_description || defaultData?.twitter_description || description,
-      images: (seoData?.twitter_image || defaultData?.twitter_image) ? [seoData?.twitter_image || defaultData?.twitter_image || ''] : [],
+      images: (seoData?.twitter_image || defaultData?.twitter_image) ? [seoData?.twitter_image || defaultData?.twitter_image || PLACEHOLDER_NOT_AVAILABLE] : [],
     },
 
     // Robots

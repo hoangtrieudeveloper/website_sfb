@@ -57,6 +57,10 @@ export type NumberedSection = {
 export type ProductDetail = {
     slug: string;
 
+    // CONTENT MODE
+    contentMode?: 'config' | 'content';
+    contentHtml?: string;
+
     // HERO
     metaTop: string;
     name: string;

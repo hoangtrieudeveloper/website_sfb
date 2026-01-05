@@ -1,4 +1,5 @@
 import { benefits } from "./data";
+import { PLACEHOLDER_TITLE } from "@/lib/placeholders";
 
 interface ProductBenefitsProps {
     data?: any[];
@@ -29,7 +30,7 @@ export function ProductBenefits({ data }: ProductBenefitsProps) {
                                     >
                                         <img
                                             src={benefit.icon}
-                                            alt={benefit.title || ''}
+                                            alt={benefit.title || PLACEHOLDER_TITLE}
                                             className="w-8 h-8"
                                         />
                                     </div>

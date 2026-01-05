@@ -117,6 +117,8 @@ exports.getProductDetail = async (req, res, next) => {
         id: detail.id,
         productId: detail.product_id,
         slug: detail.slug,
+        contentMode: detail.content_mode || 'config',
+        contentHtml: detail.content_html || '',
         metaTop: detail.meta_top || '',
         heroDescription: detail.hero_description || '',
         heroImage: detail.hero_image || '',
@@ -160,6 +162,8 @@ exports.saveProductDetail = async (req, res, next) => {
     const { productId } = req.params;
     const {
       slug,
+      contentMode,
+      contentHtml,
       metaTop,
       heroDescription,
       heroImage,
@@ -210,30 +214,34 @@ exports.saveProductDetail = async (req, res, next) => {
             UPDATE product_details
             SET
               slug = $1,
-              meta_top = $2,
-              hero_description = $3,
-              hero_image = $4,
-              cta_contact_text = $5,
-              cta_contact_href = $6,
-              cta_demo_text = $7,
-              cta_demo_href = $8,
-              overview_kicker = $9,
-              overview_title = $10,
-              showcase_title = $11,
-              showcase_desc = $12,
-              showcase_cta_text = $13,
-              showcase_cta_href = $14,
-              showcase_image_back = $15,
-              showcase_image_front = $16,
-              expand_title = $17,
-              expand_cta_text = $18,
-              expand_cta_href = $19,
-              expand_image = $20,
+              content_mode = $2,
+              content_html = $3,
+              meta_top = $4,
+              hero_description = $5,
+              hero_image = $6,
+              cta_contact_text = $7,
+              cta_contact_href = $8,
+              cta_demo_text = $9,
+              cta_demo_href = $10,
+              overview_kicker = $11,
+              overview_title = $12,
+              showcase_title = $13,
+              showcase_desc = $14,
+              showcase_cta_text = $15,
+              showcase_cta_href = $16,
+              showcase_image_back = $17,
+              showcase_image_front = $18,
+              expand_title = $19,
+              expand_cta_text = $20,
+              expand_cta_href = $21,
+              expand_image = $22,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = $21
+            WHERE id = $23
           `,
           [
             finalSlug,
+            contentMode || 'config',
+            contentHtml || '',
             metaTop || '',
             heroDescription || '',
             heroImage || '',
@@ -261,19 +269,22 @@ exports.saveProductDetail = async (req, res, next) => {
         const { rows: newDetail } = await client.query(
           `
             INSERT INTO product_details (
-              product_id, slug, meta_top, hero_description, hero_image,
+              product_id, slug, content_mode, content_html,
+              meta_top, hero_description, hero_image,
               cta_contact_text, cta_contact_href, cta_demo_text, cta_demo_href,
               overview_kicker, overview_title,
               showcase_title, showcase_desc, showcase_cta_text, showcase_cta_href,
               showcase_image_back, showcase_image_front,
               expand_title, expand_cta_text, expand_cta_href, expand_image
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
             RETURNING id
           `,
           [
             productId,
             finalSlug,
+            contentMode || 'config',
+            contentHtml || '',
             metaTop || '',
             heroDescription || '',
             heroImage || '',

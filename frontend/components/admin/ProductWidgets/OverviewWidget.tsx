@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
+import { PLACEHOLDER_DESCRIPTION } from "@/lib/placeholders";
 
 interface OverviewCard {
   step: number;
@@ -158,7 +159,7 @@ export function OverviewWidget({
                                 <div className="text-xs text-gray-500 mb-1">Card {idx + 1}:</div>
                                 <div className="text-sm font-medium text-gray-700">Step: {card.step}</div>
                                 <div className="text-sm text-gray-700">Title: {card.title || "[Chưa có]"}</div>
-                                <div className="text-xs text-gray-500">Desc: {card.description || "[Chưa có]"}</div>
+                                <div className="text-xs text-gray-500">Desc: {card.description || PLACEHOLDER_DESCRIPTION}</div>
                               </div>
                             ))}
                           </div>

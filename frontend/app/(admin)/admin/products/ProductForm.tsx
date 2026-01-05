@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Save, Plus, X, ArrowRight, Play, CheckCircle2, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, ArrowRight, Play, CheckCircle2, ChevronUp, ChevronDown, Trash2, Link as LinkIcon, Search as SearchIcon, Sparkles } from "lucide-react";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +25,13 @@ import { OverviewWidget } from "@/components/admin/ProductWidgets/OverviewWidget
 import { ShowcaseWidget } from "@/components/admin/ProductWidgets/ShowcaseWidget";
 import { NumberedSectionWidget } from "@/components/admin/ProductWidgets/NumberedSectionWidget";
 import { ExpandWidget } from "@/components/admin/ProductWidgets/ExpandWidget";
+import RichTextEditor from "@/components/admin/RichTextEditor";
+import { generateSlug } from "@/lib/date";
 
 interface ProductFormData {
   categoryId: number | "";
   name: string;
+  slug: string;
   tagline: string;
   meta: string;
   description: string;
@@ -43,6 +46,10 @@ interface ProductFormData {
   isFeatured: boolean;
   isActive: boolean;
   features: string[];
+  demoLink: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
 }
 
 interface CategoryOption {
@@ -75,10 +82,14 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [detailData, setDetailData] = useState<any>(null);
   const [activeDetailSubTab, setActiveDetailSubTab] = useState<string>("config");
+  const [activeContentModeTab, setActiveContentModeTab] = useState<string>("widget");
+  // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   const [formData, setFormData] = useState<ProductFormData>({
     categoryId: "",
     name: "",
+    slug: "",
     tagline: "",
     meta: "",
     description: "",
@@ -93,6 +104,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     isFeatured: false,
     isActive: true,
     features: [],
+    demoLink: "",
+    seoTitle: "",
+    seoDescription: "",
+    seoKeywords: ""
   });
 
   useEffect(() => {
@@ -103,22 +118,38 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     }
   }, [productId]);
 
+  // Tự động generate slug từ name khi name thay đổi (chỉ khi chưa chỉnh sửa thủ công và không có slug từ DB)
+  useEffect(() => {
+    // Chỉ tự động generate khi:
+    // 1. Chưa chỉnh sửa thủ công
+    // 2. Có tên sản phẩm
+    // 3. Không phải đang edit với slug đã có từ DB
+    if (!slugManuallyEdited && formData.name && !(productId && formData.slug)) {
+      const autoSlug = generateSlug(formData.name);
+      if (autoSlug && autoSlug !== formData.slug) {
+        setFormData(prev => ({ ...prev, slug: autoSlug }));
+      }
+    }
+  }, [formData.name, slugManuallyEdited, productId, formData.slug]);
+
   const fetchProductDetail = async (forceReload = false) => {
     if (!productId) return;
     try {
       setLoadingDetail(true);
       // Thêm timestamp vào URL để bypass cache khi force reload
-      const endpoint = forceReload 
+      const endpoint = forceReload
         ? `${AdminEndpoints.products.detailPage(productId)}?_t=${Date.now()}`
         : AdminEndpoints.products.detailPage(productId);
       const response = await adminApiCall<{ success: boolean; data?: any }>(
         endpoint,
       );
-      
+
       // Handle 304 Not Modified or null response
       if (!response || response === null) {
         // If 304 or null, use empty data structure
         setDetailData({
+          contentMode: "config",
+          contentHtml: "",
           metaTop: "",
           heroDescription: "",
           heroImage: "",
@@ -147,12 +178,15 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             image: "",
           },
         });
+        setActiveContentModeTab("widget");
         return;
       }
-      
+
       // API có thể trả về data: null nếu chưa có detail
       if (response.data === null || response.data === undefined) {
         setDetailData({
+          contentMode: "config",
+          contentHtml: "",
           metaTop: "",
           heroDescription: "",
           heroImage: "",
@@ -181,9 +215,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             image: "",
           },
         });
+        setActiveContentModeTab("widget");
       } else {
         // Đảm bảo tất cả các field đều có giá trị mặc định
         setDetailData({
+          contentMode: response.data.contentMode || "config",
+          contentHtml: response.data.contentHtml || "",
           metaTop: response.data.metaTop || "",
           heroDescription: response.data.heroDescription || "",
           heroImage: response.data.heroImage || "",
@@ -212,11 +249,14 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             image: response.data.expand?.image || "",
           },
         });
+        setActiveContentModeTab(response.data.contentMode === "content" ? "content" : "widget");
       }
     } catch (error: any) {
       console.error("Error fetching product detail:", error);
       // Nếu có lỗi, tạo empty data
       setDetailData({
+        contentMode: "config",
+        contentHtml: "",
         metaTop: "",
         heroDescription: "",
         heroImage: "",
@@ -241,6 +281,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           image: "",
         },
       });
+      setActiveContentModeTab("widget");
     } finally {
       setLoadingDetail(false);
     }
@@ -252,10 +293,15 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     if (!productId || !data) return;
     try {
       setLoading(true);
-      console.log("🔄 Saving detail data:", data); // Debug log
+      // Sử dụng contentMode từ detailData (được set từ Select field hoặc tab)
+      const dataToSaveWithMode = {
+        ...data,
+        contentMode: data.contentMode || (activeContentModeTab === "content" ? "content" : "config"),
+      };
+      console.log("🔄 Saving detail data:", dataToSaveWithMode); // Debug log
       const response = await adminApiCall(AdminEndpoints.products.detailPage(productId), {
         method: "PUT",
-        body: JSON.stringify(data),
+        body: JSON.stringify(dataToSaveWithMode),
       });
       console.log("✅ Save response:", response); // Debug log
       toast.success("Đã lưu chi tiết sản phẩm");
@@ -288,9 +334,13 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         AdminEndpoints.products.detail(productId!),
       );
       if (data.data) {
+        // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
+        const hasSlug = !!(data.data.slug);
+        setSlugManuallyEdited(hasSlug);
         setFormData({
           categoryId: data.data.categoryId || "",
           name: data.data.name || "",
+          slug: data.data.slug || "",
           tagline: data.data.tagline || "",
           meta: data.data.meta || "",
           description: data.data.description || "",
@@ -305,6 +355,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           isFeatured: data.data.isFeatured || false,
           isActive: data.data.isActive !== undefined ? data.data.isActive : true,
           features: data.data.features || [],
+          demoLink: data.data.demoLink || "",
+          seoTitle: data.data.seoTitle || "",
+          seoDescription: data.data.seoDescription || "",
+          seoKeywords: data.data.seoKeywords || ""
         });
       }
     } catch (error: any) {
@@ -338,20 +392,25 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           method: "PUT",
           body: JSON.stringify(payload),
         });
-        
+
         // Nếu có chi tiết sản phẩm, lưu luôn chi tiết
         if (detailData) {
           try {
+            // Đảm bảo contentMode được set đúng từ detailData
+            const detailToSave = {
+              ...detailData,
+              contentMode: detailData.contentMode || (activeContentModeTab === "content" ? "content" : "config"),
+            };
             await adminApiCall(AdminEndpoints.products.detailPage(productId), {
               method: "PUT",
-              body: JSON.stringify(detailData),
+              body: JSON.stringify(detailToSave),
             });
           } catch (detailError: any) {
             console.error("Error saving detail:", detailError);
             // Không throw error để vẫn lưu được thông tin cơ bản
           }
         }
-        
+
         toast.success("Đã cập nhật sản phẩm");
         // Reload lại data để cập nhật UI
         await Promise.all([
@@ -367,9 +426,9 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             body: JSON.stringify(payload),
           }
         );
-        
+
         toast.success("Đã tạo sản phẩm");
-        
+
         // Nếu có onSuccess callback, gọi nó
         if (onSuccess) {
           onSuccess();
@@ -485,6 +544,27 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="slug" className="text-gray-900">
+                    <LinkIcon className="w-3 h-3 inline mr-1" />
+                    Slug / Đường dẫn
+                  </Label>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => {
+                      setSlugManuallyEdited(true);
+                      // Tự động format slug: remove dấu và chuyển thành lowercase với dấu gạch ngang
+                      const formattedSlug = generateSlug(e.target.value);
+                      setFormData({ ...formData, slug: formattedSlug });
+                    }}
+                    placeholder="san-pham-slug"
+                  />
+                  <p className="text-[11px] text-gray-500">
+                    Dùng tiếng Việt không dấu, cách nhau bằng dấu gạch ngang.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="tagline" className="text-gray-900">Dòng mô tả ngắn (Tagline)</Label>
                   <Input
                     id="tagline"
@@ -542,7 +622,18 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                     </SelectContent>
                   </Select>
                 </div>
-
+                <div className="space-y-2">
+                  <Label htmlFor="demoLink" className="text-gray-900">Link Demo nhanh</Label>
+                  <Input
+                    id="demoLink"
+                    value={formData.demoLink}
+                    onChange={(e) => setFormData({ ...formData, demoLink: e.target.value })}
+                    placeholder="Ví dụ: /demo hoặc https://demo.example.com"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Link đến trang demo của sản phẩm
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="sortOrder" className="text-gray-900">Thứ tự sắp xếp</Label>
                   <Input
@@ -555,7 +646,6 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                   />
                 </div>
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-gray-900">Mô tả</Label>
                 <Textarea
@@ -567,12 +657,206 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                 />
               </div>
 
+
               <div className="space-y-2">
                 <Label className="text-gray-900">Hình ảnh</Label>
                 <ImageUpload
                   currentImage={formData.image}
                   onImageSelect={(url: string) => setFormData({ ...formData, image: url })}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO Configuration */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <SearchIcon className="w-5 h-5 text-blue-600" />
+                <CardTitle>Tối ưu hóa SEO</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-3 shadow-sm">
+                <div className="flex items-start gap-2">
+                  <div className="bg-blue-100 rounded-full p-1.5">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-blue-900 mb-1">
+                      Tối ưu hóa SEO
+                    </p>
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      Điền đầy đủ thông tin SEO để sản phẩm dễ dàng được tìm thấy trên Google. Nhấn "Tự động" để sử dụng tên và mô tả hiện có.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="seoTitle" className="text-sm font-semibold">
+                      Tiêu đề SEO
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs px-2"
+                      onClick={() => {
+                        if (formData.name) {
+                          const autoTitle =
+                            formData.name.length > 60
+                              ? formData.name.substring(0, 57) + "..."
+                              : formData.name;
+                          setFormData({ ...formData, seoTitle: autoTitle });
+                        }
+                      }}
+                      disabled={!formData.name}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Tự động
+                    </Button>
+                  </div>
+                  <Input
+                    id="seoTitle"
+                    value={formData.seoTitle}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seoTitle: e.target.value })
+                    }
+                    placeholder={
+                      formData.name
+                        ? `Tự động: ${formData.name.substring(0, 40)}...`
+                        : "Nhập tiêu đề SEO..."
+                    }
+                    maxLength={60}
+                    className="text-sm"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
+                    <span
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                        formData.seoTitle.length > 60
+                          ? "text-red-600 bg-red-50"
+                          : formData.seoTitle.length >= 50 &&
+                            formData.seoTitle.length <= 60
+                          ? "text-green-600 bg-green-50"
+                          : formData.seoTitle.length > 0
+                          ? "text-yellow-600 bg-yellow-50"
+                          : "text-gray-400 bg-gray-50"
+                      }`}
+                    >
+                      {formData.seoTitle.length}/60
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="seoDescription" className="text-sm font-semibold">
+                      Mô tả SEO
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs px-2"
+                      onClick={() => {
+                        if (formData.description) {
+                          const autoDesc =
+                            formData.description.length > 160
+                              ? formData.description.substring(0, 157) + "..."
+                              : formData.description;
+                          setFormData({
+                            ...formData,
+                            seoDescription: autoDesc,
+                          });
+                        }
+                      }}
+                      disabled={!formData.description}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Tự động
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="seoDescription"
+                    value={formData.seoDescription}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        seoDescription: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      formData.description
+                        ? `Tự động: ${formData.description.substring(0, 60)}...`
+                        : "Nhập mô tả SEO..."
+                    }
+                    rows={3}
+                    maxLength={160}
+                    className="resize-none text-sm"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      Khuyến nghị: 150-160 ký tự
+                    </p>
+                    <span
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                        formData.seoDescription.length > 160
+                          ? "text-red-600 bg-red-50"
+                          : formData.seoDescription.length >= 150 &&
+                            formData.seoDescription.length <= 160
+                          ? "text-green-600 bg-green-50"
+                          : formData.seoDescription.length > 0
+                          ? "text-yellow-600 bg-yellow-50"
+                          : "text-gray-400 bg-gray-50"
+                      }`}
+                    >
+                      {formData.seoDescription.length}/160
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seoKeywords" className="text-sm font-semibold">
+                    Từ khóa SEO
+                  </Label>
+                  <Input
+                    id="seoKeywords"
+                    value={formData.seoKeywords}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seoKeywords: e.target.value })
+                    }
+                    placeholder="từ khóa 1, từ khóa 2..."
+                    className="text-sm"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Phân cách bằng dấu phẩy
+                  </p>
+                </div>
+
+                {(formData.seoTitle || formData.seoDescription) && (
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">
+                      Xem trước:
+                    </p>
+                    <div className="space-y-1">
+                      <div className="text-xs text-blue-600 font-medium line-clamp-1">
+                        {formData.seoTitle || formData.name || "Tên sản phẩm"}
+                      </div>
+                      <div className="text-xs text-green-700">
+                        {formData.slug ? `/products/${formData.slug}` : "/products/..."}
+                      </div>
+                      <div className="text-xs text-gray-600 line-clamp-2">
+                        {formData.seoDescription ||
+                          formData.description ||
+                          "Mô tả sản phẩm..."}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -702,735 +986,824 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                   <div className="space-y-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900">Chi tiết sản phẩm</h2>
-                      <p className="text-gray-600 mt-1">Cấu hình các section của trang chi tiết sản phẩm. Nhấn nút "Lưu" ở trên để lưu tất cả thay đổi.</p>
+                      <p className="text-gray-600 mt-1">Cấu hình các section của trang chi tiết sản phẩm hoặc nhập nội dung HTML. Nhấn nút "Lưu" ở trên để lưu tất cả thay đổi.</p>
                     </div>
 
-                    {/* Hero Section Config */}
-                    {detailData && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Khối 1 - Hero trang chi tiết</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Tiêu đề, đoạn mở đầu và ảnh lớn ở đầu trang chi tiết sản phẩm.
-                          </p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                    {/* Content Mode Tabs */}
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
                           <div>
-                            <Label className="mb-2">Dòng chữ phía trên (Meta Top)</Label>
-                            <Input
-                              value={detailData.metaTop || ""}
-                              onChange={(e) => {
-                                setDetailData({ ...detailData, metaTop: e.target.value });
-                              }}
-                              placeholder="Ví dụ: Giải pháp phần mềm"
-                            />
+                            <CardTitle>Chế độ hiển thị</CardTitle>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Chọn chế độ hiển thị: Widget (cấu hình từng section) hoặc Nội dung (HTML tự do).
+                            </p>
                           </div>
-                          <div>
-                            <Label className="mb-2">Mô tả Hero</Label>
-                            <Textarea
-                              value={detailData.heroDescription || ""}
-                              onChange={(e) => {
-                                setDetailData({ ...detailData, heroDescription: e.target.value });
-                              }}
-                              rows={4}
-                              placeholder="Mô tả về sản phẩm..."
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Ảnh Hero</Label>
-                            <ImageUpload
-                              currentImage={detailData.heroImage || ""}
-                              onImageSelect={(url: string) => {
-                                setDetailData({ ...detailData, heroImage: url });
-                              }}
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="mb-2">Nút liên hệ - Văn bản</Label>
-                              <Input
-                                value={detailData.ctaContactText || ""}
-                                onChange={(e) => {
-                                  setDetailData({ ...detailData, ctaContactText: e.target.value });
-                                }}
-                                placeholder="LIÊN HỆ NGAY"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Nút liên hệ - Đường dẫn</Label>
-                              <Input
-                                value={detailData.ctaContactHref || ""}
-                                onChange={(e) => {
-                                  setDetailData({ ...detailData, ctaContactHref: e.target.value });
-                                }}
-                                placeholder="/contact"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="mb-2">Nút demo - Văn bản</Label>
-                              <Input
-                                value={detailData.ctaDemoText || ""}
-                                onChange={(e) => {
-                                  setDetailData({ ...detailData, ctaDemoText: e.target.value });
-                                }}
-                                placeholder="DEMO HỆ THỐNG"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Nút demo - Đường dẫn</Label>
-                              <Input
-                                value={detailData.ctaDemoHref || ""}
-                                onChange={(e) => {
-                                  setDetailData({ ...detailData, ctaDemoHref: e.target.value });
-                                }}
-                                placeholder="/demo"
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Overview Section Config */}
-                    {detailData && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Khối 2 - Tổng quan (Overview)</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Kicker, tiêu đề và các card mô tả các bước / tính năng chính.
-                          </p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div>
-                            <Label className="mb-2">Dòng chữ nhỏ phía trên (Kicker)</Label>
-                            <Input
-                              value={detailData.overviewKicker || ""}
-                              onChange={(e) => {
-                                setDetailData({ ...detailData, overviewKicker: e.target.value });
-                              }}
-                              placeholder="Ví dụ: Tổng quan"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Tiêu đề chính</Label>
-                            <Input
-                              value={detailData.overviewTitle || ""}
-                              onChange={(e) => {
-                                setDetailData({ ...detailData, overviewTitle: e.target.value });
-                              }}
-                              placeholder="Tiêu đề overview"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Danh sách thẻ (Cards)</Label>
-                            <div className="space-y-4">
-                              {(detailData.overviewCards || []).map((card: any, index: number) => (
-                                <Card key={index}>
-                                  <CardContent className="pt-6 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                      <Label className="mb-2">Thẻ {index + 1}</Label>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          const newCards = (detailData.overviewCards || []).filter(
-                                            (_: any, i: number) => i !== index
-                                          );
-                                          setDetailData({ ...detailData, overviewCards: newCards });
-                                        }}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                    <div>
-                                      <Label className="mb-2">Số thứ tự</Label>
-                                      <Input
-                                        type="number"
-                                        value={card.step || index + 1}
-                                        onChange={(e) => {
-                                          const newCards = [...(detailData.overviewCards || [])];
-                                          newCards[index] = { ...card, step: Number(e.target.value) || index + 1 };
-                                          setDetailData({ ...detailData, overviewCards: newCards });
-                                        }}
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label className="mb-2">Tiêu đề thẻ</Label>
-                                      <Input
-                                        value={card.title || ""}
-                                        onChange={(e) => {
-                                          const newCards = [...(detailData.overviewCards || [])];
-                                          newCards[index] = { ...card, title: e.target.value };
-                                          setDetailData({ ...detailData, overviewCards: newCards });
-                                        }}
-                                        placeholder="Tiêu đề card"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label className="mb-2">Mô tả thẻ</Label>
-                                      <Textarea
-                                        value={card.description || card.desc || ""}
-                                        onChange={(e) => {
-                                          const newCards = [...(detailData.overviewCards || [])];
-                                          newCards[index] = { ...card, description: e.target.value, desc: e.target.value };
-                                          setDetailData({ ...detailData, overviewCards: newCards });
-                                        }}
-                                        rows={2}
-                                        placeholder="Mô tả card"
-                                      />
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  const newCards = [
-                                    ...(detailData.overviewCards || []),
-                                    { step: (detailData.overviewCards?.length || 0) + 1, title: "", description: "", desc: "" },
-                                  ];
-                                  setDetailData({ ...detailData, overviewCards: newCards });
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm Card
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Showcase Section Config */}
-                    {detailData && detailData.showcase && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Khối 3 - Showcase màn hình</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Bố cục 2 cột: bên trái là ảnh màn hình, bên phải là tiêu đề, mô tả và bullets.
-                          </p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div>
-                            <Label className="mb-2">Tiêu đề showcase</Label>
-                            <Input
-                              value={detailData.showcase?.title || ""}
-                              onChange={(e) => {
-                                setDetailData({
-                                  ...detailData,
-                                  showcase: { ...detailData.showcase, title: e.target.value },
-                                });
-                              }}
-                              placeholder="Tiêu đề showcase"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Mô tả showcase</Label>
-                            <Textarea
-                              value={detailData.showcase?.desc || ""}
-                              onChange={(e) => {
-                                setDetailData({
-                                  ...detailData,
-                                  showcase: { ...detailData.showcase, desc: e.target.value },
-                                });
-                              }}
-                              rows={3}
-                              placeholder="Mô tả showcase"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Danh sách điểm nổi bật (Bullets)</Label>
-                            <div className="space-y-2">
-                              {(detailData.showcase?.bullets || []).map((bullet: string, index: number) => (
-                                <div key={index} className="flex gap-2">
-                                  <Input
-                                    value={bullet}
-                                    onChange={(e) => {
-                                      const newBullets = [...(detailData.showcase?.bullets || [])];
-                                      newBullets[index] = e.target.value;
-                                      setDetailData({
-                                        ...detailData,
-                                        showcase: { ...detailData.showcase, bullets: newBullets },
-                                      });
-                                    }}
-                                    placeholder={`Bullet ${index + 1}`}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => {
-                                      const newBullets = (detailData.showcase?.bullets || []).filter(
-                                        (_: string, i: number) => i !== index
-                                      );
-                                      setDetailData({
-                                        ...detailData,
-                                        showcase: { ...detailData.showcase, bullets: newBullets },
-                                      });
-                                    }}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ))}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  const newBullets = [...(detailData.showcase?.bullets || []), ""];
-                                  setDetailData({
-                                    ...detailData,
-                                    showcase: { ...detailData.showcase, bullets: newBullets },
-                                  });
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm Bullet
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="mb-2">Nút kêu gọi hành động - Văn bản</Label>
-                              <Input
-                                value={detailData.showcase?.ctaText || ""}
-                                onChange={(e) => {
-                                  setDetailData({
-                                    ...detailData,
-                                    showcase: { ...detailData.showcase, ctaText: e.target.value },
-                                  });
-                                }}
-                                placeholder="Liên hệ"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Nút kêu gọi hành động - Đường dẫn</Label>
-                              <Input
-                                value={detailData.showcase?.ctaHref || ""}
-                                onChange={(e) => {
-                                  setDetailData({
-                                    ...detailData,
-                                    showcase: { ...detailData.showcase, ctaHref: e.target.value },
-                                  });
-                                }}
-                                placeholder="/contact"
-                              />
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="mb-2">Ảnh nền (Back)</Label>
-                              <ImageUpload
-                                currentImage={detailData.showcase?.overlay?.back?.src || detailData.showcase?.imageBack || ""}
-                                onImageSelect={(url: string) => {
-                                  const overlay = detailData.showcase?.overlay || {};
-                                  setDetailData({
-                                    ...detailData,
-                                    showcase: {
-                                      ...detailData.showcase,
-                                      overlay: {
-                                        ...overlay,
-                                        back: { ...overlay.back, src: url },
-                                      },
-                                      imageBack: url,
-                                    },
-                                  });
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Ảnh phía trước (Front)</Label>
-                              <ImageUpload
-                                currentImage={detailData.showcase?.overlay?.front?.src || detailData.showcase?.imageFront || ""}
-                                onImageSelect={(url: string) => {
-                                  const overlay = detailData.showcase?.overlay || {};
-                                  setDetailData({
-                                    ...detailData,
-                                    showcase: {
-                                      ...detailData.showcase,
-                                      overlay: {
-                                        ...overlay,
-                                        front: { ...overlay.front, src: url },
-                                      },
-                                      imageFront: url,
-                                    },
-                                  });
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Numbered Sections Config */}
-                    {detailData && detailData.numberedSections && (
-                      <Card>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <CardTitle>Khối 4 - Các section đánh số</CardTitle>
-                              <p className="text-sm text-gray-600 mt-1">
-                                Mỗi section gồm số thứ tự, tiêu đề, ảnh minh họa và các đoạn mô tả chi tiết.
-                              </p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => {
-                                const newSections = [
-                                  ...(detailData.numberedSections || []),
-                                  {
-                                    sectionNo: (detailData.numberedSections?.length || 0) + 1,
-                                    no: (detailData.numberedSections?.length || 0) + 1,
-                                    title: "",
-                                    image: "",
-                                    imageSide: "left",
-                                    paragraphs: [],
-                                  },
-                                ];
-                                setDetailData({ ...detailData, numberedSections: newSections });
+                          <div className="w-[280px]">
+                            <Label className="text-sm font-semibold mb-2 block">Chế độ hiển thị</Label>
+                            <Select
+                              value={detailData?.contentMode || "config"}
+                              onValueChange={(value: "config" | "content") => {
+                                setDetailData({ ...detailData, contentMode: value });
+                                setActiveContentModeTab(value === "content" ? "content" : "widget");
                               }}
                             >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Thêm Section
-                            </Button>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="config">Chế độ Widget</SelectItem>
+                                <SelectItem value="content">Chế độ Nội dung</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                          {detailData.numberedSections.map((section: any, index: number) => (
-                            <Card key={index}>
-                              <CardHeader>
-                                <div className="flex items-center justify-between">
-                                  <CardTitle>Section {index + 1}</CardTitle>
-                                  <div className="flex gap-2">
-                                    {index > 0 && (
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          const newSections = [...detailData.numberedSections];
-                                          [newSections[index - 1], newSections[index]] = [
-                                            newSections[index],
-                                            newSections[index - 1],
-                                          ];
-                                          const normalizedSections = newSections.map((s: any, i: number) => ({
-                                            ...s,
-                                            sectionNo: i + 1,
-                                            no: i + 1,
-                                          }));
-                                          setDetailData({ ...detailData, numberedSections: normalizedSections });
-                                        }}
-                                      >
-                                        <ChevronUp className="h-4 w-4" />
-                                      </Button>
-                                    )}
-                                    {index < detailData.numberedSections.length - 1 && (
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          const newSections = [...detailData.numberedSections];
-                                          [newSections[index], newSections[index + 1]] = [
-                                            newSections[index + 1],
-                                            newSections[index],
-                                          ];
-                                          const normalizedSections = newSections.map((s: any, i: number) => ({
-                                            ...s,
-                                            sectionNo: i + 1,
-                                            no: i + 1,
-                                          }));
-                                          setDetailData({ ...detailData, numberedSections: normalizedSections });
-                                        }}
-                                      >
-                                        <ChevronDown className="h-4 w-4" />
-                                      </Button>
-                                    )}
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        const newSections = detailData.numberedSections.filter(
-                                          (_: any, i: number) => i !== index
-                                        );
-                                        const normalizedSections = newSections.map((s: any, i: number) => ({
-                                          ...s,
-                                          sectionNo: i + 1,
-                                          no: i + 1,
-                                        }));
-                                        setDetailData({ ...detailData, numberedSections: normalizedSections });
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="space-y-4">
-                                <div>
-                                  <Label className="mb-2">Tiêu đề section</Label>
-                                  <Input
-                                    value={section.title || ""}
-                                    onChange={(e) => {
-                                      const newSections = [...detailData.numberedSections];
-                                      newSections[index] = { ...section, title: e.target.value };
-                                      setDetailData({ ...detailData, numberedSections: newSections });
-                                    }}
-                                    placeholder="Tiêu đề section"
-                                  />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <Tabs
+                          value={activeContentModeTab}
+                          onValueChange={(value) => {
+                            setActiveContentModeTab(value);
+                            setDetailData({
+                              ...detailData,
+                              contentMode: value === "content" ? "content" : "config"
+                            });
+                          }}
+                          className="w-full"
+                        >
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="widget">Widget</TabsTrigger>
+                            <TabsTrigger value="content">Nội dung</TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent value="widget" className="space-y-4 mt-4">
+                            {/* Hero Section Config */}
+                            {detailData && (
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle>Khối 1 - Hero trang chi tiết</CardTitle>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Tiêu đề, đoạn mở đầu và ảnh lớn ở đầu trang chi tiết sản phẩm.
+                                  </p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
                                   <div>
-                                    <Label className="mb-2">Ảnh nền (Back)</Label>
-                                    <ImageUpload
-                                      currentImage={section.imageBack || section.overlayBackImage || section.overlay?.back?.src || section.image || ""}
-                                      onImageSelect={(url: string) => {
-                                        const newSections = [...detailData.numberedSections];
-                                        const overlay = section.overlay || {};
-                                        newSections[index] = {
-                                          ...section,
-                                          image: url, // Giữ tương thích
-                                          imageBack: url, // Backend cần field này
-                                          overlayBackImage: url, // Backend cũng hỗ trợ field này
-                                          overlay: {
-                                            ...overlay,
-                                            back: { ...overlay.back, src: url },
-                                          },
-                                        };
-                                        setDetailData({ ...detailData, numberedSections: newSections });
+                                    <Label className="mb-2">Dòng chữ phía trên (Meta Top)</Label>
+                                    <Input
+                                      value={detailData.metaTop || ""}
+                                      onChange={(e) => {
+                                        setDetailData({ ...detailData, metaTop: e.target.value });
                                       }}
+                                      placeholder="Ví dụ: Giải pháp phần mềm"
                                     />
                                   </div>
                                   <div>
-                                    <Label className="mb-2">Ảnh phía trước (Front)</Label>
+                                    <Label className="mb-2">Mô tả Hero</Label>
+                                    <Textarea
+                                      value={detailData.heroDescription || ""}
+                                      onChange={(e) => {
+                                        setDetailData({ ...detailData, heroDescription: e.target.value });
+                                      }}
+                                      rows={4}
+                                      placeholder="Mô tả về sản phẩm..."
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Ảnh Hero</Label>
                                     <ImageUpload
-                                      currentImage={section.imageFront || section.overlayFrontImage || section.overlay?.front?.src || ""}
+                                      currentImage={detailData.heroImage || ""}
                                       onImageSelect={(url: string) => {
-                                        const newSections = [...detailData.numberedSections];
-                                        const overlay = section.overlay || {};
-                                        newSections[index] = {
-                                          ...section,
-                                          imageFront: url, // Backend cần field này
-                                          overlayFrontImage: url, // Backend cũng hỗ trợ field này
-                                          overlay: {
-                                            ...overlay,
-                                            front: { ...overlay.front, src: url },
-                                          },
-                                        };
-                                        setDetailData({ ...detailData, numberedSections: newSections });
+                                        setDetailData({ ...detailData, heroImage: url });
                                       }}
                                     />
                                   </div>
-                                </div>
-                                <div>
-                                  <Label className="mb-2">Vị trí ảnh</Label>
-                                  <Select
-                                    value={section.imageSide || "left"}
-                                    onValueChange={(value: "left" | "right") => {
-                                      const newSections = [...detailData.numberedSections];
-                                      newSections[index] = { ...section, imageSide: value };
-                                      setDetailData({ ...detailData, numberedSections: newSections });
-                                    }}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="left">Bên trái</SelectItem>
-                                      <SelectItem value="right">Bên phải</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="mb-2">Các đoạn văn (Paragraphs)</Label>
-                                  <div className="space-y-2">
-                                    {(section.paragraphs || []).map((para: string, paraIndex: number) => (
-                                      <div key={paraIndex} className="flex gap-2">
-                                        <Textarea
-                                          value={para}
-                                          onChange={(e) => {
-                                            const newSections = [...detailData.numberedSections];
-                                            const newParagraphs = [...(section.paragraphs || [])];
-                                            newParagraphs[paraIndex] = e.target.value;
-                                            newSections[index] = { ...section, paragraphs: newParagraphs };
-                                            setDetailData({ ...detailData, numberedSections: newSections });
-                                          }}
-                                          rows={2}
-                                          placeholder={`Đoạn ${paraIndex + 1}`}
-                                        />
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() => {
-                                            const newSections = [...detailData.numberedSections];
-                                            const newParagraphs = (section.paragraphs || []).filter(
-                                              (_: string, i: number) => i !== paraIndex
-                                            );
-                                            newSections[index] = { ...section, paragraphs: newParagraphs };
-                                            setDetailData({ ...detailData, numberedSections: newSections });
-                                          }}
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ))}
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label className="mb-2">Nút liên hệ - Văn bản</Label>
+                                      <Input
+                                        value={detailData.ctaContactText || ""}
+                                        onChange={(e) => {
+                                          setDetailData({ ...detailData, ctaContactText: e.target.value });
+                                        }}
+                                        placeholder="LIÊN HỆ NGAY"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Nút liên hệ - Đường dẫn</Label>
+                                      <Input
+                                        value={detailData.ctaContactHref || ""}
+                                        onChange={(e) => {
+                                          setDetailData({ ...detailData, ctaContactHref: e.target.value });
+                                        }}
+                                        placeholder="/contact"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label className="mb-2">Nút demo - Văn bản</Label>
+                                      <Input
+                                        value={detailData.ctaDemoText || ""}
+                                        onChange={(e) => {
+                                          setDetailData({ ...detailData, ctaDemoText: e.target.value });
+                                        }}
+                                        placeholder="DEMO HỆ THỐNG"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Nút demo - Đường dẫn</Label>
+                                      <Input
+                                        value={detailData.ctaDemoHref || ""}
+                                        onChange={(e) => {
+                                          setDetailData({ ...detailData, ctaDemoHref: e.target.value });
+                                        }}
+                                        placeholder="/demo"
+                                      />
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+
+                            {/* Overview Section Config */}
+                            {detailData && (
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle>Khối 2 - Tổng quan (Overview)</CardTitle>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Kicker, tiêu đề và các card mô tả các bước / tính năng chính.
+                                  </p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <div>
+                                    <Label className="mb-2">Dòng chữ nhỏ phía trên (Kicker)</Label>
+                                    <Input
+                                      value={detailData.overviewKicker || ""}
+                                      onChange={(e) => {
+                                        setDetailData({ ...detailData, overviewKicker: e.target.value });
+                                      }}
+                                      placeholder="Ví dụ: Tổng quan"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Tiêu đề chính</Label>
+                                    <Input
+                                      value={detailData.overviewTitle || ""}
+                                      onChange={(e) => {
+                                        setDetailData({ ...detailData, overviewTitle: e.target.value });
+                                      }}
+                                      placeholder="Tiêu đề overview"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Danh sách thẻ (Cards)</Label>
+                                    <div className="space-y-4">
+                                      {(detailData.overviewCards || []).map((card: any, index: number) => (
+                                        <Card key={index}>
+                                          <CardContent className="pt-6 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                              <Label className="mb-2">Thẻ {index + 1}</Label>
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                  const newCards = (detailData.overviewCards || []).filter(
+                                                    (_: any, i: number) => i !== index
+                                                  );
+                                                  setDetailData({ ...detailData, overviewCards: newCards });
+                                                }}
+                                              >
+                                                <X className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                            <div>
+                                              <Label className="mb-2">Số thứ tự</Label>
+                                              <Input
+                                                type="number"
+                                                value={card.step || index + 1}
+                                                onChange={(e) => {
+                                                  const newCards = [...(detailData.overviewCards || [])];
+                                                  newCards[index] = { ...card, step: Number(e.target.value) || index + 1 };
+                                                  setDetailData({ ...detailData, overviewCards: newCards });
+                                                }}
+                                              />
+                                            </div>
+                                            <div>
+                                              <Label className="mb-2">Tiêu đề thẻ</Label>
+                                              <Input
+                                                value={card.title || ""}
+                                                onChange={(e) => {
+                                                  const newCards = [...(detailData.overviewCards || [])];
+                                                  newCards[index] = { ...card, title: e.target.value };
+                                                  setDetailData({ ...detailData, overviewCards: newCards });
+                                                }}
+                                                placeholder="Tiêu đề card"
+                                              />
+                                            </div>
+                                            <div>
+                                              <Label className="mb-2">Mô tả thẻ</Label>
+                                              <Textarea
+                                                value={card.description || card.desc || ""}
+                                                onChange={(e) => {
+                                                  const newCards = [...(detailData.overviewCards || [])];
+                                                  newCards[index] = { ...card, description: e.target.value, desc: e.target.value };
+                                                  setDetailData({ ...detailData, overviewCards: newCards });
+                                                }}
+                                                rows={2}
+                                                placeholder="Mô tả card"
+                                              />
+                                            </div>
+                                          </CardContent>
+                                        </Card>
+                                      ))}
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                          const newCards = [
+                                            ...(detailData.overviewCards || []),
+                                            { step: (detailData.overviewCards?.length || 0) + 1, title: "", description: "", desc: "" },
+                                          ];
+                                          setDetailData({ ...detailData, overviewCards: newCards });
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Thêm Card
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+
+                            {/* Showcase Section Config */}
+                            {detailData && detailData.showcase && (
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle>Khối 3 - Showcase màn hình</CardTitle>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Bố cục 2 cột: bên trái là ảnh màn hình, bên phải là tiêu đề, mô tả và bullets.
+                                  </p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <div>
+                                    <Label className="mb-2">Tiêu đề showcase</Label>
+                                    <Input
+                                      value={detailData.showcase?.title || ""}
+                                      onChange={(e) => {
+                                        setDetailData({
+                                          ...detailData,
+                                          showcase: { ...detailData.showcase, title: e.target.value },
+                                        });
+                                      }}
+                                      placeholder="Tiêu đề showcase"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Mô tả showcase</Label>
+                                    <Textarea
+                                      value={detailData.showcase?.desc || ""}
+                                      onChange={(e) => {
+                                        setDetailData({
+                                          ...detailData,
+                                          showcase: { ...detailData.showcase, desc: e.target.value },
+                                        });
+                                      }}
+                                      rows={3}
+                                      placeholder="Mô tả showcase"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Danh sách điểm nổi bật (Bullets)</Label>
+                                    <div className="space-y-2">
+                                      {(detailData.showcase?.bullets || []).map((bullet: string, index: number) => (
+                                        <div key={index} className="flex gap-2">
+                                          <Input
+                                            value={bullet}
+                                            onChange={(e) => {
+                                              const newBullets = [...(detailData.showcase?.bullets || [])];
+                                              newBullets[index] = e.target.value;
+                                              setDetailData({
+                                                ...detailData,
+                                                showcase: { ...detailData.showcase, bullets: newBullets },
+                                              });
+                                            }}
+                                            placeholder={`Bullet ${index + 1}`}
+                                          />
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => {
+                                              const newBullets = (detailData.showcase?.bullets || []).filter(
+                                                (_: string, i: number) => i !== index
+                                              );
+                                              setDetailData({
+                                                ...detailData,
+                                                showcase: { ...detailData.showcase, bullets: newBullets },
+                                              });
+                                            }}
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                          const newBullets = [...(detailData.showcase?.bullets || []), ""];
+                                          setDetailData({
+                                            ...detailData,
+                                            showcase: { ...detailData.showcase, bullets: newBullets },
+                                          });
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Thêm Bullet
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label className="mb-2">Nút kêu gọi hành động - Văn bản</Label>
+                                      <Input
+                                        value={detailData.showcase?.ctaText || ""}
+                                        onChange={(e) => {
+                                          setDetailData({
+                                            ...detailData,
+                                            showcase: { ...detailData.showcase, ctaText: e.target.value },
+                                          });
+                                        }}
+                                        placeholder="Liên hệ"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Nút kêu gọi hành động - Đường dẫn</Label>
+                                      <Input
+                                        value={detailData.showcase?.ctaHref || ""}
+                                        onChange={(e) => {
+                                          setDetailData({
+                                            ...detailData,
+                                            showcase: { ...detailData.showcase, ctaHref: e.target.value },
+                                          });
+                                        }}
+                                        placeholder="/contact"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label className="mb-2">Ảnh nền (Back)</Label>
+                                      <ImageUpload
+                                        currentImage={detailData.showcase?.overlay?.back?.src || detailData.showcase?.imageBack || ""}
+                                        onImageSelect={(url: string) => {
+                                          const overlay = detailData.showcase?.overlay || {};
+                                          setDetailData({
+                                            ...detailData,
+                                            showcase: {
+                                              ...detailData.showcase,
+                                              overlay: {
+                                                ...overlay,
+                                                back: { ...overlay.back, src: url },
+                                              },
+                                              imageBack: url,
+                                            },
+                                          });
+                                        }}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Ảnh phía trước (Front)</Label>
+                                      <ImageUpload
+                                        currentImage={detailData.showcase?.overlay?.front?.src || detailData.showcase?.imageFront || ""}
+                                        onImageSelect={(url: string) => {
+                                          const overlay = detailData.showcase?.overlay || {};
+                                          setDetailData({
+                                            ...detailData,
+                                            showcase: {
+                                              ...detailData.showcase,
+                                              overlay: {
+                                                ...overlay,
+                                                front: { ...overlay.front, src: url },
+                                              },
+                                              imageFront: url,
+                                            },
+                                          });
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+
+                            {/* Numbered Sections Config */}
+                            {detailData && detailData.numberedSections && (
+                              <Card>
+                                <CardHeader>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle>Khối 4 - Các section đánh số</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Mỗi section gồm số thứ tự, tiêu đề, ảnh minh họa và các đoạn mô tả chi tiết.
+                                      </p>
+                                    </div>
                                     <Button
                                       type="button"
                                       variant="outline"
                                       onClick={() => {
-                                        const newSections = [...detailData.numberedSections];
-                                        const newParagraphs = [...(section.paragraphs || []), ""];
-                                        newSections[index] = { ...section, paragraphs: newParagraphs };
+                                        const newSections = [
+                                          ...(detailData.numberedSections || []),
+                                          {
+                                            sectionNo: (detailData.numberedSections?.length || 0) + 1,
+                                            no: (detailData.numberedSections?.length || 0) + 1,
+                                            title: "",
+                                            image: "",
+                                            imageSide: "left",
+                                            paragraphs: [],
+                                          },
+                                        ];
                                         setDetailData({ ...detailData, numberedSections: newSections });
                                       }}
                                     >
                                       <Plus className="h-4 w-4 mr-2" />
-                                      Thêm Paragraph
+                                      Thêm Section
                                     </Button>
                                   </div>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                  {detailData.numberedSections.map((section: any, index: number) => (
+                                    <Card key={index}>
+                                      <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                          <CardTitle>Section {index + 1}</CardTitle>
+                                          <div className="flex gap-2">
+                                            {index > 0 && (
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                  const newSections = [...detailData.numberedSections];
+                                                  [newSections[index - 1], newSections[index]] = [
+                                                    newSections[index],
+                                                    newSections[index - 1],
+                                                  ];
+                                                  const normalizedSections = newSections.map((s: any, i: number) => ({
+                                                    ...s,
+                                                    sectionNo: i + 1,
+                                                    no: i + 1,
+                                                  }));
+                                                  setDetailData({ ...detailData, numberedSections: normalizedSections });
+                                                }}
+                                              >
+                                                <ChevronUp className="h-4 w-4" />
+                                              </Button>
+                                            )}
+                                            {index < detailData.numberedSections.length - 1 && (
+                                              <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                  const newSections = [...detailData.numberedSections];
+                                                  [newSections[index], newSections[index + 1]] = [
+                                                    newSections[index + 1],
+                                                    newSections[index],
+                                                  ];
+                                                  const normalizedSections = newSections.map((s: any, i: number) => ({
+                                                    ...s,
+                                                    sectionNo: i + 1,
+                                                    no: i + 1,
+                                                  }));
+                                                  setDetailData({ ...detailData, numberedSections: normalizedSections });
+                                                }}
+                                              >
+                                                <ChevronDown className="h-4 w-4" />
+                                              </Button>
+                                            )}
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                const newSections = detailData.numberedSections.filter(
+                                                  (_: any, i: number) => i !== index
+                                                );
+                                                const normalizedSections = newSections.map((s: any, i: number) => ({
+                                                  ...s,
+                                                  sectionNo: i + 1,
+                                                  no: i + 1,
+                                                }));
+                                                setDetailData({ ...detailData, numberedSections: normalizedSections });
+                                              }}
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </CardHeader>
+                                      <CardContent className="space-y-4">
+                                        <div>
+                                          <Label className="mb-2">Tiêu đề section</Label>
+                                          <Input
+                                            value={section.title || ""}
+                                            onChange={(e) => {
+                                              const newSections = [...detailData.numberedSections];
+                                              newSections[index] = { ...section, title: e.target.value };
+                                              setDetailData({ ...detailData, numberedSections: newSections });
+                                            }}
+                                            placeholder="Tiêu đề section"
+                                          />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          <div>
+                                            <Label className="mb-2">Ảnh nền (Back)</Label>
+                                            <ImageUpload
+                                              currentImage={section.imageBack || section.overlayBackImage || section.overlay?.back?.src || section.image || ""}
+                                              onImageSelect={(url: string) => {
+                                                const newSections = [...detailData.numberedSections];
+                                                const overlay = section.overlay || {};
+                                                newSections[index] = {
+                                                  ...section,
+                                                  image: url, // Giữ tương thích
+                                                  imageBack: url, // Backend cần field này
+                                                  overlayBackImage: url, // Backend cũng hỗ trợ field này
+                                                  overlay: {
+                                                    ...overlay,
+                                                    back: { ...overlay.back, src: url },
+                                                  },
+                                                };
+                                                setDetailData({ ...detailData, numberedSections: newSections });
+                                              }}
+                                            />
+                                          </div>
+                                          <div>
+                                            <Label className="mb-2">Ảnh phía trước (Front)</Label>
+                                            <ImageUpload
+                                              currentImage={section.imageFront || section.overlayFrontImage || section.overlay?.front?.src || ""}
+                                              onImageSelect={(url: string) => {
+                                                const newSections = [...detailData.numberedSections];
+                                                const overlay = section.overlay || {};
+                                                newSections[index] = {
+                                                  ...section,
+                                                  imageFront: url, // Backend cần field này
+                                                  overlayFrontImage: url, // Backend cũng hỗ trợ field này
+                                                  overlay: {
+                                                    ...overlay,
+                                                    front: { ...overlay.front, src: url },
+                                                  },
+                                                };
+                                                setDetailData({ ...detailData, numberedSections: newSections });
+                                              }}
+                                            />
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <Label className="mb-2">Vị trí ảnh</Label>
+                                          <Select
+                                            value={section.imageSide || "left"}
+                                            onValueChange={(value: "left" | "right") => {
+                                              const newSections = [...detailData.numberedSections];
+                                              newSections[index] = { ...section, imageSide: value };
+                                              setDetailData({ ...detailData, numberedSections: newSections });
+                                            }}
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="left">Bên trái</SelectItem>
+                                              <SelectItem value="right">Bên phải</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div>
+                                          <Label className="mb-2">Các đoạn văn (Paragraphs)</Label>
+                                          <div className="space-y-2">
+                                            {(section.paragraphs || []).map((para: string, paraIndex: number) => (
+                                              <div key={paraIndex} className="flex gap-2">
+                                                <Textarea
+                                                  value={para}
+                                                  onChange={(e) => {
+                                                    const newSections = [...detailData.numberedSections];
+                                                    const newParagraphs = [...(section.paragraphs || [])];
+                                                    newParagraphs[paraIndex] = e.target.value;
+                                                    newSections[index] = { ...section, paragraphs: newParagraphs };
+                                                    setDetailData({ ...detailData, numberedSections: newSections });
+                                                  }}
+                                                  rows={2}
+                                                  placeholder={`Đoạn ${paraIndex + 1}`}
+                                                />
+                                                <Button
+                                                  type="button"
+                                                  variant="outline"
+                                                  size="icon"
+                                                  onClick={() => {
+                                                    const newSections = [...detailData.numberedSections];
+                                                    const newParagraphs = (section.paragraphs || []).filter(
+                                                      (_: string, i: number) => i !== paraIndex
+                                                    );
+                                                    newSections[index] = { ...section, paragraphs: newParagraphs };
+                                                    setDetailData({ ...detailData, numberedSections: newSections });
+                                                  }}
+                                                >
+                                                  <X className="h-4 w-4" />
+                                                </Button>
+                                              </div>
+                                            ))}
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              onClick={() => {
+                                                const newSections = [...detailData.numberedSections];
+                                                const newParagraphs = [...(section.paragraphs || []), ""];
+                                                newSections[index] = { ...section, paragraphs: newParagraphs };
+                                                setDetailData({ ...detailData, numberedSections: newSections });
+                                              }}
+                                            >
+                                              <Plus className="h-4 w-4 mr-2" />
+                                              Thêm Paragraph
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ))}
+                                </CardContent>
+                              </Card>
+                            )}
+
+                            {/* Expand Section Config */}
+                            {detailData && detailData.expand && (
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle>Khối 5 - Expand (Mở rộng lợi ích)</CardTitle>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Danh sách bullets nhấn mạnh lợi ích và một ảnh minh họa bên cạnh.
+                                  </p>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <div>
+                                    <Label className="mb-2">Tiêu đề expand</Label>
+                                    <Input
+                                      value={detailData.expand?.title || detailData.expandTitle || ""}
+                                      onChange={(e) => {
+                                        setDetailData({
+                                          ...detailData,
+                                          expand: { ...detailData.expand, title: e.target.value },
+                                          expandTitle: e.target.value,
+                                        });
+                                      }}
+                                      placeholder="Tiêu đề expand"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Danh sách điểm nổi bật (Bullets)</Label>
+                                    <div className="space-y-2">
+                                      {((detailData.expand?.bullets || detailData.expandBullets) || []).map(
+                                        (bullet: string, index: number) => (
+                                          <div key={index} className="flex gap-2">
+                                            <Input
+                                              value={bullet}
+                                              onChange={(e) => {
+                                                const newBullets = [...((detailData.expand?.bullets || detailData.expandBullets) || [])];
+                                                newBullets[index] = e.target.value;
+                                                setDetailData({
+                                                  ...detailData,
+                                                  expand: { ...detailData.expand, bullets: newBullets },
+                                                  expandBullets: newBullets,
+                                                });
+                                              }}
+                                              placeholder={`Bullet ${index + 1}`}
+                                            />
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="icon"
+                                              onClick={() => {
+                                                const newBullets = ((detailData.expand?.bullets || detailData.expandBullets) || []).filter(
+                                                  (_: string, i: number) => i !== index
+                                                );
+                                                setDetailData({
+                                                  ...detailData,
+                                                  expand: { ...detailData.expand, bullets: newBullets },
+                                                  expandBullets: newBullets,
+                                                });
+                                              }}
+                                            >
+                                              <X className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        )
+                                      )}
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                          const currentBullets = (detailData.expand?.bullets || detailData.expandBullets) || [];
+                                          const newBullets = [...currentBullets, ""];
+                                          setDetailData({
+                                            ...detailData,
+                                            expand: { ...detailData.expand, bullets: newBullets },
+                                            expandBullets: newBullets,
+                                          });
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Thêm Bullet
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <Label className="mb-2">Nút kêu gọi hành động - Văn bản</Label>
+                                      <Input
+                                        value={detailData.expand?.ctaText || detailData.expandCtaText || ""}
+                                        onChange={(e) => {
+                                          setDetailData({
+                                            ...detailData,
+                                            expand: { ...detailData.expand, ctaText: e.target.value },
+                                            expandCtaText: e.target.value,
+                                          });
+                                        }}
+                                        placeholder="Liên hệ"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Nút kêu gọi hành động - Đường dẫn</Label>
+                                      <Input
+                                        value={detailData.expand?.ctaHref || detailData.expandCtaHref || ""}
+                                        onChange={(e) => {
+                                          setDetailData({
+                                            ...detailData,
+                                            expand: { ...detailData.expand, ctaHref: e.target.value },
+                                            expandCtaHref: e.target.value,
+                                          });
+                                        }}
+                                        placeholder="/contact"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Ảnh minh họa</Label>
+                                    <ImageUpload
+                                      currentImage={detailData.expand?.image || detailData.expandImage || ""}
+                                      onImageSelect={(url: string) => {
+                                        setDetailData({
+                                          ...detailData,
+                                          expand: { ...detailData.expand, image: url },
+                                          expandImage: url,
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+                          </TabsContent>
+
+                          <TabsContent value="content" className="space-y-4 mt-4">
+                            <Card>
+                              <CardHeader>
+                                <CardTitle>Nội dung HTML</CardTitle>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Sử dụng trình soạn thảo để tạo nội dung chi tiết sản phẩm với định dạng phong phú.
+                                </p>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-2">
+                                  <Label className="text-sm font-semibold">
+                                    Nội dung chi tiết
+                                  </Label>
+                                  <div className="border rounded-lg min-h-[360px]">
+                                    <RichTextEditor
+                                      value={detailData?.contentHtml || ""}
+                                      onChange={(value) => {
+                                        setDetailData({
+                                          ...detailData,
+                                          contentHtml: value,
+                                          contentMode: "content"
+                                        });
+                                        // Đảm bảo tab cũng được cập nhật khi thay đổi nội dung
+                                        if (activeContentModeTab !== "content") {
+                                          setActiveContentModeTab("content");
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    Sử dụng trình soạn thảo để tạo nội dung sản phẩm với định dạng phong phú.
+                                  </p>
                                 </div>
                               </CardContent>
                             </Card>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Expand Section Config */}
-                    {detailData && detailData.expand && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Khối 5 - Expand (Mở rộng lợi ích)</CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Danh sách bullets nhấn mạnh lợi ích và một ảnh minh họa bên cạnh.
-                          </p>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div>
-                            <Label className="mb-2">Tiêu đề expand</Label>
-                            <Input
-                              value={detailData.expand?.title || detailData.expandTitle || ""}
-                              onChange={(e) => {
-                                setDetailData({
-                                  ...detailData,
-                                  expand: { ...detailData.expand, title: e.target.value },
-                                  expandTitle: e.target.value,
-                                });
-                              }}
-                              placeholder="Tiêu đề expand"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Danh sách điểm nổi bật (Bullets)</Label>
-                            <div className="space-y-2">
-                              {((detailData.expand?.bullets || detailData.expandBullets) || []).map(
-                                (bullet: string, index: number) => (
-                                  <div key={index} className="flex gap-2">
-                                    <Input
-                                      value={bullet}
-                                      onChange={(e) => {
-                                        const newBullets = [...((detailData.expand?.bullets || detailData.expandBullets) || [])];
-                                        newBullets[index] = e.target.value;
-                                        setDetailData({
-                                          ...detailData,
-                                          expand: { ...detailData.expand, bullets: newBullets },
-                                          expandBullets: newBullets,
-                                        });
-                                      }}
-                                      placeholder={`Bullet ${index + 1}`}
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon"
-                                      onClick={() => {
-                                        const newBullets = ((detailData.expand?.bullets || detailData.expandBullets) || []).filter(
-                                          (_: string, i: number) => i !== index
-                                        );
-                                        setDetailData({
-                                          ...detailData,
-                                          expand: { ...detailData.expand, bullets: newBullets },
-                                          expandBullets: newBullets,
-                                        });
-                                      }}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                )
-                              )}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  const currentBullets = (detailData.expand?.bullets || detailData.expandBullets) || [];
-                                  const newBullets = [...currentBullets, ""];
-                                  setDetailData({
-                                    ...detailData,
-                                    expand: { ...detailData.expand, bullets: newBullets },
-                                    expandBullets: newBullets,
-                                  });
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm Bullet
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="mb-2">Nút kêu gọi hành động - Văn bản</Label>
-                              <Input
-                                value={detailData.expand?.ctaText || detailData.expandCtaText || ""}
-                                onChange={(e) => {
-                                  setDetailData({
-                                    ...detailData,
-                                    expand: { ...detailData.expand, ctaText: e.target.value },
-                                    expandCtaText: e.target.value,
-                                  });
-                                }}
-                                placeholder="Liên hệ"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Nút kêu gọi hành động - Đường dẫn</Label>
-                              <Input
-                                value={detailData.expand?.ctaHref || detailData.expandCtaHref || ""}
-                                onChange={(e) => {
-                                  setDetailData({
-                                    ...detailData,
-                                    expand: { ...detailData.expand, ctaHref: e.target.value },
-                                    expandCtaHref: e.target.value,
-                                  });
-                                }}
-                                placeholder="/contact"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <Label className="mb-2">Ảnh minh họa</Label>
-                            <ImageUpload
-                              currentImage={detailData.expand?.image || detailData.expandImage || ""}
-                              onImageSelect={(url: string) => {
-                                setDetailData({
-                                  ...detailData,
-                                  expand: { ...detailData.expand, image: url },
-                                  expandImage: url,
-                                });
-                              }}
-                            />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
+                          </TabsContent>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
                   </div>
                 )}
               </TabsContent>
@@ -1442,10 +1815,15 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                   <Card>
                     <CardHeader>
                       <CardTitle>Preview - Trang chi tiết sản phẩm</CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {detailData?.contentMode === "content"
+                          ? "Xem trước nội dung HTML"
+                          : "Xem trước các widget sections"}
+                      </p>
                     </CardHeader>
                     <CardContent>
                       <div className="bg-white">
-                        {/* Hero Section */}
+                        {/* Hero Section - Hiển thị ở cả 2 chế độ */}
                         <section className="w-full">
                           <div className="bg-[linear-gradient(31deg,#0870B4_51.21%,#2EABE2_97.73%)]">
                             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[243px] pt-[120px] sm:pt-[160px] lg:pt-[194.5px] pb-[80px] sm:pb-[110px] lg:pb-[127.5px]">
@@ -1508,219 +1886,235 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                           </div>
                         </section>
 
-                        {/* Overview Section */}
-                        {(detailData.overviewKicker || detailData.overviewTitle || (detailData.overviewCards && detailData.overviewCards.length > 0)) && (
-                          <section className="w-full">
-                            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] flex justify-center">
-                              <div className="flex flex-col items-start gap-[60px] w-full lg:w-[1340px]">
-                                <div className="w-full text-center space-y-4">
-                                  {detailData.overviewKicker && (
-                                    <div className="w-full text-center text-[#1D8FCF] uppercase font-plus-jakarta text-[15px] font-medium leading-normal tracking-widest [font-feature-settings:'liga'_off,'clig'_off]">
-                                      {detailData.overviewKicker}
-                                    </div>
-                                  )}
-                                  {detailData.overviewTitle && (
-                                    <h2 className="mx-auto max-w-[840px] text-center text-[#0F172A] font-plus-jakarta text-[32px] sm:text-[44px] lg:text-[56px] font-bold leading-normal [font-feature-settings:'liga'_off,'clig'_off]">
-                                      {detailData.overviewTitle}
-                                    </h2>
-                                  )}
-                                </div>
-                                {detailData.overviewCards && detailData.overviewCards.length > 0 && (
-                                  <div className="flex justify-center items-start content-start gap-[18px] flex-wrap w-full lg:w-[1340px]">
-                                    {detailData.overviewCards.map((card: any, idx: number) => (
-                                      <div
-                                        key={idx}
-                                        className="flex flex-col items-center gap-3 w-full max-w-[433px] lg:w-[433px] px-6 py-8 rounded-xl border border-white"
-                                        style={{
-                                          background: "linear-gradient(237deg, rgba(128, 192, 228, 0.10) 7%, rgba(29, 143, 207, 0.10) 71.94%)",
-                                        }}
-                                      >
-                                        {card.step && (
-                                          <div className="flex justify-center mb-3">
-                                            <div className="w-12 h-12 rounded-full bg-[#1D8FCF] text-white flex items-center justify-center font-bold">
-                                              {card.step}
-                                            </div>
-                                          </div>
-                                        )}
-                                        {card.title && (
-                                          <div className="text-[#0B78B8] font-semibold text-center">
-                                            {card.title}
-                                          </div>
-                                        )}
-                                        {(card.description || card.desc) && (
-                                          <div className="text-gray-600 text-sm leading-relaxed text-center">
-                                            {card.description || card.desc}
-                                          </div>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </section>
-                        )}
-
-                        {/* Showcase Section */}
-                        {detailData.showcase && (
+                        {/* Hiển thị theo chế độ: Content HTML hoặc Widget */}
+                        {detailData?.contentMode === "content" && detailData?.contentHtml ? (
+                          // Chế độ Content: Hiển thị HTML preview
                           <section className="w-full bg-white">
                             <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px]">
-                              <div className="flex flex-row items-center justify-center gap-[90px]">
-                                {(detailData.showcase.overlay?.back?.src || detailData.showcase.imageBack) && (
-                                  <div className="relative flex-shrink-0 flex justify-start">
-                                    <div className="relative w-[701px] h-[511px]">
-                                      <div className="rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
-                                        <img
-                                          src={detailData.showcase.overlay?.back?.src || detailData.showcase.imageBack}
-                                          alt={detailData.showcase.title}
-                                          className="w-full h-full object-contain"
-                                        />
-                                      </div>
-                                      {detailData.showcase.overlay?.front?.src && (
-                                        <div className="absolute left-[183.5px] bottom-0 rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden w-[400px] h-[300px]">
-                                          <img
-                                            src={detailData.showcase.overlay.front.src}
-                                            alt={detailData.showcase.title}
-                                            className="w-full h-full object-contain"
-                                          />
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-                                <div className="flex flex-shrink-0 w-[549px] flex-col items-start gap-6">
-                                  {detailData.showcase.title && (
-                                    <h3 className="text-gray-900 text-2xl font-bold">
-                                      {detailData.showcase.title}
-                                    </h3>
-                                  )}
-                                  {detailData.showcase.desc && (
-                                    <p className="text-gray-600 leading-relaxed">
-                                      {detailData.showcase.desc}
-                                    </p>
-                                  )}
-                                  {detailData.showcase.bullets && detailData.showcase.bullets.length > 0 && (
-                                    <div className="space-y-3">
-                                      {detailData.showcase.bullets.map((b: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-3">
-                                          <CheckCircle2 size={18} className="text-[#0B78B8] mt-0.5" />
-                                          <span className="text-gray-700">{b}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                  {detailData.showcase.ctaHref && detailData.showcase.ctaText && (
-                                    <a
-                                      href={detailData.showcase.ctaHref}
-                                      className="inline-flex items-center gap-2 h-[42px] px-5 rounded-lg bg-[#2EABE2] text-white font-semibold hover:opacity-90 transition"
-                                    >
-                                      {detailData.showcase.ctaText} <ArrowRight size={18} />
-                                    </a>
-                                  )}
-                                </div>
-                              </div>
+                              <div
+                                className="prose prose-lg max-w-none"
+                                dangerouslySetInnerHTML={{ __html: detailData.contentHtml }}
+                              />
                             </div>
                           </section>
-                        )}
-
-                        {/* Numbered Sections */}
-                        {detailData.numberedSections && detailData.numberedSections.length > 0 && (
-                          <section className="w-full bg-white">
-                            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
-                              {detailData.numberedSections
-                                .sort((a: any, b: any) => (a.sectionNo || a.no || 0) - (b.sectionNo || b.no || 0))
-                                .map((section: any, index: number) => (
-                                  <div key={index} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                                    <div className={section.imageSide === "left" ? "order-1" : "order-2 lg:order-2"}>
-                                      {section.image && (
-                                        <div className="w-full flex justify-center lg:justify-start">
-                                          <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
-                                            <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
-                                              <img
-                                                src={section.overlay?.back?.src || section.image}
-                                                alt={section.title}
-                                                className="w-full h-full object-cover"
-                                              />
-                                            </div>
-                                            {section.overlay?.front?.src && (
-                                              <div className="absolute left-[183.5px] bottom-0 rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden w-[400px] h-[300px]">
-                                                <img
-                                                  src={section.overlay.front.src}
-                                                  alt={section.title}
-                                                  className="w-full h-full object-cover"
-                                                />
+                        ) : (
+                          // Chế độ Widget: Hiển thị các sections như bình thường
+                          <>
+                            {/* Overview Section */}
+                            {(detailData.overviewKicker || detailData.overviewTitle || (detailData.overviewCards && detailData.overviewCards.length > 0)) && (
+                              <section className="w-full">
+                                <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] flex justify-center">
+                                  <div className="flex flex-col items-start gap-[60px] w-full lg:w-[1340px]">
+                                    <div className="w-full text-center space-y-4">
+                                      {detailData.overviewKicker && (
+                                        <div className="w-full text-center text-[#1D8FCF] uppercase font-plus-jakarta text-[15px] font-medium leading-normal tracking-widest [font-feature-settings:'liga'_off,'clig'_off]">
+                                          {detailData.overviewKicker}
+                                        </div>
+                                      )}
+                                      {detailData.overviewTitle && (
+                                        <h2 className="mx-auto max-w-[840px] text-center text-[#0F172A] font-plus-jakarta text-[32px] sm:text-[44px] lg:text-[56px] font-bold leading-normal [font-feature-settings:'liga'_off,'clig'_off]">
+                                          {detailData.overviewTitle}
+                                        </h2>
+                                      )}
+                                    </div>
+                                    {detailData.overviewCards && detailData.overviewCards.length > 0 && (
+                                      <div className="flex justify-center items-start content-start gap-[18px] flex-wrap w-full lg:w-[1340px]">
+                                        {detailData.overviewCards.map((card: any, idx: number) => (
+                                          <div
+                                            key={idx}
+                                            className="flex flex-col items-center gap-3 w-full max-w-[433px] lg:w-[433px] px-6 py-8 rounded-xl border border-white"
+                                            style={{
+                                              background: "linear-gradient(237deg, rgba(128, 192, 228, 0.10) 7%, rgba(29, 143, 207, 0.10) 71.94%)",
+                                            }}
+                                          >
+                                            {card.step && (
+                                              <div className="flex justify-center mb-3">
+                                                <div className="w-12 h-12 rounded-full bg-[#1D8FCF] text-white flex items-center justify-center font-bold">
+                                                  {card.step}
+                                                </div>
+                                              </div>
+                                            )}
+                                            {card.title && (
+                                              <div className="text-[#0B78B8] font-semibold text-center">
+                                                {card.title}
+                                              </div>
+                                            )}
+                                            {(card.description || card.desc) && (
+                                              <div className="text-gray-600 text-sm leading-relaxed text-center">
+                                                {card.description || card.desc}
                                               </div>
                                             )}
                                           </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </section>
+                            )}
+
+                            {/* Showcase Section */}
+                            {detailData.showcase && (
+                              <section className="w-full bg-white">
+                                <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px]">
+                                  <div className="flex flex-row items-center justify-center gap-[90px]">
+                                    {(detailData.showcase.overlay?.back?.src || detailData.showcase.imageBack) && (
+                                      <div className="relative flex-shrink-0 flex justify-start">
+                                        <div className="relative w-[701px] h-[511px]">
+                                          <div className="rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
+                                            <img
+                                              src={detailData.showcase.overlay?.back?.src || detailData.showcase.imageBack}
+                                              alt={detailData.showcase.title}
+                                              className="w-full h-full object-contain"
+                                            />
+                                          </div>
+                                          {detailData.showcase.overlay?.front?.src && (
+                                            <div className="absolute left-[183.5px] bottom-0 rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden w-[400px] h-[300px]">
+                                              <img
+                                                src={detailData.showcase.overlay.front.src}
+                                                alt={detailData.showcase.title}
+                                                className="w-full h-full object-contain"
+                                              />
+                                            </div>
+                                          )}
                                         </div>
+                                      </div>
+                                    )}
+                                    <div className="flex flex-shrink-0 w-[549px] flex-col items-start gap-6">
+                                      {detailData.showcase.title && (
+                                        <h3 className="text-gray-900 text-2xl font-bold">
+                                          {detailData.showcase.title}
+                                        </h3>
                                       )}
-                                    </div>
-                                    <div className={section.imageSide === "left" ? "order-2" : "order-1 lg:order-1"}>
-                                      {section.title && (
-                                        <div className="text-gray-900 text-xl md:text-2xl font-bold mb-4">
-                                          {(section.sectionNo || section.no || index + 1)}. {section.title}
-                                        </div>
+                                      {detailData.showcase.desc && (
+                                        <p className="text-gray-600 leading-relaxed">
+                                          {detailData.showcase.desc}
+                                        </p>
                                       )}
-                                      {section.paragraphs && section.paragraphs.length > 0 && (
-                                        <div className="space-y-4 text-gray-600 leading-relaxed">
-                                          {section.paragraphs.map((p: string, i: number) => (
-                                            <p key={i}>{p}</p>
+                                      {detailData.showcase.bullets && detailData.showcase.bullets.length > 0 && (
+                                        <div className="space-y-3">
+                                          {detailData.showcase.bullets.map((b: string, i: number) => (
+                                            <div key={i} className="flex items-start gap-3">
+                                              <CheckCircle2 size={18} className="text-[#0B78B8] mt-0.5" />
+                                              <span className="text-gray-700">{b}</span>
+                                            </div>
                                           ))}
                                         </div>
                                       )}
+                                      {detailData.showcase.ctaHref && detailData.showcase.ctaText && (
+                                        <a
+                                          href={detailData.showcase.ctaHref}
+                                          className="inline-flex items-center gap-2 h-[42px] px-5 rounded-lg bg-[#2EABE2] text-white font-semibold hover:opacity-90 transition"
+                                        >
+                                          {detailData.showcase.ctaText} <ArrowRight size={18} />
+                                        </a>
+                                      )}
                                     </div>
                                   </div>
-                                ))}
-                            </div>
-                          </section>
-                        )}
-
-                        {/* Expand Section */}
-                        {detailData.expand && (
-                          <section className="w-full bg-white">
-                            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px]">
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                                <div className="space-y-5">
-                                  {(detailData.expand.title || detailData.expandTitle) && (
-                                    <h3 className="text-gray-900 text-2xl font-bold">
-                                      {detailData.expand.title || detailData.expandTitle}
-                                    </h3>
-                                  )}
-                                  {((detailData.expand.bullets || detailData.expandBullets) || []).length > 0 && (
-                                    <div className="space-y-3">
-                                      {(detailData.expand.bullets || detailData.expandBullets || []).map((b: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-3">
-                                          <CheckCircle2 size={18} className="text-[#0B78B8] mt-0.5" />
-                                          <span className="text-gray-700">{b}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                  {((detailData.expand.ctaHref || detailData.expandCtaHref) && (detailData.expand.ctaText || detailData.expandCtaText)) && (
-                                    <a
-                                      href={detailData.expand.ctaHref || detailData.expandCtaHref}
-                                      className="inline-flex items-center gap-2 h-[44px] px-5 rounded-lg bg-[#2EABE2] text-white font-semibold hover:opacity-90 transition"
-                                    >
-                                      {detailData.expand.ctaText || detailData.expandCtaText} <ArrowRight size={18} />
-                                    </a>
-                                  )}
                                 </div>
-                                {(detailData.expand.image || detailData.expandImage) && (
-                                  <div>
-                                    <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_14px_40px_rgba(0,0,0,0.08)] overflow-hidden">
-                                      <div className="relative aspect-[16/9]">
-                                        <img
-                                          src={detailData.expand.image || detailData.expandImage}
-                                          alt={detailData.expand.title || detailData.expandTitle}
-                                          className="w-full h-full object-cover"
-                                        />
+                              </section>
+                            )}
+
+                            {/* Numbered Sections */}
+                            {detailData.numberedSections && detailData.numberedSections.length > 0 && (
+                              <section className="w-full bg-white">
+                                <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
+                                  {detailData.numberedSections
+                                    .sort((a: any, b: any) => (a.sectionNo || a.no || 0) - (b.sectionNo || b.no || 0))
+                                    .map((section: any, index: number) => (
+                                      <div key={index} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                                        <div className={section.imageSide === "left" ? "order-1" : "order-2 lg:order-2"}>
+                                          {section.image && (
+                                            <div className="w-full flex justify-center lg:justify-start">
+                                              <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
+                                                <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
+                                                  <img
+                                                    src={section.overlay?.back?.src || section.image}
+                                                    alt={section.title}
+                                                    className="w-full h-full object-cover"
+                                                  />
+                                                </div>
+                                                {section.overlay?.front?.src && (
+                                                  <div className="absolute left-[183.5px] bottom-0 rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden w-[400px] h-[300px]">
+                                                    <img
+                                                      src={section.overlay.front.src}
+                                                      alt={section.title}
+                                                      className="w-full h-full object-cover"
+                                                    />
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className={section.imageSide === "left" ? "order-2" : "order-1 lg:order-1"}>
+                                          {section.title && (
+                                            <div className="text-gray-900 text-xl md:text-2xl font-bold mb-4">
+                                              {(section.sectionNo || section.no || index + 1)}. {section.title}
+                                            </div>
+                                          )}
+                                          {section.paragraphs && section.paragraphs.length > 0 && (
+                                            <div className="space-y-4 text-gray-600 leading-relaxed">
+                                              {section.paragraphs.map((p: string, i: number) => (
+                                                <p key={i}>{p}</p>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
                                       </div>
+                                    ))}
+                                </div>
+                              </section>
+                            )}
+
+                            {/* Expand Section */}
+                            {detailData.expand && (
+                              <section className="w-full bg-white">
+                                <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px]">
+                                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                                    <div className="space-y-5">
+                                      {(detailData.expand.title || detailData.expandTitle) && (
+                                        <h3 className="text-gray-900 text-2xl font-bold">
+                                          {detailData.expand.title || detailData.expandTitle}
+                                        </h3>
+                                      )}
+                                      {((detailData.expand.bullets || detailData.expandBullets) || []).length > 0 && (
+                                        <div className="space-y-3">
+                                          {(detailData.expand.bullets || detailData.expandBullets || []).map((b: string, i: number) => (
+                                            <div key={i} className="flex items-start gap-3">
+                                              <CheckCircle2 size={18} className="text-[#0B78B8] mt-0.5" />
+                                              <span className="text-gray-700">{b}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {((detailData.expand.ctaHref || detailData.expandCtaHref) && (detailData.expand.ctaText || detailData.expandCtaText)) && (
+                                        <a
+                                          href={detailData.expand.ctaHref || detailData.expandCtaHref}
+                                          className="inline-flex items-center gap-2 h-[44px] px-5 rounded-lg bg-[#2EABE2] text-white font-semibold hover:opacity-90 transition"
+                                        >
+                                          {detailData.expand.ctaText || detailData.expandCtaText} <ArrowRight size={18} />
+                                        </a>
+                                      )}
                                     </div>
+                                    {(detailData.expand.image || detailData.expandImage) && (
+                                      <div>
+                                        <div className="rounded-2xl bg-white border border-gray-100 shadow-[0_14px_40px_rgba(0,0,0,0.08)] overflow-hidden">
+                                          <div className="relative aspect-[16/9]">
+                                            <img
+                                              src={detailData.expand.image || detailData.expandImage}
+                                              alt={detailData.expand.title || detailData.expandTitle}
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            </div>
-                          </section>
+                                </div>
+                              </section>
+                            )}
+                          </>
                         )}
                       </div>
                     </CardContent>

@@ -7,6 +7,7 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { products as staticProducts, categories as staticCategories, CategoryId } from "./data";
 import Link from "next/link";
 import * as LucideIcons from "lucide-react";
+import { PLACEHOLDER_PRICING, PLACEHOLDER_TITLE } from "@/lib/placeholders";
 
 const slugify = (s: string) =>
     s
@@ -157,8 +158,8 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                     {hasFrontImage && (
                                         <div
                                             className={`${hasBackImage
-                                                    ? "absolute left-[183.5px] bottom-0"
-                                                    : "relative"
+                                                ? "absolute left-[183.5px] bottom-0"
+                                                : "relative"
                                                 } rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden ${hasBackImage ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]"}`}
                                         >
                                             <ImageWithFallback
@@ -211,7 +212,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                         <div className="relative aspect-[16/7]">
                                             <ImageWithFallback
                                                 src={product.image}
-                                                alt={product.name || ''}
+                                                alt={product.name || PLACEHOLDER_TITLE}
                                                 className="w-full h-[300px] object-contain"
                                             />
                                         </div>
@@ -287,23 +288,28 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                 <div>
                                     <div className="text-xs text-gray-500">Giá tham khảo</div>
                                     <div className="text-lg font-extrabold text-gray-900">
-                                        {product.pricing || "Liên hệ"}
+                                        {product.pricing || PLACEHOLDER_PRICING}
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <button
-                                        className="px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                                    {product.demoLink && (
+                                        <Link
+                                            href={product.demoLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
                             font-semibold text-sm hover:bg-[#DCEFFF] transition
                              inline-flex items-center gap-2"
-                                    >
-                                        Demo nhanh
-                                        <img
-                                            src="/icons/custom/product_media.svg"
-                                            alt="media"
-                                            className="w-6 h-6"
-                                        />
-                                    </button>
+                                        >
+                                            Demo nhanh
+                                            <img
+                                                src="/icons/custom/product_media.svg"
+                                                alt="media"
+                                                className="w-6 h-6"
+                                            />
+                                        </Link>
+                                    )}
 
                                     <Link
                                         href={`/products/${product.slug || slugify(product.name || '')}`}

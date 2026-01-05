@@ -124,10 +124,15 @@ function transformProductData(apiData: any): any {
 
   return {
     slug: apiData.slug || '',
+    contentMode: detail.contentMode || 'config',
+    contentHtml: detail.contentHtml || '',
     metaTop: detail.metaTop || '',
     name: apiData.name || '',
     heroDescription: detail.heroDescription || '',
     heroImage: detail.heroImage || '',
+    seoTitle: apiData.seoTitle || '',
+    seoDescription: apiData.seoDescription || '',
+    seoKeywords: apiData.seoKeywords || '',
     overviewKicker: detail.overviewKicker || '',
     overviewTitle: detail.overviewTitle || '',
     overviewCards: overviewCards,
@@ -199,12 +204,18 @@ export async function generateMetadata({
 
   const pagePath = `/products/${slug}`;
 
+  // Ưu tiên sử dụng SEO fields từ database, fallback về name/description nếu không có
+  const seoTitle = product.seoTitle || product.name || "Sản phẩm";
+  const seoDescription = product.seoDescription || product.heroDescription || "";
+  const seoKeywords = product.seoKeywords || "";
+
   return await generateSeoMetadata(pagePath, {
-    title: product.name || "Sản phẩm",
-    description: product.heroDescription || "",
-    og_title: product.name || "Sản phẩm",
-    og_description: product.heroDescription || "",
-    og_image: product.heroImage,
+    title: seoTitle,
+    description: seoDescription,
+    keywords: seoKeywords,
+    og_title: seoTitle,
+    og_description: seoDescription,
+    og_image: product.heroImage || product.image || "",
     og_type: 'website', // Next.js chỉ hỗ trợ 'website', 'article', 'book', 'profile'
     canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'}${pagePath}`,
   });

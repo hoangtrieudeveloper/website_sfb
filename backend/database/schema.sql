@@ -391,6 +391,10 @@ CREATE TABLE IF NOT EXISTS products (
   stats_rating DECIMAL(3,1),                  -- 4.8
   stats_deploy VARCHAR(255),                   -- "Triển khai Cloud/On-premise"
   features JSONB DEFAULT '[]'::jsonb,          -- Mảng các tính năng (tối ưu từ product_features)
+  demo_link VARCHAR(500),                      -- Link đến trang demo của sản phẩm
+  seo_title VARCHAR(255),                      -- Tiêu đề SEO
+  seo_description TEXT,                        -- Mô tả SEO
+  seo_keywords TEXT,                           -- Từ khóa SEO
   sort_order INTEGER DEFAULT 0,
   is_featured BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
@@ -404,6 +408,7 @@ CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured);
 CREATE INDEX IF NOT EXISTS idx_products_sort ON products(sort_order);
 CREATE INDEX IF NOT EXISTS idx_products_features_gin ON products USING GIN (features);
+CREATE INDEX IF NOT EXISTS idx_products_seo_title ON products(seo_title);
 
 -- Trigger cập nhật updated_at cho products
 DROP TRIGGER IF EXISTS update_products_updated_at ON products;

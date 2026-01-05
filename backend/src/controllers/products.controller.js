@@ -27,12 +27,16 @@ const mapProduct = (row) => ({
   statsUsers: row.stats_users || '',
   statsRating: row.stats_rating || 0,
   statsDeploy: row.stats_deploy || '',
+  demoLink: row.demo_link || '',
   sortOrder: row.sort_order || 0,
   isFeatured: row.is_featured || false,
   isActive: row.is_active !== undefined ? row.is_active : true,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   features: Array.isArray(row.features) ? row.features : [],
+  seoTitle: row.seo_title || '',
+  seoDescription: row.seo_description || '',
+  seoKeywords: row.seo_keywords || '',
 });
 
 // GET /api/admin/products
@@ -93,7 +97,11 @@ exports.getProducts = async (req, res, next) => {
         p.stats_users,
         p.stats_rating,
         p.stats_deploy,
+        p.demo_link,
         ${featuresSelect}
+        p.seo_title,
+        p.seo_description,
+        p.seo_keywords,
         p.sort_order,
         p.is_featured,
         p.is_active,
@@ -153,6 +161,9 @@ exports.getProductById = async (req, res, next) => {
           p.stats_rating,
           p.stats_deploy,
           ${featuresSelect}
+          p.seo_title,
+          p.seo_description,
+          p.seo_keywords,
           p.sort_order,
           p.is_featured,
           p.is_active,
@@ -193,6 +204,7 @@ exports.createProduct = async (req, res, next) => {
     const {
       categoryId,
       name,
+      slug,
       tagline = '',
       meta = '',
       description = '',
@@ -207,6 +219,9 @@ exports.createProduct = async (req, res, next) => {
       isFeatured = false,
       isActive = true,
       features = [],
+      seoTitle = '',
+      seoDescription = '',
+      seoKeywords = '',
     } = req.body;
 
     if (!name || !name.trim()) {
@@ -216,18 +231,19 @@ exports.createProduct = async (req, res, next) => {
       });
     }
 
-    const slug = slugify(name);
+    // Xử lý slug: ưu tiên slug từ request, nếu không có thì auto-generate từ name
+    const finalSlug = (slug && slug.trim()) ? slug.trim() : slugify(name);
 
     // Kiểm tra slug trùng
     const { rows: existing } = await pool.query(
       'SELECT id FROM products WHERE slug = $1',
-      [slug],
+      [finalSlug],
     );
 
     if (existing.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Slug đã tồn tại, vui lòng đổi tên sản phẩm',
+        message: 'Slug đã tồn tại, vui lòng chọn slug khác',
       });
     }
 
@@ -249,22 +265,25 @@ exports.createProduct = async (req, res, next) => {
       const hasFeaturesColumn = columnCheck.length > 0;
 
       const insertFields = hasFeaturesColumn
-        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, features, sort_order, is_featured, is_active'
-        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, sort_order, is_featured, is_active';
+        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, features, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active'
+        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active';
       
       const insertValues = hasFeaturesColumn
-        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17'
-        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16';
+        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21'
+        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20';
 
+      const { demoLink } = req.body;
       const insertParams = hasFeaturesColumn
         ? [
-            categoryId || null, slug, name, tagline, meta, description, image, gradient,
-            pricing, badge, statsUsers, statsRating, statsDeploy, JSON.stringify(featureTexts),
+            categoryId || null, finalSlug, name, tagline, meta, description, image, gradient,
+            pricing, badge, statsUsers, statsRating, statsDeploy, demoLink || null, JSON.stringify(featureTexts),
+            seoTitle || null, seoDescription || null, seoKeywords || null,
             sortOrder, isFeatured, isActive,
           ]
         : [
-            categoryId || null, slug, name, tagline, meta, description, image, gradient,
-            pricing, badge, statsUsers, statsRating, statsDeploy,
+            categoryId || null, finalSlug, name, tagline, meta, description, image, gradient,
+            pricing, badge, statsUsers, statsRating, statsDeploy, demoLink || null,
+            seoTitle || null, seoDescription || null, seoKeywords || null,
             sortOrder, isFeatured, isActive,
           ];
 
@@ -307,6 +326,9 @@ exports.createProduct = async (req, res, next) => {
             p.stats_rating,
             p.stats_deploy,
             ${featuresSelect2}
+            p.seo_title,
+            p.seo_description,
+            p.seo_keywords,
             p.sort_order,
             p.is_featured,
             p.is_active,
@@ -348,6 +370,7 @@ exports.updateProduct = async (req, res, next) => {
     const {
       categoryId,
       name,
+      slug,
       tagline,
       meta,
       description,
@@ -358,10 +381,14 @@ exports.updateProduct = async (req, res, next) => {
       statsUsers,
       statsRating,
       statsDeploy,
+      demoLink,
       sortOrder,
       isFeatured,
       isActive,
       features,
+      seoTitle,
+      seoDescription,
+      seoKeywords,
     } = req.body;
 
     const client = await pool.connect();
@@ -392,8 +419,25 @@ exports.updateProduct = async (req, res, next) => {
         }
       };
 
-      // Nếu name thay đổi, cập nhật slug
-      if (name !== undefined && name !== existing[0].name) {
+      // Xử lý slug: ưu tiên slug từ request, nếu không có thì auto-generate từ name
+      if (slug !== undefined) {
+        // Nếu có slug từ request, sử dụng slug đó
+        const finalSlug = slug.trim() || slugify(name || existing[0].name);
+        // Kiểm tra slug trùng (trừ chính nó)
+        const { rows: slugCheck } = await client.query(
+          'SELECT id FROM products WHERE slug = $1 AND id != $2',
+          [finalSlug, id],
+        );
+        if (slugCheck.length > 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({
+            success: false,
+            message: 'Slug đã tồn tại, vui lòng chọn slug khác',
+          });
+        }
+        addField('slug', finalSlug);
+      } else if (name !== undefined && name !== existing[0].name) {
+        // Nếu không có slug từ request nhưng name thay đổi, auto-generate slug từ name
         const newSlug = slugify(name);
         // Kiểm tra slug trùng (trừ chính nó)
         const { rows: slugCheck } = await client.query(
@@ -422,6 +466,10 @@ exports.updateProduct = async (req, res, next) => {
       addField('stats_users', statsUsers);
       addField('stats_rating', statsRating);
       addField('stats_deploy', statsDeploy);
+      addField('demo_link', demoLink);
+      addField('seo_title', seoTitle);
+      addField('seo_description', seoDescription);
+      addField('seo_keywords', seoKeywords);
       addField('sort_order', sortOrder);
       addField('is_featured', isFeatured);
       addField('is_active', isActive);
@@ -484,6 +532,9 @@ exports.updateProduct = async (req, res, next) => {
             p.stats_rating,
             p.stats_deploy,
             ${featuresSelect3}
+            p.seo_title,
+            p.seo_description,
+            p.seo_keywords,
             p.sort_order,
             p.is_featured,
             p.is_active,

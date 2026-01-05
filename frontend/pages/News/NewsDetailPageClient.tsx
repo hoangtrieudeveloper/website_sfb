@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { PLACEHOLDER_EXCERPT, PLACEHOLDER_CONTENT } from "@/lib/placeholders";
 
 interface NewsDetailPageClientProps {
   article: {
@@ -84,7 +85,7 @@ export function NewsDetailPageClient({
     ? window.location.href 
     : "";
   const shareTitle = article.title;
-  const shareDescription = article.excerpt || "";
+  const shareDescription = article.excerpt || PLACEHOLDER_EXCERPT;
 
   // Hàm chia sẻ Facebook
   const shareToFacebook = () => {
@@ -401,7 +402,7 @@ export function NewsDetailPageClient({
               <div
                 className="prose prose-lg max-w-none"
                 dangerouslySetInnerHTML={{
-                  __html: article.content || article.excerpt || "",
+                  __html: article.content || article.excerpt || PLACEHOLDER_CONTENT,
                 }}
               />
             )}
