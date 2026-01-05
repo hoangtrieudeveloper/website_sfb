@@ -1,0 +1,62 @@
+import { adminApiCall } from './admin';
+
+export interface SeoPageData {
+  id?: number;
+  page_path: string;
+  page_type?: string;
+  title?: string;
+  description?: string;
+  keywords?: string;
+  og_title?: string;
+  og_description?: string;
+  og_image?: string;
+  og_type?: string;
+  twitter_card?: string;
+  twitter_title?: string;
+  twitter_description?: string;
+  twitter_image?: string;
+  canonical_url?: string;
+  robots_index?: boolean;
+  robots_follow?: boolean;
+  robots_noarchive?: boolean;
+  robots_nosnippet?: boolean;
+  structured_data?: any;
+}
+
+/**
+ * Get all SEO pages
+ */
+export async function getSeoPages(): Promise<SeoPageData[]> {
+  const response = await adminApiCall<{ data: SeoPageData[] }>('/api/admin/seo');
+  return response.data || [];
+}
+
+/**
+ * Get SEO page by path
+ */
+export async function getSeoPageByPath(path: string): Promise<SeoPageData | null> {
+  try {
+    const encodedPath = encodeURIComponent(path);
+    const response = await adminApiCall<{ data: SeoPageData }>(`/api/admin/seo/${encodedPath}`);
+    return response.data || null;
+  } catch (error: any) {
+    if (error?.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update or create SEO page
+ */
+export async function updateSeoPage(path: string, data: Partial<SeoPageData>): Promise<SeoPageData> {
+  const encodedPath = encodeURIComponent(path);
+  const response = await adminApiCall<{ data: SeoPageData }>(`/api/admin/seo/${encodedPath}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+  return response.data;
+}
+
+
