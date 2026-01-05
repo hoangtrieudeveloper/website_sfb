@@ -48,10 +48,8 @@ export function AboutHero({ data }: AboutHeroProps) {
 
     return (
         <section
-            className="relative w-full flex justify-center items-center overflow-hidden"
+            className="relative w-full flex justify-center items-center overflow-hidden h-[847px] pt-[87px] max-md:h-auto max-md:pt-[clamp(72px,18vw,87px)] max-md:pb-[clamp(48px,12vw,84px)]"
             style={{
-                height: '847px',
-                paddingTop: '87px',
                 background: backgroundGradient
             }}
         >
@@ -63,14 +61,14 @@ export function AboutHero({ data }: AboutHeroProps) {
             <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-400/20 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] min-[1920px]:px-0 min-[1920px]:pl-[269px] relative z-10">
-                <div className="flex flex-col lg:flex-row items-center justify-center min-[1920px]:justify-start gap-16 lg:gap-[clamp(48px,5.1042vw,98px)] min-[1920px]:gap-[45px]">
+                <div className="flex flex-col lg:flex-row items-center justify-center min-[1920px]:justify-start gap-16 max-md:gap-[clamp(24px,8vw,48px)] lg:gap-[clamp(48px,5.1042vw,98px)] min-[1920px]:gap-[45px]">
                     {/* Text Content */}
                     <StaggerContainer className="text-white lg:max-w-[45%] min-[1920px]:max-w-none min-[1920px]:w-[851px]">
                         <div className="inline-block max-w-full">
                             <FadeIn>
-                                <h1 ref={titleRef} className="inline-block max-w-full text-5xl md:text-6xl font-bold leading-tight mb-6">
+                                <h1 ref={titleRef} className="inline-block max-w-full text-5xl md:text-6xl max-sm:text-[clamp(32px,9vw,48px)] font-bold leading-tight mb-6 max-md:mb-5">
                                     {titleLine1}
-                                    <span className="block mt-2 text-white font-medium text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
+                                    <span className="block mt-2 text-white font-medium text-[56px] max-sm:text-[clamp(28px,8vw,44px)] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
                                         {titleLine2}
                                         <br />
                                         {titleLine3}

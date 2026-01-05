@@ -60,8 +60,8 @@ export function NewsDetailPageClient({
 
   return (
     <div className="min-h-screen bg-white">
-      <section className="pt-32 pb-10 bg-white">
-        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+      <section className="pt-32 pb-10 max-md:pt-[clamp(96px,18vw,128px)] max-md:pb-[clamp(24px,6vw,40px)] bg-white">
+        <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm mb-6 text-gray-500">
             <Link
@@ -179,12 +179,11 @@ export function NewsDetailPageClient({
 
       {/* Main Content */}
       <section className="pb-20 bg-white">
-        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+        <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
           <div>
             {isTuyenSinhDauCap ? (
               <div
-                className="prose prose-lg max-w-none font-['Plus_Jakarta_Sans'] text-[var(--Color-2,#0F172A)] prose-p:mt-0 prose-p:mb-4 prose-ul:mt-0 prose-ul:mb-4 prose-li:my-0 prose-p:text-[16px] prose-p:leading-[30px] prose-p:text-[var(--Color-2,#0F172A)] prose-li:text-[16px] prose-li:leading-[30px] prose-li:text-[var(--Color-2,#0F172A)] prose-strong:text-[16px] prose-strong:font-bold prose-strong:leading-[30px] prose-strong:text-[var(--Color-2,#0F172A)] prose-ul:list-none prose-ul:pl-0 [&>ul>li]:relative [&>ul>li]:pl-5 sm:[&>ul>li]:pl-6 [&>ul>li]:before:absolute [&>ul>li]:before:left-1 sm:[&>ul>li]:before:left-2 [&>ul>li]:before:top-[15px] [&>ul>li]:before:-translate-y-1/2 [&>ul>li]:before:transform [&>ul>li]:before:content-['•'] [&>ul>li]:before:text-[16px] [&>ul>li]:before:leading-[30px] [&>ul>li]:before:text-[var(--Color-2,#0F172A)] [&_ul_ul]:mt-4 [&_ul_ul]:list-none [&_ul_ul]:pl-6 sm:[&_ul_ul]:pl-7 [&_ul_ul>li]:relative [&_ul_ul>li]:pl-5 sm:[&_ul_ul>li]:pl-6 [&_ul_ul>li]:before:absolute [&_ul_ul>li]:before:left-0 [&_ul_ul>li]:before:top-[15px] [&_ul_ul>li]:before:-translate-y-1/2 [&_ul_ul>li]:before:transform [&_ul_ul>li]:before:content-['+'] [&_ul_ul>li]:before:text-[16px] [&_ul_ul>li]:before:leading-[30px] [&_ul_ul>li]:before:text-[var(--Color-2,#0F172A)]"
-                style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
+                className="prose prose-lg max-w-none font-['Plus_Jakarta_Sans'] text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] prose-p:mt-0 prose-p:mb-4 prose-ul:mt-0 prose-ul:mb-4 prose-li:my-0 prose-p:text-[16px] prose-p:leading-[30px] prose-p:text-[var(--Color-2,#0F172A)] prose-li:text-[16px] prose-li:leading-[30px] prose-li:text-[var(--Color-2,#0F172A)] prose-strong:text-[16px] prose-strong:font-bold prose-strong:leading-[30px] prose-strong:text-[var(--Color-2,#0F172A)] prose-ul:list-none prose-ul:pl-0 [&>ul>li]:relative [&>ul>li]:pl-5 sm:[&>ul>li]:pl-6 [&>ul>li]:before:absolute [&>ul>li]:before:left-1 sm:[&>ul>li]:before:left-2 [&>ul>li]:before:top-[15px] [&>ul>li]:before:-translate-y-1/2 [&>ul>li]:before:transform [&>ul>li]:before:content-['•'] [&>ul>li]:before:text-[16px] [&>ul>li]:before:leading-[30px] [&>ul>li]:before:text-[var(--Color-2,#0F172A)] [&_ul_ul]:mt-4 [&_ul_ul]:list-none [&_ul_ul]:pl-6 sm:[&_ul_ul]:pl-7 [&_ul_ul>li]:relative [&_ul_ul>li]:pl-5 sm:[&_ul_ul>li]:pl-6 [&_ul_ul>li]:before:absolute [&_ul_ul>li]:before:left-0 [&_ul_ul>li]:before:top-[15px] [&_ul_ul>li]:before:-translate-y-1/2 [&_ul_ul>li]:before:transform [&_ul_ul>li]:before:content-['+'] [&_ul_ul>li]:before:text-[16px] [&_ul_ul>li]:before:leading-[30px] [&_ul_ul>li]:before:text-[var(--Color-2,#0F172A)]"
               >
                 
                 <p>
@@ -257,7 +256,7 @@ export function NewsDetailPageClient({
       {/* Related Articles */}
       {relatedArticles.length > 0 && (
         <section className="pb-28 bg-white">
-          <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+          <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Bài viết liên quan</h2>
               <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>

@@ -39,7 +39,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
       whileHover={{ y: -5 }}
       viewport={{ once: false, amount: 0.3 }}
       transition={{ duration: 0.6 }}
-      className="grid lg:grid-cols-12 gap-8 items-center group relative"
+      className="grid lg:grid-cols-12 gap-[clamp(24px,3vw,60px)] items-center group relative"
     >
       {/* Glow Effect */}
       <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-blue-500/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl" />
@@ -57,7 +57,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
       </div>
 
       {/* Content - Right Side (Span 5) */}
-      <div className="lg:col-span-5 flex flex-col justify-center space-y-6 relative z-10">
+      <div className="lg:col-span-5 flex flex-col justify-center space-y-4 relative z-10 ">
 
         {/* Meta Row */}
         <motion.div
@@ -65,16 +65,16 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: false }}
           transition={{ delay: 0.2 }}
-          className="flex flex-wrap items-center gap-4 text-sm"
+          className="flex flex-wrap items-center gap-4"
         >
           {/* Category Name */}
-          <span className="text-[#0870B4] font-medium px-3 py-1 bg-[#0870B4]/10 rounded-full border border-[#0870B4]/20">
+          <span className="text-[#0870B4] font-medium px-4 py-1 bg-[#0870B4]/10 rounded-full border border-[#0870B4]/20">
             {article.categoryName || "Tin sản phẩm & giải pháp"}
           </span>
 
           {/* Date */}
           {article.publishedDate && (
-            <div className="flex items-center gap-1.5 text-gray-500">
+            <div className="flex items-center gap-1.5 font-['Plus_Jakarta_Sans'] font-normal text-[14px] leading-[35px] text-[var(--Color-5,#64748B)]">
               <Calendar size={14} />
               <span>
                 {new Date(article.publishedDate).toLocaleDateString("vi-VN", {
@@ -87,7 +87,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           )}
 
           {/* Author */}
-          <div className="flex items-center gap-1.5 text-gray-500">
+          <div className="flex items-center gap-1.5 font-['Plus_Jakarta_Sans'] font-normal text-[14px] leading-[35px] text-[var(--Color-5,#64748B)]">
             <User size={14} />
             <span>{article.author || "SFB Technology"}</span>
           </div>
@@ -99,7 +99,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           whileInView={{ opacity: 1 }}
           viewport={{ once: false }}
           transition={{ delay: 0.3 }}
-          className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight group-hover:text-[#0870B4] transition-colors"
+          className="line-clamp-2 self-stretch overflow-hidden text-ellipsis font-['Plus_Jakarta_Sans'] font-bold text-[26px] leading-[38px] text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] max-md:text-[clamp(20px,5.5vw,26px)] max-md:leading-[clamp(28px,7vw,38px)] transition-colors"
         >
           {article.title}
         </motion.h2>
@@ -111,7 +111,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
             whileInView={{ opacity: 1 }}
             viewport={{ once: false }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600 text-lg leading-relaxed line-clamp-3"
+            className="text-gray-600 text-lg leading-relaxed line-clamp-3 max-md:text-[16px] max-md:leading-[28px]"
           >
             {article.excerpt}
           </motion.p>
@@ -123,7 +123,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: false }}
           transition={{ delay: 0.5 }}
-          className="pt-2"
+          className="pt-0"
         >
           <Link
             href={`/news/${article.slug}`}

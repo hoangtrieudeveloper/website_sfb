@@ -112,12 +112,6 @@ export const successMetrics = [
         label: "Cơ quan Nhà nước & doanh nghiệp",
         gradient: "from-emerald-500 to-teal-500",
     },
-    {
-        icon: Sparkles,
-        value: "Đội ngũ",
-        label: "Chuyên gia CNTT tận tâm",
-        gradient: "from-orange-500 to-red-500",
-    },
 ];
 
 export const processSteps = [

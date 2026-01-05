@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { processSteps, fieldProcessSectionData } from "./data";
 import { FadeIn, SlideIn } from "../../components/ui/motion";
 import * as LucideIcons from "lucide-react";
@@ -16,13 +16,13 @@ export function FieldProcess({ data }: FieldProcessProps) {
         steps: processSteps,
     };
     return (
-        <section className="py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
-            <div className="relative z-10 w-full px-6 lg:px-[290px]">
+        <section className="py-[clamp(60px,6vw,90px)] max-sm:py-[clamp(40px,10vw,60px)] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
+            <div className="relative z-10 w-full px-6 lg:px-[clamp(48px,calc(48px+(100vw-1024px)*0.0747768),115px)]">
                 {/* Header */}
                 {displayData.header && (
                     <FadeIn className="text-center mb-[46px] max-w-3xl mx-auto">
                         {displayData.header.subtitle && (
-                            <div className="inline-block mb-4">
+                            <div className="inline-block mb-6">
                                 <span
                                     className="text-center font-['Plus_Jakarta_Sans'] text-[15px] font-medium uppercase"
                                     style={{
@@ -37,7 +37,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
                         )}
                         {(displayData.header.titlePart1 || displayData.header.titleHighlight || displayData.header.titlePart2) && (
                             <h2
-                                className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-[56px] font-normal"
+                                className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-[clamp(36px,2.9167vw,56px)] max-md:text-[clamp(28px,7.5vw,36px)] font-normal"
                                 style={{
                                     color: "var(--Color-2, #0F172A)",
                                     fontFeatureSettings: "'liga' off, 'clig' off",
@@ -64,7 +64,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
 
                 {/* Steps */}
                 {displayData.steps && displayData.steps.length > 0 && (
-                    <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-[90px]">
+                    <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-[clamp(48px,6vw,90px)] max-md:gap-[clamp(28px,6vw,48px)]">
                         {displayData.steps.map((step: any, index: number) => {
                             const isEven = index % 2 !== 0;
 
@@ -85,10 +85,10 @@ export function FieldProcess({ data }: FieldProcessProps) {
                         return (
                             <div
                                 key={step.id}
-                                className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
+                                className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-[clamp(48px,calc(48px+(100vw-1024px)*0.0357143),80px)] ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
                             >
                                 {/* Image Column */}
-                                <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-1/2">
+                                <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-1/2 min-w-0">
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-blue-500/5 rounded-[2rem] transform rotate-3 scale-105 transition-transform group-hover:rotate-6 duration-500" />
                                         <div className="relative rounded-[2rem] overflow-hidden bg-white p-3 shadow-2xl border border-gray-100">
@@ -114,23 +114,43 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                 </SlideIn>
 
                                 {/* Content Column */}
-                                <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-1/2">
-                                    <h3 className="text-3xl font-bold text-gray-900 mb-6">
+                                <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-1/2 min-w-0">
+                                    <h3
+                                        className="self-stretch mb-6 font-['Plus_Jakarta_Sans'] text-[clamp(22px,calc(22px+(100vw-1024px)*0.0044643),26px)] font-bold leading-[clamp(32px,calc(32px+(100vw-1024px)*0.0066964),38px)]"
+                                        style={{
+                                            color: "var(--Color-2, #0F172A)",
+                                            fontFeatureSettings: "'liga' off, 'clig' off",
+                                        }}
+                                    >
                                         {step.title}
                                     </h3>
-                                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                                    <p
+                                        className="self-stretch mb-6 w-full max-w-[549px] font-['Plus_Jakarta_Sans'] text-[clamp(18px,calc(18px+(100vw-1024px)*0.0022321),20px)] font-normal leading-[clamp(32px,calc(32px+(100vw-1024px)*0.0066964),38px)]"
+                                        style={{
+                                            color: "var(--Color-2, #0F172A)",
+                                            fontFeatureSettings: "'liga' off, 'clig' off",
+                                        }}
+                                    >
                                         {step.description}
                                     </p>
 
-                                    <ul className="space-y-4 mb-10">
+                                    <ul className="space-y-4 mb-6">
                                         {step.points.map((point: string, idx: number) => (
                                             <li key={idx} className="flex items-start gap-3">
-                                                <div className="flex-shrink-0 mt-1">
-                                                    <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
-                                                        <CheckCircle2 size={12} className="text-white" />
+                                                <div className="flex-shrink-0 mt-0.5">
+                                                    <div className="w-5 h-5 rounded-full bg-[#008CCB] overflow-hidden flex items-center justify-center">
+                                                        <Check size={14} className="text-white" />
                                                     </div>
                                                 </div>
-                                                <span className="text-gray-700 font-medium">{point}</span>
+                                                <span
+                                                    className="flex-[1_0_0] self-stretch font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]"
+                                                    style={{
+                                                        color: "var(--Color-2, #0F172A)",
+                                                        fontFeatureSettings: "'liga' off, 'clig' off",
+                                                    }}
+                                                >
+                                                    {point}
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>

@@ -36,7 +36,7 @@ export function NewsList({ news }: NewsListProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       layout
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[45px]"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[clamp(28px,3vw,45px)]"
     >
       <AnimatePresence>
         {news.map((article, index) => {
@@ -74,7 +74,7 @@ export function NewsList({ news }: NewsListProps) {
                   }}
                   className={[
                     "flex flex-col items-start gap-6 flex-[1_0_0] pb-6",
-                    "h-[530px]",
+                    "h-[530px] max-md:h-auto",
                     "rounded-[24px] bg-[var(--Color-7,#FFF)]",
                     "border border-transparent", // Adjusted for animation
                     "shadow-[0_12px_36px_0_rgba(59,90,136,0.12)]",
@@ -95,23 +95,21 @@ export function NewsList({ news }: NewsListProps) {
                   {/* CONTENT */}
                   <div className="w-full px-6 flex flex-col flex-1 min-h-0">
                     <h3
-                      className="h-[60px] self-stretch line-clamp-2 font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] text-[var(--Color-2,#0F172A)] group-hover:text-[#1D8FCF] transition-colors"
-                      style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
+                      className="h-[60px] max-md:h-auto self-stretch line-clamp-2 font-['Plus_Jakarta_Sans'] text-[20px] max-md:text-[18px] font-semibold leading-[30px] max-md:leading-[28px] text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] group-hover:text-[#1D8FCF] transition-colors"
                     >
                       {article.title}
                     </h3>
 
                     {article.excerpt && (
                       <p
-                        className="mt-3 flex-[1_0_0] min-h-0 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)]"
-                        style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
+                        className="mt-3 flex-[1_0_0] min-h-0 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off]"
                       >
                         {article.excerpt}
                       </p>
                     )}
 
                     {/* ICON ROW giống ảnh */}
-                    <div className="mt-auto pt-4 flex items-center gap-5 text-[13px] text-gray-500">
+                    <div className="mt-auto pt-4 max-md:pt-3 flex items-center gap-5 text-[13px] text-gray-500">
                       <div className="flex items-center gap-2">
                         <Heart size={16} className="text-red-500" />
                         <span>{likes}</span>

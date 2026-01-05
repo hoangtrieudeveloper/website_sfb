@@ -137,10 +137,18 @@ export function NewsPageClient({
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      {/* Categories Filter - Sticky */}
-      <section className="pt-32 pb-8 bg-white border-b border-gray-100 z-40">
-        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+      {/* Featured News */}
+      {initialFeatured && (
+        <section className="pt-[clamp(96px,6vw,116px)] max-sm:pt-[clamp(84px,18vw,96px)] bg-white">
+          <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
+            <FeaturedNews article={initialFeatured} />
+          </div>
+        </section>
+      )}
+
+      {/* Categories Filter */}
+      <section className="py-8 bg-white border-b border-gray-100 z-40">
+        <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Categories */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
@@ -163,18 +171,9 @@ export function NewsPageClient({
         </div>
       </section>
 
-      {/* Featured News */}
-      {initialFeatured && (
-        <section className="py-[45px] bg-white">
-          <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-            <FeaturedNews article={initialFeatured} />
-          </div>
-        </section>
-      )}
-
       {/* News Grid */}
-      <section className="py-[45px] bg-white min-h-[500px]">
-        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+      <section className="py-[clamp(30px,3vw,45px)] bg-white min-h-[500px]">
+        <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
           <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -254,8 +253,8 @@ export function NewsPageClient({
         </div>
       </section>
 
-      <section className="py-[45px] bg-white">
-        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+      <section className="py-[clamp(30px,3vw,45px)] bg-white">
+        <div className="mx-auto w-full max-w-[min(1340px,calc(100vw-clamp(48px,8vw,160px)))]">
           <Consult />
         </div>
       </section>

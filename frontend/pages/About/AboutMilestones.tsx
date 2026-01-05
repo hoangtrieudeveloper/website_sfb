@@ -52,7 +52,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
     const items = displayData.items || milestones;
 
     return (
-        <section className="py-20 bg-[#80C0E4]  overflow-hidden">
+        <section className="py-[120px] max-md:py-[clamp(56px,12vw,96px)] bg-[#80C0E4] overflow-hidden">
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}

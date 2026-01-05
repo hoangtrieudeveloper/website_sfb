@@ -21,7 +21,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
     const contacts = displayData.contacts || contact?.items || [];
 
     return (
-        <section className="py-20 bg-[#F8FBFE] overflow-hidden">
+        <section className="py-20 max-md:py-[clamp(48px,12vw,80px)] bg-[#F8FBFE] overflow-hidden">
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}
@@ -32,7 +32,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         </span>
                     )}
                     {(displayData.headerTitleLine1 || displayData.headerTitleLine2) && (
-                        <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[56px] leading-[normal]">
+                        <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[56px] max-md:text-[clamp(32px,8vw,56px)] leading-[normal]">
                             <span className="font-bold">
                                 {displayData.headerTitleLine1}
                             </span>
@@ -45,7 +45,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                 </FadeIn>
 
                 {/* Section 1: Intro + Handshake Image */}
-                <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center mb-32">
+                <div className="flex flex-col lg:flex-row gap-12 max-md:gap-[clamp(24px,8vw,48px)] lg:gap-24 items-center mb-32 max-md:mb-[clamp(48px,12vw,96px)]">
                     {/* Left: Image Card */}
                     <FadeIn className="relative w-full max-w-[701px] flex-shrink-0" delay={0.2}>
                         <TechBorderReveal className="rounded-[24px] p-1">
@@ -64,12 +64,12 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         {(displayData.contentTitle || displayData.contentDescription) && (
                             <div className="space-y-6 mb-[30px]">
                                 {displayData.contentTitle && (
-                                    <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
+                                    <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] max-md:text-[16px] font-normal leading-[38px] max-md:leading-[28px]">
                                         {displayData.contentTitle}
                                     </h3>
                                 )}
                                 {displayData.contentDescription && (
-                                    <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
+                                    <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] max-md:text-[16px] font-normal leading-[38px] max-md:leading-[28px]">
                                         {displayData.contentDescription}
                                     </p>
                                 )}
@@ -90,7 +90,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                 </div>
 
                 {/* Section 2: Contact Info + Building Image */}
-                <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center">
+                <div className="flex flex-col lg:flex-row gap-12 max-md:gap-[clamp(24px,8vw,48px)] lg:gap-24 items-center">
                     {/* Left: Contact Info */}
                     <FadeIn className="order-2 lg:order-1 space-y-8 flex-1 pl-4 lg:pl-0" delay={0.2}>
                         <div className="space-y-6">

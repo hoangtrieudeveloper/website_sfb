@@ -19,18 +19,18 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
     const items = displayData.items || coreValues;
 
     return (
-        <section className="py-20 bg-[#F8FBFE]">
+        <section className="bg-[#F8FBFE] py-[120px] max-md:py-20 max-sm:py-16">
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <div className="mx-auto w-full max-w-[1340px]">
                 {/* Header */}
-                <FadeIn className="text-center mb-16">
+                <FadeIn className="mx-auto max-w-4xl text-center mb-[46px] max-md:mb-10">
                     {headerTitle && (
-                        <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
+                        <h2 className="text-[#0F172A] text-5xl font-bold mb-6 max-md:text-3xl">
                             {headerTitle}
                         </h2>
                     )}
                     {headerDescription && (
-                        <p className="text-gray-600 md:text-lg max-w-2xl mx-auto leading-relaxed">
+                        <p className="mx-auto w-full max-w-[544px] text-center text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[26px]">
                             {headerDescription}
                         </p>
                     )}
@@ -46,7 +46,7 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
                             <FadeIn key={item.id || idx}>
                                 <motion.div
                                     whileHover={{ y: -10, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)" }}
-                                    className="bg-white rounded-[24px] p-8 flex flex-col items-center text-center shadow-[0_18px_36px_0_rgba(0,0,0,0.05)] transition-all duration-300 h-full border border-transparent hover:border-blue-100"
+                                    className="bg-white rounded-[24px] p-8 max-sm:p-6 flex flex-col items-center text-center shadow-[0_18px_36px_0_rgba(0,0,0,0.05)] transition-all duration-300 h-full border border-transparent hover:border-blue-100"
                                 >
                                     <motion.div
                                         className="mb-6 text-[#2CA4E0] p-4 bg-blue-50/50 rounded-full"
