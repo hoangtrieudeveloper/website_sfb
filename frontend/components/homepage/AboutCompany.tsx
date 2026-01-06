@@ -134,9 +134,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                       key={index}
                       className="flex-[0_0_100%] sm:flex-[0_0_410px]"
                     >
-                      <ScrollAnimation
-                        variant="elastic-up"
-                        delay={index * 0.1}
+                      <div
                         className="w-full max-w-[410px]"
                       >
                         <div
@@ -207,7 +205,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             </Link>
                           </div>
                         </div>
-                      </ScrollAnimation>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -220,8 +218,8 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     key={index}
                     onClick={() => scrollToDot(index)}
                     className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === (selectedIndex % baseSlides.length)
-                        ? "bg-[#0F172A] w-6"
-                        : "bg-[#94A3B8] hover:bg-[#64748B]"
+                      ? "bg-[#0F172A] w-6"
+                      : "bg-[#94A3B8] hover:bg-[#64748B]"
                       }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />

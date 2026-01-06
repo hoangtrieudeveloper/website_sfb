@@ -44,7 +44,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                     </FadeIn>
 
                     {/* Carousel */}
-                    <FadeIn delay={0.2} className="px-[clamp(16px,3.125vw,48px)] relative animate-in fade-in zoom-in duration-700">
+                    <FadeIn delay={0.2} className="px-[clamp(16px,3.125vw,48px)] relative">
                         <Carousel
                             opts={{
                                 align: "start",

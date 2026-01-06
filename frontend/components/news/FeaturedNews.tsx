@@ -44,16 +44,16 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
-      viewport={{ once: false, amount: 0.3 }}
+      viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.6 }}
       className="grid lg:grid-cols-12 gap-8 items-center group relative"
     >
-      {/* Glow Effect */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-blue-500/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl" />
+      {/* Glow Effect - Removed blur for performance */}
+      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-blue-500/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       {/* Image - Left Side (Span 7) */}
       <div className="lg:col-span-7 relative z-10">
-        <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-[0_0_30px_rgba(8,112,180,0.2)] transition-shadow duration-500">
+        <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-lg transition-shadow duration-500">
           <ImageWithFallback
             src={imageSrc}
             alt={article.title}
@@ -66,11 +66,11 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
       {/* Content - Right Side (Span 5) */}
       <div className="lg:col-span-5 flex flex-col justify-center space-y-6 relative z-10">
 
-        {/* Meta Row */} 
+        {/* Meta Row */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: false }}
+          viewport={{ once: true }}
           transition={{ delay: 0.2 }}
           className="flex flex-wrap items-center gap-4 text-sm"
         >
@@ -102,7 +102,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          viewport={{ once: false }}
+          viewport={{ once: true }}
           transition={{ delay: 0.3 }}
           className="relative"
         >
@@ -122,7 +122,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: false }}
+            viewport={{ once: true }}
             transition={{ delay: 0.4 }}
             className="text-gray-600 text-lg leading-relaxed line-clamp-3"
           >
@@ -134,7 +134,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false }}
+          viewport={{ once: true }}
           transition={{ delay: 0.5 }}
           className="pt-2"
         >
