@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Save, Globe2, Bell, Shield, Database } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Globe2, Bell, Shield, Database, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +10,113 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import ImageUpload from "@/components/admin/ImageUpload";
+import { getSettings, updateSettings } from "@/lib/api/settings";
+
+interface FooterLink {
+  name: string;
+  href: string;
+}
+
+interface GeneralSettings {
+  favicon: string;
+  logo: string;
+  slogan: string;
+  site_name: string;
+  site_description: string;
+  phone: string;
+  email: string;
+  address: string;
+  social_facebook: string;
+  social_twitter: string;
+  social_linkedin: string;
+  social_instagram: string;
+  footer_quick_links: string;
+  footer_solutions: string;
+}
 
 export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
+    favicon: '',
+    logo: '',
+    slogan: '',
+    site_name: '',
+    site_description: '',
+    phone: '',
+    email: '',
+    address: '',
+    social_facebook: '',
+    social_twitter: '',
+    social_linkedin: '',
+    social_instagram: '',
+    footer_quick_links: '',
+    footer_solutions: '',
+  });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      const settings = await getSettings();
+      
+      setGeneralSettings({
+        favicon: settings.favicon?.value || '',
+        logo: settings.logo?.value || '',
+        slogan: settings.slogan?.value || '',
+        site_name: settings.site_name?.value || '',
+        site_description: settings.site_description?.value || '',
+        phone: settings.phone?.value || '',
+        email: settings.email?.value || '',
+        address: settings.address?.value || '',
+        social_facebook: settings.social_facebook?.value || '',
+        social_twitter: settings.social_twitter?.value || '',
+        social_linkedin: settings.social_linkedin?.value || '',
+        social_instagram: settings.social_instagram?.value || '',
+        footer_quick_links: settings.footer_quick_links?.value || '',
+        footer_solutions: settings.footer_solutions?.value || '',
+      });
+    } catch (error: any) {
+      console.error('Error loading settings:', error);
+      toast.error('Không thể tải cấu hình');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveGeneral = async () => {
+    try {
+      setSaving(true);
+      
+      await updateSettings({
+        favicon: generalSettings.favicon,
+        logo: generalSettings.logo,
+        slogan: generalSettings.slogan,
+        site_name: generalSettings.site_name,
+        site_description: generalSettings.site_description,
+        phone: generalSettings.phone,
+        email: generalSettings.email,
+        address: generalSettings.address,
+        social_facebook: generalSettings.social_facebook,
+        social_twitter: generalSettings.social_twitter,
+        social_linkedin: generalSettings.social_linkedin,
+        social_instagram: generalSettings.social_instagram,
+        footer_quick_links: generalSettings.footer_quick_links,
+        footer_solutions: generalSettings.footer_solutions,
+      });
+      
+      toast.success('Đã lưu cấu hình thông tin chung');
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      toast.error('Không thể lưu cấu hình');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSave = (section: string) => {
     setSaving(true);
@@ -20,6 +124,53 @@ export default function AdminSettingsPage() {
       setSaving(false);
       toast.success(`Đã lưu cấu hình ${section}`);
     }, 800);
+  };
+
+  // Helper functions for footer links management
+  const parseFooterLinks = (jsonString: string): FooterLink[] => {
+    try {
+      if (!jsonString) return [];
+      const parsed = JSON.parse(jsonString);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const formatFooterLinks = (links: FooterLink[]): string => {
+    return JSON.stringify(links, null, 2);
+  };
+
+  const addFooterLink = (field: 'footer_quick_links' | 'footer_solutions') => {
+    const links = parseFooterLinks(generalSettings[field]);
+    links.push({ name: '', href: '' });
+    setGeneralSettings({
+      ...generalSettings,
+      [field]: formatFooterLinks(links),
+    });
+  };
+
+  const removeFooterLink = (field: 'footer_quick_links' | 'footer_solutions', index: number) => {
+    const links = parseFooterLinks(generalSettings[field]);
+    links.splice(index, 1);
+    setGeneralSettings({
+      ...generalSettings,
+      [field]: formatFooterLinks(links),
+    });
+  };
+
+  const updateFooterLink = (
+    field: 'footer_quick_links' | 'footer_solutions',
+    index: number,
+    key: 'name' | 'href',
+    value: string
+  ) => {
+    const links = parseFooterLinks(generalSettings[field]);
+    links[index] = { ...links[index], [key]: value };
+    setGeneralSettings({
+      ...generalSettings,
+      [field]: formatFooterLinks(links),
+    });
   };
 
   return (
@@ -43,63 +194,261 @@ export default function AdminSettingsPage() {
         <TabsContent value="general">
           <Card className="border-0 shadow-lg">
             <CardHeader>
-              <CardTitle>Thông tin chung</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="siteName">Tên website</Label>
-                  <Input
-                    id="siteName"
-                    defaultValue="SFB Technology"
-                    placeholder="Nhập tên website"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="siteEmail">Email hệ thống</Label>
-                  <Input
-                    id="siteEmail"
-                    type="email"
-                    defaultValue="contact@sfb.com"
-                    placeholder="contact@sfb.com"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="siteDescription">
-                  Mô tả ngắn (hiển thị dưới logo)
-                </Label>
-                <Textarea
-                  id="siteDescription"
-                  rows={3}
-                  defaultValue="Giải pháp công nghệ hàng đầu Việt Nam"
-                />
-              </div>
-
-              <div className="flex items-center justify-between border rounded-lg p-4 bg-gray-50">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    Bảo trì hệ thống (Maintenance Mode)
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Bật chế độ bảo trì sẽ hiển thị thông báo tạm dừng với người
-                    dùng.
-                  </p>
-                </div>
-                <Switch />
-              </div>
-
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <CardTitle>Thông tin chung</CardTitle>
                 <Button
-                  onClick={() => handleSave("thông tin chung")}
+                  onClick={handleSaveGeneral}
                   disabled={saving}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Lưu cấu hình
+                  {saving ? 'Đang lưu...' : 'Lưu cấu hình'}
                 </Button>
               </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {loading ? (
+                <div className="text-center py-8 text-gray-500">Đang tải...</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="siteName">Tên website</Label>
+                      <Input
+                        id="siteName"
+                        value={generalSettings.site_name}
+                        onChange={(e) => setGeneralSettings({ ...generalSettings, site_name: e.target.value })}
+                        placeholder="Nhập tên website"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="slogan">Slogan</Label>
+                      <Input
+                        id="slogan"
+                        value={generalSettings.slogan}
+                        onChange={(e) => setGeneralSettings({ ...generalSettings, slogan: e.target.value })}
+                        placeholder="Smart Solutions Business"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="siteDescription">
+                      Mô tả ngắn (hiển thị trong footer)
+                    </Label>
+                    <Textarea
+                      id="siteDescription"
+                      rows={3}
+                      value={generalSettings.site_description}
+                      onChange={(e) => setGeneralSettings({ ...generalSettings, site_description: e.target.value })}
+                      placeholder="Mô tả về công ty..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="favicon">Favicon</Label>
+                      <ImageUpload
+                        currentImage={generalSettings.favicon}
+                        onImageSelect={(url) => setGeneralSettings({ ...generalSettings, favicon: url })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="logo">Logo</Label>
+                      <ImageUpload
+                        currentImage={generalSettings.logo}
+                        onImageSelect={(url) => setGeneralSettings({ ...generalSettings, logo: url })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Số điện thoại</Label>
+                      <Input
+                        id="phone"
+                        value={generalSettings.phone}
+                        onChange={(e) => setGeneralSettings({ ...generalSettings, phone: e.target.value })}
+                        placeholder="0888 917 999"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email liên hệ</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={generalSettings.email}
+                        onChange={(e) => setGeneralSettings({ ...generalSettings, email: e.target.value })}
+                        placeholder="info@sfb.vn"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Địa chỉ</Label>
+                    <Textarea
+                      id="address"
+                      rows={2}
+                      value={generalSettings.address}
+                      onChange={(e) => setGeneralSettings({ ...generalSettings, address: e.target.value })}
+                      placeholder="Địa chỉ văn phòng..."
+                    />
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="text-base font-semibold">Liên kết mạng xã hội</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="social_facebook">Facebook</Label>
+                        <Input
+                          id="social_facebook"
+                          type="url"
+                          value={generalSettings.social_facebook}
+                          onChange={(e) => setGeneralSettings({ ...generalSettings, social_facebook: e.target.value })}
+                          placeholder="https://www.facebook.com/..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="social_twitter">Twitter</Label>
+                        <Input
+                          id="social_twitter"
+                          type="url"
+                          value={generalSettings.social_twitter}
+                          onChange={(e) => setGeneralSettings({ ...generalSettings, social_twitter: e.target.value })}
+                          placeholder="https://twitter.com/..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="social_linkedin">LinkedIn</Label>
+                        <Input
+                          id="social_linkedin"
+                          type="url"
+                          value={generalSettings.social_linkedin}
+                          onChange={(e) => setGeneralSettings({ ...generalSettings, social_linkedin: e.target.value })}
+                          placeholder="https://www.linkedin.com/..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="social_instagram">Instagram</Label>
+                        <Input
+                          id="social_instagram"
+                          type="url"
+                          value={generalSettings.social_instagram}
+                          onChange={(e) => setGeneralSettings({ ...generalSettings, social_instagram: e.target.value })}
+                          placeholder="https://www.instagram.com/..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="text-base font-semibold">Quản lý Footer Links</Label>
+                    
+                    {/* Quick Links */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Liên kết nhanh</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addFooterLink('footer_quick_links')}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Thêm link
+                        </Button>
+                      </div>
+                      <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+                        {parseFooterLinks(generalSettings.footer_quick_links).map((link, idx) => (
+                          <div key={idx} className="flex gap-2 items-center">
+                            <Input
+                              placeholder="Tên link"
+                              value={link.name}
+                              onChange={(e) => updateFooterLink('footer_quick_links', idx, 'name', e.target.value)}
+                              className="flex-1"
+                            />
+                            <Input
+                              placeholder="/path"
+                              value={link.href}
+                              onChange={(e) => updateFooterLink('footer_quick_links', idx, 'href', e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFooterLink('footer_quick_links', idx)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))}
+                        {parseFooterLinks(generalSettings.footer_quick_links).length === 0 && (
+                          <p className="text-sm text-gray-500 text-center py-2">Chưa có link nào. Click "Thêm link" để thêm.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Solutions */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Dịch vụ</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addFooterLink('footer_solutions')}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Thêm dịch vụ
+                        </Button>
+                      </div>
+                      <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+                        {parseFooterLinks(generalSettings.footer_solutions).map((link, idx) => (
+                          <div key={idx} className="flex gap-2 items-center">
+                            <Input
+                              placeholder="Tên dịch vụ"
+                              value={link.name}
+                              onChange={(e) => updateFooterLink('footer_solutions', idx, 'name', e.target.value)}
+                              className="flex-1"
+                            />
+                            <Input
+                              placeholder="/path"
+                              value={link.href}
+                              onChange={(e) => updateFooterLink('footer_solutions', idx, 'href', e.target.value)}
+                              className="flex-1"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFooterLink('footer_solutions', idx)}
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))}
+                        {parseFooterLinks(generalSettings.footer_solutions).length === 0 && (
+                          <p className="text-sm text-gray-500 text-center py-2">Chưa có dịch vụ nào. Click "Thêm dịch vụ" để thêm.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between border rounded-lg p-4 bg-gray-50">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        Bảo trì hệ thống (Maintenance Mode)
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Bật chế độ bảo trì sẽ hiển thị thông báo tạm dừng với người
+                        dùng.
+                      </p>
+                    </div>
+                    <Switch />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

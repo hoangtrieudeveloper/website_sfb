@@ -29,6 +29,7 @@ import {
 } from "../../components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { PLACEHOLDER_EXCERPT, PLACEHOLDER_CONTENT } from "@/lib/placeholders";
+import { API_BASE_URL } from "@/lib/api/base";
 
 interface NewsDetailPageClientProps {
   article: {
@@ -75,10 +76,12 @@ export function NewsDetailPageClient({
     return null;
   }
   
-  const featuredImageSrc = article?.imageUrl;
-  const isTuyenSinhDauCap =
-    article?.slug === "he-thong-tuyen-sinh-dau-cap" ||
-    article?.title === "Hệ thống tuyển sinh đầu cấp";
+  const apiBase = API_BASE_URL;
+  const featuredImageSrc = article?.imageUrl
+    ? article.imageUrl.startsWith("http")
+      ? article.imageUrl
+      : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
+    : "/images/no_cover.jpeg";
 
   // Lấy URL hiện tại của trang
   const currentUrl = typeof window !== "undefined" 
@@ -174,7 +177,7 @@ export function NewsDetailPageClient({
           {/* Banner image */}
           <div className="w-full rounded-2xl overflow-hidden bg-gray-100">
             <ImageWithFallback
-              src={featuredImageSrc || "/images/no_cover.jpeg"}
+              src={featuredImageSrc}
               alt={article.title}
               className="w-full h-[220px] md:h-[420px] object-cover"
             />
@@ -337,75 +340,12 @@ export function NewsDetailPageClient({
       <section className="pb-20 bg-white">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div>
-            {isTuyenSinhDauCap ? (
-              <div
-                className="prose prose-lg max-w-none font-['Plus_Jakarta_Sans'] text-[var(--Color-2,#0F172A)] prose-p:mt-0 prose-p:mb-4 prose-ul:mt-0 prose-ul:mb-4 prose-li:my-0 prose-p:text-[16px] prose-p:leading-[30px] prose-p:text-[var(--Color-2,#0F172A)] prose-li:text-[16px] prose-li:leading-[30px] prose-li:text-[var(--Color-2,#0F172A)] prose-strong:text-[16px] prose-strong:font-bold prose-strong:leading-[30px] prose-strong:text-[var(--Color-2,#0F172A)] prose-ul:list-none prose-ul:pl-0 [&>ul>li]:relative [&>ul>li]:pl-5 sm:[&>ul>li]:pl-6 [&>ul>li]:before:absolute [&>ul>li]:before:left-1 sm:[&>ul>li]:before:left-2 [&>ul>li]:before:top-[15px] [&>ul>li]:before:-translate-y-1/2 [&>ul>li]:before:transform [&>ul>li]:before:content-['•'] [&>ul>li]:before:text-[16px] [&>ul>li]:before:leading-[30px] [&>ul>li]:before:text-[var(--Color-2,#0F172A)] [&_ul_ul]:mt-4 [&_ul_ul]:list-none [&_ul_ul]:pl-6 sm:[&_ul_ul]:pl-7 [&_ul_ul>li]:relative [&_ul_ul>li]:pl-5 sm:[&_ul_ul>li]:pl-6 [&_ul_ul>li]:before:absolute [&_ul_ul>li]:before:left-0 [&_ul_ul>li]:before:top-[15px] [&_ul_ul>li]:before:-translate-y-1/2 [&_ul_ul>li]:before:transform [&_ul_ul>li]:before:content-['+'] [&_ul_ul>li]:before:text-[16px] [&_ul_ul>li]:before:leading-[30px] [&_ul_ul>li]:before:text-[var(--Color-2,#0F172A)]"
-                style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
-              >
-                
-                <p>
-                  <strong>1. Phần mềm tuyển sinh đầu cấp đối với nhà trường</strong>
-                </p>
-                <p>
-                  Là phần mềm được phát triển để phục vụ công tác tuyển sinh của trường học, đồng thời là công cụ để kết nối phụ huynh và nhà trường một cách chặt chẽ hơn. Các tiện ích khi sử dụng phần mềm:
-                </p>
-                <ul>
-                  <li>Tổ chức tuyển sinh đúng quy chế, đảm bảo tính chính xác, công bằng, khách quan.</li>
-                  <li>Đảm bảo tiến độ tuyển sinh, hướng dẫn tuyển sinh đầy đủ, rõ ràng, công khai tạo thuận lợi cho học sinh và cha mẹ học sinh.</li>
-                  <li>Quản lý chính xác số trẻ theo từng độ tuổi trên địa bàn, phân tuyến và giao chỉ tiêu tránh tình trạng quá tải ở các trường.</li>
-                  <li>Góp phần nâng cao chất lượng giáo dục toàn diện ở các cấp học</li>
-                </ul>
-
-                <p>
-                  <strong>2. Phần mềm tuyển sinh đầu cấp đối với phụ huynh</strong>
-                </p>
-                <ul>
-                  <li>Phụ huynh có thể thực hiện đăng ký cho con em trên các thiết bị thông minh có thể truy cập internet.</li>
-                  <li>Có thể tra cứu các thông tin học sinh, thông tin kỳ tuyển sinh, kết quả khi đăng ký.</li>
-                  <li>
-                    Hệ thống hỗ trợ hướng dẫn sử dụng cụ thể, rõ ràng theo từng bước thực hiện
-                    <ul>
-                      <li>Dễ dàng thực hiện</li>
-                      <li>Đăng ký mọi lúc mọi nơi không cần đến trực tiếp nhà trường</li>
-                    </ul>
-                  </li>
-                </ul>
-
-                <p>
-                  <strong>I. CÁC CHỨC NĂNG CHÍNH</strong>
-                </p>
-                <p>
-                  01. Chức năng quản lý thông tin kỳ tuyển sinh cho phép cán bộ quản lý thêm mới các kỳ theo năm học, cập nhật thông tin cơ bản của kỳ tuyển sinh như: địa bàn, năm sinh, thời gian trực tuyến, trực tiếp, điều kiện phân tuyến chỉ tiêu.
-                </p>
-
-                <div className="not-prose my-4">
-                  <ImageWithFallback
-                    src="/images/news/news5.png"
-                    alt="Bảng quản lý thông tin kỳ tuyển sinh"
-                    className="w-full h-auto rounded-xl border border-gray-200"
-                  />
-                </div>
-
-                <p>
-                  02. Chức năng quản lý thông tin đăng ký trái tuyến cho phép theo dõi, phê duyệt chỉ tiêu học sinh đăng ký trái tuyến, từ đó theo dõi được số lượng chỉ tiêu, tránh thừa thiếu trên địa bàn
-                </p>
-
-                <div className="not-prose my-4">
-                  <ImageWithFallback
-                    src="/images/news/news6.png"
-                    alt="Bảng quản lý đăng ký trái tuyến"
-                    className="w-full h-auto rounded-xl border border-gray-200"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: article.content || article.excerpt || PLACEHOLDER_CONTENT,
-                }}
-              />
-            )}
+            <div
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: article.content || article.excerpt || PLACEHOLDER_CONTENT,
+              }}
+            />
           </div>
         </div>
       </section>

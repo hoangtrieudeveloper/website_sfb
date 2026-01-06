@@ -14,22 +14,37 @@ export async function publicApiCall<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = buildUrl(endpoint);
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...(options.headers || {}),
-  };
+  try {
+    const url = buildUrl(endpoint);
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    const errorMessage = await parseErrorResponse(response);
-    throw new Error(errorMessage);
+    if (!response.ok) {
+      const errorMessage = await parseErrorResponse(response);
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error: any) {
+    // Improve error message for connection errors
+    if (error?.message === 'Failed to fetch' || error?.code === 'ECONNREFUSED') {
+      const url = buildUrl(endpoint);
+      console.error(`[Public API] Connection failed to ${url}. Backend may not be running.`);
+      throw new Error(
+        `Không thể kết nối đến backend server. Vui lòng kiểm tra:\n` +
+        `- Backend server đang chạy tại ${url}\n` +
+        `- Kiểm tra biến môi trường NEXT_PUBLIC_API_SFB_URL\n` +
+        `- Đảm bảo backend đang lắng nghe trên port đúng`
+      );
+    }
+    throw error;
   }
-
-  return response.json();
 }
 

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchOverlay } from "./SearchOverlay";
 import { AnnouncementBar } from "./AnnouncementBar";
+import { getPublicSettings } from "@/lib/api/settings";
 
 interface NavLink {
   href: string;
@@ -25,9 +26,32 @@ export function Header() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoverLang, setHoverLang] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const pathname = usePathname();
   const dropdownTimeoutRef = useRef<NodeJS.Timeout>();
   const headerRef = useRef<HTMLElement>(null);
+
+  // Load settings from API
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const keys = 'logo,slogan,site_name,phone,email';
+        const data = await getPublicSettings(keys);
+        setSettings(data);
+      } catch (error) {
+        console.error('Error loading header settings:', error);
+        // Fallback to default values
+        setSettings({
+          logo: '/images/sfb.svg',
+          slogan: 'Smart Solutions Business',
+          site_name: 'SFB',
+          phone: '0888917999',
+          email: 'info@sfb.vn',
+        });
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Check announcement dismissal status
   useEffect(() => {
@@ -36,6 +60,17 @@ export function Header() {
       setShowAnnouncement(false);
     }
   }, []);
+
+  // Get settings with fallbacks
+  const logoUrl = settings.logo || '/images/sfb.svg';
+  const slogan = settings.slogan || 'Smart Solutions Business';
+  const siteName = settings.site_name || 'SFB';
+  const phone = settings.phone || '0888917999';
+  const email = settings.email || 'info@sfb.vn';
+  
+  // Format phone for display (remove non-digit characters except dots)
+  const formattedPhone = phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3');
+  const phoneHref = `tel:${phone.replace(/\D/g, '')}`;
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);
@@ -211,7 +246,7 @@ export function Header() {
               <div className="relative">
                 <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <img
-                    src="/images/sfb.svg"
+                    src={logoUrl}
                     alt="SFB Technology"
                     className={`w-full h-full object-contain transition-all duration-500 drop-shadow-md group-hover:drop-shadow-xl ${!useDarkText ? 'brightness-0 invert' : ''}`}
                   />
@@ -220,8 +255,8 @@ export function Header() {
                 <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
               </div>
               <div className="flex flex-col">
-                <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>SFB</span>
-                <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>Smart Solutions Business</span>
+                <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>{siteName}</span>
+                <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>{slogan}</span>
               </div>
             </Link>
 
@@ -325,11 +360,11 @@ export function Header() {
             {/* Contact Info & CTA */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
               <div className="text-right group">
-                <a href="mailto:info@sfb.vn" className={`block text-[11px] xl:text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
-                  info@sfb.vn
+                <a href={`mailto:${email}`} className={`block text-[11px] xl:text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
+                  {email}
                 </a>
-                <a href="tel:0888917999" className={`block text-xs xl:text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
-                  0888.917.999
+                <a href={phoneHref} className={`block text-xs xl:text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
+                  {formattedPhone}
                 </a>
               </div>
               <Link
@@ -444,18 +479,18 @@ export function Header() {
                     {/* Contact Info */}
                     <div className="pt-4 border-t border-gray-100 space-y-3">
                       <a
-                        href="tel:0888917999"
+                        href={phoneHref}
                         className="flex items-center gap-3 text-gray-600 hover:text-[#006FB3] transition-colors"
                       >
                         <Phone size={18} />
-                        <span className="font-semibold">0888 917 999</span>
+                        <span className="font-semibold">{formattedPhone}</span>
                       </a>
                       <a
-                        href="mailto:info@sfb.vn"
+                        href={`mailto:${email}`}
                         className="flex items-center gap-3 text-gray-600 hover:text-[#006FB3] transition-colors"
                       >
                         <Mail size={18} />
-                        <span>info@sfb.vn</span>
+                        <span>{email}</span>
                       </a>
                     </div>
 

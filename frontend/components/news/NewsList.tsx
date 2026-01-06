@@ -4,6 +4,7 @@ import { Calendar, Heart, MessageCircle } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_BASE_URL } from "@/lib/api/base";
 
 interface NewsItem {
   id: number;
@@ -30,6 +31,8 @@ export function NewsList({ news }: NewsListProps) {
     );
   }
 
+  const apiBase = API_BASE_URL;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -40,7 +43,11 @@ export function NewsList({ news }: NewsListProps) {
     >
       <AnimatePresence>
         {news.map((article, index) => {
-          const img = article.imageUrl || "/images/no_cover.jpeg";
+          const img = article.imageUrl
+            ? article.imageUrl.startsWith("http")
+              ? article.imageUrl
+              : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
+            : "/images/no_cover.jpeg";
 
           const likes = article.likes ?? 0;
           const comments = article.comments ?? 0;

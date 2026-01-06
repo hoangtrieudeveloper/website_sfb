@@ -124,8 +124,6 @@ exports.getPublicListHeader = async (req, res, next) => {
         subtitle: data.subtitle || '',
         title: data.title || '',
         description: data.description || '',
-        imageBack: data.imageBack || '',
-        imageFront: data.imageFront || '',
         isActive: row.is_active !== undefined ? row.is_active : true,
         createdAt: row.created_at,
         updatedAt: row.updated_at,

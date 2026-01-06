@@ -42,6 +42,7 @@ export type SectionParagraph = string | TitledParagraph;
 export type NumberedSection = {
     no: number;
     title: string;
+    paragraphsTitle?: string;
     paragraphs: SectionParagraph[];
     image: string;
     imageAlt?: string;

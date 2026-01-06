@@ -139,17 +139,17 @@ INSERT INTO news (
   seo_title, seo_description, seo_keywords
 )
 VALUES
-  ('Hệ thống tuyển sinh đầu cấp', 'he-thong-tuyen-sinh-dau-cap', 'Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh: tổ chức tuyển sinh đúng quy chế, minh bạch, tra cứu kết quả trực tuyến mọi lúc mọi nơi.', '<p>Nội dung bài viết về hệ thống tuyển sinh đầu cấp...</p>', 'Sản phẩm & giải pháp', 'product', 'published', 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80', 'SFB Technology', '10 phút đọc', 'from-blue-600 to-cyan-600', '2025-08-07', true, 'Hệ thống tuyển sinh đầu cấp', 'Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh', 'tuyển sinh, giáo dục, phần mềm'),
-  ('SFB ra mắt nền tảng Cloud thế hệ mới', 'sfb-cloud-gen-2', 'Nâng cấp hiệu năng và bảo mật cho doanh nghiệp', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'published', NULL, 'SFB Technology', '5 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '1 day', false, 'SFB Cloud thế hệ mới', 'Hiệu năng và bảo mật vượt trội cho doanh nghiệp', 'sfb cloud, hiệu năng, bảo mật'),
-  ('Ký kết hợp tác chuyển đổi số với đối tác A', 'chuyen-doi-so-doi-tac-a', 'Hợp tác chiến lược nâng cao năng lực số', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'approved', NULL, 'SFB Technology', '4 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '2 day', false, 'Hợp tác chuyển đổi số', 'Đối tác A cùng SFB chuyển đổi số', 'chuyển đổi số, hợp tác, đối tác A'),
-  ('Hướng dẫn triển khai CRM hiệu quả', 'huong-dan-trien-khai-crm', 'Các bước triển khai hệ thống CRM cho SME', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', NULL, 'SFB Technology', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE, false, 'Triển khai CRM hiệu quả', 'Hướng dẫn các bước triển khai CRM cho SME', 'crm, hướng dẫn, sme'),
-  ('Cập nhật bảo mật quý này', 'cap-nhat-bao-mat-q1', 'Tổng hợp bản vá và khuyến nghị bảo mật', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'pending', NULL, 'Security Team', '3 phút đọc', 'from-red-600 to-rose-600', CURRENT_DATE - INTERVAL '5 day', false, 'Cập nhật bảo mật', 'Bản vá và khuyến nghị bảo mật mới nhất', 'bảo mật, patch, khuyến nghị'),
-  ('Case study: Thành công với SFB Cloud', 'case-study-sfb-cloud', 'Khách hàng tăng 40% hiệu suất vận hành', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', NULL, 'SFB Technology', '7 phút đọc', 'from-orange-600 to-amber-600', CURRENT_DATE - INTERVAL '7 day', false, 'Case study SFB Cloud', 'Tăng 40% hiệu suất vận hành với SFB Cloud', 'case study, sfb cloud, hiệu suất'),
-  ('Checklist go-live hệ thống mới', 'checklist-go-live', 'Những việc cần làm trước khi go-live', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', NULL, 'SFB Technology', '4 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '3 day', false, 'Checklist go-live', 'Chuẩn bị go-live hệ thống mới', 'go-live, checklist, triển khai'),
-  ('Roadmap sản phẩm 2025', 'roadmap-san-pham-2025', 'Các mốc phát hành tính năng chính', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'approved', NULL, 'Product Team', '5 phút đọc', 'from-purple-600 to-pink-600', CURRENT_DATE - INTERVAL '10 day', false, 'Roadmap sản phẩm 2025', 'Các mốc phát hành chính năm 2025', 'roadmap, sản phẩm, 2025'),
-  ('Tối ưu chi phí hạ tầng', 'toi-uu-chi-phi-ha-tang', 'Kinh nghiệm giảm 25% chi phí cloud', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', NULL, 'FinOps Team', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE - INTERVAL '4 day', false, 'Tối ưu chi phí cloud', 'Giảm 25% chi phí hạ tầng cloud', 'finops, chi phí, cloud'),
-  ('Best practices bảo mật API', 'best-practices-bao-mat-api', 'Hướng dẫn bảo vệ API an toàn', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'rejected', NULL, 'Security Team', '8 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '8 day', false, 'Best practices API security', 'Hướng dẫn bảo mật API an toàn', 'api security, best practices'),
-  ('Template SEO cho bài viết', 'template-seo-bai-viet', 'Mẫu cấu trúc SEO hiệu quả cho content', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'published', NULL, 'Content Team', '5 phút đọc', 'from-cyan-600 to-blue-600', CURRENT_DATE - INTERVAL '6 day', false, 'Template SEO', 'Mẫu cấu trúc SEO hiệu quả', 'seo, template, content')
+  ('Hệ thống tuyển sinh đầu cấp', 'he-thong-tuyen-sinh-dau-cap', 'Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh: tổ chức tuyển sinh đúng quy chế, minh bạch, tra cứu kết quả trực tuyến mọi lúc mọi nơi.', '<p><strong>1. Phần mềm tuyển sinh đầu cấp đối với nhà trường</strong></p><p>Là phần mềm được phát triển để phục vụ công tác tuyển sinh của trường học, đồng thời là công cụ để kết nối phụ huynh và nhà trường một cách chặt chẽ hơn. Các tiện ích khi sử dụng phần mềm:</p><ul><li>Tổ chức tuyển sinh đúng quy chế, đảm bảo tính chính xác, công bằng, khách quan.</li><li>Đảm bảo tiến độ tuyển sinh, hướng dẫn tuyển sinh đầy đủ, rõ ràng, công khai tạo thuận lợi cho học sinh và cha mẹ học sinh.</li><li>Quản lý chính xác số trẻ theo từng độ tuổi trên địa bàn, phân tuyến và giao chỉ tiêu tránh tình trạng quá tải ở các trường.</li><li>Góp phần nâng cao chất lượng giáo dục toàn diện ở các cấp học</li></ul><p><strong>2. Phần mềm tuyển sinh đầu cấp đối với phụ huynh</strong></p><ul><li>Phụ huynh có thể thực hiện đăng ký cho con em trên các thiết bị thông minh có thể truy cập internet.</li><li>Có thể tra cứu các thông tin học sinh, thông tin kỳ tuyển sinh, kết quả khi đăng ký.</li><li>Hệ thống hỗ trợ hướng dẫn sử dụng cụ thể, rõ ràng theo từng bước thực hiện<ul><li>Dễ dàng thực hiện</li><li>Đăng ký mọi lúc mọi nơi không cần đến trực tiếp nhà trường</li></ul></li></ul><p><strong>I. CÁC CHỨC NĂNG CHÍNH</strong></p><p>01. Chức năng quản lý thông tin kỳ tuyển sinh cho phép cán bộ quản lý thêm mới các kỳ theo năm học, cập nhật thông tin cơ bản của kỳ tuyển sinh như: địa bàn, năm sinh, thời gian trực tuyến, trực tiếp, điều kiện phân tuyến chỉ tiêu.</p><div class="not-prose my-4"><img src="/images/news/news5.png" alt="Bảng quản lý thông tin kỳ tuyển sinh" class="w-full h-auto rounded-xl border border-gray-200" /></div><p>02. Chức năng quản lý thông tin đăng ký trái tuyến cho phép theo dõi, phê duyệt chỉ tiêu học sinh đăng ký trái tuyến, từ đó theo dõi được số lượng chỉ tiêu, tránh thừa thiếu trên địa bàn</p><div class="not-prose my-4"><img src="/images/news/news6.png" alt="Bảng quản lý đăng ký trái tuyến" class="w-full h-auto rounded-xl border border-gray-200" /></div>', 'Sản phẩm & giải pháp', 'product', 'published', '/uploads/news/news1.png', 'SFB Technology', '10 phút đọc', 'from-blue-600 to-cyan-600', '2025-08-07', true, 'Hệ thống tuyển sinh đầu cấp', 'Giải pháp phần mềm hỗ trợ công tác tuyển sinh đầu cấp cho nhà trường và phụ huynh', 'tuyển sinh, giáo dục, phần mềm'),
+  ('SFB ra mắt nền tảng Cloud thế hệ mới', 'sfb-cloud-gen-2', 'Nâng cấp hiệu năng và bảo mật cho doanh nghiệp', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'published', '/uploads/news/news2.png', 'SFB Technology', '5 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '1 day', false, 'SFB Cloud thế hệ mới', 'Hiệu năng và bảo mật vượt trội cho doanh nghiệp', 'sfb cloud, hiệu năng, bảo mật'),
+  ('Ký kết hợp tác chuyển đổi số với đối tác A', 'chuyen-doi-so-doi-tac-a', 'Hợp tác chiến lược nâng cao năng lực số', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'approved', '/uploads/news/news3.png', 'SFB Technology', '4 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '2 day', false, 'Hợp tác chuyển đổi số', 'Đối tác A cùng SFB chuyển đổi số', 'chuyển đổi số, hợp tác, đối tác A'),
+  ('Hướng dẫn triển khai CRM hiệu quả', 'huong-dan-trien-khai-crm', 'Các bước triển khai hệ thống CRM cho SME', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', '/uploads/news/news1.png', 'SFB Technology', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE, false, 'Triển khai CRM hiệu quả', 'Hướng dẫn các bước triển khai CRM cho SME', 'crm, hướng dẫn, sme'),
+  ('Cập nhật bảo mật quý này', 'cap-nhat-bao-mat-q1', 'Tổng hợp bản vá và khuyến nghị bảo mật', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'pending', '/uploads/news/news2.png', 'Security Team', '3 phút đọc', 'from-red-600 to-rose-600', CURRENT_DATE - INTERVAL '5 day', false, 'Cập nhật bảo mật', 'Bản vá và khuyến nghị bảo mật mới nhất', 'bảo mật, patch, khuyến nghị'),
+  ('Case study: Thành công với SFB Cloud', 'case-study-sfb-cloud', 'Khách hàng tăng 40% hiệu suất vận hành', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', '/uploads/news/news3.png', 'SFB Technology', '7 phút đọc', 'from-orange-600 to-amber-600', CURRENT_DATE - INTERVAL '7 day', false, 'Case study SFB Cloud', 'Tăng 40% hiệu suất vận hành với SFB Cloud', 'case study, sfb cloud, hiệu suất'),
+  ('Checklist go-live hệ thống mới', 'checklist-go-live', 'Những việc cần làm trước khi go-live', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'draft', '/uploads/news/news1.png', 'SFB Technology', '4 phút đọc', 'from-blue-600 to-cyan-600', CURRENT_DATE - INTERVAL '3 day', false, 'Checklist go-live', 'Chuẩn bị go-live hệ thống mới', 'go-live, checklist, triển khai'),
+  ('Roadmap sản phẩm 2025', 'roadmap-san-pham-2025', 'Các mốc phát hành tính năng chính', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'approved', '/uploads/news/news2.png', 'Product Team', '5 phút đọc', 'from-purple-600 to-pink-600', CURRENT_DATE - INTERVAL '10 day', false, 'Roadmap sản phẩm 2025', 'Các mốc phát hành chính năm 2025', 'roadmap, sản phẩm, 2025'),
+  ('Tối ưu chi phí hạ tầng', 'toi-uu-chi-phi-ha-tang', 'Kinh nghiệm giảm 25% chi phí cloud', '<p>Nội dung demo...</p>', 'Kinh doanh', 'company', 'published', '/uploads/news/news3.png', 'FinOps Team', '6 phút đọc', 'from-emerald-600 to-teal-600', CURRENT_DATE - INTERVAL '4 day', false, 'Tối ưu chi phí cloud', 'Giảm 25% chi phí hạ tầng cloud', 'finops, chi phí, cloud'),
+  ('Best practices bảo mật API', 'best-practices-bao-mat-api', 'Hướng dẫn bảo vệ API an toàn', '<p>Nội dung demo...</p>', 'Công nghệ', 'tech', 'rejected', '/uploads/news/news1.png', 'Security Team', '8 phút đọc', 'from-indigo-600 to-purple-600', CURRENT_DATE - INTERVAL '8 day', false, 'Best practices API security', 'Hướng dẫn bảo mật API an toàn', 'api security, best practices'),
+  ('Template SEO cho bài viết', 'template-seo-bai-viet', 'Mẫu cấu trúc SEO hiệu quả cho content', '<p>Nội dung demo...</p>', 'Hướng dẫn', 'product', 'published', '/uploads/news/news2.png', 'Content Team', '5 phút đọc', 'from-cyan-600 to-blue-600', CURRENT_DATE - INTERVAL '6 day', false, 'Template SEO', 'Mẫu cấu trúc SEO hiệu quả', 'seo, template, content')
 ON CONFLICT (slug) DO NOTHING;
 
 -- Insert roles mặc định
@@ -650,7 +650,7 @@ BEGIN
   INSERT INTO products (
     category_id, slug, name, tagline, meta, description, image, gradient,
     pricing, badge, stats_users, stats_rating, stats_deploy, features,
-    sort_order, is_featured, is_active
+    demo_link, sort_order, is_featured, is_active
   )
   VALUES (
     edu_cat_id,
@@ -667,6 +667,7 @@ BEGIN
     4.8,
     'Triển khai Cloud/On-premise',
     '["Đăng ký tuyển sinh trực tuyến cho phụ huynh", "Tích hợp quy chế tuyển sinh của Bộ/Ngành", "Tự động lọc, duyệt hồ sơ theo tiêu chí", "Tra cứu kết quả tuyển sinh online", "Báo cáo thống kê theo lớp, khối, khu vực", "Kết nối chặt chẽ giữa phụ huynh và nhà trường"]'::jsonb,
+    '/demo',
     1,
     TRUE,
     TRUE
@@ -1229,8 +1230,7 @@ BEGIN
     VALUES
       (hero_id_val, 'hero', '{"iconName": "Award", "value": "8+ năm", "label": "Kinh nghiệm triển khai", "gradient": "from-blue-500 to-cyan-500"}'::jsonb, 0),
       (hero_id_val, 'hero', '{"iconName": "Target", "value": "Hàng trăm", "label": "Dự án & triển khai thực tế", "gradient": "from-purple-500 to-pink-500"}'::jsonb, 1),
-      (hero_id_val, 'hero', '{"iconName": "Users", "value": "Nhiều đơn vị", "label": "Cơ quan Nhà nước & doanh nghiệp", "gradient": "from-emerald-500 to-teal-500"}'::jsonb, 2),
-      (hero_id_val, 'hero', '{"iconName": "Sparkles", "value": "Đội ngũ", "label": "Chuyên gia CNTT tận tâm", "gradient": "from-orange-500 to-red-500"}'::jsonb, 3)
+      (hero_id_val, 'hero', '{"iconName": "Users", "value": "Nhiều đơn vị", "label": "Cơ quan Nhà nước & doanh nghiệp", "gradient": "from-emerald-500 to-teal-500"}'::jsonb, 2)
     ON CONFLICT DO NOTHING;
   END IF;
 
@@ -2515,3 +2515,48 @@ JOIN permissions p ON p.code IN (
 )
 WHERE r.code = 'admin'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- ============================================================================
+-- SITE SETTINGS MANAGEMENT SCHEMA
+-- ============================================================================
+
+-- Bảng site_settings (Cấu hình chung của website)
+CREATE TABLE IF NOT EXISTS site_settings (
+  id SERIAL PRIMARY KEY,
+  setting_key VARCHAR(100) NOT NULL UNIQUE,  -- 'favicon', 'logo', 'slogan', 'phone', 'address', 'email', 'social_facebook', etc.
+  setting_value TEXT,                          -- Giá trị của setting
+  setting_type VARCHAR(50) DEFAULT 'text',     -- 'text', 'url', 'image', 'json'
+  description TEXT,                             -- Mô tả setting
+  category VARCHAR(50) DEFAULT 'general',       -- 'general', 'contact', 'social', 'seo'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_site_settings_key ON site_settings(setting_key);
+CREATE INDEX IF NOT EXISTS idx_site_settings_category ON site_settings(category);
+
+-- Trigger cập nhật updated_at cho site_settings
+DROP TRIGGER IF EXISTS update_site_settings_updated_at ON site_settings;
+CREATE TRIGGER update_site_settings_updated_at
+    BEFORE UPDATE ON site_settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Seed dữ liệu mẫu cho site_settings
+INSERT INTO site_settings (setting_key, setting_value, setting_type, description, category)
+VALUES
+  ('favicon', '', 'image', 'Favicon của website', 'general'),
+  ('logo', '', 'image', 'Logo chính của website', 'general'),
+  ('slogan', 'Smart Solutions Business', 'text', 'Slogan của công ty', 'general'),
+  ('site_name', 'SFB', 'text', 'Tên website', 'general'),
+  ('site_description', 'SFB có một đội ngũ chuyên gia CNTT trẻ, có kiến thức chuyên sâu về Công nghệ Thông tin, Phát triển Web và phát triển phần mềm ứng dụng.', 'text', 'Mô tả website (hiển thị trong footer)', 'general'),
+  ('phone', '0888 917 999', 'text', 'Số điện thoại liên hệ', 'contact'),
+  ('email', 'info@sfb.vn', 'text', 'Email liên hệ', 'contact'),
+  ('address', 'P303, Tầng 3, Khách sạn Thể thao, Số 15 Lê Văn Thiêm, P. Nhân Chính, Q. Thanh Xuân, Hà Nội.', 'text', 'Địa chỉ văn phòng', 'contact'),
+  ('social_facebook', 'https://www.facebook.com', 'url', 'Link Facebook', 'social'),
+  ('social_twitter', 'https://twitter.com', 'url', 'Link Twitter', 'social'),
+  ('social_linkedin', 'https://www.linkedin.com', 'url', 'Link LinkedIn', 'social'),
+  ('social_instagram', 'https://www.instagram.com', 'url', 'Link Instagram', 'social'),
+  ('footer_quick_links', '[{"name":"Trang chủ","href":"/"},{"name":"Giới thiệu SFB","href":"/about"},{"name":"Sản phẩm – Dịch vụ","href":"/solutions"},{"name":"Tuyển dụng","href":"/careers"},{"name":"Tin tức","href":"/news"},{"name":"Liên hệ","href":"/contact"}]', 'json', 'Danh sách liên kết nhanh trong footer (JSON array)', 'footer'),
+  ('footer_solutions', '[{"name":"Tư vấn xây dựng và phát triển hệ thống","href":"/solutions"},{"name":"Cung cấp dịch vụ quản trị hệ thống","href":"/solutions"},{"name":"Thiết kế & xây dựng giải pháp cổng TTĐT","href":"/solutions"},{"name":"Cổng thông tin Chính phủ điện tử SharePoint","href":"/solutions"},{"name":"Outsourcing","href":"/solutions"},{"name":"Data Universal Numbering System","href":"/solutions"}]', 'json', 'Danh sách dịch vụ trong footer (JSON array)', 'footer')
+ON CONFLICT (setting_key) DO NOTHING;

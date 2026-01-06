@@ -16,14 +16,19 @@ export { API_BASE_URL };
 export function buildUrl(endpoint: string): string {
   if (endpoint.startsWith("http")) return endpoint;
 
-  // In the browser, proxy public news requests through Next.js API routes.
+  // In the browser, proxy public API requests through Next.js API routes.
   // This avoids depending on the backend being directly reachable from the client
   // (CORS/host resolution/misconfigured NEXT_PUBLIC_API_SFB_URL).
-  if (
-    typeof window !== "undefined" &&
-    (endpoint === "/api/public/news" || endpoint.startsWith("/api/public/news/"))
-  ) {
-    return endpoint;
+  if (typeof window !== "undefined") {
+    // Proxy these endpoints through Next.js API routes
+    if (
+      endpoint === "/api/public/news" || 
+      endpoint.startsWith("/api/public/news/") ||
+      endpoint === "/api/public/homepage" ||
+      endpoint.startsWith("/api/public/homepage/")
+    ) {
+      return endpoint;
+    }
   }
 
   return `${API_BASE_URL}${endpoint}`;

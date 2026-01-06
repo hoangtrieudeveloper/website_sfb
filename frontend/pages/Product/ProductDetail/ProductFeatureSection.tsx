@@ -67,12 +67,12 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                     <div className="text-gray-900 text-xl md:text-2xl font-bold">
                         {section.no}. {section.title}
                     </div>
-
                     {section.paragraphs.map((p, i) => {
                         if (typeof p === "string") {
+                            // Đoạn văn đơn giản: chỉ hiển thị nội dung, không có tiêu đề riêng
                             return (
                                 <p
-                                    key={i}
+                                    key={`${section.no}-${i}`}
                                     className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]"
                                 >
                                     {p}
@@ -80,8 +80,9 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                             );
                         }
 
+                        // Đoạn văn có tiêu đề riêng
                         return (
-                            <div key={i} className="flex flex-col self-stretch gap-2">
+                            <div key={`${section.no}-${i}`} className="flex flex-col self-stretch gap-2">
                                 <div className="self-stretch text-[var(--Color-3,#29A3DD)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
                                     {p.title}
                                 </div>

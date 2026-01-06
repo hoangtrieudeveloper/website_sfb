@@ -668,199 +668,6 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             </CardContent>
           </Card>
 
-          {/* SEO Configuration */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <SearchIcon className="w-5 h-5 text-blue-600" />
-                <CardTitle>Tối ưu hóa SEO</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-3 shadow-sm">
-                <div className="flex items-start gap-2">
-                  <div className="bg-blue-100 rounded-full p-1.5">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-semibold text-blue-900 mb-1">
-                      Tối ưu hóa SEO
-                    </p>
-                    <p className="text-xs text-blue-700 leading-relaxed">
-                      Điền đầy đủ thông tin SEO để sản phẩm dễ dàng được tìm thấy trên Google. Nhấn "Tự động" để sử dụng tên và mô tả hiện có.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="seoTitle" className="text-sm font-semibold">
-                      Tiêu đề SEO
-                    </Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 text-xs px-2"
-                      onClick={() => {
-                        if (formData.name) {
-                          const autoTitle =
-                            formData.name.length > 60
-                              ? formData.name.substring(0, 57) + "..."
-                              : formData.name;
-                          setFormData({ ...formData, seoTitle: autoTitle });
-                        }
-                      }}
-                      disabled={!formData.name}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Tự động
-                    </Button>
-                  </div>
-                  <Input
-                    id="seoTitle"
-                    value={formData.seoTitle}
-                    onChange={(e) =>
-                      setFormData({ ...formData, seoTitle: e.target.value })
-                    }
-                    placeholder={
-                      formData.name
-                        ? `Tự động: ${formData.name.substring(0, 40)}...`
-                        : "Nhập tiêu đề SEO..."
-                    }
-                    maxLength={60}
-                    className="text-sm"
-                  />
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
-                    <span
-                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                        formData.seoTitle.length > 60
-                          ? "text-red-600 bg-red-50"
-                          : formData.seoTitle.length >= 50 &&
-                            formData.seoTitle.length <= 60
-                          ? "text-green-600 bg-green-50"
-                          : formData.seoTitle.length > 0
-                          ? "text-yellow-600 bg-yellow-50"
-                          : "text-gray-400 bg-gray-50"
-                      }`}
-                    >
-                      {formData.seoTitle.length}/60
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="seoDescription" className="text-sm font-semibold">
-                      Mô tả SEO
-                    </Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 text-xs px-2"
-                      onClick={() => {
-                        if (formData.description) {
-                          const autoDesc =
-                            formData.description.length > 160
-                              ? formData.description.substring(0, 157) + "..."
-                              : formData.description;
-                          setFormData({
-                            ...formData,
-                            seoDescription: autoDesc,
-                          });
-                        }
-                      }}
-                      disabled={!formData.description}
-                    >
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Tự động
-                    </Button>
-                  </div>
-                  <Textarea
-                    id="seoDescription"
-                    value={formData.seoDescription}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        seoDescription: e.target.value,
-                      })
-                    }
-                    placeholder={
-                      formData.description
-                        ? `Tự động: ${formData.description.substring(0, 60)}...`
-                        : "Nhập mô tả SEO..."
-                    }
-                    rows={3}
-                    maxLength={160}
-                    className="resize-none text-sm"
-                  />
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-500">
-                      Khuyến nghị: 150-160 ký tự
-                    </p>
-                    <span
-                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                        formData.seoDescription.length > 160
-                          ? "text-red-600 bg-red-50"
-                          : formData.seoDescription.length >= 150 &&
-                            formData.seoDescription.length <= 160
-                          ? "text-green-600 bg-green-50"
-                          : formData.seoDescription.length > 0
-                          ? "text-yellow-600 bg-yellow-50"
-                          : "text-gray-400 bg-gray-50"
-                      }`}
-                    >
-                      {formData.seoDescription.length}/160
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="seoKeywords" className="text-sm font-semibold">
-                    Từ khóa SEO
-                  </Label>
-                  <Input
-                    id="seoKeywords"
-                    value={formData.seoKeywords}
-                    onChange={(e) =>
-                      setFormData({ ...formData, seoKeywords: e.target.value })
-                    }
-                    placeholder="từ khóa 1, từ khóa 2..."
-                    className="text-sm"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Phân cách bằng dấu phẩy
-                  </p>
-                </div>
-
-                {(formData.seoTitle || formData.seoDescription) && (
-                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">
-                      Xem trước:
-                    </p>
-                    <div className="space-y-1">
-                      <div className="text-xs text-blue-600 font-medium line-clamp-1">
-                        {formData.seoTitle || formData.name || "Tên sản phẩm"}
-                      </div>
-                      <div className="text-xs text-green-700">
-                        {formData.slug ? `/products/${formData.slug}` : "/products/..."}
-                      </div>
-                      <div className="text-xs text-gray-600 line-clamp-2">
-                        {formData.seoDescription ||
-                          formData.description ||
-                          "Mô tả sản phẩm..."}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Thống kê</CardTitle>
@@ -966,6 +773,196 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                     setFormData({ ...formData, isActive: checked })
                   }
                 />
+              </div>
+            </CardContent>
+          </Card>
+          {/* SEO Configuration */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <SearchIcon className="w-5 h-5 text-blue-600" />
+                <CardTitle>Tối ưu hóa SEO</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-3 shadow-sm">
+                <div className="flex items-start gap-2">
+                  <div className="bg-blue-100 rounded-full p-1.5">
+                    <Sparkles className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-blue-900 mb-1">
+                      Tối ưu hóa SEO
+                    </p>
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      Điền đầy đủ thông tin SEO để sản phẩm dễ dàng được tìm thấy trên Google. Nhấn "Tự động" để sử dụng tên và mô tả hiện có.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="seoTitle" className="text-sm font-semibold">
+                      Tiêu đề SEO
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs px-2"
+                      onClick={() => {
+                        if (formData.name) {
+                          const autoTitle =
+                            formData.name.length > 60
+                              ? formData.name.substring(0, 57) + "..."
+                              : formData.name;
+                          setFormData({ ...formData, seoTitle: autoTitle });
+                        }
+                      }}
+                      disabled={!formData.name}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Tự động
+                    </Button>
+                  </div>
+                  <Input
+                    id="seoTitle"
+                    value={formData.seoTitle}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seoTitle: e.target.value })
+                    }
+                    placeholder={
+                      formData.name
+                        ? `Tự động: ${formData.name.substring(0, 40)}...`
+                        : "Nhập tiêu đề SEO..."
+                    }
+                    maxLength={60}
+                    className="text-sm"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
+                    <span
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoTitle.length > 60
+                          ? "text-red-600 bg-red-50"
+                          : formData.seoTitle.length >= 50 &&
+                            formData.seoTitle.length <= 60
+                            ? "text-green-600 bg-green-50"
+                            : formData.seoTitle.length > 0
+                              ? "text-yellow-600 bg-yellow-50"
+                              : "text-gray-400 bg-gray-50"
+                        }`}
+                    >
+                      {formData.seoTitle.length}/60
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="seoDescription" className="text-sm font-semibold">
+                      Mô tả SEO
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs px-2"
+                      onClick={() => {
+                        if (formData.description) {
+                          const autoDesc =
+                            formData.description.length > 160
+                              ? formData.description.substring(0, 157) + "..."
+                              : formData.description;
+                          setFormData({
+                            ...formData,
+                            seoDescription: autoDesc,
+                          });
+                        }
+                      }}
+                      disabled={!formData.description}
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Tự động
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="seoDescription"
+                    value={formData.seoDescription}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        seoDescription: e.target.value,
+                      })
+                    }
+                    placeholder={
+                      formData.description
+                        ? `Tự động: ${formData.description.substring(0, 60)}...`
+                        : "Nhập mô tả SEO..."
+                    }
+                    rows={3}
+                    maxLength={160}
+                    className="resize-none text-sm"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      Khuyến nghị: 150-160 ký tự
+                    </p>
+                    <span
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoDescription.length > 160
+                          ? "text-red-600 bg-red-50"
+                          : formData.seoDescription.length >= 150 &&
+                            formData.seoDescription.length <= 160
+                            ? "text-green-600 bg-green-50"
+                            : formData.seoDescription.length > 0
+                              ? "text-yellow-600 bg-yellow-50"
+                              : "text-gray-400 bg-gray-50"
+                        }`}
+                    >
+                      {formData.seoDescription.length}/160
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seoKeywords" className="text-sm font-semibold">
+                    Từ khóa SEO
+                  </Label>
+                  <Input
+                    id="seoKeywords"
+                    value={formData.seoKeywords}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seoKeywords: e.target.value })
+                    }
+                    placeholder="từ khóa 1, từ khóa 2..."
+                    className="text-sm"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Phân cách bằng dấu phẩy
+                  </p>
+                </div>
+
+                {(formData.seoTitle || formData.seoDescription) && (
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">
+                      Xem trước:
+                    </p>
+                    <div className="space-y-1">
+                      <div className="text-xs text-blue-600 font-medium line-clamp-1">
+                        {formData.seoTitle || formData.name || "Tên sản phẩm"}
+                      </div>
+                      <div className="text-xs text-green-700">
+                        {formData.slug ? `/products/${formData.slug}` : "/products/..."}
+                      </div>
+                      <div className="text-xs text-gray-600 line-clamp-2">
+                        {formData.seoDescription ||
+                          formData.description ||
+                          "Mô tả sản phẩm..."}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1583,43 +1580,71 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         <div>
                                           <Label className="mb-2">Các đoạn văn (Paragraphs)</Label>
                                           <div className="space-y-2">
-                                            {(section.paragraphs || []).map((para: string, paraIndex: number) => (
-                                              <div key={paraIndex} className="flex gap-2">
-                                                <Textarea
-                                                  value={para}
-                                                  onChange={(e) => {
-                                                    const newSections = [...detailData.numberedSections];
-                                                    const newParagraphs = [...(section.paragraphs || [])];
-                                                    newParagraphs[paraIndex] = e.target.value;
-                                                    newSections[index] = { ...section, paragraphs: newParagraphs };
-                                                    setDetailData({ ...detailData, numberedSections: newSections });
-                                                  }}
-                                                  rows={2}
-                                                  placeholder={`Đoạn ${paraIndex + 1}`}
-                                                />
-                                                <Button
-                                                  type="button"
-                                                  variant="outline"
-                                                  size="icon"
-                                                  onClick={() => {
-                                                    const newSections = [...detailData.numberedSections];
-                                                    const newParagraphs = (section.paragraphs || []).filter(
-                                                      (_: string, i: number) => i !== paraIndex
-                                                    );
-                                                    newSections[index] = { ...section, paragraphs: newParagraphs };
-                                                    setDetailData({ ...detailData, numberedSections: newSections });
-                                                  }}
-                                                >
-                                                  <X className="h-4 w-4" />
-                                                </Button>
-                                              </div>
-                                            ))}
+                                            {(section.paragraphs || []).map((para: any, paraIndex: number) => {
+                                              const paraObj =
+                                                typeof para === "string"
+                                                  ? { title: "", text: para }
+                                                  : para || { title: "", text: "" };
+
+                                              return (
+                                                <div key={paraIndex} className="space-y-2 rounded-lg border border-gray-200 p-3">
+                                                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                                                    <div className="md:col-span-2">
+                                                      <Label className="mb-1">Tiêu đề đoạn</Label>
+                                                      <Input
+                                                        value={paraObj.title || ""}
+                                                        onChange={(e) => {
+                                                          const newSections = [...detailData.numberedSections];
+                                                          const newParagraphs = [...(section.paragraphs || [])];
+                                                          newParagraphs[paraIndex] = { ...paraObj, title: e.target.value };
+                                                          newSections[index] = { ...section, paragraphs: newParagraphs };
+                                                          setDetailData({ ...detailData, numberedSections: newSections });
+                                                        }}
+                                                        placeholder="Ví dụ: Học sinh"
+                                                      />
+                                                    </div>
+                                                    <div className="md:col-span-3">
+                                                      <Label className="mb-1">Nội dung</Label>
+                                                      <Textarea
+                                                        value={paraObj.text || ""}
+                                                        onChange={(e) => {
+                                                          const newSections = [...detailData.numberedSections];
+                                                          const newParagraphs = [...(section.paragraphs || [])];
+                                                          newParagraphs[paraIndex] = { ...paraObj, text: e.target.value };
+                                                          newSections[index] = { ...section, paragraphs: newParagraphs };
+                                                          setDetailData({ ...detailData, numberedSections: newSections });
+                                                        }}
+                                                        rows={2}
+                                                        placeholder={`Đoạn ${paraIndex + 1}`}
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                  <div className="flex justify-end">
+                                                    <Button
+                                                      type="button"
+                                                      variant="outline"
+                                                      size="icon"
+                                                      onClick={() => {
+                                                        const newSections = [...detailData.numberedSections];
+                                                        const newParagraphs = (section.paragraphs || []).filter(
+                                                          (_: any, i: number) => i !== paraIndex
+                                                        );
+                                                        newSections[index] = { ...section, paragraphs: newParagraphs };
+                                                        setDetailData({ ...detailData, numberedSections: newSections });
+                                                      }}
+                                                    >
+                                                      <X className="h-4 w-4" />
+                                                    </Button>
+                                                  </div>
+                                                </div>
+                                              );
+                                            })}
                                             <Button
                                               type="button"
                                               variant="outline"
                                               onClick={() => {
                                                 const newSections = [...detailData.numberedSections];
-                                                const newParagraphs = [...(section.paragraphs || []), ""];
+                                                const newParagraphs = [...(section.paragraphs || []), { title: "", text: "" }];
                                                 newSections[index] = { ...section, paragraphs: newParagraphs };
                                                 setDetailData({ ...detailData, numberedSections: newSections });
                                               }}

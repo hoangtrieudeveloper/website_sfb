@@ -36,8 +36,12 @@ export function HomepageContent() {
           });
           setBlocks(blocksMap);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching homepage blocks:", error);
+        // If it's a connection error, log more details
+        if (error?.message?.includes('ECONNREFUSED') || error?.message?.includes('backend')) {
+          console.warn("Backend server may not be running. Homepage will use empty blocks.");
+        }
         // Fallback: continue with empty blocks, components will use static data
       } finally {
         setLoading(false);

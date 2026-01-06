@@ -2,6 +2,7 @@ import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { API_BASE_URL } from "@/lib/api/base";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
@@ -9,17 +10,62 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-// Root layout metadata - sẽ được merge với metadata từ child pages
-// Metadata từ generateMetadata() sẽ được Next.js tự động inject vào <head>
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'),
-  title: {
-    default: "SFB Technology - Giải pháp công nghệ hàng đầu Việt Nam",
-    template: "%s | SFB Technology",
-  },
-  description:
-    "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến",
-};
+// Fetch favicon from settings dynamically (server-side only)
+async function getFavicon(): Promise<string | undefined> {
+  try {
+    // Fetch directly from backend API in server-side
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+    
+    const res = await fetch(`${API_BASE_URL}/api/public/settings?keys=favicon`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      return undefined;
+    }
+
+    const data = await res.json();
+    const favicon = data.data?.favicon;
+    
+    // Return favicon URL if it exists and is not empty
+    if (favicon && favicon.trim()) {
+      return favicon;
+    }
+  } catch (error) {
+    // Silently fail - will use default favicon
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Favicon] Could not load favicon from settings:', error);
+    }
+  }
+  return undefined;
+}
+
+// Generate metadata dynamically to include favicon from settings
+export async function generateMetadata(): Promise<Metadata> {
+  const favicon = await getFavicon();
+  
+  return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'),
+    title: {
+      default: "SFB Technology - Giải pháp công nghệ hàng đầu Việt Nam",
+      template: "%s | SFB Technology",
+    },
+    description:
+      "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến",
+    icons: favicon ? {
+      icon: [
+        { url: favicon, sizes: 'any' },
+        { url: favicon, type: 'image/x-icon' },
+      ],
+      shortcut: favicon,
+      apple: favicon,
+    } : undefined,
+  };
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
