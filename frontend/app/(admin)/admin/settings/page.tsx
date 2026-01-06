@@ -185,10 +185,10 @@ export default function AdminSettingsPage() {
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">Tổng quan</TabsTrigger>
-          <TabsTrigger value="seo">SEO & Domain</TabsTrigger>
-          <TabsTrigger value="notifications">Thông báo</TabsTrigger>
-          <TabsTrigger value="security">Bảo mật</TabsTrigger>
-          <TabsTrigger value="integrations">Tích hợp</TabsTrigger>
+          {/* <TabsTrigger value="seo">SEO & Domain</TabsTrigger> */}
+          {/* <TabsTrigger value="notifications">Thông báo</TabsTrigger> */}
+          {/* <TabsTrigger value="security">Bảo mật</TabsTrigger> */}
+          {/* <TabsTrigger value="integrations">Tích hợp</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="general">
@@ -435,7 +435,7 @@ export default function AdminSettingsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between border rounded-lg p-4 bg-gray-50">
+                  {/* <div className="flex items-center justify-between border rounded-lg p-4 bg-gray-50">
                     <div>
                       <p className="font-medium text-gray-900">
                         Bảo trì hệ thống (Maintenance Mode)
@@ -446,14 +446,14 @@ export default function AdminSettingsPage() {
                       </p>
                     </div>
                     <Switch />
-                  </div>
+                  </div> */}
                 </>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="seo">
+        {/* <TabsContent value="seo">
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -514,9 +514,9 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="notifications">
+        {/* <TabsContent value="notifications">
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -583,9 +583,9 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="security">
+        {/* <TabsContent value="security">
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -641,9 +641,9 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
 
-        <TabsContent value="integrations">
+        {/* <TabsContent value="integrations">
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -690,7 +690,7 @@ export default function AdminSettingsPage() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );
