@@ -68,9 +68,12 @@ export function AboutHero({ data }: AboutHeroProps) {
                     <StaggerContainer className="text-white lg:max-w-[45%] min-[1920px]:max-w-none min-[1920px]:w-[851px]">
                         <div className="inline-block max-w-full">
                             <FadeIn>
-                                <h1 ref={titleRef} className="inline-block max-w-full text-5xl md:text-6xl font-bold leading-tight mb-6">
+                                <h1
+                                    ref={titleRef}
+                                    className="inline-block max-w-full text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
+                                >
                                     {titleLine1}
-                                    <span className="block mt-2 text-white font-medium text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
+                                    <span className="block mt-2 text-white font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
                                         {titleLine2}
                                         <br />
                                         {titleLine3}
@@ -80,7 +83,7 @@ export function AboutHero({ data }: AboutHeroProps) {
 
                             <FadeIn delay={0.2}>
                                 <p
-                                    className="max-w-full text-[16px] text-white/90 mb-10 leading-relaxed font-light"
+                                    className="max-w-full text-sm sm:text-base text-white/90 mb-10 leading-relaxed font-light"
                                     style={titleWidth ? { width: `${titleWidth}px` } : undefined}
                                 >
                                     {description}

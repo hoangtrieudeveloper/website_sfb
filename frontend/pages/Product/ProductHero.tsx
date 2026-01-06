@@ -5,25 +5,12 @@ interface ProductHeroProps {
 }
 
 export function ProductHero({ data }: ProductHeroProps) {
-    // Fallback data
-    const defaultData = {
-        title: "Bộ giải pháp phần mềm",
-        subtitle: "Phục vụ Giáo dục, Công chứng & Doanh nghiệp",
-        description: "Các sản phẩm SFB được xây dựng từ bài toán thực tế của cơ quan Nhà nước, nhà trường và doanh nghiệp, giúp tối ưu quy trình và nâng cao hiệu quả quản lý.",
-        primaryCtaText: "Xem danh sách sản phẩm",
-        primaryCtaLink: "#products",
-        secondaryCtaText: "Tư vấn giải pháp",
-        secondaryCtaLink: "/contact",
-        stat1Label: "Giải pháp phần mềm",
-        stat1Value: "+32.000",
-        stat2Label: "Đơn vị triển khai thực tế",
-        stat2Value: "+6.000",
-        stat3Label: "Mức độ hài lòng trung bình",
-        stat3Value: "4.9★",
-        backgroundGradient: "linear-gradient(to bottom right, #0870B4, #2EABE2)",
-    };
+    // Nếu không có data thì không hiển thị gì
+    if (!data) {
+        return null;
+    }
 
-    const displayData = data || defaultData;
+    const displayData = data;
 
     return (
         <section
@@ -31,7 +18,7 @@ export function ProductHero({ data }: ProductHeroProps) {
             style={{
                 height: '847px',
                 paddingTop: '87px',
-                background: displayData.backgroundGradient || defaultData.backgroundGradient
+                background: displayData.backgroundGradient || 'linear-gradient(to bottom right, #0870B4, #2EABE2)'
             }}
         >
             <div className="absolute inset-0 overflow-hidden">
@@ -39,13 +26,13 @@ export function ProductHero({ data }: ProductHeroProps) {
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
             </div>
 
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="container mx-auto px-4 sm:px-6 relative z-10">
                 <div className="max-w-4xl mx-auto text-center">
                     {displayData.title && (
-                        <h1 className="text-white mb-8 text-5xl md:text-5xl">
+                        <h1 className="text-white mb-6 sm:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-tight">
                             {displayData.title}
                             {displayData.subtitle && (
-                                <span className="block text-white font-extrabold text-5xl mt-2">
+                                <span className="block text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mt-3">
                                     {displayData.subtitle}
                                 </span>
                             )}
@@ -53,7 +40,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                     )}
 
                     {displayData.description && (
-                        <p className="text-xl text-blue-100 leading-relaxed mb-10 max-w-3xl mx-auto">
+                        <p className="text-base sm:text-lg lg:text-xl text-blue-100 leading-relaxed mb-8 sm:mb-10 max-w-3xl mx-auto">
                             {displayData.description}
                         </p>
                     )}
@@ -62,7 +49,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                         {displayData.primaryCtaText && (
                             <a
                                 href={displayData.primaryCtaLink || "#products"}
-                                className="group px-10 py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold"
+                                className="group px-6 py-3 md:px-10 md:py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold text-sm md:text-base"
                             >
                                 {displayData.primaryCtaText}
                                 <ArrowRight
@@ -74,7 +61,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                         {displayData.secondaryCtaText && (
                             <a
                                 href={displayData.secondaryCtaLink || "/contact"}
-                                className="px-10 py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold"
+                                className="px-6 py-3 md:px-10 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold text-sm md:text-base"
                             >
                                 {displayData.secondaryCtaText}
                                 <ArrowRight
@@ -86,10 +73,10 @@ export function ProductHero({ data }: ProductHeroProps) {
                     </div>
 
                     {(displayData.stat1Value || displayData.stat2Value || displayData.stat3Value) && (
-                        <div className="grid grid-cols-3 gap-8 mt-16 max-w-3xl mx-auto">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16 max-w-3xl mx-auto">
                             {displayData.stat1Value && (
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-white mb-2">
+                                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
                                         {displayData.stat1Value}
                                     </div>
                                     {displayData.stat1Label && (
@@ -99,7 +86,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                             )}
                             {displayData.stat2Value && (
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-white mb-2">
+                                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
                                         {displayData.stat2Value}
                                     </div>
                                     {displayData.stat2Label && (
@@ -109,7 +96,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                             )}
                             {displayData.stat3Value && (
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-white mb-2">
+                                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
                                         {displayData.stat3Value}
                                     </div>
                                     {displayData.stat3Label && (

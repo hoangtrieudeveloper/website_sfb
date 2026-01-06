@@ -24,15 +24,15 @@ export function FieldHero({ data }: FieldHeroProps) {
     };
     return (
         <section
-            className="relative overflow-hidden"
+            className="relative overflow-hidden pt-20 md:pt-24 lg:pt-0 pb-6 md:pb-10 lg:pb-0 lg:h-[847px] lg:pt-[87px]"
             style={{
                 width: '100%',
-                height: '847px',
+                minHeight: 'auto',
+                height: 'auto',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 background: displayData.backgroundGradient || 'linear-gradient(31deg, #0870B4 51.21%, #2EABE2 97.73%)',
-                paddingTop: '87px'
             }}
         >
             {/* Background patterns */}
@@ -44,14 +44,14 @@ export function FieldHero({ data }: FieldHeroProps) {
                 <div className="absolute bottom-[0%] right-[0%] w-[40%] h-[40%] bg-cyan-400/20 rounded-full blur-[100px]" />
             </div>
 
-            <div className="container mx-auto px-6 relative z-10 h-full flex items-center justify-center">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-6 relative z-10 w-full flex items-start lg:items-center justify-center pt-4 md:pt-6 lg:pt-0 pb-4 md:pb-6 lg:pb-0 lg:h-full">
                 <div
                     className="flex flex-col lg:flex-row items-center justify-center w-full"
                     style={{ gap: '0' }}
                 >
                     {/* Left Column: Image */}
-                    <div className="relative order-2 lg:order-1 flex justify-center lg:justify-start lg:mr-[-55px] z-10">
-                        <ZoomIn className="relative" style={{ width: '991px', height: '782px', flexShrink: 0 }}>
+                    <div className="relative order-1 lg:order-1 flex justify-center lg:justify-start lg:mr-[-55px] z-10 w-full lg:w-auto mb-4 md:mb-6 lg:mb-0">
+                        <ZoomIn className="relative w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[991px] lg:w-[991px] aspect-[991/782] lg:h-[782px] flex-shrink-0">
                             <div className="absolute inset-0 bg-white/10 rounded-full filter blur-3xl opacity-30 transform scale-75" />
                             {/* Responsive Image Placeholders */}
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -70,15 +70,12 @@ export function FieldHero({ data }: FieldHeroProps) {
                     </div>
 
                     {/* Right Column: Content */}
-                    <div className="order-1 lg:order-2 text-white">
+                    <div className="order-2 lg:order-2 text-white w-full lg:w-auto text-center lg:text-left">
                         <SlideIn direction="right">
                             <h1
-                                className="text-white mb-6"
+                                className="text-white mb-4 md:mb-5 lg:mb-6 w-full lg:w-[543px] text-2xl sm:text-3xl md:text-4xl lg:text-[56px] leading-tight lg:leading-normal mx-auto lg:mx-0"
                                 style={{
-                                    width: '543px',
                                     fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                    fontSize: '56px',
-                                    lineHeight: 'normal',
                                     fontFeatureSettings: "'liga' off, 'clig' off"
                                 }}
                             >
@@ -89,12 +86,10 @@ export function FieldHero({ data }: FieldHeroProps) {
 
                         <FadeIn delay={0.2}>
                             <p
-                                className="mb-10"
+                                className="mb-6 md:mb-8 lg:mb-10 w-full lg:w-[486px] text-sm sm:text-base lg:text-base mx-auto lg:mx-0"
                                 style={{
-                                    width: '486px',
                                     color: '#FFF',
                                     fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                    fontSize: '16px',
                                     fontWeight: 400,
                                     lineHeight: '26px'
                                 }}
@@ -105,33 +100,30 @@ export function FieldHero({ data }: FieldHeroProps) {
 
                         {/* Stats Row */}
                         {displayData.stats && displayData.stats.length > 0 && (
-                            <StaggerContainer className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8" delay={0.4}>
+                            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-6 md:mb-8 lg:mb-12 border-t border-white/10 pt-4 md:pt-6 lg:pt-8 w-full" delay={0.4}>
                                 {displayData.stats.map((metric: any, index: number) => (
-                                    <ZoomIn key={index} manualTrigger>
+                                    <ZoomIn key={index} >
                                         <div
-                                            className="mb-2"
+                                            className="mb-1 md:mb-2 text-xl sm:text-2xl lg:text-[26px] leading-tight lg:leading-[38px]"
                                             style={{
                                                 color: '#FFF',
                                                 textAlign: 'center',
                                                 fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                                fontSize: '26px',
                                                 fontStyle: 'normal',
                                                 fontWeight: 700,
-                                                lineHeight: '38px',
                                                 fontFeatureSettings: "'liga' off, 'clig' off"
                                             }}
                                         >
                                             {metric.value}
                                         </div>
                                         <div
+                                            className="text-xs sm:text-sm leading-tight lg:leading-[35px]"
                                             style={{
                                                 color: '#FFF',
                                                 textAlign: 'center',
                                                 fontFamily: '"Plus Jakarta Sans", sans-serif',
-                                                fontSize: '14px',
                                                 fontStyle: 'normal',
-                                                fontWeight: 400,
-                                                lineHeight: '35px'
+                                                fontWeight: 400
                                             }}
                                         >
                                             {metric.label === "Cơ quan Nhà nước & doanh nghiệp"
@@ -150,17 +142,11 @@ export function FieldHero({ data }: FieldHeroProps) {
                             whileInView="visible"
                             viewport={{ once: false }}
                             variants={zoomInVariant}
-                            className="inline-flex items-center gap-3 transition-all hover:scale-105"
+                            className="inline-flex items-center gap-3 transition-all hover:scale-105 w-full sm:w-auto justify-center text-sm md:text-base h-[48px] md:h-[56px] px-6 md:px-[30px] py-[7px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-semibold"
                             style={{
                                 display: 'inline-flex',
-                                height: '56px',
-                                padding: '7px 30px',
                                 alignItems: 'center',
                                 gap: '12px',
-                                borderRadius: '12px',
-                                border: '1px solid #FFF',
-                                background: 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)',
-                                color: '#FFF',
                                 fontWeight: 700,
                             }}
                         >

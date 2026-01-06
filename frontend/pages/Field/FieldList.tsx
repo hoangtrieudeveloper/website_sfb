@@ -51,7 +51,7 @@ export function FieldList({ headerData, industries }: FieldListProps) {
                                 <SlideIn
                                     direction="up"
                                     key={field.id}
-                                    manualTrigger
+                                    // manualTrigger={true}
                                     className="flex h-[405px] w-[430.6667px] max-w-full flex-[1_0_0] flex-col items-start gap-6 rounded-[24px] px-[30px] py-[45px]"
                                     style={{
                                         background: "var(--Color-7, #FFF)",

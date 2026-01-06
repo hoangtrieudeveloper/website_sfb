@@ -80,7 +80,7 @@ export function Features({ data }: FeaturesProps) {
           )}
           
           <ScrollAnimation variant="slide-left" delay={0.1}>
-            <div className="flex w-[549px] max-w-full flex-col items-start gap-[30px]">
+            <div className="flex w-full max-w-[549px] flex-col items-start gap-[30px]">
               {block.text && (
                 <p className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
                   {block.text}
@@ -97,7 +97,7 @@ export function Features({ data }: FeaturesProps) {
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors"
                     >
                       <CheckCircle className="h-5 w-5 text-sky-500" />
-                      <span className="w-[265px] text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]">
+                      <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]">
                         {t}
                       </span>
                     </ScrollAnimation>
@@ -132,7 +132,7 @@ export function Features({ data }: FeaturesProps) {
           )}
           
           <ScrollAnimation variant={imageSide === 'right' ? 'slide-right' : 'zoom-in'} delay={0.1}>
-            <div className="flex w-[549px] max-w-full min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
+            <div className="flex w-full max-w-[549px] min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
               {block.items && block.items.length > 0 && (
                 <div className="w-full space-y-5">
                   {block.items.map((item: any, idx: number) => (
