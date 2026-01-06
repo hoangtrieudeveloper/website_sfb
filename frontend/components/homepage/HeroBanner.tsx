@@ -153,24 +153,16 @@ export function HeroBanner({ data }: HeroBannerProps) {
           >
             <div className="flex items-center gap-16 animate-partner-marquee hover:[animation-play-state:paused] h-full">
               {[...partnersList, ...partnersList].map((logo, idx) => (
-                <motion.div
+                <div
                   key={`${logo}-${idx}`}
                   className="flex items-center justify-center h-full"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20,
-                    delay: idx * 0.1, // Stagger effect: One at a time
-                  }}
                 >
                   <ImageWithFallback
                     src={logo}
                     alt="Đối tác SFB"
                     className="h-16 w-auto object-contain hover:scale-110 transition-transform duration-300"
                   />
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>

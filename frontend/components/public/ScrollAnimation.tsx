@@ -33,7 +33,7 @@ export function ScrollAnimation({
     delay = 0,
     duration = 0.8, // Slower default duration for elegance
     threshold = 0.2,
-    once = false, // Changed default to false for in/out animations
+    once = true, // Changed default to true for smoother experience
 }: ScrollAnimationProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { amount: threshold, once });

@@ -52,7 +52,12 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
     const items = displayData.items || milestones;
 
     return (
-        <section className="py-20 bg-[#80C0E4]  overflow-hidden">
+        <section
+            className="mx-auto w-full max-w-[1920px] flex justify-center items-start gap-[10px] py-[120px] px-[10px] overflow-hidden"
+            style={{
+                background: "linear-gradient(254deg, rgba(128, 192, 228, 0.10) 1.7%, rgba(29, 143, 207, 0.10) 42.26%)"
+            }}
+        >
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
@@ -89,8 +94,18 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                                 whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(44, 164, 224, 0.15)" }}
                                                 className="bg-white rounded-[24px] p-8 shadow-sm max-w-lg w-full relative z-10 border border-transparent hover:border-blue-100 transition-colors duration-300 cursor-default"
                                             >
-                                                <div className="w-10 h-10 mb-4 text-[#2CA4E0] text-2xl">
-                                                    {item.icon || "🚀"}
+                                                <div className="w-12 h-12 mb-4 flex items-center justify-center">
+                                                    {typeof item.icon === 'string' && item.icon.startsWith('/') ? (
+                                                        <img
+                                                            src={item.icon}
+                                                            alt=""
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    ) : (
+                                                        <div className="text-[#2CA4E0] text-2xl">
+                                                            {item.icon || "🚀"}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 {item.year && (
                                                     <div className="mb-2">

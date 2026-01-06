@@ -6,11 +6,10 @@ import { useRef, ReactNode } from "react";
 // --- Variants ---
 
 export const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 30, filter: "blur(4px)" },
+    hidden: { opacity: 0, y: 30 },
     visible: {
         opacity: 1,
         y: 0,
-        filter: "blur(0px)",
         transition: {
             duration: 0.6,
             ease: [0.22, 1, 0.36, 1] // Custom refined bezier
@@ -89,11 +88,10 @@ export function FadeIn({ children, delay = 0, className, manualTrigger = false, 
             whileInView={manualTrigger ? undefined : "visible"}
             viewport={manualTrigger ? undefined : { once: true, margin: "-20px" }}
             variants={{
-                hidden: { opacity: 0, y: 20, filter: "blur(5px)" },
+                hidden: { opacity: 0, y: 20 },
                 visible: {
                     opacity: 1,
                     y: 0,
-                    filter: "blur(0px)",
                     transition: {
                         duration: 0.5,
                         delay: delay,

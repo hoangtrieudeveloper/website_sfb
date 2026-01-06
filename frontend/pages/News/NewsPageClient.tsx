@@ -213,9 +213,7 @@ export function NewsPageClient({
             {/* Categories */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
               {categoriesWithCount.map((category) => (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
                   className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
@@ -224,7 +222,7 @@ export function NewsPageClient({
                     }`}
                 >
                   {category.name} ({category.count})
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
@@ -247,7 +245,7 @@ export function NewsPageClient({
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: false }}
+              viewport={{ once: true }}
             >
               <h2 className="text-3xl font-bold text-gray-900 mb-2">{newsSectionHeaders.latest.title}</h2>
               <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>
@@ -308,11 +306,10 @@ export function NewsPageClient({
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
-                      currentPage === 1
-                        ? "border-gray-200 text-gray-300 cursor-not-allowed"
-                        : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
-                    }`}
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${currentPage === 1
+                      ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                      : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                      }`}
                     aria-label="Trang trước"
                   >
                     &lt;
@@ -338,11 +335,10 @@ export function NewsPageClient({
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors font-medium ${
-                          isActive
-                            ? "bg-[#0870B4] text-white border-[#0870B4] shadow-md"
-                            : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
-                        }`}
+                        className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors font-medium ${isActive
+                          ? "bg-[#0870B4] text-white border-[#0870B4] shadow-md"
+                          : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                          }`}
                         aria-label={`Trang ${pageNum}`}
                         aria-current={isActive ? "page" : undefined}
                       >
@@ -355,11 +351,10 @@ export function NewsPageClient({
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${
-                      currentPage === totalPages
-                        ? "border-gray-200 text-gray-300 cursor-not-allowed"
-                        : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
-                    }`}
+                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${currentPage === totalPages
+                      ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                      : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                      }`}
                     aria-label="Trang sau"
                   >
                     &gt;
@@ -382,5 +377,5 @@ export function NewsPageClient({
 
 // Default export cho Pages Router - trả về empty page vì route thực tế nằm ở App Router
 export default function NewsPageClientPage() {
-    return null;
+  return null;
 }

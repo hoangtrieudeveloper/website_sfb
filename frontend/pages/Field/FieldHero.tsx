@@ -52,7 +52,7 @@ export function FieldHero({ data }: FieldHeroProps) {
                     {/* Left Column: Image */}
                     <div className="relative order-2 lg:order-1 flex justify-center lg:justify-start lg:mr-[-55px] z-10">
                         <ZoomIn className="relative" style={{ width: '991px', height: '782px', flexShrink: 0 }}>
-                            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full filter blur-3xl opacity-30 transform scale-75" />
+                            <div className="absolute inset-0 bg-white/10 rounded-full filter blur-3xl opacity-30 transform scale-75" />
                             {/* Responsive Image Placeholders */}
                             <div className="relative z-10 w-full h-full flex items-center justify-center">
                                 <img
@@ -107,7 +107,7 @@ export function FieldHero({ data }: FieldHeroProps) {
                         {displayData.stats && displayData.stats.length > 0 && (
                             <StaggerContainer className="grid grid-cols-3 gap-8 mb-12 border-t border-white/10 pt-8" delay={0.4}>
                                 {displayData.stats.map((metric: any, index: number) => (
-                                    <ZoomIn key={index}>
+                                    <ZoomIn key={index} manualTrigger>
                                         <div
                                             className="mb-2"
                                             style={{
