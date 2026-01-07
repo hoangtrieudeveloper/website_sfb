@@ -64,6 +64,10 @@ export async function generateMetadata(): Promise<Metadata> {
       shortcut: favicon,
       apple: favicon,
     } : undefined,
+    // Google Site Verification
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION || 'nskAzb2wgDby-HUyaAmxjuyMNgkQ1Z-GSbTs-Tx1RJw',
+    },
   };
 }
 
