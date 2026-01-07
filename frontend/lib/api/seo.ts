@@ -36,8 +36,16 @@ export async function getSeoPages(): Promise<SeoPageData[]> {
  */
 export async function getSeoPageByPath(path: string): Promise<SeoPageData | null> {
   try {
-    const encodedPath = encodeURIComponent(path);
-    const response = await adminApiCall<{ data: SeoPageData }>(`/api/admin/seo/${encodedPath}`);
+    // Xử lý đặc biệt cho path '/' - dùng query parameter
+    let endpoint: string;
+    if (path === '/') {
+      endpoint = '/api/admin/seo?path=%2F';
+    } else {
+      const encodedPath = encodeURIComponent(path);
+      endpoint = `/api/admin/seo/${encodedPath}`;
+    }
+    
+    const response = await adminApiCall<{ data: SeoPageData }>(endpoint);
     return response.data || null;
   } catch (error: any) {
     if (error?.status === 404) {
@@ -51,8 +59,16 @@ export async function getSeoPageByPath(path: string): Promise<SeoPageData | null
  * Update or create SEO page
  */
 export async function updateSeoPage(path: string, data: Partial<SeoPageData>): Promise<SeoPageData> {
-  const encodedPath = encodeURIComponent(path);
-  const response = await adminApiCall<{ data: SeoPageData }>(`/api/admin/seo/${encodedPath}`, {
+  // Xử lý đặc biệt cho path '/' - dùng query parameter
+  let endpoint: string;
+  if (path === '/') {
+    endpoint = '/api/admin/seo?path=%2F';
+  } else {
+    const encodedPath = encodeURIComponent(path);
+    endpoint = `/api/admin/seo/${encodedPath}`;
+  }
+  
+  const response = await adminApiCall<{ data: SeoPageData }>(endpoint, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
