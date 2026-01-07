@@ -7,7 +7,7 @@ import { aboutHeroData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 
 interface AboutHeroProps {
-  data?: any;
+    data?: any;
 }
 
 export function AboutHero({ data }: AboutHeroProps) {
@@ -48,10 +48,8 @@ export function AboutHero({ data }: AboutHeroProps) {
 
     return (
         <section
-            className="relative w-full flex justify-center items-center overflow-hidden"
+            className="relative w-full flex flex-col justify-center lg:block overflow-hidden h-[100svh] min-h-[550px] lg:h-[847px] pt-28 pb-12 lg:py-0"
             style={{
-                height: '847px',
-                paddingTop: '87px',
                 background: backgroundGradient
             }}
         >
@@ -62,20 +60,20 @@ export function AboutHero({ data }: AboutHeroProps) {
             <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-white/10 rounded-full blur-[100px] animate-pulse pointer-events-none" />
             <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-400/20 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] min-[1920px]:px-0 min-[1920px]:pl-[269px] relative z-10">
-                <div className="flex flex-col lg:flex-row items-center justify-center min-[1920px]:justify-start gap-16 lg:gap-[clamp(48px,5.1042vw,98px)] min-[1920px]:gap-[45px]">
+            <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-[clamp(24px,7.8125vw,150px)] min-[1920px]:px-0 min-[1920px]:pl-[269px] relative z-10 h-full flex flex-col lg:block justify-center lg:pt-[87px]">
+                <div className="flex-1 flex flex-col justify-center lg:flex-row items-center lg:justify-center min-[1920px]:justify-start gap-6 min-[410px]:gap-8 lg:gap-[clamp(48px,5.1042vw,98px)] min-[1920px]:gap-[45px]">
                     {/* Text Content */}
-                    <StaggerContainer className="text-white lg:max-w-[45%] min-[1920px]:max-w-none min-[1920px]:w-[851px]">
+                    <StaggerContainer className="text-white w-full lg:max-w-[45%] min-[1920px]:max-w-none min-[1920px]:w-[851px] flex flex-col items-center lg:items-start text-center lg:text-left">
                         <div className="inline-block max-w-full">
                             <FadeIn>
                                 <h1
                                     ref={titleRef}
-                                    className="inline-block max-w-full text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
+                                    className="inline-block max-w-full text-[28px] min-[375px]:text-[32px] sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-3 sm:mb-6"
                                 >
                                     {titleLine1}
-                                    <span className="block mt-2 text-white font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
+                                    <span className="block mt-1 sm:mt-2 text-white font-medium text-[22px] min-[375px]:text-[24px] sm:text-3xl md:text-4xl lg:text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
                                         {titleLine2}
-                                        <br />
+                                        <br className="hidden sm:block" />
                                         {titleLine3}
                                     </span>
                                 </h1>
@@ -83,7 +81,7 @@ export function AboutHero({ data }: AboutHeroProps) {
 
                             <FadeIn delay={0.2}>
                                 <p
-                                    className="max-w-full text-sm sm:text-base text-white/90 mb-10 leading-relaxed font-light"
+                                    className="max-w-full text-sm sm:text-base text-white/90 mb-6 sm:mb-10 leading-relaxed font-light line-clamp-3 sm:line-clamp-none px-2 sm:px-0"
                                     style={titleWidth ? { width: `${titleWidth}px` } : undefined}
                                 >
                                     {description}
@@ -94,18 +92,18 @@ export function AboutHero({ data }: AboutHeroProps) {
                         <FadeIn delay={0.4}>
                             <a
                                 href={buttonLink}
-                                className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md"
+                                className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-15px sm:text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md whitespace-nowrap"
                             >
                                 {buttonText}
-                                <ArrowRight size={18} />
+                                <ArrowRight size={20} />
                             </a>
                         </FadeIn>
                     </StaggerContainer>
 
                     {/* Image Content */}
                     <FadeIn delay={0.5} className="w-full lg:w-auto">
-                        <div className="relative box-border flex-none w-full max-w-[851px] aspect-[851/512] min-[1920px]:w-[710px] flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
-                            <div className="w-full h-full rounded-[14px] overflow-hidden relative">
+                        <div className="relative box-border flex-none w-full max-w-[851px] aspect-[851/512] min-[1920px]:w-[710px] flex justify-center items-center bg-white border-[6px] lg:border-[10px] border-white rounded-2xl lg:rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500 max-h-[25vh] min-[410px]:max-h-[30vh] lg:max-h-none">
+                            <div className="w-full h-full rounded-[10px] lg:rounded-[14px] overflow-hidden relative">
                                 <ImageWithFallback
                                     src={image}
                                     alt="About Hero Detail"

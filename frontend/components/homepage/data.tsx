@@ -188,7 +188,7 @@ export const heroData = {
         line3: "Cho doanh nghiệp"
     },
     description: "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến, tối ưu hóa quy trình và tăng trưởng bền vững.",
-    primaryButton: { text: "Khám phá giải pháp", link: "/solutions" },
+    primaryButton: { text: "Khám phá giải pháp", link: "/products" },
     secondaryButton: { text: "Xem video" },
     heroImage: "/images/hero.png",
     partners: partners

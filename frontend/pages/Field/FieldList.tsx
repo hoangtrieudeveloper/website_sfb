@@ -15,22 +15,22 @@ export function FieldList({ headerData, industries }: FieldListProps) {
     const displayHeader = headerData || fieldListSectionData.header;
     const displayIndustries = industries || fieldListSectionData.items;
     return (
-        <section className="py-[90px] relative overflow-hidden">
-            <div className="relative z-10 w-full">
-                <FadeIn className="text-center mb-16 mx-auto max-w-[1244px]">
+        <section className="py-12 md:py-[90px] relative overflow-hidden">
+            <div className="relative z-10 w-full container mx-auto px-4 md:px-6">
+                <FadeIn className="text-center mb-10 md:mb-16 mx-auto max-w-[1244px]">
                     <h2
-                        className="mb-6 mx-auto w-[1244px] max-w-full text-center font-['Plus_Jakarta_Sans'] text-[56px] font-bold"
+                        className="mb-4 md:mb-6 mx-auto w-full text-center font-['Plus_Jakarta_Sans'] text-3xl md:text-4xl lg:text-[56px] font-bold"
                         style={{
                             color: "var(--Color-2, #0F172A)",
                             fontFeatureSettings: "'liga' off, 'clig' off",
-                            lineHeight: "normal",
+                            lineHeight: "1.2",
                         }}
                     >
                         {displayHeader.title}
                     </h2>
                     {displayHeader.description && (
                         <p
-                            className="mx-auto w-[704px] max-w-full text-center font-['Plus_Jakarta_Sans'] text-base font-normal leading-[30px]"
+                            className="mx-auto w-full max-w-[704px] text-center font-['Plus_Jakarta_Sans'] text-base font-normal leading-normal md:leading-[30px]"
                             style={{
                                 color: "var(--Color-2, #0F172A)",
                                 fontFeatureSettings: "'liga' off, 'clig' off",
@@ -41,8 +41,8 @@ export function FieldList({ headerData, industries }: FieldListProps) {
                     )}
                 </FadeIn>
 
-                <div className="px-6 lg:px-[290px]">
-                    <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="w-full">
+                    <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayIndustries.map((field: any, index: number) => {
                             const IconComponent = field.iconName
                                 ? ((LucideIcons as any)[field.iconName] || LucideIcons.Code2)
@@ -51,8 +51,7 @@ export function FieldList({ headerData, industries }: FieldListProps) {
                                 <SlideIn
                                     direction="up"
                                     key={field.id}
-                                    // manualTrigger={true}
-                                    className="flex h-[405px] w-[430.6667px] max-w-full flex-[1_0_0] flex-col items-start gap-6 rounded-[24px] px-[30px] py-[45px]"
+                                    className="flex h-auto min-h-[405px] w-full flex-col items-start gap-6 rounded-[24px] px-6 py-8 md:px-[30px] md:py-[45px]"
                                     style={{
                                         background: "var(--Color-7, #FFF)",
                                         border: "0px solid var(--Linear, #1D8FCF)",

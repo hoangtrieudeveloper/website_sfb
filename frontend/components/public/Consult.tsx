@@ -25,7 +25,7 @@ export function Consult({ data }: ConsultProps) {
                         className="
                             flex flex-col justify-center items-center
                             w-full max-w-[1298px]
-                            py-[120px] px-[20px]
+                            py-16 md:py-[120px] px-6 md:px-[20px]
                             rounded-[16px]
                             text-center
                             shadow-lg
@@ -36,11 +36,11 @@ export function Consult({ data }: ConsultProps) {
                         {/* Content Container */}
                         <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
 
-                            <h2 className="text-white text-4xl md:text-5xl font-bold mb-6">
+                            <h2 className="text-white text-3xl md:text-5xl font-bold mb-6">
                                 {title}
                             </h2>
 
-                            <p className="text-white/95 text-base md:text-lg leading-relaxed mb-10 max-w-2xl font-medium">
+                            <p className="text-white/95 text-base md:text-lg leading-relaxed mb-8 md:mb-10 max-w-2xl font-medium">
                                 {description}
                             </p>
 

@@ -16,15 +16,15 @@ export function FieldProcess({ data }: FieldProcessProps) {
         steps: processSteps,
     };
     return (
-        <section className="py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
-            <div className="relative z-10 w-full px-6 lg:px-[290px]">
+        <section className="py-12 md:py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
+            <div className="relative z-10 w-full container mx-auto px-4 md:px-8 lg:px-[100px] xl:px-[290px]">
                 {/* Header */}
                 {displayData.header && (
-                    <FadeIn className="text-center mb-[46px] max-w-3xl mx-auto">
+                    <FadeIn className="text-center mb-10 md:mb-[46px] max-w-3xl mx-auto">
                         {displayData.header.subtitle && (
                             <div className="inline-block mb-4">
                                 <span
-                                    className="text-center font-['Plus_Jakarta_Sans'] text-[15px] font-medium uppercase"
+                                    className="text-center font-['Plus_Jakarta_Sans'] text-sm md:text-[15px] font-medium uppercase"
                                     style={{
                                         color: "var(--Color, #1D8FCF)",
                                         fontFeatureSettings: "'liga' off, 'clig' off",
@@ -37,11 +37,11 @@ export function FieldProcess({ data }: FieldProcessProps) {
                         )}
                         {(displayData.header.titlePart1 || displayData.header.titleHighlight || displayData.header.titlePart2) && (
                             <h2
-                                className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-[56px] font-normal"
+                                className="mb-6 text-center font-['Plus_Jakarta_Sans'] text-3xl md:text-5xl lg:text-[56px] font-normal"
                                 style={{
                                     color: "var(--Color-2, #0F172A)",
                                     fontFeatureSettings: "'liga' off, 'clig' off",
-                                    lineHeight: "normal",
+                                    lineHeight: "1.2",
                                 }}
                             >
                                 {displayData.header.titlePart1}{" "}
@@ -50,11 +50,11 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                     style={{
                                         color: "var(--Color-2, #0F172A)",
                                         fontFeatureSettings: "'liga' off, 'clig' off",
-                                        lineHeight: "normal",
+                                        lineHeight: "1.2",
                                     }}
                                 >
                                     {displayData.header.titleHighlight}
-                                    <br />
+                                    <br className="hidden md:block" />
                                     {displayData.header.titlePart2}
                                 </span>
                             </h2>
@@ -64,7 +64,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
 
                 {/* Steps */}
                 {displayData.steps && displayData.steps.length > 0 && (
-                    <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-[90px]">
+                    <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-16 lg:gap-[90px]">
                         {displayData.steps.map((step: any, index: number) => {
                             const isEven = index % 2 !== 0;
 
@@ -82,79 +82,79 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                 ? ((LucideIcons as any)[step.button.iconName] || ArrowRight)
                                 : (step.button?.icon || ArrowRight);
 
-                        return (
-                            <div
-                                key={step.id}
-                                className={`flex flex-col lg:flex-row items-center gap-12 lg:gap-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
-                            >
-                                {/* Image Column */}
-                                <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-1/2">
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-blue-500/5 rounded-[2rem] transform rotate-3 scale-105 transition-transform group-hover:rotate-6 duration-500" />
-                                        <div className="relative rounded-[2rem] overflow-hidden bg-white p-3 shadow-2xl border border-gray-100">
-                                            <div className="relative aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-gray-100">
-                                                {/* Placeholder for images since generation failed */}
-                                                <img
-                                                    src={stepImageSrc}
-                                                    alt={step.title}
-                                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-duration-700"
-                                                    onError={(e) => {
-                                                        e.currentTarget.style.display = 'none';
-                                                        e.currentTarget.parentElement?.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200', 'flex', 'items-center', 'justify-center');
-                                                        // Fallback content
-                                                        const span = document.createElement('span');
-                                                        span.className = "text-gray-400 font-medium";
-                                                        span.innerText = "Illustration Image";
-                                                        e.currentTarget.parentElement?.appendChild(span);
-                                                    }}
-                                                />
+                            return (
+                                <div
+                                    key={step.id}
+                                    className={`flex flex-col lg:flex-row items-center gap-10 lg:gap-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
+                                >
+                                    {/* Image Column */}
+                                    <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-1/2">
+                                        <div className="relative group">
+                                            <div className="absolute inset-0 bg-blue-500/5 rounded-[2rem] transform rotate-3 scale-105 transition-transform group-hover:rotate-6 duration-500" />
+                                            <div className="relative rounded-[2rem] overflow-hidden bg-white p-3 shadow-2xl border border-gray-100">
+                                                <div className="relative aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-gray-100">
+                                                    {/* Placeholder for images since generation failed */}
+                                                    <img
+                                                        src={stepImageSrc}
+                                                        alt={step.title}
+                                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-duration-700"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                            e.currentTarget.parentElement?.classList.add('bg-gradient-to-br', 'from-gray-100', 'to-gray-200', 'flex', 'items-center', 'justify-center');
+                                                            // Fallback content
+                                                            const span = document.createElement('span');
+                                                            span.className = "text-gray-400 font-medium";
+                                                            span.innerText = "Illustration Image";
+                                                            e.currentTarget.parentElement?.appendChild(span);
+                                                        }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </SlideIn>
+                                    </SlideIn>
 
-                                {/* Content Column */}
-                                <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-1/2">
-                                    <h3 className="text-3xl font-bold text-gray-900 mb-6">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                                        {step.description}
-                                    </p>
+                                    {/* Content Column */}
+                                    <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-1/2">
+                                        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
+                                            {step.title}
+                                        </h3>
+                                        <p className="text-gray-600 text-base md:text-lg leading-relaxed mb-6 md:mb-8">
+                                            {step.description}
+                                        </p>
 
-                                    <ul className="space-y-4 mb-10">
-                                        {step.points.map((point: string, idx: number) => (
-                                            <li key={idx} className="flex items-start gap-3">
-                                                <div className="flex-shrink-0 mt-1">
-                                                    <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
-                                                        <CheckCircle2 size={12} className="text-white" />
+                                        <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10">
+                                            {step.points.map((point: string, idx: number) => (
+                                                <li key={idx} className="flex items-start gap-3">
+                                                    <div className="flex-shrink-0 mt-1">
+                                                        <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
+                                                            <CheckCircle2 size={12} className="text-white" />
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <span className="text-gray-700 font-medium">{point}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                                    <span className="text-gray-700 font-medium text-sm md:text-base">{point}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
 
-                                    {/* Buttons from data */}
-                                    {step.button?.text && (
-                                        <div>
-                                            <a href={step.button.link || '#'} className="inline-flex items-center gap-2 px-8 py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20">
-                                                {step.button.text === "Liên hệ với chúng tôi" ? (
-                                                    <>
-                                                        {step.button.text}
-                                                        <ButtonIcon size={step.button.iconSize || 18} />
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <ButtonIcon size={step.button.iconSize || 18} />
-                                                        {step.button.text}
-                                                    </>
-                                                )}
-                                            </a>
-                                        </div>
-                                    )}
-                                </SlideIn>
-                            </div>
+                                        {/* Buttons from data */}
+                                        {step.button?.text && (
+                                            <div>
+                                                <a href={step.button.link || '#'} className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20 text-sm md:text-base">
+                                                    {step.button.text === "Liên hệ với chúng tôi" ? (
+                                                        <>
+                                                            {step.button.text}
+                                                            <ButtonIcon size={step.button.iconSize || 18} />
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <ButtonIcon size={step.button.iconSize || 18} />
+                                                            {step.button.text}
+                                                        </>
+                                                    )}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </SlideIn>
+                                </div>
                             );
                         })}
                     </div>
