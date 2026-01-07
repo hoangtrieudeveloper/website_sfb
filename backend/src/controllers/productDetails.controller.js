@@ -146,6 +146,12 @@ exports.getProductDetail = async (req, res, next) => {
           ctaHref: detail.expand_cta_href || '',
           image: detail.expand_image || '',
         },
+        galleryTitle: detail.gallery_title || '',
+        galleryImages: Array.isArray(detail.gallery_images) ? detail.gallery_images : (detail.gallery_images ? JSON.parse(detail.gallery_images) : []),
+        galleryPosition: detail.gallery_position || 'top',
+        showTableOfContents: detail.show_table_of_contents !== false,
+        enableShareButtons: detail.enable_share_buttons !== false,
+        showAuthorBox: detail.show_author_box !== false,
         createdAt: detail.created_at,
         updatedAt: detail.updated_at,
       },
@@ -177,6 +183,12 @@ exports.saveProductDetail = async (req, res, next) => {
       showcase = {},
       numberedSections = [],
       expand = {},
+      galleryTitle,
+      galleryImages = [],
+      galleryPosition = 'top',
+      showTableOfContents = true,
+      enableShareButtons = true,
+      showAuthorBox = true,
     } = req.body;
 
     // Kiểm tra product tồn tại
@@ -235,8 +247,14 @@ exports.saveProductDetail = async (req, res, next) => {
               expand_cta_text = $20,
               expand_cta_href = $21,
               expand_image = $22,
+              gallery_title = $23,
+              gallery_images = $24,
+              gallery_position = $25,
+              show_table_of_contents = $26,
+              enable_share_buttons = $27,
+              show_author_box = $28,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = $23
+            WHERE id = $29
           `,
           [
             finalSlug,
@@ -261,6 +279,12 @@ exports.saveProductDetail = async (req, res, next) => {
             expand.ctaText || '',
             expand.ctaHref || '',
             expand.image || '',
+            galleryTitle || '',
+            JSON.stringify(galleryImages),
+            galleryPosition || 'top',
+            showTableOfContents !== false,
+            enableShareButtons !== false,
+            showAuthorBox !== false,
             detailId,
           ],
         );
@@ -275,9 +299,11 @@ exports.saveProductDetail = async (req, res, next) => {
               overview_kicker, overview_title,
               showcase_title, showcase_desc, showcase_cta_text, showcase_cta_href,
               showcase_image_back, showcase_image_front,
-              expand_title, expand_cta_text, expand_cta_href, expand_image
+              expand_title, expand_cta_text, expand_cta_href, expand_image,
+              gallery_title, gallery_images, gallery_position,
+              show_table_of_contents, enable_share_buttons, show_author_box
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
             RETURNING id
           `,
           [
@@ -304,6 +330,12 @@ exports.saveProductDetail = async (req, res, next) => {
             expand.ctaText || '',
             expand.ctaHref || '',
             expand.image || '',
+            galleryTitle || '',
+            JSON.stringify(galleryImages),
+            galleryPosition || 'top',
+            showTableOfContents !== false,
+            enableShareButtons !== false,
+            showAuthorBox !== false,
           ],
         );
         detailId = newDetail[0].id;

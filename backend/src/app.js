@@ -20,6 +20,7 @@ const publicProductsRoutes = require('./routes/publicProducts.routes');
 const publicContactRoutes = require('./routes/publicContact.routes');
 const publicSeoRoutes = require('./routes/publicSeo.routes');
 const publicSettingsRoutes = require('./routes/publicSettings.routes');
+const publicMenuRoutes = require('./routes/publicMenu.routes');
 const uploadRoutes = require('./routes/upload.routes');
 const mediaFoldersRoutes = require('./routes/mediaFolders.routes');
 const mediaFilesRoutes = require('./routes/mediaFiles.routes');
@@ -117,6 +118,7 @@ app.use('/api/public/products', publicProductsRoutes);
 app.use('/api/public/contact', publicContactRoutes);
 app.use('/api/public/seo', publicSeoRoutes);
 app.use('/api/public/settings', publicSettingsRoutes);
+app.use('/api/public/menus', publicMenuRoutes);
 
 // Admin protected routes
 app.use('/api/admin/users', requireAuth, usersRoutes);

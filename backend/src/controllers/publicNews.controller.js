@@ -30,9 +30,34 @@ const mapNews = (row) => {
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
     seoKeywords: row.seo_keywords,
+    galleryTitle: row.gallery_title || '',
     publishedDate: publishedDate || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    // Các cấu hình hiển thị chi tiết bài viết
+    galleryImages: (() => {
+      if (!row.gallery_images) return [];
+      if (Array.isArray(row.gallery_images)) return row.gallery_images;
+      try {
+        const parsed = JSON.parse(row.gallery_images);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    })(),
+    galleryPosition:
+      row.gallery_position === 'top'
+        ? 'top'
+        : row.gallery_position === 'bottom'
+          ? 'bottom'
+          : null,
+    showTableOfContents:
+      row.show_table_of_contents !== false,
+    enableShareButtons:
+      row.enable_share_buttons !== false,
+    showAuthorBox:
+      row.show_author_box !== false,
+    highlightFirstParagraph: !!row.highlight_first_paragraph,
   };
 };
 
@@ -79,6 +104,13 @@ exports.getPublicNews = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
+        n.gallery_title,
+        n.gallery_images,
+        n.gallery_position,
+        n.show_table_of_contents,
+        n.enable_share_buttons,
+        n.show_author_box,
+        n.highlight_first_paragraph,
         TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at
@@ -121,6 +153,13 @@ exports.getFeaturedNews = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
+        n.gallery_title,
+        n.gallery_images,
+        n.gallery_position,
+        n.show_table_of_contents,
+        n.enable_share_buttons,
+        n.show_author_box,
+        n.highlight_first_paragraph,
         TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at
@@ -166,6 +205,13 @@ exports.getPublicNewsBySlug = async (req, res, next) => {
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
+        n.gallery_title,
+        n.gallery_images,
+        n.gallery_position,
+        n.show_table_of_contents,
+        n.enable_share_buttons,
+        n.show_author_box,
+        n.highlight_first_paragraph,
         TO_CHAR(n.published_date, 'YYYY-MM-DD') AS published_date,
         n.created_at,
         n.updated_at

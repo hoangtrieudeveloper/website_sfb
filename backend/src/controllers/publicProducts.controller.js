@@ -557,6 +557,12 @@ exports.getPublicProductBySlug = async (req, res, next) => {
             ctaHref: detail.expand_cta_href || '',
             image: detail.expand_image || '',
           },
+          galleryTitle: detail.gallery_title || '',
+          galleryImages: Array.isArray(detail.gallery_images) ? detail.gallery_images : (detail.gallery_images ? JSON.parse(detail.gallery_images) : []),
+          galleryPosition: detail.gallery_position || 'top',
+          showTableOfContents: detail.show_table_of_contents !== false,
+          enableShareButtons: detail.enable_share_buttons !== false,
+          showAuthorBox: detail.show_author_box !== false,
         },
       },
     });

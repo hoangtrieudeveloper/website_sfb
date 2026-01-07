@@ -35,7 +35,27 @@ const mapNews = (row) => {
     seoTitle: row.seo_title || '',
     seoDescription: row.seo_description || '',
     seoKeywords: row.seo_keywords || '',
+    // Các cấu hình hiển thị chi tiết bài viết
+    galleryTitle: row.gallery_title || '',
     content: row.content || '',
+    galleryImages: (() => {
+      if (!row.gallery_images) return [];
+      if (Array.isArray(row.gallery_images)) return row.gallery_images;
+      try {
+        const parsed = JSON.parse(row.gallery_images);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    })(),
+    galleryPosition: row.gallery_position || null,
+    showTableOfContents:
+      row.show_table_of_contents !== false,
+    enableShareButtons:
+      row.enable_share_buttons !== false,
+    showAuthorBox:
+      row.show_author_box !== false,
+    highlightFirstParagraph: undefined, // deprecated
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -87,6 +107,13 @@ exports.getNews = async (req, res, next) => {
         n.read_time,
         n.gradient,
         n.is_featured,
+        n.gallery_title,
+        n.gallery_images,
+        n.gallery_position,
+        n.show_table_of_contents,
+        n.enable_share_buttons,
+        n.show_author_box,
+        n.highlight_first_paragraph,
         n.seo_title,
         n.seo_description,
         n.seo_keywords,
@@ -132,6 +159,13 @@ exports.getNewsById = async (req, res, next) => {
           n.read_time,
           n.gradient,
           n.is_featured,
+          n.gallery_title,
+          n.gallery_images,
+          n.gallery_position,
+          n.show_table_of_contents,
+          n.enable_share_buttons,
+          n.show_author_box,
+          n.highlight_first_paragraph,
           n.seo_title,
           n.seo_description,
           n.seo_keywords,
@@ -181,6 +215,14 @@ exports.createNews = async (req, res, next) => {
       seoDescription = '',
       seoKeywords = '',
       isFeatured = false,
+      galleryTitle = '',
+      // Các cấu hình hiển thị chi tiết bài viết
+      galleryImages = [],
+      galleryPosition = null,
+      showTableOfContents = true,
+      enableShareButtons = true,
+      showAuthorBox = true,
+      // highlightFirstParagraph deprecated, không dùng nữa
     } = req.body;
 
     if (!title || !title.trim()) {
@@ -190,16 +232,31 @@ exports.createNews = async (req, res, next) => {
       });
     }
 
+    // Chuẩn hóa gallery_images thành JSON string để lưu vào JSONB
+    const galleryImagesJson =
+      Array.isArray(galleryImages) ? JSON.stringify(galleryImages) : galleryImages;
+    const galleryPositionNormalized =
+      galleryPosition === 'top' ? 'top' : galleryPosition === 'bottom' ? 'bottom' : null;
+
     const insertQuery = `
       INSERT INTO news (
         title, slug, excerpt, content, category, category_id,
         status, image_url, author, read_time, gradient, published_date,
-        seo_title, seo_description, seo_keywords, is_featured
+        seo_title, seo_description, seo_keywords, is_featured,
+        gallery_title, gallery_images, gallery_position, show_table_of_contents,
+        enable_share_buttons, show_author_box, highlight_first_paragraph
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      VALUES (
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11, $12,
+        $13, $14, $15, $16,
+        $17, $18, $19, $20, $21, $22, $23
+      )
       RETURNING 
         id, title, slug, excerpt, content, category, category_id,
         status, image_url, author, read_time, gradient, 
+        gallery_title, gallery_images, gallery_position, show_table_of_contents,
+        enable_share_buttons, show_author_box, highlight_first_paragraph,
         TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
         seo_title, seo_description, seo_keywords, is_featured,
         created_at, updated_at
@@ -222,6 +279,13 @@ exports.createNews = async (req, res, next) => {
       seoDescription,
       seoKeywords,
       isFeatured,
+      galleryTitle,
+      galleryImagesJson,
+      galleryPositionNormalized,
+      showTableOfContents,
+      enableShareButtons,
+      showAuthorBox,
+      highlightFirstParagraph,
     ];
 
     const { rows } = await pool.query(insertQuery, params);
@@ -256,6 +320,14 @@ exports.updateNews = async (req, res, next) => {
       seoDescription,
       seoKeywords,
       isFeatured,
+      // Các cấu hình hiển thị chi tiết bài viết
+      galleryImages,
+      galleryPosition,
+      showTableOfContents,
+      enableShareButtons,
+      showAuthorBox,
+      galleryTitle,
+      // highlightFirstParagraph (deprecated, không dùng nữa)
     } = req.body;
 
     const fields = [];
@@ -282,6 +354,21 @@ exports.updateNews = async (req, res, next) => {
     if (seoKeywords !== undefined) addField('seo_keywords', seoKeywords);
     if (publishedDate !== undefined) addField('published_date', publishedDate);
     if (isFeatured !== undefined) addField('is_featured', isFeatured);
+    if (galleryImages !== undefined) {
+      const galleryImagesJson =
+        Array.isArray(galleryImages) ? JSON.stringify(galleryImages) : galleryImages;
+      addField('gallery_images', galleryImagesJson);
+    }
+    if (galleryPosition !== undefined) {
+      const galleryPositionNormalized =
+        galleryPosition === 'top' ? 'top' : galleryPosition === 'bottom' ? 'bottom' : 'top';
+      addField('gallery_position', galleryPositionNormalized);
+    }
+    if (galleryTitle !== undefined) addField('gallery_title', galleryTitle);
+    if (showTableOfContents !== undefined) addField('show_table_of_contents', showTableOfContents);
+    if (enableShareButtons !== undefined) addField('enable_share_buttons', enableShareButtons);
+    if (showAuthorBox !== undefined) addField('show_author_box', showAuthorBox);
+    // highlight_first_paragraph deprecated - bỏ qua nếu gửi lên
 
     if (fields.length === 0) {
       return res.status(400).json({

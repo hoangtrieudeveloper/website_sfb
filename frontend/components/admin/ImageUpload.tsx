@@ -8,8 +8,13 @@ import { buildUrl } from "@/lib/api/base";
 import { toast } from "sonner";
 
 interface ImageUploadProps {
-  onImageSelect: (imageUrl: string) => void;
+  // Callback khi chọn 1 ảnh (giữ backward compatibility)
+  onImageSelect?: (imageUrl: string) => void;
+  // Callback khi chọn nhiều ảnh (chế độ multiple)
+  onImagesSelect?: (imageUrls: string[]) => void;
   currentImage?: string;
+  // Cho phép chọn nhiều file một lúc (sẽ upload lần lượt)
+  multiple?: boolean;
 }
 
 // Helper để normalize image URL (convert relative path thành full URL nếu cần)
@@ -28,7 +33,9 @@ function normalizeImageUrl(url?: string): string {
 
 export default function ImageUpload({
   onImageSelect,
+  onImagesSelect,
   currentImage,
+  multiple = false,
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string>(normalizeImageUrl(currentImage));
   
@@ -40,45 +47,104 @@ export default function ImageUpload({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh');
+    // Chế độ single (mặc định) - giữ nguyên behavior cũ
+    if (!multiple) {
+      const file = files[0];
+
+      if (!file.type.startsWith("image/")) {
+        toast.error("Vui lòng chọn file ảnh");
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File quá lớn. Kích thước tối đa là 10MB");
+        return;
+      }
+
+      try {
+        setUploading(true);
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        const imageUrl = await uploadImage(file);
+        setPreview(imageUrl);
+        onImageSelect?.(imageUrl);
+        onImagesSelect?.([imageUrl]);
+        toast.success("Upload ảnh thành công");
+      } catch (error: any) {
+        console.error("Upload error:", error);
+        toast.error(error?.message || "Có lỗi xảy ra khi upload ảnh");
+        setPreview(currentImage || "");
+      } finally {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        setUploading(false);
+      }
       return;
     }
 
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File quá lớn. Kích thước tối đa là 10MB');
-      return;
-    }
+    // Chế độ multiple: upload từng file, trả về mảng URL
+    const validFiles = files.filter((file) => {
+      if (!file.type.startsWith("image/")) {
+        toast.error(`File ${file.name} không phải ảnh, bỏ qua.`);
+        return false;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`File ${file.name} quá lớn (>10MB), bỏ qua.`);
+        return false;
+      }
+      return true;
+    });
+
+    if (!validFiles.length) return;
 
     try {
       setUploading(true);
-      
-      // Show preview immediately
+
+      // Preview tạm từ file đầu tiên
+      const first = validFiles[0];
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(first);
 
-      // Upload file to server
-      const imageUrl = await uploadImage(file);
-      setPreview(imageUrl);
-      onImageSelect(imageUrl);
-      toast.success('Upload ảnh thành công');
+      const uploadedUrls: string[] = [];
+      for (const file of validFiles) {
+        const imageUrl = await uploadImage(file);
+        uploadedUrls.push(imageUrl);
+      }
+
+      // Hiển thị preview ảnh cuối cùng
+      if (uploadedUrls.length > 0) {
+        setPreview(uploadedUrls[uploadedUrls.length - 1]);
+      }
+
+      // Gọi callbacks
+      uploadedUrls.forEach((url) => onImageSelect?.(url));
+      onImagesSelect?.(uploadedUrls);
+
+      toast.success(
+        uploadedUrls.length > 1
+          ? `Upload ${uploadedUrls.length} ảnh thành công`
+          : "Upload ảnh thành công",
+      );
     } catch (error: any) {
-      console.error('Upload error:', error);
-      toast.error(error?.message || 'Có lỗi xảy ra khi upload ảnh');
-      // Reset preview on error
+      console.error("Upload error:", error);
+      toast.error(error?.message || "Có lỗi xảy ra khi upload ảnh");
       setPreview(currentImage || "");
+    } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } finally {
       setUploading(false);
     }
   };
@@ -165,6 +231,7 @@ export default function ImageUpload({
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple={multiple}
             onChange={handleFileChange}
             disabled={uploading}
             className="hidden"

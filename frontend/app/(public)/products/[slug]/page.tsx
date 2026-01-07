@@ -127,6 +127,7 @@ function transformProductData(apiData: any): any {
     contentMode: detail.contentMode || 'config',
     contentHtml: detail.contentHtml || '',
     metaTop: detail.metaTop || '',
+    meta: apiData.meta || '',
     name: apiData.name || '',
     heroDescription: detail.heroDescription || '',
     heroImage: detail.heroImage || '',
@@ -143,6 +144,24 @@ function transformProductData(apiData: any): any {
     expandCtaText: expand.ctaText || '',
     expandCtaHref: expand.ctaHref || '',
     expandImage: expand.image || '',
+    galleryTitle: detail.galleryTitle || '',
+    galleryImages: (() => {
+      if (!detail.galleryImages) return [];
+      if (Array.isArray(detail.galleryImages)) return detail.galleryImages;
+      if (typeof detail.galleryImages === 'string') {
+        try {
+          const parsed = JSON.parse(detail.galleryImages);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+      return [];
+    })(),
+    galleryPosition: detail.galleryPosition || 'top',
+    showTableOfContents: detail.showTableOfContents !== false,
+    enableShareButtons: detail.enableShareButtons !== false,
+    showAuthorBox: detail.showAuthorBox !== false,
   };
 }
 

@@ -27,13 +27,10 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 
-type MenuPosition = "header" | "footer" | "sidebar";
-
 interface MenuItem {
   id: number;
   title: string;
   url: string;
-  position: MenuPosition | string;
   parentId?: number | null;
   parentTitle?: string | null;
   sortOrder: number;
@@ -44,7 +41,6 @@ interface MenuItem {
 interface MenuFormState {
   title: string;
   url: string;
-  position: MenuPosition;
   parentId: string; // store as string id or ""
   sortOrder: string;
   icon: string;
@@ -54,7 +50,6 @@ interface MenuFormState {
 const EMPTY_FORM: MenuFormState = {
   title: "",
   url: "",
-  position: "header",
   parentId: "",
   sortOrder: "0",
   icon: "",
@@ -70,7 +65,6 @@ export default function AdminMenusPage() {
   const [saving, setSaving] = useState(false);
 
   const [search, setSearch] = useState("");
-  const [positionFilter, setPositionFilter] = useState<"all" | MenuPosition>("all");
   const [onlyActive, setOnlyActive] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -103,17 +97,13 @@ export default function AdminMenusPage() {
       const matchesSearch =
         !q ||
         m.title.toLowerCase().includes(q) ||
-        m.url.toLowerCase().includes(q) ||
-        (m.position || "").toLowerCase().includes(q);
-
-      const matchesPosition =
-        positionFilter === "all" || m.position === positionFilter;
+        m.url.toLowerCase().includes(q);
 
       const matchesActive = !onlyActive || m.isActive;
 
-      return matchesSearch && matchesPosition && matchesActive;
+      return matchesSearch && matchesActive;
     });
-  }, [menus, search, positionFilter, onlyActive]);
+  }, [menus, search, onlyActive]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMenus.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -122,7 +112,7 @@ export default function AdminMenusPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, positionFilter, onlyActive]);
+  }, [search, onlyActive]);
 
   const handleOpenCreate = () => {
     setEditingMenu(null);
@@ -135,7 +125,6 @@ export default function AdminMenusPage() {
     setFormData({
       title: menu.title,
       url: menu.url,
-      position: (menu.position as MenuPosition) || "header",
       parentId: menu.parentId ? String(menu.parentId) : "",
       sortOrder: String(menu.sortOrder ?? 0),
       icon: menu.icon || "",
@@ -173,7 +162,6 @@ export default function AdminMenusPage() {
     const payload = {
       title: formData.title.trim(),
       url: formData.url.trim(),
-      position: formData.position,
       parentId: formData.parentId ? Number(formData.parentId) : null,
       sortOrder: Number(formData.sortOrder || 0),
       icon: formData.icon.trim() || null,
@@ -212,11 +200,6 @@ export default function AdminMenusPage() {
     [menus],
   );
 
-  const positions: { value: MenuPosition; label: string }[] = [
-    { value: "header", label: "Header" },
-    { value: "footer", label: "Footer" },
-    { value: "sidebar", label: "Sidebar" },
-  ];
 
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
@@ -230,16 +213,13 @@ export default function AdminMenusPage() {
   };
 
   const persistOrderForGroup = async (
-    position: string,
     parentId: number | null,
     orderedMenus: MenuItem[],
   ) => {
     try {
       setSavingOrder(true);
       const items = orderedMenus.filter(
-        (m) =>
-          m.position === position &&
-          ((m.parentId ?? null) === parentId),
+        (m) => ((m.parentId ?? null) === parentId),
       );
       await Promise.all(
         items.map((m, index) =>
@@ -269,10 +249,10 @@ export default function AdminMenusPage() {
       const sourceItem = prev[sourceIndex];
       const targetItem = prev[targetIndex];
 
-      // Chỉ cho phép sắp xếp trong cùng một vị trí & cùng menu cha
+      // Chỉ cho phép sắp xếp trong cùng menu cha
       const sourceParent = sourceItem.parentId ?? null;
       const targetParent = targetItem.parentId ?? null;
-      if (sourceItem.position !== targetItem.position || sourceParent !== targetParent) {
+      if (sourceParent !== targetParent) {
         return prev;
       }
 
@@ -280,18 +260,16 @@ export default function AdminMenusPage() {
       const [moved] = updated.splice(sourceIndex, 1);
       updated.splice(targetIndex, 0, moved);
 
-      // cập nhật sortOrder trong state (tạm thời) cho nhóm cùng vị trí & menu cha
+      // cập nhật sortOrder trong state (tạm thời) cho nhóm cùng menu cha
       let order = 1;
       for (const item of updated.filter(
-        (m) =>
-          m.position === sourceItem.position &&
-          ((m.parentId ?? null) === sourceParent),
+        (m) => ((m.parentId ?? null) === sourceParent),
       )) {
         item.sortOrder = order++;
       }
 
       // Gửi API lưu thứ tự (async, không block setState)
-      void persistOrderForGroup(sourceItem.position, sourceParent, updated);
+      void persistOrderForGroup(sourceParent, updated);
 
       return updated;
     });
@@ -341,26 +319,6 @@ export default function AdminMenusPage() {
                     placeholder="Ví dụ: Trang chủ"
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="menu-position">Vị trí hiển thị</Label>
-                  <Select
-                    value={formData.position}
-                    onValueChange={(v) =>
-                      setFormData({ ...formData, position: v as MenuPosition })
-                    }
-                  >
-                    <SelectTrigger id="menu-position">
-                      <SelectValue placeholder="Chọn vị trí" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {positions.map((p) => (
-                        <SelectItem key={p.value} value={p.value}>
-                          {p.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
@@ -482,25 +440,6 @@ export default function AdminMenusPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
             <div className="flex flex-wrap gap-3 items-center">
-              <Select
-                value={positionFilter}
-                onValueChange={(v) =>
-                  setPositionFilter(v as "all" | MenuPosition)
-                }
-              >
-                <SelectTrigger className="w-[160px] bg-gray-50 border-gray-200">
-                  <SelectValue placeholder="Vị trí" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả vị trí</SelectItem>
-                  {positions.map((p) => (
-                    <SelectItem key={p.value} value={p.value}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               <div className="inline-flex items-center gap-2">
                 <Switch
                   id="onlyActive"
@@ -513,7 +452,7 @@ export default function AdminMenusPage() {
               </div>
 
               <p className="text-[11px] text-gray-500">
-                Kéo thả icon ở cột đầu tiên để thay đổi thứ tự trong cùng một vị trí.
+                Kéo thả icon ở cột đầu tiên để thay đổi thứ tự menu.
               </p>
             </div>
           </div>
@@ -526,7 +465,6 @@ export default function AdminMenusPage() {
                   <th className="py-3 pl-5 pr-2 rounded-l-xl text-left">Thứ tự</th>
                   <th className="py-3 px-2 text-left">Tiêu đề</th>
                   <th className="py-3 px-2 text-left">Đường dẫn</th>
-                  <th className="py-3 px-2 text-left">Vị trí</th>
                   <th className="py-3 px-2 text-left">Menu cha</th>
                   <th className="py-3 px-4 text-center rounded-r-xl">
                     Hành động
@@ -605,24 +543,6 @@ export default function AdminMenusPage() {
                         </Badge>
                       </td>
                       <td className="py-3 px-2 align-middle text-sm">
-                        <Badge
-                          variant="outline"
-                          className={
-                            item.position === "header"
-                              ? "bg-emerald-50 border-emerald-100 text-emerald-700"
-                              : item.position === "footer"
-                              ? "bg-purple-50 border-purple-100 text-purple-700"
-                              : "bg-orange-50 border-orange-100 text-orange-700"
-                          }
-                        >
-                          {item.position === "header"
-                            ? "Header"
-                            : item.position === "footer"
-                            ? "Footer"
-                            : "Sidebar"}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-2 align-middle text-sm">
                         {item.parentTitle ? (
                           <Badge
                             variant="outline"
@@ -662,7 +582,7 @@ export default function AdminMenusPage() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={6}
                       className="py-10 text-center text-gray-400 text-sm bg-white rounded-xl shadow"
                     >
                       {loading

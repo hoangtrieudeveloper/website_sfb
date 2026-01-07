@@ -8,11 +8,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SearchOverlay } from "./SearchOverlay";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { getPublicSettings } from "@/lib/api/settings";
+import { publicApiCall } from "@/lib/api/public/client";
 
 interface NavLink {
+  id?: number;
   href: string;
   label: string;
   children?: { href: string; label: string; description?: string }[];
+}
+
+interface MenuItem {
+  id: number;
+  title: string;
+  url: string;
+  parentId?: number | null;
+  sortOrder: number;
+  icon?: string;
+  children?: MenuItem[];
 }
 
 export function Header() {
@@ -27,6 +39,7 @@ export function Header() {
   const [hoverLang, setHoverLang] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const pathname = usePathname();
   const dropdownTimeoutRef = useRef<NodeJS.Timeout>();
   const headerRef = useRef<HTMLElement>(null);
@@ -51,6 +64,71 @@ export function Header() {
       }
     };
     loadSettings();
+  }, []);
+
+  // Debug: Log navLinks changes
+  useEffect(() => {
+    console.log('[Header] navLinks updated:', navLinks);
+    navLinks.forEach((link, idx) => {
+      if (link.children && link.children.length > 0) {
+        console.log(`[Header] Menu ${idx} "${link.label}" has ${link.children.length} children:`, link.children);
+      }
+    });
+  }, [navLinks]);
+
+  // Load menus from API
+  useEffect(() => {
+    const loadMenus = async () => {
+      try {
+        const response = await publicApiCall<{ success: boolean; data?: MenuItem[] }>(
+          '/api/public/menus'
+        );
+        
+        if (response.success && response.data) {
+          console.log('[Header] Raw menu data from API:', response.data);
+          
+          // Convert menu items to NavLink format
+          const convertMenuToNavLink = (menu: MenuItem): NavLink => {
+            const navLink: NavLink = {
+              id: menu.id,
+              href: menu.url,
+              label: menu.title,
+            };
+            
+            // Convert children if exists (recursive for nested children)
+            if (menu.children && Array.isArray(menu.children) && menu.children.length > 0) {
+              console.log(`[Header] Menu "${menu.title}" (ID: ${menu.id}) has ${menu.children.length} children:`, menu.children);
+              navLink.children = menu.children.map(child => ({
+                href: child.url,
+                label: child.title,
+                // Note: Currently only support one level of children
+                // If you need nested children, uncomment below:
+                // children: child.children && child.children.length > 0 
+                //   ? child.children.map(grandchild => ({
+                //       href: grandchild.url,
+                //       label: grandchild.title,
+                //     }))
+                //   : undefined,
+              }));
+              console.log(`[Header] Converted children for "${menu.title}":`, navLink.children);
+            } else {
+              console.log(`[Header] Menu "${menu.title}" (ID: ${menu.id}) has no children`);
+            }
+            
+            return navLink;
+          };
+          
+          const links = response.data.map(convertMenuToNavLink);
+          console.log('[Header] Final converted menus:', links);
+          setNavLinks(links);
+        } else {
+          console.warn('[Header] No menu data from API');
+        }
+      } catch (error) {
+        console.error('Error loading menus:', error);
+      }
+    };
+    loadMenus();
   }, []);
 
   // Check announcement dismissal status
@@ -101,23 +179,6 @@ export function Header() {
 
 
   const currentLanguageObj = languages.find(lang => lang.code === language);
-
-
-  const navLinks: NavLink[] = [
-    { href: "/", label: language === "vi" ? "Trang chủ" : "Home" },
-    { href: "/about", label: language === "vi" ? "Giới thiệu" : "About" },
-    {
-      href: "/products",
-      label: language === "vi" ? "Sản phẩm" : "Products",
-    },
-    // {
-    //   href: "/solutions",
-    //   label: language === "vi" ? "Giải pháp" : "Solutions",
-    // },
-    { href: "/industries", label: language === "vi" ? "Lĩnh vực" : "Industries" },
-    { href: "/news", label: language === "vi" ? "Tin tức" : "News" },
-    { href: "/careers", label: language === "vi" ? "Tuyển dụng" : "Careers" },
-  ];
 
   // Debounced scroll handler for performance
   const handleScroll = useCallback(() => {
@@ -194,10 +255,12 @@ export function Header() {
 
   const handleDropdownEnter = (href: string) => {
     clearTimeout(dropdownTimeoutRef.current);
+    console.log('[Header] Dropdown enter:', href);
     setActiveDropdown(href);
   };
 
   const handleDropdownLeave = () => {
+    console.log('[Header] Dropdown leave');
     dropdownTimeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
     }, 200);
@@ -262,11 +325,18 @@ export function Header() {
 
             {/* Desktop Navigation - Centered */}
             <nav className="hidden lg:flex items-center gap-1 min-w-0 shrink-0">
-              {navLinks.map((link) => (
+              {navLinks.map((link, linkIdx) => {
+                const dropdownKey = link.id ? `menu-${link.id}` : link.href;
+                return (
                 <div
-                  key={link.href}
+                  key={dropdownKey}
                   className="relative"
-                  onMouseEnter={() => link.children && handleDropdownEnter(link.href)}
+                  onMouseEnter={() => {
+                    if (link.children && link.children.length > 0) {
+                      console.log('[Header] Mouse enter on menu with children:', link.label, link.children, 'dropdownKey:', dropdownKey);
+                      handleDropdownEnter(dropdownKey);
+                    }
+                  }}
                   onMouseLeave={handleDropdownLeave}
                 >
                   <Link
@@ -280,14 +350,14 @@ export function Header() {
                         : "text-white/90 hover:text-white hover:-translate-y-0.5"
                       }`}
                     aria-label={link.label}
-                    aria-haspopup={link.children ? "true" : undefined}
-                    aria-expanded={link.children && activeDropdown === link.href ? "true" : "false"}
+                    aria-haspopup={link.children && link.children.length > 0 ? "true" : undefined}
+                    aria-expanded={link.children && link.children.length > 0 && activeDropdown === dropdownKey ? "true" : "false"}
                   >
                     {link.label}
-                    {link.children && (
+                    {link.children && link.children.length > 0 && (
                       <ChevronDown
                         size={12}
-                        className={`transition-transform duration-300 ${activeDropdown === link.href ? "rotate-180" : ""}`}
+                        className={`transition-transform duration-300 ${activeDropdown === dropdownKey ? "rotate-180" : ""}`}
                       />
                     )}
                     {/* Active indicator */}
@@ -303,16 +373,16 @@ export function Header() {
                   </Link>
 
                   {/* Dropdown Menu */}
-                  {link.children && (
+                  {link.children && link.children.length > 0 && (
                     <AnimatePresence>
-                      {activeDropdown === link.href && (
+                      {activeDropdown === dropdownKey && (
                         <motion.div
                           initial={{ opacity: 0, y: 10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
                           transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-xl"
-                          onMouseEnter={() => handleDropdownEnter(link.href)}
+                          className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-xl z-50"
+                          onMouseEnter={() => handleDropdownEnter(dropdownKey)}
                           onMouseLeave={handleDropdownLeave}
                         >
                           {/* Gradient header */}
@@ -354,7 +424,8 @@ export function Header() {
                     </AnimatePresence>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </nav>
 
             {/* Contact Info & CTA */}
@@ -424,7 +495,7 @@ export function Header() {
                       </Link>
 
                       {/* Mobile Submenu */}
-                      {link.children && (
+                      {link.children && link.children.length > 0 && (
                         <div className="ml-4 mt-2 space-y-1">
                           {link.children.map((child) => (
                             <Link

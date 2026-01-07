@@ -110,6 +110,14 @@ interface NewsFormData {
   seoTitle: string;
   seoDescription: string;
   seoKeywords: string;
+
+  // Cấu hình nâng cao cho nội dung chi tiết
+  galleryTitle?: string;
+  galleryImages: string[];
+  galleryPosition: "top" | "bottom";
+  showTableOfContents: boolean;
+  enableShareButtons: boolean;
+  showAuthorBox: boolean;
 }
 
 interface NewsFormProps {
@@ -143,6 +151,17 @@ export default function NewsForm({
     seoTitle: initialData?.seoTitle || "",
     seoDescription: initialData?.seoDescription || "",
     seoKeywords: initialData?.seoKeywords || "",
+
+    // Cấu hình nâng cao cho nội dung chi tiết (lấy từ initialData nếu có)
+    galleryTitle: (initialData as any)?.galleryTitle || "",
+    galleryImages: (initialData as any)?.galleryImages || [],
+    galleryPosition: (initialData as any)?.galleryPosition || "top",
+    showTableOfContents:
+      (initialData as any)?.showTableOfContents ?? true,
+    enableShareButtons:
+      (initialData as any)?.enableShareButtons ?? true,
+    showAuthorBox:
+      (initialData as any)?.showAuthorBox ?? true,
   });
 
   const [saving, setSaving] = useState(false);
@@ -153,6 +172,8 @@ export default function NewsForm({
   const [activeTab, setActiveTab] = useState<"content" | "basic" | "seo">("content");
   // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!(isEditing && initialData?.link));
+  // Key để reset component ImageUpload dùng cho gallery (re-mount sau mỗi lần chọn ảnh)
+  const [galleryUploadKey, setGalleryUploadKey] = useState(0);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -436,6 +457,218 @@ export default function NewsForm({
                           Sử dụng trình soạn thảo để tạo nội dung bài viết với định dạng phong
                           phú.
                         </p>
+                      </div>
+
+                      {/* Gallery ảnh và cấu hình vị trí hiển thị */}
+                      <div className="space-y-4 pt-4 border-t">
+                        <Label className="text-sm font-semibold flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4 text-blue-600" />
+                          Thư viện ảnh (Gallery)
+                        </Label>
+                        <div className="space-y-2">
+                          <Label htmlFor="galleryTitle" className="text-sm font-semibold">
+                            Tiêu đề bộ sưu tập (tuỳ chọn)
+                          </Label>
+                          <Input
+                            id="galleryTitle"
+                            placeholder="Nhập tiêu đề cho gallery (nếu cần)"
+                            value={(formData as any).galleryTitle || ""}
+                            onChange={(e) =>
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                galleryTitle: e.target.value,
+                              }))
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Chọn nhiều ảnh để hiển thị dạng gallery trong bài viết. Ảnh sẽ
+                          được render ở vị trí bạn chọn bên dưới (trên/giữa/dưới nội dung).
+                        </p>
+
+                        <div className="border rounded-lg p-3 bg-gray-50 space-y-3">
+                          <div className="text-xs font-medium text-gray-600">
+                            Thêm ảnh vào gallery
+                          </div>
+                          <ImageUpload
+                            key={galleryUploadKey}
+                            multiple
+                            currentImage={undefined}
+                            onImagesSelect={(urls) => {
+                              if (!urls || urls.length === 0) return;
+                              setFormData((prev) => ({
+                                ...prev,
+                                galleryImages: [
+                                  ...prev.galleryImages,
+                                  ...urls,
+                                ],
+                              }));
+                              // Reset lại component upload để người dùng chọn ảnh tiếp theo nhanh
+                              setGalleryUploadKey((prev) => prev + 1);
+                            }}
+                          />
+                          <p className="text-[11px] text-gray-500">
+                            Sau khi chọn, ảnh sẽ được thêm vào danh sách bên dưới. Bạn có
+                            thể xoá từng ảnh nếu không cần.
+                          </p>
+
+                          {formData.galleryImages.length > 0 ? (
+                            <div className="flex flex-wrap gap-3 mt-2">
+                              {formData.galleryImages.map((img, idx) => (
+                                <div
+                                  key={idx}
+                                  className="relative w-28 h-20 rounded-md overflow-hidden bg-white border border-gray-200 shadow-sm"
+                                >
+                                  <img
+                                    src={
+                                      img.startsWith("/")
+                                        ? buildUrl(img)
+                                        : img
+                                    }
+                                    alt={`Gallery ${idx + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        galleryImages: prev.galleryImages.filter(
+                                          (_, i) => i !== idx,
+                                        ),
+                                      }))
+                                    }
+                                    className="absolute top-1 right-1 px-1.5 py-0.5 text-[10px] bg-red-600 text-white rounded opacity-0 hover:opacity-100 transition"
+                                    title="Xoá ảnh"
+                                  >
+                                    Xoá
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Chưa có ảnh nào trong gallery. Chọn ảnh để thêm.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="mt-3 space-y-2">
+                          <Label className="text-sm font-semibold">
+                            Vị trí hiển thị gallery trong bài viết
+                          </Label>
+                          <div className="flex flex-wrap gap-3 text-sm text-gray-700">
+                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="gallery-position"
+                                value="top"
+                                checked={formData.galleryPosition === "top"}
+                                onChange={() =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    galleryPosition: "top",
+                                  }))
+                                }
+                                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              />
+                              <span>Trên cùng bài viết</span>
+                            </label>
+                            <label className="inline-flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="gallery-position"
+                                value="bottom"
+                                checked={formData.galleryPosition === "bottom"}
+                                onChange={() =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    galleryPosition: "bottom",
+                                  }))
+                                }
+                                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                              />
+                              <span>Cuối bài viết</span>
+                            </label>
+                          </div>
+                          <p className="text-[11px] text-gray-500">
+                            Phần hiển thị thực tế bạn xử lý ở component trang public
+                            (chèn gallery tương ứng với vị trí đã chọn).
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                  {/* Cấu hình hiển thị chi tiết bài viết */}
+                  <Card className="border border-gray-100 shadow-sm">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        Cấu hình hiển thị chi tiết bài viết
+                      </h3>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        Các tuỳ chọn này chỉ ảnh hưởng tới cách hiển thị bài viết trên
+                        trang public (không ảnh hưởng dữ liệu SEO).
+                      </p>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                            Hiển thị mục lục (Table of Contents)
+                          </p>
+                          <p className="text-[11px] text-gray-500">
+                            Tự động tạo mục lục từ các heading (H2, H3) trong bài viết.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={formData.showTableOfContents}
+                          onCheckedChange={(checked) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              showTableOfContents: checked,
+                            }))
+                          }
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                            Nút chia sẻ mạng xã hội
+                          </p>
+                          <p className="text-[11px] text-gray-500">
+                            Hiển thị nút chia sẻ Facebook, LinkedIn… ở đầu/cuối bài viết.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={formData.enableShareButtons}
+                          onCheckedChange={(checked) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              enableShareButtons: checked,
+                            }))
+                          }
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">
+                            Hiển thị box tác giả
+                          </p>
+                          <p className="text-[11px] text-gray-500">
+                            Hiển thị thông tin tác giả, avatar tại cuối bài viết.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={formData.showAuthorBox}
+                          onCheckedChange={(checked) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              showAuthorBox: checked,
+                            }))
+                          }
+                        />
                       </div>
                     </div>
                   </Card>

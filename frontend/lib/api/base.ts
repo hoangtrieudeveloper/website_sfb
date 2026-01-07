@@ -25,7 +25,9 @@ export function buildUrl(endpoint: string): string {
       endpoint === "/api/public/news" || 
       endpoint.startsWith("/api/public/news/") ||
       endpoint === "/api/public/homepage" ||
-      endpoint.startsWith("/api/public/homepage/")
+      endpoint.startsWith("/api/public/homepage/") ||
+      endpoint === "/api/public/menus" ||
+      endpoint.startsWith("/api/public/menus/")
     ) {
       return endpoint;
     }

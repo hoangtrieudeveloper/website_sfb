@@ -33,6 +33,7 @@ interface GeneralSettings {
   social_instagram: string;
   footer_quick_links: string;
   footer_solutions: string;
+  google_site_verification: string;
 }
 
 export default function AdminSettingsPage() {
@@ -53,6 +54,7 @@ export default function AdminSettingsPage() {
     social_instagram: '',
     footer_quick_links: '',
     footer_solutions: '',
+    google_site_verification: '',
   });
 
   useEffect(() => {
@@ -79,6 +81,7 @@ export default function AdminSettingsPage() {
         social_instagram: settings.social_instagram?.value || '',
         footer_quick_links: settings.footer_quick_links?.value || '',
         footer_solutions: settings.footer_solutions?.value || '',
+        google_site_verification: settings.google_site_verification?.value || '',
       });
     } catch (error: any) {
       console.error('Error loading settings:', error);
@@ -107,6 +110,7 @@ export default function AdminSettingsPage() {
         social_instagram: generalSettings.social_instagram,
         footer_quick_links: generalSettings.footer_quick_links,
         footer_solutions: generalSettings.footer_solutions,
+        google_site_verification: generalSettings.google_site_verification,
       });
       
       toast.success('Đã lưu cấu hình thông tin chung');
@@ -338,6 +342,24 @@ export default function AdminSettingsPage() {
                           placeholder="https://www.instagram.com/..."
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="text-base font-semibold">SEO & Xác minh</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="google_site_verification">
+                        Google Site Verification Code
+                      </Label>
+                      <Input
+                        id="google_site_verification"
+                        value={generalSettings.google_site_verification}
+                        onChange={(e) => setGeneralSettings({ ...generalSettings, google_site_verification: e.target.value })}
+                        placeholder="nskAzb2wgDby-HUyaAmxjuyMNgkQ1Z-GSbTs-Tx1RJw"
+                      />
+                      <p className="text-sm text-gray-500">
+                        Mã xác minh từ Google Search Console. Sẽ được tự động thêm vào meta tag trong HTML.
+                      </p>
                     </div>
                   </div>
 

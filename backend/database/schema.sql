@@ -115,6 +115,14 @@ CREATE TABLE IF NOT EXISTS news (
   seo_description TEXT,
   seo_keywords TEXT,
   is_featured BOOLEAN DEFAULT FALSE,
+  gallery_title TEXT,
+  -- Cấu hình hiển thị chi tiết bài viết (gallery + options)
+  gallery_images JSONB,
+  gallery_position VARCHAR(20),
+  show_table_of_contents BOOLEAN DEFAULT TRUE,
+  enable_share_buttons BOOLEAN DEFAULT TRUE,
+  show_author_box BOOLEAN DEFAULT TRUE,
+  highlight_first_paragraph BOOLEAN DEFAULT FALSE,
   published_date DATE DEFAULT CURRENT_DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -198,7 +206,6 @@ CREATE TABLE IF NOT EXISTS menus (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   url TEXT NOT NULL,
-  position VARCHAR(50) NOT NULL DEFAULT 'header', -- header, footer, sidebar...
   parent_id INTEGER REFERENCES menus(id) ON DELETE SET NULL,
   sort_order INTEGER DEFAULT 0,
   icon VARCHAR(100),
@@ -206,8 +213,6 @@ CREATE TABLE IF NOT EXISTS menus (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE INDEX IF NOT EXISTS idx_menus_position ON menus(position);
 CREATE INDEX IF NOT EXISTS idx_menus_parent_id ON menus(parent_id);
 CREATE INDEX IF NOT EXISTS idx_menus_is_active ON menus(is_active);
 
@@ -217,14 +222,15 @@ CREATE TRIGGER update_menus_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Seed sample menus
-INSERT INTO menus (title, url, position, parent_id, sort_order, is_active)
+-- Seed sample menus (matching Header.tsx navLinks)
+INSERT INTO menus (title, url, parent_id, sort_order, is_active)
 VALUES
-  ('Trang chủ', '/', 'header', NULL, 1, TRUE),
-  ('Giải pháp', '/#solutions', 'header', NULL, 2, TRUE),
-  ('Tin tức', '/news', 'header', NULL, 3, TRUE),
-  ('Liên hệ', '/#contact', 'header', NULL, 4, TRUE),
-  ('Footer - Giới thiệu', '/#about', 'footer', NULL, 1, TRUE)
+  ('Trang chủ', '/', NULL, 1, TRUE),
+  ('Giới thiệu', '/about', NULL, 2, TRUE),
+  ('Sản phẩm', '/products', NULL, 3, TRUE),
+  ('Lĩnh vực', '/industries', NULL, 4, TRUE),
+  ('Tin tức', '/news', NULL, 5, TRUE),
+  ('Tuyển dụng', '/careers', NULL, 6, TRUE)
 ON CONFLICT DO NOTHING;
 
 -- Media Library Tables
@@ -463,6 +469,16 @@ CREATE TABLE IF NOT EXISTS product_details (
   -- CONTENT MODE
   content_mode VARCHAR(20) DEFAULT 'config', -- 'config' | 'content'
   content_html TEXT,                         -- Nội dung CKEditor
+  
+  -- GALLERY SECTION
+  gallery_title TEXT,
+  gallery_images JSONB,
+  gallery_position VARCHAR(20) DEFAULT 'top',
+  
+  -- Cấu hình hiển thị chi tiết bài viết
+  show_table_of_contents BOOLEAN DEFAULT TRUE,
+  enable_share_buttons BOOLEAN DEFAULT TRUE,
+  show_author_box BOOLEAN DEFAULT TRUE,
   
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -44,9 +44,51 @@ async function getFavicon(): Promise<string | undefined> {
   return undefined;
 }
 
+// Fetch Google Site Verification code from settings dynamically (server-side only)
+async function getGoogleSiteVerification(): Promise<string | undefined> {
+  try {
+    // Fetch directly from backend API in server-side
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+    
+    const res = await fetch(`${API_BASE_URL}/api/public/settings?keys=google_site_verification`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      return undefined;
+    }
+
+    const data = await res.json();
+    const verificationCode = data.data?.google_site_verification;
+    
+    // Return verification code if it exists and is not empty
+    if (verificationCode && verificationCode.trim()) {
+      return verificationCode.trim();
+    }
+  } catch (error) {
+    // Silently fail - will use fallback
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Google Site Verification] Could not load from settings:', error);
+    }
+  }
+  return undefined;
+}
+
 // Generate metadata dynamically to include favicon from settings
 export async function generateMetadata(): Promise<Metadata> {
-  const favicon = await getFavicon();
+  const [favicon, googleVerification] = await Promise.all([
+    getFavicon(),
+    getGoogleSiteVerification(),
+  ]);
+  
+  // Fallback order: settings -> env variable -> hardcoded default
+  const verificationCode = googleVerification 
+    || process.env.GOOGLE_SITE_VERIFICATION 
+    || 'nskAzb2wgDby-HUyaAmxjuyMNgkQ1Z-GSbTs-Tx1RJw';
   
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'),
@@ -64,9 +106,9 @@ export async function generateMetadata(): Promise<Metadata> {
       shortcut: favicon,
       apple: favicon,
     } : undefined,
-    // Google Site Verification
+    // Google Site Verification - ưu tiên từ settings, fallback về env hoặc default
     verification: {
-      google: process.env.GOOGLE_SITE_VERIFICATION || 'nskAzb2wgDby-HUyaAmxjuyMNgkQ1Z-GSbTs-Tx1RJw',
+      google: verificationCode,
     },
   };
 }

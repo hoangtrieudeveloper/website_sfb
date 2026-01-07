@@ -46,6 +46,13 @@ interface NewsDetailPageClientProps {
     gradient?: string;
     publishedDate?: string;
     seoKeywords?: string;
+    // Các field mới phục vụ hiển thị chi tiết
+    galleryTitle?: string;
+    galleryImages?: string[];
+    galleryPosition?: "top" | "bottom";
+    showTableOfContents?: boolean;
+    enableShareButtons?: boolean;
+    showAuthorBox?: boolean;
   };
   relatedArticles?: Array<{
     id: number;
@@ -89,6 +96,23 @@ export function NewsDetailPageClient({
     : "";
   const shareTitle = article.title;
   const shareDescription = article.excerpt || PLACEHOLDER_EXCERPT;
+
+  const showTableOfContents = article.showTableOfContents !== false;
+  const enableShareButtons = article.enableShareButtons !== false;
+  const showAuthorBox = article.showAuthorBox !== false;
+
+  const galleryTitle = article.galleryTitle || "";
+  const galleryImages = article.galleryImages || [];
+  const galleryPosition: "top" | "bottom" =
+    (article.galleryPosition as any) === "top" ? "top" : "bottom";
+
+  const contentHtml =
+    article.content || article.excerpt || PLACEHOLDER_CONTENT;
+
+  const { processedHtml, tocItems } = processContentHtml({
+    html: contentHtml,
+    enableToc: showTableOfContents,
+  });
 
   // Hàm chia sẻ Facebook
   const shareToFacebook = () => {
@@ -186,120 +210,122 @@ export function NewsDetailPageClient({
           {/* Title + meta */}
           <div className="mt-10">
             {/* Row 1: Like/Share (left) + share icons (right) */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium"
-                  aria-label="Thích"
-                >
-                  <Facebook size={14} />
-                  <span>Thích 1,7k</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium hover:bg-[#166FE5] transition-colors"
-                      aria-label="Chia sẻ"
-                    >
-                      <Share2 size={14} />
-                      <span>Chia sẻ</span>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={shareToFacebook}
-                      className="cursor-pointer"
-                    >
-                      <Facebook size={16} className="mr-2 text-[#1877F2]" />
-                      Chia sẻ Facebook
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={shareToTwitter}
-                      className="cursor-pointer"
-                    >
-                      <Twitter size={16} className="mr-2 text-[#1DA1F2]" />
-                      Chia sẻ Twitter
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={shareToLinkedIn}
-                      className="cursor-pointer"
-                    >
-                      <Linkedin size={16} className="mr-2 text-[#0077B5]" />
-                      Chia sẻ LinkedIn
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={copyToClipboard}
-                      className="cursor-pointer"
-                    >
-                      {linkCopied ? (
-                        <>
-                          <Check size={16} className="mr-2 text-green-600" />
-                          Đã sao chép
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={16} className="mr-2" />
-                          Sao chép liên kết
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    {supportsWebShare && (
+            {enableShareButtons && (
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium"
+                    aria-label="Thích"
+                  >
+                    <Facebook size={14} />
+                    <span>Thích 1,7k</span>
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium hover:bg-[#166FE5] transition-colors"
+                        aria-label="Chia sẻ"
+                      >
+                        <Share2 size={14} />
+                        <span>Chia sẻ</span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem
-                        onClick={shareViaWebShare}
+                        onClick={shareToFacebook}
                         className="cursor-pointer"
                       >
-                        <Share2 size={16} className="mr-2" />
-                        Chia sẻ khác...
+                        <Facebook size={16} className="mr-2 text-[#1877F2]" />
+                        Chia sẻ Facebook
                       </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+                      <DropdownMenuItem
+                        onClick={shareToTwitter}
+                        className="cursor-pointer"
+                      >
+                        <Twitter size={16} className="mr-2 text-[#1DA1F2]" />
+                        Chia sẻ Twitter
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={shareToLinkedIn}
+                        className="cursor-pointer"
+                      >
+                        <Linkedin size={16} className="mr-2 text-[#0077B5]" />
+                        Chia sẻ LinkedIn
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={copyToClipboard}
+                        className="cursor-pointer"
+                      >
+                        {linkCopied ? (
+                          <>
+                            <Check size={16} className="mr-2 text-green-600" />
+                            Đã sao chép
+                          </>
+                        ) : (
+                          <>
+                            <Copy size={16} className="mr-2" />
+                            Sao chép liên kết
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      {supportsWebShare && (
+                        <DropdownMenuItem
+                          onClick={shareViaWebShare}
+                          className="cursor-pointer"
+                        >
+                          <Share2 size={16} className="mr-2" />
+                          Chia sẻ khác...
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-              <div className="flex items-center gap-3 text-gray-400">
-                <button
-                  type="button"
-                  onClick={copyToClipboard}
-                  aria-label="Copy link"
-                  className="hover:text-gray-600 transition-colors"
-                  title="Sao chép liên kết"
-                >
-                  {linkCopied ? (
-                    <Check size={18} className="text-green-600" />
-                  ) : (
-                    <LinkIcon size={18} />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={shareToFacebook}
-                  aria-label="Chia sẻ Facebook"
-                  className="hover:text-[#1877F2] transition-colors"
-                  title="Chia sẻ Facebook"
-                >
-                  <Facebook size={18} />
-                </button>
-                <button
-                  type="button"
-                  onClick={shareToTwitter}
-                  aria-label="Chia sẻ Twitter"
-                  className="hover:text-[#1DA1F2] transition-colors"
-                  title="Chia sẻ Twitter"
-                >
-                  <Twitter size={18} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Lưu bài viết"
-                  className="hover:text-gray-600 transition-colors"
-                  title="Lưu bài viết"
-                >
-                  <Bookmark size={18} />
-                </button>
+                <div className="flex items-center gap-3 text-gray-400">
+                  <button
+                    type="button"
+                    onClick={copyToClipboard}
+                    aria-label="Copy link"
+                    className="hover:text-gray-600 transition-colors"
+                    title="Sao chép liên kết"
+                  >
+                    {linkCopied ? (
+                      <Check size={18} className="text-green-600" />
+                    ) : (
+                      <LinkIcon size={18} />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={shareToFacebook}
+                    aria-label="Chia sẻ Facebook"
+                    className="hover:text-[#1877F2] transition-colors"
+                    title="Chia sẻ Facebook"
+                  >
+                    <Facebook size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={shareToTwitter}
+                    aria-label="Chia sẻ Twitter"
+                    className="hover:text-[#1DA1F2] transition-colors"
+                    title="Chia sẻ Twitter"
+                  >
+                    <Twitter size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Lưu bài viết"
+                    className="hover:text-gray-600 transition-colors"
+                    title="Lưu bài viết"
+                  >
+                    <Bookmark size={18} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Row 2: Category / Date / Author */}
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
@@ -339,16 +365,86 @@ export function NewsDetailPageClient({
       {/* Main Content */}
       <section className="pb-20 bg-white">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+          {/* Gallery phía trên nội dung nếu chọn TOP */}
+          {galleryImages.length > 0 && galleryPosition === "top" && (
+            <div className="mb-8">
+              <NewsGallerySlider
+                images={galleryImages}
+                title={galleryTitle || undefined}
+              />
+            </div>
+          )}
+
+          {/* Table of Contents */}
+          {showTableOfContents && (
+            <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-900 mb-2">Mục lục</p>
+              {tocItems.length > 0 ? (
+                <ol className="space-y-1 text-sm text-blue-700">
+                  {tocItems.map((item) => (
+                    <li
+                      key={item.id}
+                      className={item.level === 3 ? "pl-4 text-blue-600" : ""}
+                    >
+                      <a href={`#${item.id}`} className="hover:underline">
+                        {item.text}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Chưa có tiêu đề (H2/H3) để tạo mục lục.
+                </p>
+              )}
+            </div>
+          )}
+
           <div>
-            <div
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{
-                __html: article.content || article.excerpt || PLACEHOLDER_CONTENT,
-              }}
-            />
+            <div className="prose prose-lg max-w-none">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: processedHtml,
+                }}
+              />
+            </div>
           </div>
+
+          {/* Gallery phía dưới nội dung nếu chọn BOTTOM */}
+          {galleryImages.length > 0 && galleryPosition === "bottom" && (
+            <div className="mt-10">
+              <NewsGallerySlider
+                images={galleryImages}
+                title={galleryTitle || undefined}
+              />
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Author box */}
+      {showAuthorBox && (
+        <section className="pb-16 bg-white">
+          <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-start gap-3 shadow-sm">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
+                {(article.author || newsDetailData.authorDefault || "A").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Tác giả</p>
+                <p className="text-base font-semibold text-gray-900">
+                  {article.author || newsDetailData.authorDefault}
+                </p>
+                {article.publishedDate && (
+                  <p className="text-xs text-gray-500">
+                    Ngày đăng: {new Date(article.publishedDate).toLocaleDateString("vi-VN")}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Related Articles */}
       {relatedArticles.length > 0 && (
@@ -370,6 +466,104 @@ export function NewsDetailPageClient({
             </section>
     </div>
   );
+}
+
+
+// Slider gallery đơn giản cho bài viết tin tức
+function NewsGallerySlider({ images, title }: { images: string[]; title?: string }) {
+  if (!images || images.length === 0) return null;
+
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  return (
+    <>
+      <div className="w-full max-w-7xl mx-auto">
+        {title && (
+          <div className="mb-3">
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          </div>
+        )}
+        <div className="overflow-x-auto flex gap-3 pb-2">
+          {images.map((img, index) => (
+            <button
+              key={`${img}-${index}`}
+              type="button"
+              onClick={() => setPreviewIndex(index)}
+              className="flex-shrink-0 w-60 h-40 md:w-72 md:h-48 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <ImageWithFallback
+                src={
+                  img.startsWith("http")
+                    ? img
+                    : `${API_BASE_URL}${
+                        img.startsWith("/") ? "" : "/"
+                      }${img}`
+                }
+                alt={`Ảnh gallery ${index + 1}`}
+                className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {previewIndex !== null && images[previewIndex] && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center px-4"
+          onClick={() => setPreviewIndex(null)}
+        >
+          <div
+            className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewIndex(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-200 text-sm"
+            >
+              Đóng
+            </button>
+            <ImageWithFallback
+              src={
+                images[previewIndex].startsWith("http")
+                  ? images[previewIndex]
+                  : `${API_BASE_URL}${
+                      images[previewIndex].startsWith("/") ? "" : "/"
+                    }${images[previewIndex]}`
+              }
+              alt={`Ảnh gallery ${previewIndex + 1}`}
+              className="w-full max-h-[90vh] object-contain rounded-xl bg-black"
+            />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+// Xử lý nội dung: chèn TOC (id cho H2/H3) và nhấn mạnh đoạn đầu nếu cần
+function processContentHtml({
+  html,
+  enableToc,
+}: {
+  html: string;
+  enableToc: boolean;
+}) {
+  let processed = html;
+  const tocItems: { id: string; text: string; level: number }[] = [];
+
+  // Thêm id cho H2/H3 để làm TOC
+  if (enableToc) {
+    let counter = 1;
+    processed = processed.replace(/<h([23])>(.*?)<\/h\1>/gi, (_m, level, text) => {
+      const id = `toc-${counter++}`;
+      const cleanText = String(text).replace(/<[^>]+>/g, "").trim();
+      tocItems.push({ id, text: cleanText, level: Number(level) });
+      return `<h${level} id="${id}">${text}</h${level}>`;
+    });
+  }
+
+  return { processedHtml: processed, tocItems };
 }
 
 // Default export cho Pages Router - trả về empty page vì route thực tế nằm ở App Router

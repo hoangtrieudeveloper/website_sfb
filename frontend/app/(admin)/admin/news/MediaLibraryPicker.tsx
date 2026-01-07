@@ -5,7 +5,7 @@ import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { buildUrl } from "@/lib/api/base";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Image as ImageIcon, Grid3x3, List } from "lucide-react";
+import { Search, Image as ImageIcon, Grid3x3, List, Video, Music } from "lucide-react";
 import { toast } from "sonner";
 
 interface MediaFileItem {
@@ -22,6 +22,7 @@ interface MediaFileItem {
 
 interface MediaLibraryPickerProps {
   onSelectImage: (url: string) => void;
+  fileTypeFilter?: string; // "image", "video", "audio", "document", hoặc "video,audio"
 }
 
 const formatFileSize = (bytes: number) => {
@@ -31,7 +32,7 @@ const formatFileSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage }) => {
+const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, fileTypeFilter = "image" }) => {
   const [files, setFiles] = useState<MediaFileItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -40,20 +41,39 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage }
   const loadFiles = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
-      params.append("file_type", "image");
-      if (search) {
-        params.append("search", search);
-      }
-      params.append("sort_by", "created_at");
-      params.append("sort_order", "DESC");
-      params.append("page", "1");
-      params.append("limit", "50");
+      const fileTypes = fileTypeFilter.split(',').map(t => t.trim());
+      
+      let allFiles: MediaFileItem[] = [];
+      
+      // Load từng loại file riêng và gộp lại
+      for (const fileType of fileTypes) {
+        const params = new URLSearchParams();
+        params.append("file_type", fileType);
+        if (search) {
+          params.append("search", search);
+        }
+        params.append("sort_by", "created_at");
+        params.append("sort_order", "DESC");
+        params.append("page", "1");
+        params.append("limit", "50");
 
-      const resp = await adminApiCall<{ data: MediaFileItem[]; pagination: any }>(
-        `${AdminEndpoints.media.files.list}?${params.toString()}`
-      );
-      setFiles(resp.data || []);
+        const resp = await adminApiCall<{ data: MediaFileItem[]; pagination: any }>(
+          `${AdminEndpoints.media.files.list}?${params.toString()}`
+        );
+        
+        if (resp.data) {
+          allFiles = [...allFiles, ...resp.data];
+        }
+      }
+      
+      // Sắp xếp lại theo created_at (mới nhất trước)
+      allFiles.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
+      });
+      
+      setFiles(allFiles);
     } catch (err: any) {
       const msg = err?.message || "Không thể tải thư viện media";
       console.error("Load media picker files error", err);
@@ -117,7 +137,7 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage }
           <div className="text-center py-8 text-gray-500">Đang tải thư viện media...</div>
         ) : files.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Không có ảnh nào trong thư viện. Hãy chuyển sang tab Upload để tải ảnh mới.
+            Không có file nào trong thư viện. Hãy upload file mới.
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -142,6 +162,10 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage }
                         alt={file.alt_text || file.original_name}
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
                       />
+                    ) : file.file_type === "video" ? (
+                      <Video className="w-12 h-12 text-blue-500" />
+                    ) : file.file_type === "audio" ? (
+                      <Music className="w-12 h-12 text-purple-500" />
                     ) : (
                       <ImageIcon className="w-10 h-10 text-gray-400" />
                     )}
@@ -185,6 +209,10 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage }
                         alt={file.alt_text || file.original_name}
                         className="w-full h-full object-cover"
                       />
+                    ) : file.file_type === "video" ? (
+                      <Video className="w-8 h-8 text-blue-500" />
+                    ) : file.file_type === "audio" ? (
+                      <Music className="w-8 h-8 text-purple-500" />
                     ) : (
                       <ImageIcon className="w-7 h-7 text-gray-400" />
                     )}

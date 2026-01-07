@@ -31,6 +31,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import MediaLibraryPicker from "@/app/(admin)/admin/news/MediaLibraryPicker";
 
 interface RichTextEditorProps {
   value: string;
@@ -47,6 +49,24 @@ export default function RichTextEditor({
   const selectionRef = useRef<Range | null>(null);
   const isUpdatingRef = useRef(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showMediaDialog, setShowMediaDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
+  const [selectedImageRect, setSelectedImageRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+    right: number;
+    bottom: number;
+  } | null>(null);
+  const [controlPanelPosition, setControlPanelPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const resizingRef = useRef<{
+    startX: number;
+    startWidth: number;
+  } | null>(null);
 
   // Lưu selection trước khi update
   const saveSelection = () => {
@@ -177,8 +197,225 @@ export default function RichTextEditor({
     { name: "Hồng", value: "#EC4899" },
   ];
 
+  const updateSelectedImageSize = (mode: "small" | "medium" | "large" | "full") => {
+    if (!selectedImage) return;
+    let width: string;
+    switch (mode) {
+      case "small":
+        width = "40%";
+        break;
+      case "medium":
+        width = "60%";
+        break;
+      case "large":
+        width = "80%";
+        break;
+      case "full":
+      default:
+        width = "100%";
+        break;
+    }
+    selectedImage.style.width = width;
+    selectedImage.style.maxWidth = "100%";
+    selectedImage.style.height = "auto";
+
+    // Đồng bộ HTML mới ra ngoài
+    if (editorRef.current) {
+      const htmlAfter = editorRef.current.innerHTML || "";
+      if (htmlAfter !== value) {
+        onChange(htmlAfter);
+      }
+    }
+  };
+
+  const updateSelectedImageAlign = (align: "left" | "center" | "right") => {
+    if (!selectedImage || !editorRef.current) return;
+
+    const imgSrc = selectedImage.src;
+    let parent = selectedImage.parentElement;
+    
+    // Xóa các style align cũ của ảnh
+    selectedImage.style.marginLeft = "";
+    selectedImage.style.marginRight = "";
+    selectedImage.style.display = "";
+    selectedImage.style.float = "";
+
+    // Kiểm tra xem parent có phải là editor không
+    const isDirectChild = !parent || parent === editorRef.current || parent.tagName === "BODY";
+    
+    if (isDirectChild) {
+      // Tạo div wrapper mới để wrap ảnh
+      const wrapper = document.createElement("div");
+      wrapper.style.textAlign = align;
+      wrapper.style.marginBottom = "1rem";
+      wrapper.style.width = "100%";
+      
+      // Di chuyển ảnh vào wrapper
+      if (selectedImage.parentNode) {
+        selectedImage.parentNode.insertBefore(wrapper, selectedImage);
+        wrapper.appendChild(selectedImage);
+      }
+      parent = wrapper;
+    } else if (parent) {
+      // Sử dụng parent hiện tại, nhưng đảm bảo nó là block element
+      if (parent.tagName === "P" || parent.tagName === "DIV") {
+        parent.style.textAlign = align;
+        parent.style.width = "100%";
+        if (!parent.style.marginBottom && parent.tagName === "DIV") {
+          parent.style.marginBottom = "1rem";
+        }
+      } else {
+        // Nếu parent không phải p/div, tạo wrapper mới
+        const wrapper = document.createElement("div");
+        wrapper.style.textAlign = align;
+        wrapper.style.marginBottom = "1rem";
+        wrapper.style.width = "100%";
+        
+        if (selectedImage.parentNode) {
+          selectedImage.parentNode.insertBefore(wrapper, selectedImage);
+          wrapper.appendChild(selectedImage);
+        }
+        parent = wrapper;
+      }
+    }
+
+    // Đảm bảo ảnh hiển thị đúng với align
+    selectedImage.style.display = "block";
+    if (align === "center") {
+      selectedImage.style.marginLeft = "auto";
+      selectedImage.style.marginRight = "auto";
+    } else if (align === "right") {
+      selectedImage.style.marginLeft = "auto";
+      selectedImage.style.marginRight = "0";
+    } else {
+      selectedImage.style.marginLeft = "0";
+      selectedImage.style.marginRight = "auto";
+    }
+
+    // Đồng bộ HTML mới ra ngoài
+    const htmlAfter = editorRef.current.innerHTML || "";
+    if (htmlAfter !== value) {
+      onChange(htmlAfter);
+    }
+
+    // Cập nhật lại selectedImage reference và vị trí sau khi DOM đã update
+    requestAnimationFrame(() => {
+      const newImage = editorRef.current?.querySelector(`img[src="${imgSrc}"]`) as HTMLImageElement;
+      if (newImage) {
+        setSelectedImage(newImage);
+      }
+    });
+  };
+
+  const updateSelectedImageRect = () => {
+    if (!selectedImage || !editorRef.current) {
+      setSelectedImageRect(null);
+      setControlPanelPosition(null);
+      return;
+    }
+    const imgRect = selectedImage.getBoundingClientRect();
+    const editorRect = editorRef.current.getBoundingClientRect();
+    const imageRect = {
+      top: imgRect.top - editorRect.top,
+      left: imgRect.left - editorRect.left,
+      width: imgRect.width,
+      height: imgRect.height,
+      right: imgRect.right - editorRect.left,
+      bottom: imgRect.bottom - editorRect.top,
+    };
+    setSelectedImageRect(imageRect);
+
+    // Tính toán vị trí khối điều khiển (bên phải ảnh, hoặc bên dưới nếu không đủ chỗ)
+    const controlPanelWidth = 220; // Ước tính chiều rộng khối điều khiển
+    const controlPanelHeight = 80; // Ước tính chiều cao khối điều khiển
+    const editorWidth = editorRect.width;
+    const editorHeight = editorRect.height;
+    const spaceRight = editorWidth - imageRect.right;
+    const spaceBelow = editorHeight - imageRect.bottom;
+
+    let panelTop = imageRect.top;
+    let panelLeft = imageRect.right + 12;
+
+    // Nếu không đủ chỗ bên phải, đặt bên dưới ảnh
+    if (spaceRight < controlPanelWidth + 20) {
+      panelLeft = imageRect.left;
+      panelTop = imageRect.bottom + 12;
+      // Nếu vẫn không đủ chỗ bên dưới, đặt bên trái ảnh
+      if (spaceBelow < controlPanelHeight + 20 && imageRect.left > controlPanelWidth + 20) {
+        panelLeft = imageRect.left - controlPanelWidth - 12;
+        panelTop = imageRect.top;
+      }
+    }
+
+    // Đảm bảo không tràn ra ngoài editor
+    panelLeft = Math.max(12, Math.min(panelLeft, editorWidth - controlPanelWidth - 12));
+    panelTop = Math.max(12, Math.min(panelTop, editorHeight - controlPanelHeight - 12));
+
+    setControlPanelPosition({ top: panelTop, left: panelLeft });
+  };
+
+  // Cập nhật lại vị trí handle resize và khối điều khiển khi chọn ảnh mới
+  useEffect(() => {
+    if (!selectedImage) {
+      setSelectedImageRect(null);
+      setControlPanelPosition(null);
+      return;
+    }
+    updateSelectedImageRect();
+    const handle = () => updateSelectedImageRect();
+    const handleScroll = () => updateSelectedImageRect();
+    window.addEventListener("resize", handle);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      window.removeEventListener("resize", handle);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedImage]);
+
+  const handleResizeMove = (event: MouseEvent) => {
+    if (!selectedImage || !editorRef.current || !resizingRef.current) return;
+    const { startX, startWidth } = resizingRef.current;
+    const deltaX = event.clientX - startX;
+    const newWidthPx = Math.max(40, startWidth + deltaX);
+    const editorRect = editorRef.current.getBoundingClientRect();
+    const editorWidth = editorRect.width || newWidthPx;
+    const percent = Math.max(10, Math.min(100, (newWidthPx / editorWidth) * 100));
+
+    selectedImage.style.width = `${percent}%`;
+    selectedImage.style.maxWidth = "100%";
+    selectedImage.style.height = "auto";
+
+    // Đồng bộ HTML ra ngoài
+    const htmlAfter = editorRef.current.innerHTML || "";
+    if (htmlAfter !== value) {
+      onChange(htmlAfter);
+    }
+
+    updateSelectedImageRect();
+  };
+
+  const stopResize = () => {
+    window.removeEventListener("mousemove", handleResizeMove);
+    window.removeEventListener("mouseup", stopResize);
+    resizingRef.current = null;
+  };
+
+  const startResize = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!selectedImage) return;
+    const imgRect = selectedImage.getBoundingClientRect();
+    resizingRef.current = {
+      startX: e.clientX,
+      startWidth: imgRect.width,
+    };
+    window.addEventListener("mousemove", handleResizeMove);
+    window.addEventListener("mouseup", stopResize);
+  };
+
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="border border-gray-200 rounded-lg overflow-hidden relative">
       {/* Toolbar */}
       <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border-b border-gray-200">
         {/* Undo/Redo */}
@@ -463,9 +700,23 @@ export default function RichTextEditor({
           size="icon"
           className="h-8 w-8"
           onClick={addImage}
-          title="Thêm hình ảnh"
+          title="Thêm hình ảnh bằng URL"
         >
           <ImageIcon className="w-4 h-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-xs font-medium"
+          onClick={() => {
+            // KHÔNG gọi saveSelection ở đây nữa để tránh ghi đè selection sang toolbar
+            // Vị trí con trỏ đã được lưu khi user click/gõ trong editor
+            setShowMediaDialog(true);
+          }}
+        >
+          <ImageIcon className="w-3 h-3 mr-1" />
+          Thư viện media
         </Button>
       </div>
 
@@ -476,6 +727,16 @@ export default function RichTextEditor({
         onInput={handleInput}
         onBlur={saveSelection}
         onFocus={restoreSelection}
+        onMouseUp={(e) => {
+          const target = e.target as HTMLElement | null;
+          if (target && target.tagName === "IMG") {
+            setSelectedImage(target as HTMLImageElement);
+          } else {
+            setSelectedImage(null);
+          }
+          saveSelection();
+        }}
+        onKeyUp={saveSelection}
         className="min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none"
         suppressContentEditableWarning
         data-placeholder={placeholder}
@@ -483,6 +744,109 @@ export default function RichTextEditor({
           minHeight: "300px",
         }}
       />
+
+      {/* Khối điều khiển kích thước ảnh - hiển thị bên cạnh ảnh */}
+      {selectedImage && controlPanelPosition && (
+        <div
+          className="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-2 flex flex-col gap-2 min-w-[200px]"
+          style={{
+            top: `${controlPanelPosition.top}px`,
+            left: `${controlPanelPosition.left}px`,
+          }}
+        >
+          <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">
+            Kích thước ảnh:
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => updateSelectedImageSize("small")}
+            >
+              Nhỏ (40%)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => updateSelectedImageSize("medium")}
+            >
+              Trung bình (60%)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => updateSelectedImageSize("large")}
+            >
+              Lớn (80%)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-[11px]"
+              onClick={() => updateSelectedImageSize("full")}
+            >
+              Toàn chiều rộng (100%)
+            </Button>
+          </div>
+          
+          <div className="border-t border-gray-200 pt-2 mt-1">
+            <span className="text-xs font-semibold text-gray-700 whitespace-nowrap block mb-1.5">
+              Căn chỉnh vị trí:
+            </span>
+            <div className="flex gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => updateSelectedImageAlign("left")}
+                title="Căn trái"
+              >
+                <AlignLeft className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => updateSelectedImageAlign("center")}
+                title="Căn giữa"
+              >
+                <AlignCenter className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => updateSelectedImageAlign("right")}
+                title="Căn phải"
+              >
+                <AlignRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Handle kéo resize ảnh (góc dưới bên phải ảnh) */}
+      {selectedImage && selectedImageRect && (
+        <div
+          className="absolute w-3 h-3 bg-blue-500 border border-white rounded cursor-se-resize z-20"
+          style={{
+            top: selectedImageRect.bottom - 6,
+            left: selectedImageRect.right - 6,
+          }}
+          onMouseDown={startResize}
+        />
+      )}
       
       <style jsx global>{`
         [contenteditable][data-placeholder]:empty:before {
@@ -491,6 +855,94 @@ export default function RichTextEditor({
           pointer-events: none;
         }
       `}</style>
+
+      {/* Media Library Dialog */}
+      <Dialog open={showMediaDialog} onOpenChange={setShowMediaDialog}>
+        <DialogContent 
+          className="w-full flex flex-col overflow-hidden"
+          style={{ 
+            maxWidth: "95vw", 
+            width: "60vw",
+            maxHeight: "90vh",
+            height: "90vh"
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Chọn ảnh từ thư viện media</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 overflow-y-auto" style={{ maxHeight: "calc(90vh - 100px)" }}>
+            <MediaLibraryPicker
+              onSelectImage={(url) => {
+                setShowMediaDialog(false);
+
+                if (editorRef.current) {
+                  editorRef.current.focus();
+
+                  try {
+                    if (selectionRef.current) {
+                      // Dùng Range API để chèn <img> tại đúng vị trí con trỏ
+                      const range = selectionRef.current;
+                      range.collapse(false);
+
+                      const img = document.createElement("img");
+                      img.src = url;
+                      img.alt = "";
+                      img.style.maxWidth = "100%";
+                      img.style.height = "auto";
+
+                      range.insertNode(img);
+
+                      // Di chuyển caret ra sau ảnh
+                      const newRange = document.createRange();
+                      newRange.setStartAfter(img);
+                      newRange.setEndAfter(img);
+                      const sel = window.getSelection();
+                      if (sel) {
+                        sel.removeAllRanges();
+                        sel.addRange(newRange);
+                      }
+
+                      // Cập nhật selectionRef sang vị trí mới
+                      selectionRef.current = newRange;
+
+                      const htmlAfter = editorRef.current.innerHTML || "";
+                      if (htmlAfter !== value) {
+                        onChange(htmlAfter);
+                      }
+                      return;
+                    }
+                  } catch {
+                    // ignore, sẽ fallback phía dưới
+                  }
+
+                  // Fallback: nếu không có selection (chưa click vào nội dung)
+                  // thì append ảnh vào cuối bài để luôn thấy ảnh
+                  const currentHtml =
+                    (editorRef.current.innerHTML &&
+                    editorRef.current.innerHTML.trim().length > 0
+                      ? editorRef.current.innerHTML
+                      : value) || "";
+
+                  const imgHtml = `<p><img src="${url}" alt="" /></p>`;
+                  const mergedHtml = currentHtml
+                    ? `${currentHtml}${imgHtml}`
+                    : imgHtml;
+
+                  editorRef.current.innerHTML = mergedHtml;
+                  if (mergedHtml !== value) {
+                    onChange(mergedHtml);
+                  }
+                } else {
+                  // Fallback nếu vì lý do gì đó chưa có editorRef
+                  const imgHtml = `<p><img src="${url}" alt="" /></p>`;
+                  const mergedHtml = value ? `${value}${imgHtml}` : imgHtml;
+                  onChange(mergedHtml);
+                }
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

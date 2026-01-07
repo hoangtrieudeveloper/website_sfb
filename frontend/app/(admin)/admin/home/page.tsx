@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Home, Sparkles, Users, Briefcase, ShieldCheck, MessageSquare, CheckCircle2, ArrowRight, Play, CheckCircle, LineChart, Code, Database, Cloud, BarChart3, FileCheck, Plus, Edit, Trash2, ChevronUp, ChevronDown, Star } from "lucide-react";
+import { Save, Home, Sparkles, Users, Briefcase, ShieldCheck, MessageSquare, CheckCircle2, ArrowRight, Play, CheckCircle, LineChart, Code, Database, Cloud, BarChart3, FileCheck, Plus, Edit, Trash2, ChevronUp, ChevronDown, Star, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImageUpload from "@/components/admin/ImageUpload";
+import MediaLibraryPicker from "@/app/(admin)/admin/news/MediaLibraryPicker";
 import * as LucideIcons from "lucide-react";
 import {
   Select,
@@ -85,6 +86,10 @@ export default function AdminHomepagePage() {
   const [editingFeatureItemIndex, setEditingFeatureItemIndex] = useState<{ block: 'block2' | 'block3', index: number } | null>(null);
   const [editingFeatureBlockIndex, setEditingFeatureBlockIndex] = useState<number | null>(null);
   const [editingTestimonialIndex, setEditingTestimonialIndex] = useState<number | null>(null);
+  
+  // State for secondary button link dialog
+  const [showSecondaryLinkDialog, setShowSecondaryLinkDialog] = useState(false);
+  const [secondaryLinkTab, setSecondaryLinkTab] = useState<"url" | "media">("url");
 
   const tabsConfig = [
     { value: 'hero' as BlockType, label: 'Hero Banner', icon: Home, description: 'Banner đầu trang..' },
@@ -438,6 +443,70 @@ export default function AdminHomepagePage() {
                               onChange={(e) => updateBlockData('hero', 'secondaryButton.text', e.target.value)}
                               placeholder="Xem video"
                             />
+                          </div>
+                          <div>
+                            <Label className="mb-2">Nút phụ - Link</Label>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                                <div className="flex flex-col">
+                                  <Label className="text-sm font-medium">
+                                    {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' 
+                                      ? 'Video/Media (Mở popup)' 
+                                      : 'Nhập link (Redirect)'}
+                                  </Label>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' 
+                                      ? 'Video sẽ mở trong popup khi click' 
+                                      : 'Link sẽ redirect đến trang đích khi click'}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className={`text-sm ${getBlockData('hero', 'secondaryButton.type', 'link') === 'link' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                                    Link
+                                  </span>
+                                  <Switch
+                                    checked={getBlockData('hero', 'secondaryButton.type', 'link') === 'video'}
+                                    onCheckedChange={(checked) => {
+                                      updateBlockData('hero', 'secondaryButton.type', checked ? 'video' : 'link');
+                                    }}
+                                  />
+                                  <span className={`text-sm ${getBlockData('hero', 'secondaryButton.type', 'link') === 'video' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                                    Video
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              {getBlockData('hero', 'secondaryButton.type', 'link') === 'link' && (
+                                <Input
+                                  value={getBlockData('hero', 'secondaryButton.link')}
+                                  onChange={(e) => updateBlockData('hero', 'secondaryButton.link', e.target.value)}
+                                  placeholder="/page hoặc https://example.com/..."
+                                />
+                              )}
+                              
+                              {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' && (
+                                <div className="flex gap-2">
+                                  <Input
+                                    value={getBlockData('hero', 'secondaryButton.link')}
+                                    onChange={(e) => updateBlockData('hero', 'secondaryButton.link', e.target.value)}
+                                    placeholder="/video hoặc https://youtube.com/..."
+                                    className="flex-1"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSecondaryLinkTab("media");
+                                      setShowSecondaryLinkDialog(true);
+                                    }}
+                                    title="Chọn video từ Media Library"
+                                  >
+                                    <ImageIcon className="w-4 h-4 mr-2" />
+                                    Chọn Media
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div>
                             <Label className="mb-2">Hình ảnh Hero</Label>
@@ -1276,12 +1345,15 @@ export default function AdminHomepagePage() {
                                   {getBlockData('hero', 'primaryButton.text', 'Khám phá giải pháp')}
                                   <ArrowRight size={20} />
                                 </a>
-                                <button className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-[#1D8FCF] text-[#1D8FCF] font-semibold">
+                                <a
+                                  href={getBlockData('hero', 'secondaryButton.link', '#')}
+                                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-[#1D8FCF] text-[#1D8FCF] font-semibold hover:bg-[#1D8FCF] hover:text-white transition-colors"
+                                >
                                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center">
                                     <Play size={14} className="text-white ml-0.5" />
                                   </div>
                                   {getBlockData('hero', 'secondaryButton.text', 'Xem video')}
-                                </button>
+                                </a>
                               </div>
                             </div>
                             <div className="relative">
@@ -2431,6 +2503,84 @@ export default function AdminHomepagePage() {
             <Button variant="outline" onClick={() => setEditingFeatureItemIndex(null)}>
               Đóng
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Secondary Button Link Dialog */}
+      <Dialog open={showSecondaryLinkDialog} onOpenChange={setShowSecondaryLinkDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Chọn link cho nút phụ</DialogTitle>
+            <DialogDescription>
+              Bạn có thể nhập link thủ công hoặc chọn file từ thư viện Media
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <div className="inline-flex rounded-xl border bg-gray-100 p-1 gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={secondaryLinkTab === "url" ? "default" : "ghost"}
+                  className="px-4"
+                  onClick={() => setSecondaryLinkTab("url")}
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Nhập link
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={secondaryLinkTab === "media" ? "default" : "ghost"}
+                  className="px-4"
+                  onClick={() => setSecondaryLinkTab("media")}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Chọn từ Media Library
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col overflow-y-auto">
+              {secondaryLinkTab === "url" ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Nhập URL hoặc đường dẫn</Label>
+                    <Input
+                      value={getBlockData('hero', 'secondaryButton.link')}
+                      onChange={(e) => updateBlockData('hero', 'secondaryButton.link', e.target.value)}
+                      placeholder="/video hoặc https://youtube.com/..."
+                      className="mt-2"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Ví dụ: /video, https://youtube.com/watch?v=..., /uploads/media/file.mp4
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <MediaLibraryPicker
+                  fileTypeFilter="video,audio"
+                  onSelectImage={(url) => {
+                    updateBlockData('hero', 'secondaryButton.link', url);
+                    setShowSecondaryLinkDialog(false);
+                    toast.success("Đã chọn file từ Media Library");
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSecondaryLinkDialog(false)}>
+              Đóng
+            </Button>
+            {secondaryLinkTab === "url" && (
+              <Button onClick={() => setShowSecondaryLinkDialog(false)}>
+                Xác nhận
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

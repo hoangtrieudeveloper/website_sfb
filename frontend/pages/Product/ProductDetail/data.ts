@@ -64,6 +64,7 @@ export type ProductDetail = {
 
     // HERO
     metaTop: string;
+    meta?: string;
     name: string;
     heroDescription: string;
     heroImage: string;
@@ -85,6 +86,14 @@ export type ProductDetail = {
     expandCtaText: string;
     expandCtaHref: string;
     expandImage: string;
+
+    // GALLERY & DISPLAY CONFIG
+    galleryTitle?: string;
+    galleryImages?: string[];
+    galleryPosition?: 'top' | 'bottom';
+    showTableOfContents?: boolean;
+    enableShareButtons?: boolean;
+    showAuthorBox?: boolean;
 };
 
 export const productDetails: ProductDetail[] = [

@@ -36,6 +36,16 @@ export default function EditNewsPage() {
           seoTitle: news.seoTitle || "",
           seoDescription: news.seoDescription || "",
           seoKeywords: news.seoKeywords || "",
+          galleryTitle: news.galleryTitle || "",
+          // Cấu hình nâng cao cho nội dung chi tiết
+          galleryImages: news.galleryImages || [],
+          galleryPosition: news.galleryPosition || "top",
+          showTableOfContents:
+            news.showTableOfContents !== false,
+          enableShareButtons:
+            news.enableShareButtons !== false,
+          showAuthorBox:
+            news.showAuthorBox !== false,
         });
       } catch (error: any) {
         toast.error(error?.message || "Không thể tải dữ liệu bài viết");
@@ -57,7 +67,7 @@ export default function EditNewsPage() {
         body: JSON.stringify(formData),
       });
       toast.success("Đã cập nhật bài viết");
-      router.push("/admin/news");
+      // Không redirect, giữ nguyên ở trang hiện tại
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi xảy ra khi cập nhật bài viết");
       console.error(error);

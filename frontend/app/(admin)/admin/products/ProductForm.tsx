@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Save, Plus, X, ArrowRight, Play, CheckCircle2, ChevronUp, ChevronDown, Trash2, Link as LinkIcon, Search as SearchIcon, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, ArrowRight, Play, CheckCircle2, ChevronUp, ChevronDown, Trash2, Link as LinkIcon, Search as SearchIcon, Sparkles, Image as ImageIcon } from "lucide-react";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import { NumberedSectionWidget } from "@/components/admin/ProductWidgets/Numbere
 import { ExpandWidget } from "@/components/admin/ProductWidgets/ExpandWidget";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import { generateSlug } from "@/lib/date";
+import { buildUrl } from "@/lib/api/base";
 
 interface ProductFormData {
   categoryId: number | "";
@@ -85,6 +86,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   const [activeContentModeTab, setActiveContentModeTab] = useState<string>("widget");
   // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [galleryUploadKey, setGalleryUploadKey] = useState(0);
 
   const [formData, setFormData] = useState<ProductFormData>({
     categoryId: "",
@@ -177,6 +179,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             ctaHref: "",
             image: "",
           },
+          galleryImages: [],
+          galleryPosition: "top",
+          galleryTitle: "",
+          showTableOfContents: true,
+          enableShareButtons: true,
+          showAuthorBox: true,
         });
         setActiveContentModeTab("widget");
         return;
@@ -214,6 +222,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             ctaHref: "",
             image: "",
           },
+          galleryImages: [],
+          galleryPosition: "top",
+          galleryTitle: "",
+          showTableOfContents: true,
+          enableShareButtons: true,
+          showAuthorBox: true,
         });
         setActiveContentModeTab("widget");
       } else {
@@ -248,6 +262,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             ctaHref: response.data.expand?.ctaHref || "",
             image: response.data.expand?.image || "",
           },
+          galleryImages: response.data.galleryImages || [],
+          galleryPosition: response.data.galleryPosition || "top",
+          galleryTitle: response.data.galleryTitle || "",
+          showTableOfContents: response.data.showTableOfContents !== false,
+          enableShareButtons: response.data.enableShareButtons !== false,
+          showAuthorBox: response.data.showAuthorBox !== false,
         });
         setActiveContentModeTab(response.data.contentMode === "content" ? "content" : "widget");
       }
@@ -280,6 +300,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           ctaHref: "",
           image: "",
         },
+        galleryImages: [],
+        galleryPosition: "top",
+        galleryTitle: "",
+        showTableOfContents: true,
+        enableShareButtons: true,
+        showAuthorBox: true,
       });
       setActiveContentModeTab("widget");
     } finally {
@@ -1822,6 +1848,225 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                   <p className="text-xs text-gray-500">
                                     Sử dụng trình soạn thảo để tạo nội dung sản phẩm với định dạng phong phú.
                                   </p>
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            {/* Gallery ảnh và cấu hình vị trí hiển thị */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                  <ImageIcon className="w-4 h-4 text-blue-600" />
+                                  Thư viện ảnh (Gallery)
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-4">
+                                  <div className="space-y-2">
+                                    <Label htmlFor="galleryTitle" className="text-sm font-semibold">
+                                      Tiêu đề bộ sưu tập (tuỳ chọn)
+                                    </Label>
+                                    <Input
+                                      id="galleryTitle"
+                                      placeholder="Nhập tiêu đề cho gallery (nếu cần)"
+                                      value={detailData?.galleryTitle || ""}
+                                      onChange={(e) =>
+                                        setDetailData({
+                                          ...detailData,
+                                          galleryTitle: e.target.value,
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    Chọn nhiều ảnh để hiển thị dạng gallery trong bài viết. Ảnh sẽ
+                                    được render ở vị trí bạn chọn bên dưới (trên/cuối nội dung).
+                                  </p>
+
+                                  <div className="border rounded-lg p-3 bg-gray-50 space-y-3">
+                                    <div className="text-xs font-medium text-gray-600">
+                                      Thêm ảnh vào gallery
+                                    </div>
+                                    <ImageUpload
+                                      key={galleryUploadKey}
+                                      multiple
+                                      currentImage={undefined}
+                                      onImagesSelect={(urls) => {
+                                        if (!urls || urls.length === 0) return;
+                                        setDetailData({
+                                          ...detailData,
+                                          galleryImages: [
+                                            ...(detailData?.galleryImages || []),
+                                            ...urls,
+                                          ],
+                                        });
+                                        // Reset lại component upload để người dùng chọn ảnh tiếp theo nhanh
+                                        setGalleryUploadKey((prev) => prev + 1);
+                                      }}
+                                    />
+                                    <p className="text-[11px] text-gray-500">
+                                      Sau khi chọn, ảnh sẽ được thêm vào danh sách bên dưới. Bạn có
+                                      thể xoá từng ảnh nếu không cần.
+                                    </p>
+
+                                    {detailData?.galleryImages && detailData.galleryImages.length > 0 ? (
+                                      <div className="flex flex-wrap gap-3 mt-2">
+                                        {detailData.galleryImages.map((img: string, idx: number) => (
+                                          <div
+                                            key={idx}
+                                            className="relative w-28 h-20 rounded-md overflow-hidden bg-white border border-gray-200 shadow-sm"
+                                          >
+                                            <img
+                                              src={
+                                                img.startsWith("/")
+                                                  ? buildUrl(img)
+                                                  : img
+                                              }
+                                              alt={`Gallery ${idx + 1}`}
+                                              className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                setDetailData({
+                                                  ...detailData,
+                                                  galleryImages: detailData.galleryImages.filter(
+                                                    (_: string, i: number) => i !== idx,
+                                                  ),
+                                                })
+                                              }
+                                              className="absolute top-1 right-1 px-1.5 py-0.5 text-[10px] bg-red-600 text-white rounded opacity-0 hover:opacity-100 transition"
+                                              title="Xoá ảnh"
+                                            >
+                                              Xoá
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <p className="text-xs text-gray-400 mt-1">
+                                        Chưa có ảnh nào trong gallery. Chọn ảnh để thêm.
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  <div className="mt-3 space-y-2">
+                                    <Label className="text-sm font-semibold">
+                                      Vị trí hiển thị gallery trong bài viết
+                                    </Label>
+                                    <div className="flex flex-wrap gap-3 text-sm text-gray-700">
+                                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name="gallery-position"
+                                          value="top"
+                                          checked={detailData?.galleryPosition === "top"}
+                                          onChange={() =>
+                                            setDetailData({
+                                              ...detailData,
+                                              galleryPosition: "top",
+                                            })
+                                          }
+                                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                        />
+                                        <span>Trên cùng bài viết</span>
+                                      </label>
+                                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name="gallery-position"
+                                          value="bottom"
+                                          checked={detailData?.galleryPosition === "bottom"}
+                                          onChange={() =>
+                                            setDetailData({
+                                              ...detailData,
+                                              galleryPosition: "bottom",
+                                            })
+                                          }
+                                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                                        />
+                                        <span>Cuối bài viết</span>
+                                      </label>
+                                    </div>
+                                    <p className="text-[11px] text-gray-500">
+                                      Phần hiển thị thực tế bạn xử lý ở component trang public
+                                      (chèn gallery tương ứng với vị trí đã chọn).
+                                    </p>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            {/* Cấu hình hiển thị chi tiết bài viết */}
+                            <Card>
+                              <CardHeader>
+                                <CardTitle>Cấu hình hiển thị chi tiết bài viết</CardTitle>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Các tuỳ chọn này chỉ ảnh hưởng tới cách hiển thị bài viết trên
+                                  trang public (không ảnh hưởng dữ liệu SEO).
+                                </p>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-800">
+                                        Hiển thị mục lục (Table of Contents)
+                                      </p>
+                                      <p className="text-[11px] text-gray-500">
+                                        Tự động tạo mục lục từ các heading (H2, H3) trong bài viết.
+                                      </p>
+                                    </div>
+                                    <Switch
+                                      checked={detailData?.showTableOfContents !== false}
+                                      onCheckedChange={(checked) =>
+                                        setDetailData({
+                                          ...detailData,
+                                          showTableOfContents: checked,
+                                        })
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-800">
+                                        Nút chia sẻ mạng xã hội
+                                      </p>
+                                      <p className="text-[11px] text-gray-500">
+                                        Hiển thị nút chia sẻ Facebook, LinkedIn… ở đầu/cuối bài viết.
+                                      </p>
+                                    </div>
+                                    <Switch
+                                      checked={detailData?.enableShareButtons !== false}
+                                      onCheckedChange={(checked) =>
+                                        setDetailData({
+                                          ...detailData,
+                                          enableShareButtons: checked,
+                                        })
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-800">
+                                        Hiển thị box tác giả
+                                      </p>
+                                      <p className="text-[11px] text-gray-500">
+                                        Hiển thị thông tin tác giả, avatar tại cuối bài viết.
+                                      </p>
+                                    </div>
+                                    <Switch
+                                      checked={detailData?.showAuthorBox !== false}
+                                      onCheckedChange={(checked) =>
+                                        setDetailData({
+                                          ...detailData,
+                                          showAuthorBox: checked,
+                                        })
+                                      }
+                                    />
+                                  </div>
                                 </div>
                               </CardContent>
                             </Card>

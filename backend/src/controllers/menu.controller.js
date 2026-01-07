@@ -5,7 +5,6 @@ const mapMenu = (row) => ({
   id: row.id,
   title: row.title,
   url: row.url,
-  position: row.position,
   parentId: row.parent_id,
   parentTitle: row.parent_title || null,
   sortOrder: row.sort_order || 0,
@@ -18,15 +17,10 @@ const mapMenu = (row) => ({
 // GET /api/admin/menus
 exports.getMenus = async (req, res, next) => {
   try {
-    const { position, search, active } = req.query;
+    const { search, active } = req.query;
 
     const conditions = [];
     const params = [];
-
-    if (position) {
-      params.push(position);
-      conditions.push(`m.position = $${params.length}`);
-    }
 
     if (typeof active !== 'undefined') {
       params.push(active === 'true');
@@ -48,7 +42,6 @@ exports.getMenus = async (req, res, next) => {
         m.id,
         m.title,
         m.url,
-        m.position,
         m.parent_id,
         pm.title AS parent_title,
         m.sort_order,
@@ -59,7 +52,7 @@ exports.getMenus = async (req, res, next) => {
       FROM menus m
       LEFT JOIN menus pm ON m.parent_id = pm.id
       ${whereClause}
-      ORDER BY m.position, COALESCE(m.parent_id, m.id), m.sort_order, m.id
+      ORDER BY COALESCE(m.parent_id, m.id), m.sort_order, m.id
     `;
 
     const { rows } = await pool.query(query, params);
@@ -84,7 +77,6 @@ exports.getMenuById = async (req, res, next) => {
           m.id,
           m.title,
           m.url,
-          m.position,
           m.parent_id,
           pm.title AS parent_title,
           m.sort_order,
@@ -122,7 +114,6 @@ exports.createMenu = async (req, res, next) => {
     const {
       title,
       url,
-      position = 'header',
       parentId = null,
       sortOrder = 0,
       icon = '',
@@ -147,20 +138,18 @@ exports.createMenu = async (req, res, next) => {
       INSERT INTO menus (
         title,
         url,
-        position,
         parent_id,
         sort_order,
         icon,
         is_active
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
 
     const params = [
       title.trim(),
       url.trim(),
-      position || 'header',
       parentId || null,
       Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
       icon || '',
@@ -185,7 +174,6 @@ exports.updateMenu = async (req, res, next) => {
     const {
       title,
       url,
-      position,
       parentId,
       sortOrder,
       icon,
@@ -202,7 +190,6 @@ exports.updateMenu = async (req, res, next) => {
 
     if (title !== undefined) addField('title', title);
     if (url !== undefined) addField('url', url);
-    if (position !== undefined) addField('position', position);
     if (parentId !== undefined) addField('parent_id', parentId || null);
     if (sortOrder !== undefined)
       addField(
@@ -272,4 +259,84 @@ exports.deleteMenu = async (req, res, next) => {
   }
 };
 
+// GET /api/public/menus - Public API để lấy menu cho frontend
+exports.getPublicMenus = async (req, res, next) => {
+  try {
+    // Chỉ lấy menu active, sắp xếp theo parent_id và sort_order
+    const query = `
+      SELECT
+        m.id,
+        m.title,
+        m.url,
+        m.parent_id,
+        m.sort_order,
+        m.icon,
+        m.is_active
+      FROM menus m
+      WHERE m.is_active = true
+      ORDER BY COALESCE(m.parent_id, m.id), m.sort_order, m.id
+    `;
+
+    const { rows } = await pool.query(query);
+
+    // Chuyển đổi flat list thành hierarchical structure
+    const menuMap = new Map();
+    const rootMenus = [];
+
+    // Tạo map cho tất cả menu
+    rows.forEach((row) => {
+      menuMap.set(row.id, {
+        id: row.id,
+        title: row.title,
+        url: row.url,
+        parentId: row.parent_id,
+        sortOrder: row.sort_order || 0,
+        icon: row.icon || '',
+        children: [],
+      });
+    });
+
+    // Xây dựng cây menu
+    rows.forEach((row) => {
+      const menu = menuMap.get(row.id);
+      if (row.parent_id) {
+        const parent = menuMap.get(row.parent_id);
+        if (parent) {
+          parent.children.push(menu);
+        } else {
+          // Nếu parent không tồn tại hoặc không active, thêm vào root
+          rootMenus.push(menu);
+        }
+      } else {
+        // Menu không có parent, thêm vào root
+        rootMenus.push(menu);
+      }
+    });
+
+    // Sắp xếp children của mỗi menu
+    menuMap.forEach((menu) => {
+      if (menu.children && menu.children.length > 0) {
+        menu.children.sort((a, b) => a.sortOrder - b.sortOrder);
+      }
+    });
+
+    // Sắp xếp root menus
+    rootMenus.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    // Debug log để kiểm tra structure
+    console.log('[Menu API] Root menus count:', rootMenus.length);
+    rootMenus.forEach(menu => {
+      if (menu.children && menu.children.length > 0) {
+        console.log(`[Menu API] Menu "${menu.title}" has ${menu.children.length} children`);
+      }
+    });
+
+    return res.json({
+      success: true,
+      data: rootMenus,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
 
