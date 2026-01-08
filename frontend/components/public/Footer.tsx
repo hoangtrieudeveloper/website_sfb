@@ -105,10 +105,10 @@ export function Footer() {
   const solutions = parseLinks(settings.footer_solutions || '', solutionsFallback);
 
   return (
-    <footer className="relative flex flex-col items-center gap-[10px] w-full max-w-[1920px] mx-auto pt-[120px] pb-[20px] bg-[#F9FAFC] text-[#334155] overflow-hidden">
-      <div className="flex flex-col lg:flex-row w-full max-w-[1298px] items-start gap-[48px] mb-16 px-6 xl:px-0">
+    <footer className="relative flex flex-col items-center gap-[10px] w-full max-w-[1920px] mx-auto pt-[60px] lg:pt-[120px] pb-[20px] bg-[#F9FAFC] text-[#334155] overflow-hidden">
+      <div className="grid grid-cols-2 lg:flex lg:flex-row w-full max-w-[1298px] items-start gap-x-8 gap-y-10 lg:gap-[48px] mb-10 lg:mb-16 px-6 xl:px-0">
         {/* Column 1: Logo & Intro */}
-        <div className="space-y-6 flex-1">
+        <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start space-y-4 lg:space-y-6 text-center lg:text-left">
           <Link href="/" className="inline-block">
             {/* Logo Placeholder - replaced with actual logo when available or text fallback that looks good */}
             <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export function Footer() {
               </div>
 
               {/* Text Stack */}
-              <div className="flex flex-col" style={{ fontFamily: 'UTM Alexander, sans-serif' }}>
+              <div className="flex flex-col items-start" style={{ fontFamily: 'UTM Alexander, sans-serif' }}>
                 <span
                   className="text-[#006FB3] font-normal uppercase leading-[100%]"
                   style={{ fontSize: '38px' }}
@@ -139,7 +139,7 @@ export function Footer() {
             </div>
           </Link>
 
-          <p className="text-[#334155] leading-relaxed text-[15px]">
+          <p className="hidden lg:block text-[#334155] leading-relaxed text-[15px]">
             {siteDescription}
           </p>
 
@@ -163,8 +163,8 @@ export function Footer() {
         </div>
 
         {/* Column 2: Links */}
-        <div className="flex-1">
-          <h4 className="text-[#0F172A] font-bold text-lg mb-6">Liên kết</h4>
+        <div className="col-span-1 lg:flex-1">
+          <h4 className="text-[#0F172A] font-bold text-lg mb-4 lg:mb-6">Liên kết</h4>
           <ul className="space-y-3">
             {quickLinks.map((link, idx) => (
               <li key={idx}>
@@ -180,8 +180,8 @@ export function Footer() {
         </div>
 
         {/* Column 3: Services */}
-        <div className="flex-1">
-          <h4 className="text-[#0F172A] font-bold text-lg mb-6">Dịch vụ</h4>
+        <div className="col-span-1 lg:flex-1">
+          <h4 className="text-[#0F172A] font-bold text-lg mb-4 lg:mb-6">Dịch vụ</h4>
           <ul className="space-y-3">
             {solutions.map((item, idx) => (
               <li key={idx}>
@@ -197,9 +197,9 @@ export function Footer() {
         </div>
 
         {/* Column 4: Contact Info */}
-        <div className="flex-1">
-          <h4 className="text-[#0F172A] font-bold text-lg mb-6">Thông tin liên hệ</h4>
-          <div className="space-y-4">
+        <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start text-center lg:text-left">
+          <h4 className="text-[#0F172A] font-bold text-lg mb-4 lg:mb-6">Thông tin liên hệ</h4>
+          <div className="space-y-4 w-full">
             <div>
               <span className="font-bold text-[#334155] block mb-1 text-[15px]">Địa chỉ</span>
               <p className="text-[#334155] text-[15px] leading-relaxed">

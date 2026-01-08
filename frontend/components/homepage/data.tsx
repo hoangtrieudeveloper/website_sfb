@@ -7,7 +7,6 @@ import {
     Database,
     Cloud,
 } from "lucide-react";
-
 export const partners = [
     "/images/partners/baohiem.png",
     "/images/partners/botaichinh.png",
@@ -20,7 +19,6 @@ export const partners = [
     "/images/partners/botaichinh.png", // Repeated to ensure enough items for scrolling if needed
     "/images/partners/hvcsnd.png",
 ];
-
 export const trustFeatures = [
     {
         icon: BarChart3,
@@ -41,7 +39,6 @@ export const trustFeatures = [
             "Quy trình quản lý dự án rõ ràng, từ khảo sát đến vận hành, luôn minh bạch với khách hàng.",
     },
 ];
-
 export const purposeItems = [
     {
         title: "Chúng tôi hiện diện để",
@@ -188,7 +185,7 @@ export const heroData = {
         line3: "Cho doanh nghiệp"
     },
     description: "SFB Technology đồng hành cùng doanh nghiệp trong hành trình chuyển đổi số với các giải pháp công nghệ tiên tiến, tối ưu hóa quy trình và tăng trưởng bền vững.",
-    primaryButton: { text: "Khám phá giải pháp", link: "/solutions" },
+    primaryButton: { text: "Khám phá giải pháp", link: "/products" },
     secondaryButton: { text: "Xem video" },
     heroImage: "/images/hero.png",
     partners: partners

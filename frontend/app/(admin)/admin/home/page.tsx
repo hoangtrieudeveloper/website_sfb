@@ -78,7 +78,7 @@ export default function AdminHomepagePage() {
     consult: false,
   });
   const [activeTab, setActiveTab] = useState<BlockType>('hero');
-  
+
   // State for editing array items
   const [editingSlideIndex, setEditingSlideIndex] = useState<number | null>(null);
   const [editingSolutionIndex, setEditingSolutionIndex] = useState<number | null>(null);
@@ -86,7 +86,7 @@ export default function AdminHomepagePage() {
   const [editingFeatureItemIndex, setEditingFeatureItemIndex] = useState<{ block: 'block2' | 'block3', index: number } | null>(null);
   const [editingFeatureBlockIndex, setEditingFeatureBlockIndex] = useState<number | null>(null);
   const [editingTestimonialIndex, setEditingTestimonialIndex] = useState<number | null>(null);
-  
+
   // State for secondary button link dialog
   const [showSecondaryLinkDialog, setShowSecondaryLinkDialog] = useState(false);
   const [secondaryLinkTab, setSecondaryLinkTab] = useState<"url" | "media">("url");
@@ -274,7 +274,7 @@ export default function AdminHomepagePage() {
     const currentArray = getBlockData(blockType, arrayPath, []) as any[];
     if (direction === 'up' && index === 0) return;
     if (direction === 'down' && index === currentArray.length - 1) return;
-    
+
     const newArray = [...currentArray];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     [newArray[index], newArray[newIndex]] = [newArray[newIndex], newArray[index]];
@@ -298,26 +298,24 @@ export default function AdminHomepagePage() {
               const Icon = tab.icon;
               const isActive = activeTab === tab.value;
               const isCompleted = tabsConfig.findIndex(t => t.value === activeTab) > index;
-              
+
               return (
                 <div key={tab.value} className="flex items-center flex-1 min-w-[150px]">
                   <button
                     onClick={() => setActiveTab(tab.value)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all flex-1 ${
-                      isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all flex-1 ${isActive
                         ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
                         : isCompleted
-                        ? "bg-green-50 text-green-700 border-2 border-green-300"
-                        : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
-                    }`}
+                          ? "bg-green-50 text-green-700 border-2 border-green-300"
+                          : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
+                      }`}
                   >
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 ${
-                      isActive
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 ${isActive
                         ? "bg-blue-500 text-white"
                         : isCompleted
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-300 text-gray-600"
-                    }`}>
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-300 text-gray-600"
+                      }`}>
                       {isCompleted ? (
                         <CheckCircle2 className="w-5 h-5" />
                       ) : (
@@ -330,9 +328,8 @@ export default function AdminHomepagePage() {
                     </div>
                   </button>
                   {index < tabsConfig.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-2 min-w-[20px] ${
-                      isCompleted ? "bg-green-500" : "bg-gray-300"
-                    }`} />
+                    <div className={`flex-1 h-0.5 mx-2 min-w-[20px] ${isCompleted ? "bg-green-500" : "bg-gray-300"
+                      }`} />
                   )}
                 </div>
               );
@@ -345,7 +342,7 @@ export default function AdminHomepagePage() {
         {BLOCK_TYPES.map((blockType) => {
           const tabConfig = tabsConfig.find(t => t.value === blockType);
           const block = blocks[blockType];
-          
+
           return (
             <TabsContent key={blockType} value={blockType} className="space-y-0">
               <Tabs defaultValue="config" className="w-full">
@@ -372,9 +369,9 @@ export default function AdminHomepagePage() {
                           </CardTitle>
                           <p className="text-sm text-gray-600 ml-8">{tabConfig?.description}</p>
                         </div>
-                        <Button 
-                          onClick={(e) => { e.stopPropagation(); handleSaveBlock(blockType); }} 
-                          disabled={loading[blockType]} 
+                        <Button
+                          onClick={(e) => { e.stopPropagation(); handleSaveBlock(blockType); }}
+                          disabled={loading[blockType]}
                           size="sm"
                         >
                           <Save className="h-4 w-4 mr-2" />
@@ -384,869 +381,636 @@ export default function AdminHomepagePage() {
                     </CardHeader>
                     {!collapsedBlocks[blockType] && (
                       <CardContent className="space-y-4 px-6 py-4">
-                      {/* Render form based on block type */}
-                      {blockType === 'hero' && (
-                        <>
-                          <div>
-                            <Label className="mb-2">Tiêu đề dòng 1</Label>
-                            <Input
-                              value={getBlockData('hero', 'title.line1')}
-                              onChange={(e) => updateBlockData('hero', 'title.line1', e.target.value)}
-                              placeholder="Chuyển đổi số "
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Tiêu đề dòng 2</Label>
-                            <Input
-                              value={getBlockData('hero', 'title.line2')}
-                              onChange={(e) => updateBlockData('hero', 'title.line2', e.target.value)}
-                              placeholder="Thông minh "
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Tiêu đề dòng 3</Label>
-                            <Input
-                              value={getBlockData('hero', 'title.line3')}
-                              onChange={(e) => updateBlockData('hero', 'title.line3', e.target.value)}
-                              placeholder="Cho doanh nghiệp"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Mô tả</Label>
-                            <Textarea
-                              value={getBlockData('hero', 'description')}
-                              onChange={(e) => updateBlockData('hero', 'description', e.target.value)}
-                              placeholder="Mô tả..."
-                              rows={3}
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút chính - Text</Label>
-                            <Input
-                              value={getBlockData('hero', 'primaryButton.text')}
-                              onChange={(e) => updateBlockData('hero', 'primaryButton.text', e.target.value)}
-                              placeholder="Khám phá giải pháp"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút chính - Link</Label>
-                            <Input
-                              value={getBlockData('hero', 'primaryButton.link')}
-                              onChange={(e) => updateBlockData('hero', 'primaryButton.link', e.target.value)}
-                              placeholder="/solutions"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút phụ - Text</Label>
-                            <Input
-                              value={getBlockData('hero', 'secondaryButton.text')}
-                              onChange={(e) => updateBlockData('hero', 'secondaryButton.text', e.target.value)}
-                              placeholder="Xem video"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút phụ - Link</Label>
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-                                <div className="flex flex-col">
-                                  <Label className="text-sm font-medium">
-                                    {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' 
-                                      ? 'Video/Media (Mở popup)' 
-                                      : 'Nhập link (Redirect)'}
-                                  </Label>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' 
-                                      ? 'Video sẽ mở trong popup khi click' 
-                                      : 'Link sẽ redirect đến trang đích khi click'}
-                                  </p>
+                        {/* Render form based on block type */}
+                        {blockType === 'hero' && (
+                          <>
+                            <div>
+                              <Label className="mb-2">Tiêu đề dòng 1</Label>
+                              <Input
+                                value={getBlockData('hero', 'title.line1')}
+                                onChange={(e) => updateBlockData('hero', 'title.line1', e.target.value)}
+                                placeholder="Chuyển đổi số "
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Tiêu đề dòng 2</Label>
+                              <Input
+                                value={getBlockData('hero', 'title.line2')}
+                                onChange={(e) => updateBlockData('hero', 'title.line2', e.target.value)}
+                                placeholder="Thông minh "
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Tiêu đề dòng 3</Label>
+                              <Input
+                                value={getBlockData('hero', 'title.line3')}
+                                onChange={(e) => updateBlockData('hero', 'title.line3', e.target.value)}
+                                placeholder="Cho doanh nghiệp"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Mô tả</Label>
+                              <Textarea
+                                value={getBlockData('hero', 'description')}
+                                onChange={(e) => updateBlockData('hero', 'description', e.target.value)}
+                                placeholder="Mô tả..."
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút chính - Text</Label>
+                              <Input
+                                value={getBlockData('hero', 'primaryButton.text')}
+                                onChange={(e) => updateBlockData('hero', 'primaryButton.text', e.target.value)}
+                                placeholder="Khám phá giải pháp"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút chính - Link</Label>
+                              <Input
+                                value={getBlockData('hero', 'primaryButton.link')}
+                                onChange={(e) => updateBlockData('hero', 'primaryButton.link', e.target.value)}
+                                placeholder="/solutions"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút phụ - Text</Label>
+                              <Input
+                                value={getBlockData('hero', 'secondaryButton.text')}
+                                onChange={(e) => updateBlockData('hero', 'secondaryButton.text', e.target.value)}
+                                placeholder="Xem video"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút phụ - Link</Label>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                                  <div className="flex flex-col">
+                                    <Label className="text-sm font-medium">
+                                      {getBlockData('hero', 'secondaryButton.type', 'link') === 'video'
+                                        ? 'Video/Media (Mở popup)'
+                                        : 'Nhập link (Redirect)'}
+                                    </Label>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {getBlockData('hero', 'secondaryButton.type', 'link') === 'video'
+                                        ? 'Video sẽ mở trong popup khi click'
+                                        : 'Link sẽ redirect đến trang đích khi click'}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className={`text-sm ${getBlockData('hero', 'secondaryButton.type', 'link') === 'link' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                                      Link
+                                    </span>
+                                    <Switch
+                                      checked={getBlockData('hero', 'secondaryButton.type', 'link') === 'video'}
+                                      onCheckedChange={(checked) => {
+                                        updateBlockData('hero', 'secondaryButton.type', checked ? 'video' : 'link');
+                                      }}
+                                    />
+                                    <span className={`text-sm ${getBlockData('hero', 'secondaryButton.type', 'link') === 'video' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                                      Video
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <span className={`text-sm ${getBlockData('hero', 'secondaryButton.type', 'link') === 'link' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
-                                    Link
-                                  </span>
-                                  <Switch
-                                    checked={getBlockData('hero', 'secondaryButton.type', 'link') === 'video'}
-                                    onCheckedChange={(checked) => {
-                                      updateBlockData('hero', 'secondaryButton.type', checked ? 'video' : 'link');
-                                    }}
-                                  />
-                                  <span className={`text-sm ${getBlockData('hero', 'secondaryButton.type', 'link') === 'video' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
-                                    Video
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {getBlockData('hero', 'secondaryButton.type', 'link') === 'link' && (
-                                <Input
-                                  value={getBlockData('hero', 'secondaryButton.link')}
-                                  onChange={(e) => updateBlockData('hero', 'secondaryButton.link', e.target.value)}
-                                  placeholder="/page hoặc https://example.com/..."
-                                />
-                              )}
-                              
-                              {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' && (
-                                <div className="flex gap-2">
+                                {getBlockData('hero', 'secondaryButton.type', 'link') === 'link' && (
                                   <Input
                                     value={getBlockData('hero', 'secondaryButton.link')}
                                     onChange={(e) => updateBlockData('hero', 'secondaryButton.link', e.target.value)}
-                                    placeholder="/video hoặc https://youtube.com/..."
-                                    className="flex-1"
+                                    placeholder="/page hoặc https://example.com/..."
                                   />
+                                )}
+
+                                {getBlockData('hero', 'secondaryButton.type', 'link') === 'video' && (
+                                  <div className="flex gap-2">
+                                    <Input
+                                      value={getBlockData('hero', 'secondaryButton.link')}
+                                      onChange={(e) => updateBlockData('hero', 'secondaryButton.link', e.target.value)}
+                                      placeholder="/video hoặc https://youtube.com/..."
+                                      className="flex-1"
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      onClick={() => {
+                                        setSecondaryLinkTab("media");
+                                        setShowSecondaryLinkDialog(true);
+                                      }}
+                                      title="Chọn video từ Media Library"
+                                    >
+                                      <ImageIcon className="w-4 h-4 mr-2" />
+                                      Chọn Media
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="mb-2">Hình ảnh Hero</Label>
+                              <ImageUpload
+                                currentImage={getBlockData('hero', 'heroImage')}
+                                onImageSelect={(url: string) => updateBlockData('hero', 'heroImage', url)}
+                              />
+                            </div>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <Label className="mb-2">Partners (Logo đối tác)</Label>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    const partners = getBlockData('hero', 'partners', []) as string[];
+                                    updateBlockData('hero', 'partners', [...partners, '']);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Thêm partner
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                {(getBlockData('hero', 'partners', []) as string[]).map((partner, idx) => (
+                                  <div key={idx} className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <Label className="mb-2 text-sm">Partner {idx + 1}</Label>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => {
+                                          const partners = getBlockData('hero', 'partners', []) as string[];
+                                          updateBlockData('hero', 'partners', partners.filter((_, i) => i !== idx));
+                                        }}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                    <ImageUpload
+                                      currentImage={partner}
+                                      onImageSelect={(url: string) => {
+                                        const partners = getBlockData('hero', 'partners', []) as string[];
+                                        const newPartners = [...partners];
+                                        newPartners[idx] = url;
+                                        updateBlockData('hero', 'partners', newPartners);
+                                      }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {blockType === 'consult' && (
+                          <>
+                            <div>
+                              <Label className="mb-2">Tiêu đề</Label>
+                              <Input
+                                value={getBlockData('consult', 'title')}
+                                onChange={(e) => updateBlockData('consult', 'title', e.target.value)}
+                                placeholder="Miễn phí tư vấn"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Mô tả</Label>
+                              <Textarea
+                                value={getBlockData('consult', 'description')}
+                                onChange={(e) => updateBlockData('consult', 'description', e.target.value)}
+                                placeholder="Mô tả..."
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút chính - Text</Label>
+                              <Input
+                                value={getBlockData('consult', 'buttons.primary.text')}
+                                onChange={(e) => updateBlockData('consult', 'buttons.primary.text', e.target.value)}
+                                placeholder="Tư vấn miễn phí ngay"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút chính - Link</Label>
+                              <Input
+                                value={getBlockData('consult', 'buttons.primary.link')}
+                                onChange={(e) => updateBlockData('consult', 'buttons.primary.link', e.target.value)}
+                                placeholder="/contact"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút phụ - Text</Label>
+                              <Input
+                                value={getBlockData('consult', 'buttons.secondary.text')}
+                                onChange={(e) => updateBlockData('consult', 'buttons.secondary.text', e.target.value)}
+                                placeholder="Xem case studies"
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2">Nút phụ - Link</Label>
+                              <Input
+                                value={getBlockData('consult', 'buttons.secondary.link')}
+                                onChange={(e) => updateBlockData('consult', 'buttons.secondary.link', e.target.value)}
+                                placeholder="/solutions"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {blockType === 'aboutCompany' && (
+                          <>
+                            <div className="space-y-4">
+                              <h3 className="font-semibold text-lg">Tiêu đề</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="mb-2">Phần 1</Label>
+                                  <Input
+                                    value={getBlockData('aboutCompany', 'title.part1')}
+                                    onChange={(e) => updateBlockData('aboutCompany', 'title.part1', e.target.value)}
+                                    placeholder="Chuyển đổi số "
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="mb-2">Highlight 1</Label>
+                                  <Input
+                                    value={getBlockData('aboutCompany', 'title.highlight1')}
+                                    onChange={(e) => updateBlockData('aboutCompany', 'title.highlight1', e.target.value)}
+                                    placeholder="không bắt đầu từ phần mềm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="mb-2">Phần 2</Label>
+                                  <Input
+                                    value={getBlockData('aboutCompany', 'title.part2')}
+                                    onChange={(e) => updateBlockData('aboutCompany', 'title.part2', e.target.value)}
+                                    placeholder=" mà "
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="mb-2">Highlight 2</Label>
+                                  <Input
+                                    value={getBlockData('aboutCompany', 'title.highlight2')}
+                                    onChange={(e) => updateBlockData('aboutCompany', 'title.highlight2', e.target.value)}
+                                    placeholder="từ hiệu quả thực tế"
+                                  />
+                                </div>
+                                <div className="md:col-span-2">
+                                  <Label className="mb-2">Phần 3</Label>
+                                  <Input
+                                    value={getBlockData('aboutCompany', 'title.part3')}
+                                    onChange={(e) => updateBlockData('aboutCompany', 'title.part3', e.target.value)}
+                                    placeholder=" của doanh nghiệp."
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="mb-2">Mô tả</Label>
+                              <Textarea
+                                value={getBlockData('aboutCompany', 'description')}
+                                onChange={(e) => updateBlockData('aboutCompany', 'description', e.target.value)}
+                                placeholder="Mô tả..."
+                                rows={3}
+                              />
+                            </div>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-lg">Slides</h3>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    const slides = getBlockData('aboutCompany', 'slides', []) as any[];
+                                    addArrayItem('aboutCompany', 'slides', {
+                                      title: '',
+                                      description: '',
+                                      buttonText: '',
+                                      buttonLink: '',
+                                      image: '',
+                                    });
+                                    setEditingSlideIndex(slides.length);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Thêm slide
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                {(getBlockData('aboutCompany', 'slides', []) as any[]).map((slide: any, idx: number) => (
+                                  <Card key={idx}>
+                                    <CardHeader>
+                                      <div className="flex items-center justify-between">
+                                        <CardTitle className="text-base">Slide {idx + 1}</CardTitle>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => moveArrayItem('aboutCompany', 'slides', idx, 'up')}
+                                            disabled={idx === 0}
+                                          >
+                                            <ChevronUp className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => moveArrayItem('aboutCompany', 'slides', idx, 'down')}
+                                            disabled={idx === (getBlockData('aboutCompany', 'slides', []) as any[]).length - 1}
+                                          >
+                                            <ChevronDown className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => setEditingSlideIndex(idx)}
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => removeArrayItem('aboutCompany', 'slides', idx)}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-2">
+                                        <p className="font-medium text-sm">{slide.title || 'Chưa có tiêu đề'}</p>
+                                        <p className="text-xs text-gray-600 line-clamp-2">{slide.description || 'Chưa có mô tả'}</p>
+                                        {slide.image && (
+                                          <img src={slide.image} alt={slide.title} className="w-full h-24 object-cover rounded" />
+                                        )}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {blockType === 'features' && (
+                          <>
+                            <div className="space-y-4">
+                              <h3 className="font-semibold text-lg">Header</h3>
+                              <div>
+                                <Label className="mb-2">Sub Title</Label>
+                                <Input
+                                  value={getBlockData('features', 'header.sub')}
+                                  onChange={(e) => updateBlockData('features', 'header.sub', e.target.value)}
+                                  placeholder="GIỚI THIỆU SFB"
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2">Tiêu đề</Label>
+                                <Input
+                                  value={getBlockData('features', 'header.title')}
+                                  onChange={(e) => updateBlockData('features', 'header.title', e.target.value)}
+                                  placeholder="Chúng tôi là ai?"
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2">Mô tả</Label>
+                                <Textarea
+                                  value={getBlockData('features', 'header.description')}
+                                  onChange={(e) => updateBlockData('features', 'header.description', e.target.value)}
+                                  placeholder="Mô tả..."
+                                  rows={3}
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-lg">Blocks</h3>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    const blocks = getBlockData('features', 'blocks', []) as any[];
+                                    addArrayItem('features', 'blocks', {
+                                      type: 'type1', // type1: có text + list, type2: có items
+                                      image: '',
+                                      imageSide: 'left', // 'left' hoặc 'right'
+                                      text: '',
+                                      list: [],
+                                      button: { text: '', link: '' },
+                                      items: [],
+                                    });
+                                    setEditingFeatureBlockIndex(blocks.length);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Thêm block
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                {(getBlockData('features', 'blocks', []) as any[]).map((featureBlock: any, idx: number) => (
+                                  <Card key={idx}>
+                                    <CardHeader>
+                                      <div className="flex items-center justify-between">
+                                        <CardTitle className="text-base text-sm">Block {idx + 1}</CardTitle>
+                                        <div className="flex gap-1">
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => moveArrayItem('features', 'blocks', idx, 'up')}
+                                            disabled={idx === 0}
+                                          >
+                                            <ChevronUp className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => moveArrayItem('features', 'blocks', idx, 'down')}
+                                            disabled={idx === (getBlockData('features', 'blocks', []) as any[]).length - 1}
+                                          >
+                                            <ChevronDown className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => setEditingFeatureBlockIndex(idx)}
+                                          >
+                                            <Edit className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => removeArrayItem('features', 'blocks', idx)}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-2">
+                                        <p className="font-medium text-xs">{featureBlock.type === 'type1' ? 'Type 1' : 'Type 2'}</p>
+                                        {featureBlock.image && (
+                                          <div className="w-full aspect-video overflow-hidden rounded border border-gray-200">
+                                            <img src={featureBlock.image} alt="Block" className="w-full h-full object-cover" />
+                                          </div>
+                                        )}
+                                        {featureBlock.text && (
+                                          <p className="text-xs text-gray-600 line-clamp-2">{featureBlock.text}</p>
+                                        )}
+                                        {featureBlock.items && featureBlock.items.length > 0 && (
+                                          <p className="text-xs text-gray-600">{featureBlock.items.length} items</p>
+                                        )}
+                                        {featureBlock.list && featureBlock.list.length > 0 && (
+                                          <p className="text-xs text-gray-600">{featureBlock.list.length} list items</p>
+                                        )}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {blockType === 'solutions' && (
+                          <>
+                            <div className="space-y-4">
+                              <h3 className="font-semibold text-lg">Header</h3>
+                              <div>
+                                <Label className="mb-2">Sub Header</Label>
+                                <Input
+                                  value={getBlockData('solutions', 'subHeader')}
+                                  onChange={(e) => updateBlockData('solutions', 'subHeader', e.target.value)}
+                                  placeholder="GIẢI PHÁP CHUYÊN NGHIỆP"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="mb-2">Tiêu đề phần 1</Label>
+                                  <Input
+                                    value={getBlockData('solutions', 'title.part1')}
+                                    onChange={(e) => updateBlockData('solutions', 'title.part1', e.target.value)}
+                                    placeholder="Giải pháp phần mềm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="mb-2">Tiêu đề phần 2</Label>
+                                  <Input
+                                    value={getBlockData('solutions', 'title.part2')}
+                                    onChange={(e) => updateBlockData('solutions', 'title.part2', e.target.value)}
+                                    placeholder="đóng gói cho nhiều lĩnh vực"
+                                  />
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <Label className="mb-2">Domains (Lĩnh vực)</Label>
                                   <Button
-                                    type="button"
-                                    variant="outline"
+                                    size="sm"
                                     onClick={() => {
-                                      setSecondaryLinkTab("media");
-                                      setShowSecondaryLinkDialog(true);
+                                      const domains = getBlockData('solutions', 'domains', []) as string[];
+                                      updateBlockData('solutions', 'domains', [...domains, '']);
                                     }}
-                                    title="Chọn video từ Media Library"
                                   >
-                                    <ImageIcon className="w-4 h-4 mr-2" />
-                                    Chọn Media
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Thêm
                                   </Button>
                                 </div>
-                              )}
-                            </div>
-                          </div>
-                          <div>
-                            <Label className="mb-2">Hình ảnh Hero</Label>
-                            <ImageUpload
-                              currentImage={getBlockData('hero', 'heroImage')}
-                              onImageSelect={(url: string) => updateBlockData('hero', 'heroImage', url)}
-                            />
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <Label className="mb-2">Partners (Logo đối tác)</Label>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const partners = getBlockData('hero', 'partners', []) as string[];
-                                  updateBlockData('hero', 'partners', [...partners, '']);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm partner
-                              </Button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              {(getBlockData('hero', 'partners', []) as string[]).map((partner, idx) => (
-                                <div key={idx} className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <Label className="mb-2 text-sm">Partner {idx + 1}</Label>
+                                {(getBlockData('solutions', 'domains', []) as string[]).map((domain, idx) => (
+                                  <div key={idx} className="flex gap-2">
+                                    <Input
+                                      value={domain}
+                                      onChange={(e) => {
+                                        const domains = getBlockData('solutions', 'domains', []) as string[];
+                                        const newDomains = [...domains];
+                                        newDomains[idx] = e.target.value;
+                                        updateBlockData('solutions', 'domains', newDomains);
+                                      }}
+                                      placeholder="Lĩnh vực..."
+                                    />
                                     <Button
                                       variant="outline"
                                       size="icon"
                                       onClick={() => {
-                                        const partners = getBlockData('hero', 'partners', []) as string[];
-                                        updateBlockData('hero', 'partners', partners.filter((_, i) => i !== idx));
+                                        const domains = getBlockData('solutions', 'domains', []) as string[];
+                                        updateBlockData('solutions', 'domains', domains.filter((_, i) => i !== idx));
                                       }}
                                     >
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>
-                                  <ImageUpload
-                                    currentImage={partner}
-                                    onImageSelect={(url: string) => {
-                                      const partners = getBlockData('hero', 'partners', []) as string[];
-                                      const newPartners = [...partners];
-                                      newPartners[idx] = url;
-                                      updateBlockData('hero', 'partners', newPartners);
-                                    }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {blockType === 'consult' && (
-                        <>
-                          <div>
-                            <Label className="mb-2">Tiêu đề</Label>
-                            <Input
-                              value={getBlockData('consult', 'title')}
-                              onChange={(e) => updateBlockData('consult', 'title', e.target.value)}
-                              placeholder="Miễn phí tư vấn"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Mô tả</Label>
-                            <Textarea
-                              value={getBlockData('consult', 'description')}
-                              onChange={(e) => updateBlockData('consult', 'description', e.target.value)}
-                              placeholder="Mô tả..."
-                              rows={3}
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút chính - Text</Label>
-                            <Input
-                              value={getBlockData('consult', 'buttons.primary.text')}
-                              onChange={(e) => updateBlockData('consult', 'buttons.primary.text', e.target.value)}
-                              placeholder="Tư vấn miễn phí ngay"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút chính - Link</Label>
-                            <Input
-                              value={getBlockData('consult', 'buttons.primary.link')}
-                              onChange={(e) => updateBlockData('consult', 'buttons.primary.link', e.target.value)}
-                              placeholder="/contact"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút phụ - Text</Label>
-                            <Input
-                              value={getBlockData('consult', 'buttons.secondary.text')}
-                              onChange={(e) => updateBlockData('consult', 'buttons.secondary.text', e.target.value)}
-                              placeholder="Xem case studies"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-2">Nút phụ - Link</Label>
-                            <Input
-                              value={getBlockData('consult', 'buttons.secondary.link')}
-                              onChange={(e) => updateBlockData('consult', 'buttons.secondary.link', e.target.value)}
-                              placeholder="/solutions"
-                            />
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {blockType === 'aboutCompany' && (
-                        <>
-                          <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Tiêu đề</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <Label className="mb-2">Phần 1</Label>
-                                <Input
-                                  value={getBlockData('aboutCompany', 'title.part1')}
-                                  onChange={(e) => updateBlockData('aboutCompany', 'title.part1', e.target.value)}
-                                  placeholder="Chuyển đổi số "
-                                />
-                              </div>
-                              <div>
-                                <Label className="mb-2">Highlight 1</Label>
-                                <Input
-                                  value={getBlockData('aboutCompany', 'title.highlight1')}
-                                  onChange={(e) => updateBlockData('aboutCompany', 'title.highlight1', e.target.value)}
-                                  placeholder="không bắt đầu từ phần mềm"
-                                />
-                              </div>
-                              <div>
-                                <Label className="mb-2">Phần 2</Label>
-                                <Input
-                                  value={getBlockData('aboutCompany', 'title.part2')}
-                                  onChange={(e) => updateBlockData('aboutCompany', 'title.part2', e.target.value)}
-                                  placeholder=" mà "
-                                />
-                              </div>
-                              <div>
-                                <Label className="mb-2">Highlight 2</Label>
-                                <Input
-                                  value={getBlockData('aboutCompany', 'title.highlight2')}
-                                  onChange={(e) => updateBlockData('aboutCompany', 'title.highlight2', e.target.value)}
-                                  placeholder="từ hiệu quả thực tế"
-                                />
-                              </div>
-                              <div className="md:col-span-2">
-                                <Label className="mb-2">Phần 3</Label>
-                                <Input
-                                  value={getBlockData('aboutCompany', 'title.part3')}
-                                  onChange={(e) => updateBlockData('aboutCompany', 'title.part3', e.target.value)}
-                                  placeholder=" của doanh nghiệp."
-                                />
+                                ))}
                               </div>
                             </div>
-                          </div>
-                          <div>
-                            <Label className="mb-2">Mô tả</Label>
-                            <Textarea
-                              value={getBlockData('aboutCompany', 'description')}
-                              onChange={(e) => updateBlockData('aboutCompany', 'description', e.target.value)}
-                              placeholder="Mô tả..."
-                              rows={3}
-                            />
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-lg">Slides</h3>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const slides = getBlockData('aboutCompany', 'slides', []) as any[];
-                                  addArrayItem('aboutCompany', 'slides', {
-                                    title: '',
-                                    description: '',
-                                    buttonText: '',
-                                    buttonLink: '',
-                                    image: '',
-                                  });
-                                  setEditingSlideIndex(slides.length);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm slide
-                              </Button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              {(getBlockData('aboutCompany', 'slides', []) as any[]).map((slide: any, idx: number) => (
-                                <Card key={idx}>
-                                  <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base">Slide {idx + 1}</CardTitle>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() => moveArrayItem('aboutCompany', 'slides', idx, 'up')}
-                                          disabled={idx === 0}
-                                        >
-                                          <ChevronUp className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() => moveArrayItem('aboutCompany', 'slides', idx, 'down')}
-                                          disabled={idx === (getBlockData('aboutCompany', 'slides', []) as any[]).length - 1}
-                                        >
-                                          <ChevronDown className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() => setEditingSlideIndex(idx)}
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() => removeArrayItem('aboutCompany', 'slides', idx)}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <div className="space-y-2">
-                                      <p className="font-medium text-sm">{slide.title || 'Chưa có tiêu đề'}</p>
-                                      <p className="text-xs text-gray-600 line-clamp-2">{slide.description || 'Chưa có mô tả'}</p>
-                                      {slide.image && (
-                                        <img src={slide.image} alt={slide.title} className="w-full h-24 object-cover rounded" />
-                                      )}
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {blockType === 'features' && (
-                        <>
-                          <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Header</h3>
-                            <div>
-                              <Label className="mb-2">Sub Title</Label>
-                              <Input
-                                value={getBlockData('features', 'header.sub')}
-                                onChange={(e) => updateBlockData('features', 'header.sub', e.target.value)}
-                                placeholder="GIỚI THIỆU SFB"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Tiêu đề</Label>
-                              <Input
-                                value={getBlockData('features', 'header.title')}
-                                onChange={(e) => updateBlockData('features', 'header.title', e.target.value)}
-                                placeholder="Chúng tôi là ai?"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Mô tả</Label>
-                              <Textarea
-                                value={getBlockData('features', 'header.description')}
-                                onChange={(e) => updateBlockData('features', 'header.description', e.target.value)}
-                                placeholder="Mô tả..."
-                                rows={3}
-                              />
-                            </div>
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-lg">Blocks</h3>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const blocks = getBlockData('features', 'blocks', []) as any[];
-                                  addArrayItem('features', 'blocks', {
-                                    type: 'type1', // type1: có text + list, type2: có items
-                                    image: '',
-                                    imageSide: 'left', // 'left' hoặc 'right'
-                                    text: '',
-                                    list: [],
-                                    button: { text: '', link: '' },
-                                    items: [],
-                                  });
-                                  setEditingFeatureBlockIndex(blocks.length);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm block
-                              </Button>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              {(getBlockData('features', 'blocks', []) as any[]).map((featureBlock: any, idx: number) => (
-                                <Card key={idx}>
-                                  <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base text-sm">Block {idx + 1}</CardTitle>
-                                      <div className="flex gap-1">
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-7 w-7"
-                                          onClick={() => moveArrayItem('features', 'blocks', idx, 'up')}
-                                          disabled={idx === 0}
-                                        >
-                                          <ChevronUp className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-7 w-7"
-                                          onClick={() => moveArrayItem('features', 'blocks', idx, 'down')}
-                                          disabled={idx === (getBlockData('features', 'blocks', []) as any[]).length - 1}
-                                        >
-                                          <ChevronDown className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-7 w-7"
-                                          onClick={() => setEditingFeatureBlockIndex(idx)}
-                                        >
-                                          <Edit className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-7 w-7"
-                                          onClick={() => removeArrayItem('features', 'blocks', idx)}
-                                        >
-                                          <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <div className="space-y-2">
-                                      <p className="font-medium text-xs">{featureBlock.type === 'type1' ? 'Type 1' : 'Type 2'}</p>
-                                      {featureBlock.image && (
-                                        <div className="w-full aspect-video overflow-hidden rounded border border-gray-200">
-                                          <img src={featureBlock.image} alt="Block" className="w-full h-full object-cover" />
-                                        </div>
-                                      )}
-                                      {featureBlock.text && (
-                                        <p className="text-xs text-gray-600 line-clamp-2">{featureBlock.text}</p>
-                                      )}
-                                      {featureBlock.items && featureBlock.items.length > 0 && (
-                                        <p className="text-xs text-gray-600">{featureBlock.items.length} items</p>
-                                      )}
-                                      {featureBlock.list && featureBlock.list.length > 0 && (
-                                        <p className="text-xs text-gray-600">{featureBlock.list.length} list items</p>
-                                      )}
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {blockType === 'solutions' && (
-                        <>
-                          <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Header</h3>
-                            <div>
-                              <Label className="mb-2">Sub Header</Label>
-                              <Input
-                                value={getBlockData('solutions', 'subHeader')}
-                                onChange={(e) => updateBlockData('solutions', 'subHeader', e.target.value)}
-                                placeholder="GIẢI PHÁP CHUYÊN NGHIỆP"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label className="mb-2">Tiêu đề phần 1</Label>
-                                <Input
-                                  value={getBlockData('solutions', 'title.part1')}
-                                  onChange={(e) => updateBlockData('solutions', 'title.part1', e.target.value)}
-                                  placeholder="Giải pháp phần mềm"
-                                />
-                              </div>
-                              <div>
-                                <Label className="mb-2">Tiêu đề phần 2</Label>
-                                <Input
-                                  value={getBlockData('solutions', 'title.part2')}
-                                  onChange={(e) => updateBlockData('solutions', 'title.part2', e.target.value)}
-                                  placeholder="đóng gói cho nhiều lĩnh vực"
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                               <div className="flex items-center justify-between">
-                                <Label className="mb-2">Domains (Lĩnh vực)</Label>
+                                <h3 className="font-semibold text-lg">Solution Items</h3>
                                 <Button
                                   size="sm"
                                   onClick={() => {
-                                    const domains = getBlockData('solutions', 'domains', []) as string[];
-                                    updateBlockData('solutions', 'domains', [...domains, '']);
+                                    const items = getBlockData('solutions', 'items', []) as any[];
+                                    addArrayItem('solutions', 'items', {
+                                      id: items.length + 1,
+                                      iconName: 'Code',
+                                      title: '',
+                                      description: '',
+                                      benefits: [],
+                                      buttonText: '',
+                                      buttonLink: '',
+                                      iconGradient: 'from-cyan-400 to-blue-600',
+                                    });
+                                    setEditingSolutionIndex(items.length);
                                   }}
                                 >
                                   <Plus className="h-4 w-4 mr-2" />
-                                  Thêm
+                                  Thêm solution
                                 </Button>
                               </div>
-                              {(getBlockData('solutions', 'domains', []) as string[]).map((domain, idx) => (
-                                <div key={idx} className="flex gap-2">
-                                  <Input
-                                    value={domain}
-                                    onChange={(e) => {
-                                      const domains = getBlockData('solutions', 'domains', []) as string[];
-                                      const newDomains = [...domains];
-                                      newDomains[idx] = e.target.value;
-                                      updateBlockData('solutions', 'domains', newDomains);
-                                    }}
-                                    placeholder="Lĩnh vực..."
-                                  />
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => {
-                                      const domains = getBlockData('solutions', 'domains', []) as string[];
-                                      updateBlockData('solutions', 'domains', domains.filter((_, i) => i !== idx));
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-lg">Solution Items</h3>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const items = getBlockData('solutions', 'items', []) as any[];
-                                  addArrayItem('solutions', 'items', {
-                                    id: items.length + 1,
-                                    iconName: 'Code',
-                                    title: '',
-                                    description: '',
-                                    benefits: [],
-                                    buttonText: '',
-                                    buttonLink: '',
-                                    iconGradient: 'from-cyan-400 to-blue-600',
-                                  });
-                                  setEditingSolutionIndex(items.length);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm solution
-                              </Button>
-                            </div>
-                            {(getBlockData('solutions', 'items', []) as any[]).map((item: any, idx: number) => (
-                              <Card key={idx}>
-                                <CardHeader>
-                                  <div className="flex items-center justify-between">
-                                    <CardTitle className="text-base">Solution {idx + 1}</CardTitle>
-                                    <div className="flex gap-2">
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => moveArrayItem('solutions', 'items', idx, 'up')}
-                                        disabled={idx === 0}
-                                      >
-                                        <ChevronUp className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => moveArrayItem('solutions', 'items', idx, 'down')}
-                                        disabled={idx === (getBlockData('solutions', 'items', []) as any[]).length - 1}
-                                      >
-                                        <ChevronDown className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => setEditingSolutionIndex(idx)}
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => removeArrayItem('solutions', 'items', idx)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="space-y-2">
-                                    <p className="font-medium">{item.title || 'Chưa có tiêu đề'}</p>
-                                    <p className="text-sm text-gray-600 line-clamp-2">{item.description || 'Chưa có mô tả'}</p>
-                                    <div className="flex flex-wrap gap-1">
-                                      {(item.benefits || []).slice(0, 3).map((b: string, bidx: number) => (
-                                        <Badge key={bidx} variant="secondary">{b}</Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {blockType === 'trusts' && (
-                        <>
-                          <div className="space-y-4">
-                            <h3 className="font-semibold text-lg">Header</h3>
-                            <div>
-                              <Label className="mb-2">Sub Header</Label>
-                              <Input
-                                value={getBlockData('trusts', 'subHeader')}
-                                onChange={(e) => updateBlockData('trusts', 'subHeader', e.target.value)}
-                                placeholder="SFB TECHNOLOGY"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Tiêu đề</Label>
-                              <Input
-                                value={getBlockData('trusts', 'title')}
-                                onChange={(e) => updateBlockData('trusts', 'title', e.target.value)}
-                                placeholder="Độ tin cậy của SFB Technology"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Mô tả</Label>
-                              <Textarea
-                                value={getBlockData('trusts', 'description')}
-                                onChange={(e) => updateBlockData('trusts', 'description', e.target.value)}
-                                placeholder="Mô tả..."
-                                rows={3}
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Hình ảnh</Label>
-                              <ImageUpload
-                                currentImage={getBlockData('trusts', 'image')}
-                                onImageSelect={(url: string) => updateBlockData('trusts', 'image', url)}
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label className="mb-2">Nút - Text</Label>
-                                <Input
-                                  value={getBlockData('trusts', 'button.text')}
-                                  onChange={(e) => updateBlockData('trusts', 'button.text', e.target.value)}
-                                  placeholder="Tìm hiểu thêm"
-                                />
-                              </div>
-                              <div>
-                                <Label className="mb-2">Nút - Link</Label>
-                                <Input
-                                  value={getBlockData('trusts', 'button.link')}
-                                  onChange={(e) => updateBlockData('trusts', 'button.link', e.target.value)}
-                                  placeholder="/about"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-lg">Features</h3>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const features = getBlockData('trusts', 'features', []) as any[];
-                                  addArrayItem('trusts', 'features', {
-                                    iconName: 'BarChart3',
-                                    title: '',
-                                    description: '',
-                                  });
-                                  setEditingTrustFeatureIndex(features.length);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm feature
-                              </Button>
-                            </div>
-                            {(getBlockData('trusts', 'features', []) as any[]).map((feature: any, idx: number) => (
-                              <Card key={idx}>
-                                <CardHeader>
-                                  <div className="flex items-center justify-between">
-                                    <CardTitle className="text-base">Feature {idx + 1}</CardTitle>
-                                    <div className="flex gap-2">
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => moveArrayItem('trusts', 'features', idx, 'up')}
-                                        disabled={idx === 0}
-                                      >
-                                        <ChevronUp className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => moveArrayItem('trusts', 'features', idx, 'down')}
-                                        disabled={idx === (getBlockData('trusts', 'features', []) as any[]).length - 1}
-                                      >
-                                        <ChevronDown className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => setEditingTrustFeatureIndex(idx)}
-                                      >
-                                        <Edit className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => removeArrayItem('trusts', 'features', idx)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="space-y-2">
-                                    <p className="font-medium">{feature.title || 'Chưa có tiêu đề'}</p>
-                                    <p className="text-sm text-gray-600 line-clamp-2">{feature.description || 'Chưa có mô tả'}</p>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
-
-                      {blockType === 'testimonials' && (
-                        <>
-                          <div>
-                            <Label className="mb-2">Tiêu đề</Label>
-                            <Input
-                              value={getBlockData('testimonials', 'title')}
-                              onChange={(e) => updateBlockData('testimonials', 'title', e.target.value)}
-                              placeholder="Khách hàng nói về SFB?"
-                            />
-                          </div>
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-semibold text-lg">Reviews (Đánh giá)</h3>
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  const reviews = getBlockData('testimonials', 'reviews', []) as any[];
-                                  addArrayItem('testimonials', 'reviews', {
-                                    id: reviews.length + 1,
-                                    quote: '',
-                                    author: '',
-                                    rating: 5,
-                                  });
-                                  setEditingTestimonialIndex(reviews.length);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Thêm review
-                              </Button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              {(getBlockData('testimonials', 'reviews', []) as any[]).map((review: any, idx: number) => (
+                              {(getBlockData('solutions', 'items', []) as any[]).map((item: any, idx: number) => (
                                 <Card key={idx}>
                                   <CardHeader>
                                     <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base">Review {idx + 1}</CardTitle>
+                                      <CardTitle className="text-base">Solution {idx + 1}</CardTitle>
                                       <div className="flex gap-2">
                                         <Button
                                           variant="outline"
                                           size="icon"
-                                          onClick={() => moveArrayItem('testimonials', 'reviews', idx, 'up')}
+                                          onClick={() => moveArrayItem('solutions', 'items', idx, 'up')}
                                           disabled={idx === 0}
                                         >
                                           <ChevronUp className="h-4 w-4" />
@@ -1254,22 +1018,22 @@ export default function AdminHomepagePage() {
                                         <Button
                                           variant="outline"
                                           size="icon"
-                                          onClick={() => moveArrayItem('testimonials', 'reviews', idx, 'down')}
-                                          disabled={idx === (getBlockData('testimonials', 'reviews', []) as any[]).length - 1}
+                                          onClick={() => moveArrayItem('solutions', 'items', idx, 'down')}
+                                          disabled={idx === (getBlockData('solutions', 'items', []) as any[]).length - 1}
                                         >
                                           <ChevronDown className="h-4 w-4" />
                                         </Button>
                                         <Button
                                           variant="outline"
                                           size="icon"
-                                          onClick={() => setEditingTestimonialIndex(idx)}
+                                          onClick={() => setEditingSolutionIndex(idx)}
                                         >
                                           <Edit className="h-4 w-4" />
                                         </Button>
                                         <Button
                                           variant="outline"
                                           size="icon"
-                                          onClick={() => removeArrayItem('testimonials', 'reviews', idx)}
+                                          onClick={() => removeArrayItem('solutions', 'items', idx)}
                                         >
                                           <Trash2 className="h-4 w-4" />
                                         </Button>
@@ -1278,11 +1042,11 @@ export default function AdminHomepagePage() {
                                   </CardHeader>
                                   <CardContent>
                                     <div className="space-y-2">
-                                      <p className="font-medium text-sm">{review.author || 'Chưa có tác giả'}</p>
-                                      <p className="text-xs text-gray-600 line-clamp-2">{review.quote || 'Chưa có nội dung'}</p>
-                                      <div className="flex gap-1">
-                                        {[...Array(review.rating || 5)].map((_, i) => (
-                                          <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                      <p className="font-medium">{item.title || 'Chưa có tiêu đề'}</p>
+                                      <p className="text-sm text-gray-600 line-clamp-2">{item.description || 'Chưa có mô tả'}</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {(item.benefits || []).slice(0, 3).map((b: string, bidx: number) => (
+                                          <Badge key={bidx} variant="secondary">{b}</Badge>
                                         ))}
                                       </div>
                                     </div>
@@ -1290,19 +1054,251 @@ export default function AdminHomepagePage() {
                                 </Card>
                               ))}
                             </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Label className="mb-2">Kích hoạt</Label>
-                            <Switch
-                              checked={block.isActive}
-                              onCheckedChange={(checked) => setBlocks(prev => ({
-                                ...prev,
-                                [blockType]: { ...prev[blockType], isActive: checked }
-                              }))}
-                            />
-                          </div>
-                        </>
-                      )}
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {blockType === 'trusts' && (
+                          <>
+                            <div className="space-y-4">
+                              <h3 className="font-semibold text-lg">Header</h3>
+                              <div>
+                                <Label className="mb-2">Sub Header</Label>
+                                <Input
+                                  value={getBlockData('trusts', 'subHeader')}
+                                  onChange={(e) => updateBlockData('trusts', 'subHeader', e.target.value)}
+                                  placeholder="SFB TECHNOLOGY"
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2">Tiêu đề</Label>
+                                <Input
+                                  value={getBlockData('trusts', 'title')}
+                                  onChange={(e) => updateBlockData('trusts', 'title', e.target.value)}
+                                  placeholder="Độ tin cậy của SFB Technology"
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2">Mô tả</Label>
+                                <Textarea
+                                  value={getBlockData('trusts', 'description')}
+                                  onChange={(e) => updateBlockData('trusts', 'description', e.target.value)}
+                                  placeholder="Mô tả..."
+                                  rows={3}
+                                />
+                              </div>
+                              <div>
+                                <Label className="mb-2">Hình ảnh</Label>
+                                <ImageUpload
+                                  currentImage={getBlockData('trusts', 'image')}
+                                  onImageSelect={(url: string) => updateBlockData('trusts', 'image', url)}
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="mb-2">Nút - Text</Label>
+                                  <Input
+                                    value={getBlockData('trusts', 'button.text')}
+                                    onChange={(e) => updateBlockData('trusts', 'button.text', e.target.value)}
+                                    placeholder="Tìm hiểu thêm"
+                                  />
+                                </div>
+                                <div>
+                                  <Label className="mb-2">Nút - Link</Label>
+                                  <Input
+                                    value={getBlockData('trusts', 'button.link')}
+                                    onChange={(e) => updateBlockData('trusts', 'button.link', e.target.value)}
+                                    placeholder="/about"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-lg">Features</h3>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    const features = getBlockData('trusts', 'features', []) as any[];
+                                    addArrayItem('trusts', 'features', {
+                                      iconName: 'BarChart3',
+                                      title: '',
+                                      description: '',
+                                    });
+                                    setEditingTrustFeatureIndex(features.length);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Thêm feature
+                                </Button>
+                              </div>
+                              {(getBlockData('trusts', 'features', []) as any[]).map((feature: any, idx: number) => (
+                                <Card key={idx}>
+                                  <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                      <CardTitle className="text-base">Feature {idx + 1}</CardTitle>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => moveArrayItem('trusts', 'features', idx, 'up')}
+                                          disabled={idx === 0}
+                                        >
+                                          <ChevronUp className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => moveArrayItem('trusts', 'features', idx, 'down')}
+                                          disabled={idx === (getBlockData('trusts', 'features', []) as any[]).length - 1}
+                                        >
+                                          <ChevronDown className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => setEditingTrustFeatureIndex(idx)}
+                                        >
+                                          <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          onClick={() => removeArrayItem('trusts', 'features', idx)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="space-y-2">
+                                      <p className="font-medium">{feature.title || 'Chưa có tiêu đề'}</p>
+                                      <p className="text-sm text-gray-600 line-clamp-2">{feature.description || 'Chưa có mô tả'}</p>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {blockType === 'testimonials' && (
+                          <>
+                            <div>
+                              <Label className="mb-2">Tiêu đề</Label>
+                              <Input
+                                value={getBlockData('testimonials', 'title')}
+                                onChange={(e) => updateBlockData('testimonials', 'title', e.target.value)}
+                                placeholder="Khách hàng nói về SFB?"
+                              />
+                            </div>
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-lg">Reviews (Đánh giá)</h3>
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    const reviews = getBlockData('testimonials', 'reviews', []) as any[];
+                                    addArrayItem('testimonials', 'reviews', {
+                                      id: reviews.length + 1,
+                                      quote: '',
+                                      author: '',
+                                      rating: 5,
+                                    });
+                                    setEditingTestimonialIndex(reviews.length);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Thêm review
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                {(getBlockData('testimonials', 'reviews', []) as any[]).map((review: any, idx: number) => (
+                                  <Card key={idx}>
+                                    <CardHeader>
+                                      <div className="flex items-center justify-between">
+                                        <CardTitle className="text-base">Review {idx + 1}</CardTitle>
+                                        <div className="flex gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => moveArrayItem('testimonials', 'reviews', idx, 'up')}
+                                            disabled={idx === 0}
+                                          >
+                                            <ChevronUp className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => moveArrayItem('testimonials', 'reviews', idx, 'down')}
+                                            disabled={idx === (getBlockData('testimonials', 'reviews', []) as any[]).length - 1}
+                                          >
+                                            <ChevronDown className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => setEditingTestimonialIndex(idx)}
+                                          >
+                                            <Edit className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => removeArrayItem('testimonials', 'reviews', idx)}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="space-y-2">
+                                        <p className="font-medium text-sm">{review.author || 'Chưa có tác giả'}</p>
+                                        <p className="text-xs text-gray-600 line-clamp-2">{review.quote || 'Chưa có nội dung'}</p>
+                                        <div className="flex gap-1">
+                                          {[...Array(review.rating || 5)].map((_, i) => (
+                                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Label className="mb-2">Kích hoạt</Label>
+                              <Switch
+                                checked={block.isActive}
+                                onCheckedChange={(checked) => setBlocks(prev => ({
+                                  ...prev,
+                                  [blockType]: { ...prev[blockType], isActive: checked }
+                                }))}
+                              />
+                            </div>
+                          </>
+                        )}
                       </CardContent>
                     )}
                   </Card>
@@ -1321,7 +1317,7 @@ export default function AdminHomepagePage() {
                             <div className="absolute top-20 left-10 w-72 h-72 bg-[#006FB3]/20 rounded-full blur-3xl opacity-30" />
                             <div className="absolute top-40 right-10 w-72 h-72 bg-[#0088D9]/20 rounded-full blur-3xl opacity-30" />
                           </div>
-                          
+
                           <div className="grid lg:grid-cols-2 gap-8 items-center relative z-10">
                             <div className="space-y-6">
                               <h1 className="text-[#0F172A] font-bold text-4xl md:text-5xl lg:text-[56px] leading-tight">
@@ -1458,7 +1454,7 @@ export default function AdminHomepagePage() {
                                   />
                                 </div>
                               ) : null;
-                              
+
                               if (featureBlock.type === 'type1') {
                                 return (
                                   <div key={blockIdx} className="grid lg:grid-cols-2 gap-8 items-center">
@@ -1774,8 +1770,8 @@ export default function AdminHomepagePage() {
             const slide = slides[editingSlideIndex] || { title: '', description: '', buttonText: '', buttonLink: '', image: '' };
             return (
               <div className="space-y-4 py-4">
-                          <div>
-                            <Label className="mb-2">Tiêu đề</Label>
+                <div>
+                  <Label className="mb-2">Tiêu đề</Label>
                   <Input
                     value={slide.title || ''}
                     onChange={(e) => {
@@ -1787,8 +1783,8 @@ export default function AdminHomepagePage() {
                     placeholder="Tiêu đề slide"
                   />
                 </div>
-                          <div>
-                            <Label className="mb-2">Mô tả</Label>
+                <div>
+                  <Label className="mb-2">Mô tả</Label>
                   <Textarea
                     value={slide.description || ''}
                     onChange={(e) => {
@@ -1801,8 +1797,8 @@ export default function AdminHomepagePage() {
                     rows={4}
                   />
                 </div>
-                          <div>
-                            <Label className="mb-2">Hình ảnh</Label>
+                <div>
+                  <Label className="mb-2">Hình ảnh</Label>
                   <ImageUpload
                     currentImage={slide.image || ''}
                     onImageSelect={(url: string) => {
@@ -1814,8 +1810,8 @@ export default function AdminHomepagePage() {
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="mb-2">Nút - Text</Label>
+                  <div>
+                    <Label className="mb-2">Nút - Text</Label>
                     <Input
                       value={slide.buttonText || ''}
                       onChange={(e) => {
@@ -1827,8 +1823,8 @@ export default function AdminHomepagePage() {
                       placeholder="Nhận tư vấn ngay"
                     />
                   </div>
-                          <div>
-                            <Label className="mb-2">Nút - Link</Label>
+                  <div>
+                    <Label className="mb-2">Nút - Link</Label>
                     <Input
                       value={slide.buttonLink || ''}
                       onChange={(e) => {
@@ -1879,8 +1875,8 @@ export default function AdminHomepagePage() {
             return (
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="mb-2">Icon</Label>
+                  <div>
+                    <Label className="mb-2">Icon</Label>
                     <Select
                       value={item.iconName || 'Code'}
                       onValueChange={(value) => {
@@ -1902,8 +1898,8 @@ export default function AdminHomepagePage() {
                       </SelectContent>
                     </Select>
                   </div>
-                          <div>
-                            <Label className="mb-2">Icon Gradient</Label>
+                  <div>
+                    <Label className="mb-2">Icon Gradient</Label>
                     <Select
                       value={item.iconGradient || 'from-cyan-400 to-blue-600'}
                       onValueChange={(value) => {
@@ -1926,8 +1922,8 @@ export default function AdminHomepagePage() {
                     </Select>
                   </div>
                 </div>
-                          <div>
-                            <Label className="mb-2">Tiêu đề</Label>
+                <div>
+                  <Label className="mb-2">Tiêu đề</Label>
                   <Input
                     value={item.title || ''}
                     onChange={(e) => {
@@ -1939,8 +1935,8 @@ export default function AdminHomepagePage() {
                     placeholder="Quy trình được chuẩn hóa"
                   />
                 </div>
-                          <div>
-                            <Label className="mb-2">Mô tả</Label>
+                <div>
+                  <Label className="mb-2">Mô tả</Label>
                   <Textarea
                     value={item.description || ''}
                     onChange={(e) => {
@@ -2000,8 +1996,8 @@ export default function AdminHomepagePage() {
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label className="mb-2">Nút - Text</Label>
+                  <div>
+                    <Label className="mb-2">Nút - Text</Label>
                     <Input
                       value={item.buttonText || ''}
                       onChange={(e) => {
@@ -2013,8 +2009,8 @@ export default function AdminHomepagePage() {
                       placeholder="Tìm hiểu cách SFB triển khai"
                     />
                   </div>
-                          <div>
-                            <Label className="mb-2">Nút - Link</Label>
+                  <div>
+                    <Label className="mb-2">Nút - Link</Label>
                     <Input
                       value={item.buttonLink || ''}
                       onChange={(e) => {
@@ -2055,8 +2051,8 @@ export default function AdminHomepagePage() {
             const feature = features[editingTrustFeatureIndex] || { iconName: 'BarChart3', title: '', description: '' };
             return (
               <div className="space-y-4 py-4">
-                          <div>
-                            <Label className="mb-2">Icon</Label>
+                <div>
+                  <Label className="mb-2">Icon</Label>
                   <Select
                     value={feature.iconName || 'BarChart3'}
                     onValueChange={(value) => {
@@ -2078,8 +2074,8 @@ export default function AdminHomepagePage() {
                     </SelectContent>
                   </Select>
                 </div>
-                          <div>
-                            <Label className="mb-2">Tiêu đề</Label>
+                <div>
+                  <Label className="mb-2">Tiêu đề</Label>
                   <Input
                     value={feature.title || ''}
                     onChange={(e) => {
@@ -2091,8 +2087,8 @@ export default function AdminHomepagePage() {
                     placeholder="Năng lực được chứng minh"
                   />
                 </div>
-                          <div>
-                            <Label className="mb-2">Mô tả</Label>
+                <div>
+                  <Label className="mb-2">Mô tả</Label>
                   <Textarea
                     value={feature.description || ''}
                     onChange={(e) => {
@@ -2469,8 +2465,8 @@ export default function AdminHomepagePage() {
             const item = items[editingFeatureItemIndex.index] || { title: '', text: '' };
             return (
               <div className="space-y-4 py-4">
-                          <div>
-                            <Label className="mb-2">Tiêu đề</Label>
+                <div>
+                  <Label className="mb-2">Tiêu đề</Label>
                   <Input
                     value={item.title || ''}
                     onChange={(e) => {
@@ -2482,8 +2478,8 @@ export default function AdminHomepagePage() {
                     placeholder="Tiêu đề..."
                   />
                 </div>
-                          <div>
-                            <Label className="mb-2">Nội dung</Label>
+                <div>
+                  <Label className="mb-2">Nội dung</Label>
                   <Textarea
                     value={item.text || ''}
                     onChange={(e) => {
