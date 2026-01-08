@@ -75,8 +75,16 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
                                                 ? contactHeroData.image 
                                                 : "/images/no_cover.jpeg")
                                     }
-                                    alt="Contact Support"
-                                    className="w-full h-full object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                                    alt={heroData.title?.prefix && heroData.title?.highlight 
+                                        ? `${heroData.title.prefix} ${heroData.title.highlight}` 
+                                        : contactHeroData.title?.prefix && contactHeroData.title?.highlight
+                                        ? `${contactHeroData.title.prefix} ${contactHeroData.title.highlight}`
+                                        : "Contact Support"}
+                                    fill
+                                    sizes="(max-width: 320px) 280px, (max-width: 400px) 320px, 400px"
+                                    priority={true}
+                                    objectFit="contain"
+                                    className="drop-shadow-2xl hover:scale-105 transition-transform duration-500"
                                 />
                             </div>
                         </div>

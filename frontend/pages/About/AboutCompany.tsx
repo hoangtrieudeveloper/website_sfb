@@ -52,8 +52,12 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                 <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
                                     <ImageWithFallback
                                         src={displayData.contentImage1 || content?.image1}
-                                        alt="SFB Team Meeting"
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        alt={header?.title || content?.title || "About Company"}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                        loading="lazy"
+                                        objectFit="cover"
+                                        className="transition-transform duration-700 group-hover:scale-105"
                                     />
                                 </div>
                             </TechBorderReveal>
@@ -141,8 +145,12 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                 <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
                                     <ImageWithFallback
                                         src={displayData.contactImage2 || contact?.image2}
-                                        alt="SFB Office Building"
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        alt={contact?.title || header?.title || "Contact Information"}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                        loading="lazy"
+                                        objectFit="cover"
+                                        className="transition-transform duration-700 group-hover:scale-105"
                                     />
                                 </div>
                             </TechBorderReveal>

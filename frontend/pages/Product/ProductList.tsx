@@ -163,7 +163,10 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                             <ImageWithFallback
                                                 src={product.image}
                                                 alt={product.name || PLACEHOLDER_TITLE}
-                                                className="w-full h-[300px] object-contain"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                loading="lazy"
+                                                objectFit="contain"
                                             />
                                         </div>
                                     </div>
@@ -264,6 +267,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                     <Link
                                         href={`/products/${product.slug || slugify(product.name || '')}`}
                                         className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                                        prefetch={true}
                                     >
                                         Tìm hiểu thêm <ArrowRight size={16} />
                                     </Link>

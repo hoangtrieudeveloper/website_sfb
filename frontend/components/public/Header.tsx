@@ -352,6 +352,7 @@ export function Header() {
                     aria-label={link.label}
                     aria-haspopup={link.children && link.children.length > 0 ? "true" : undefined}
                     aria-expanded={link.children && link.children.length > 0 && activeDropdown === dropdownKey ? "true" : "false"}
+                    prefetch={true}
                   >
                     {link.label}
                     {link.children && link.children.length > 0 && (
@@ -399,6 +400,7 @@ export function Header() {
                                 <Link
                                   href={child.href}
                                   className="block p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group border border-transparent hover:border-blue-100 hover:shadow-md"
+                                  prefetch={true}
                                 >
                                   <div className="flex items-start gap-3">
                                     <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">

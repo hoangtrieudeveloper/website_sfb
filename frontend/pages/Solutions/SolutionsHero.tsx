@@ -64,7 +64,10 @@ export function SolutionsHero() {
                             <div className="w-full h-full rounded-[14px] overflow-hidden relative">
                                 <ImageWithFallback
                                     src="/images/card-solution.png"
-                                    alt="Solutions Hero"
+                                    alt={solutionsHeroData.title?.line1 && solutionsHeroData.title?.line2 
+                                        ? `${solutionsHeroData.title.line1} ${solutionsHeroData.title.line2}` 
+                                        : solutionsHeroData.description || "Solutions Hero"}
+                                    priority={true}
                                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                                 />
                                 {/* Overlay Glint */}

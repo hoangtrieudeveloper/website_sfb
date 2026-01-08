@@ -5,6 +5,7 @@ import { fieldHeroData } from "./data";
 import { FadeIn, SlideIn, ZoomIn, StaggerContainer, zoomInVariant } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
+import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 
 interface FieldHeroProps {
     data?: any;
@@ -50,22 +51,26 @@ export function FieldHero({ data }: FieldHeroProps) {
                 >
                     {/* Left Column: Image */}
                     <div className="relative order-1 lg:order-1 flex justify-center lg:justify-start z-10 w-full lg:w-1/2 xl:w-auto mb-4 md:mb-6 lg:mb-0 lg:mr-[-55px]">
-                        <ZoomIn className="relative w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[991px] aspect-[991/782] flex-shrink-0">
-                            <div className="absolute inset-0 bg-white/10 rounded-full filter blur-3xl opacity-30 transform scale-75" />
-                            {/* Responsive Image Placeholders */}
-                            <div className="relative z-10 w-full h-full flex items-center justify-center">
-                                <img
-                                    src={displayData.image}
-                                    alt="Optimizing Business Operations"
-                                    className="w-full h-full object-cover drop-shadow-2xl"
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                        e.currentTarget.parentElement?.classList.add('bg-white/5', 'border-2', 'border-dashed', 'border-white/20', 'rounded-xl');
-                                        if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = 'Illustration Space';
-                                    }}
-                                />
-                            </div>
-                        </ZoomIn>
+                        <div
+                            className="relative overflow-hidden box-border w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[700px] xl:max-w-[991px] aspect-[991/782] min-[1920px]:w-[991px] min-[1920px]:h-[782px] min-[1920px]:aspect-auto"
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                borderRadius: "16px",
+                                background: "transparent",
+                            }}
+                        >
+                            <ImageWithFallback
+                                src={displayData.image}
+                                alt={displayData.titlePrefix || displayData.title || "Business operations illustration"}
+                                fill
+                                sizes="(max-width: 300px) 300px, (max-width: 400px) 400px, (max-width: 500px) 500px, (max-width: 700px) 700px, 991px"
+                                priority={true}
+                                objectFit="cover"
+                                className="rounded-2xl drop-shadow-2xl"
+                            />
+                        </div>
                     </div>
 
                     {/* Right Column: Content */}

@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { ProductDetailView } from "@/pages/Product/ProductDetail";
 import { generateSeoMetadata } from "@/lib/seo";
-import { generateProductSchema } from "@/lib/structured-data";
+import { generateProductSchema, generateBreadcrumbSchema } from "@/lib/structured-data";
 import { API_BASE_URL } from "@/lib/api/base";
+import Script from "next/script";
 
 // Enable ISR - revalidate every 60 seconds for product detail
 export const revalidate = 60;
@@ -193,11 +194,27 @@ export default async function ProductDetailPage({
     heroImage: product.heroImage,
   });
 
+  // Generate breadcrumbs schema
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Trang chủ', url: baseUrl },
+    { name: 'Sản phẩm', url: `${baseUrl}/products` },
+    { name: product.name, url: `${baseUrl}/products/${product.slug}` },
+  ]);
+
   return (
     <>
-      <script
+      <Script
+        id="product-structured-data"
         type="application/ld+json"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <Script
+        id="breadcrumb-structured-data"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <ProductDetailView product={product} />
     </>

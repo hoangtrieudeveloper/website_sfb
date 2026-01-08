@@ -113,12 +113,29 @@ export function Footer() {
             {/* Logo Placeholder - replaced with actual logo when available or text fallback that looks good */}
             <div className="flex items-center gap-3">
               {/* Logo Image */}
-              <div className="w-[74.73px] flex-shrink-0">
-                <img
-                  src={logoUrl}
-                  alt="SFB Technology"
-                  className="w-full h-auto object-contain"
-                />
+              <div className="w-[74.73px] flex-shrink-0 relative">
+                {logoUrl && (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) ? (
+                  // External URL - use unoptimized for flexibility
+                  <Image
+                    src={logoUrl}
+                    alt="SFB Technology Logo"
+                    width={75}
+                    height={75}
+                    className="w-full h-auto object-contain"
+                    priority
+                    unoptimized
+                  />
+                ) : (
+                  // Local path
+                  <Image
+                    src={logoUrl}
+                    alt="SFB Technology Logo"
+                    width={75}
+                    height={75}
+                    className="w-full h-auto object-contain"
+                    priority
+                  />
+                )}
               </div>
 
               {/* Text Stack */}

@@ -1,8 +1,9 @@
 import { NewsDetailPageClient } from "../../../../pages/News/NewsDetailPageClient";
 import { notFound } from "next/navigation";
 import { generateSeoMetadata } from "@/lib/seo";
-import { generateArticleSchema } from "@/lib/structured-data";
+import { generateArticleSchema, generateBreadcrumbSchema } from "@/lib/structured-data";
 import { API_BASE_URL } from "@/lib/api/base";
+import Script from "next/script";
 
 // Enable ISR - revalidate every 60 seconds for news detail
 export const revalidate = 60;
@@ -75,11 +76,27 @@ export default async function NewsDetailRoute({
     author: article.author,
   });
 
+  // Generate breadcrumbs schema
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Trang chủ', url: baseUrl },
+    { name: 'Tin tức', url: `${baseUrl}/news` },
+    { name: article.title, url: `${baseUrl}/news/${article.slug}` },
+  ]);
+
   return (
     <>
-      <script
+      <Script
+        id="article-structured-data"
         type="application/ld+json"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <Script
+        id="breadcrumb-structured-data"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <NewsDetailPageClient article={article} relatedArticles={relatedArticles} />
     </>

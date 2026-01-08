@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, Plus, Edit, Trash2, ChevronUp, ChevronDown, Save, ArrowRight, Target, Users, Award, Sparkles, Phone, Briefcase, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

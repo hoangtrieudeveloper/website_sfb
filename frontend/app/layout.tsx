@@ -90,8 +90,10 @@ export async function generateMetadata(): Promise<Metadata> {
     || process.env.GOOGLE_SITE_VERIFICATION 
     || 'nskAzb2wgDby-HUyaAmxjuyMNgkQ1Z-GSbTs-Tx1RJw';
   
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
+  
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'),
+    metadataBase: new URL(baseUrl),
     title: {
       default: "SFB Technology - Giải pháp công nghệ hàng đầu Việt Nam",
       template: "%s | SFB Technology",
@@ -109,6 +111,11 @@ export async function generateMetadata(): Promise<Metadata> {
     // Google Site Verification - ưu tiên từ settings, fallback về env hoặc default
     verification: {
       google: verificationCode,
+    },
+    // Preconnect for better performance
+    other: {
+      'preconnect-google-fonts': 'https://fonts.googleapis.com',
+      'preconnect-google-fonts-gstatic': 'https://fonts.gstatic.com',
     },
   };
 }

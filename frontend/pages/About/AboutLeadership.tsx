@@ -60,11 +60,15 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                             className="group h-full bg-[#f9fafb] rounded-[16px] overflow-hidden hover:shadow-xl hover:shadow-blue-100 transition-all duration-300 flex flex-col items-center p-8 text-center border border-transparent hover:border-blue-200"
                                         >
                                             <div className="mb-6 relative w-48 h-48 flex-shrink-0">
-                                                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-blue-100 transition-colors">
+                                                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-blue-100 transition-colors relative">
                                                     <ImageWithFallback
                                                         src={leader.image}
                                                         alt={leader.name}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                        fill
+                                                        sizes="192px"
+                                                        loading="lazy"
+                                                        objectFit="cover"
+                                                        className="transition-transform duration-500 group-hover:scale-110"
                                                     />
                                                 </div>
                                             </div>

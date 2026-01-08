@@ -199,11 +199,14 @@ export function NewsDetailPageClient({
           </nav>
 
           {/* Banner image */}
-          <div className="w-full rounded-2xl overflow-hidden bg-gray-100">
+          <div className="w-full rounded-2xl overflow-hidden bg-gray-100 relative h-[220px] md:h-[420px]">
             <ImageWithFallback
               src={featuredImageSrc}
               alt={article.title}
-              className="w-full h-[220px] md:h-[420px] object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+              loading="lazy"
+              objectFit="cover"
             />
           </div>
 

@@ -39,7 +39,10 @@ export function ExpandSection({ product }: ExpandSectionProps) {
                                 <ImageWithFallback
                                     src={product.expandImage || "/images/no_cover.jpeg"}
                                     alt={product.expandTitle}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                    loading="lazy"
+                                    objectFit="cover"
                                 />
                             </div>
                         </div>

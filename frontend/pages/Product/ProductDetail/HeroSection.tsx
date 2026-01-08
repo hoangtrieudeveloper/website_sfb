@@ -59,12 +59,15 @@ export function HeroSection({ product }: HeroSectionProps) {
                         <div className="w-full lg:w-auto shrink-0 flex justify-center lg:justify-start">
                             <div
                                 className="w-full max-w-[701px] aspect-[701/511] lg:w-[701px] lg:h-[511px] rounded-[24px] border-[6px] lg:border-[10px] border-white bg-white
-                          shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden"
+                          shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden relative"
                             >
                                 <ImageWithFallback
                                     src={product.heroImage || "/images/no_cover.jpeg"}
                                     alt={product.name}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                    loading="lazy"
+                                    objectFit="cover"
                                 />
                             </div>
                         </div>

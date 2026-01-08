@@ -70,6 +70,7 @@ export function NewsList({ news }: NewsListProps) {
                 href={`/news/${article.slug}`}
                 aria-label={article.title}
                 className="block h-full"
+                prefetch={true}
               >
                 <motion.article
                   whileHover={{
@@ -88,11 +89,15 @@ export function NewsList({ news }: NewsListProps) {
                   ].join(" ")}
                 >
                   {/* IMAGE */}
-                  <div className="w-full rounded-[12px] overflow-hidden shrink-0 relative group">
+                  <div className="w-full rounded-[12px] overflow-hidden shrink-0 relative group h-[220px] md:h-[273.243px]">
                     <ImageWithFallback
                       src={img}
-                      alt={article.title}
-                      className="w-full h-[220px] md:h-[273.243px] object-cover"
+                      alt={article.title || "News article"}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="lazy"
+                      objectFit="cover"
+                      className="rounded-[12px]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>

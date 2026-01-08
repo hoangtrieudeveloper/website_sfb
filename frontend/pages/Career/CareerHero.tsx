@@ -77,7 +77,10 @@ export function CareerHero({ data }: CareerHeroProps) {
                                 <div className="w-full h-full rounded-[14px] overflow-hidden relative">
                                     <ImageWithFallback
                                         src={displayData.image}
-                                        alt="Career Hero"
+                                        alt={displayData.titleLine1 && displayData.titleLine2 
+                                            ? `${displayData.titleLine1} ${displayData.titleLine2}` 
+                                            : "Career Hero"}
+                                        priority={true}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                                     />
                                     {/* Overlay Glint */}

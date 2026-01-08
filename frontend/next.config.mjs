@@ -19,6 +19,24 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'sfb.vn',
       },
+      // Allow localhost for development
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+      },
+      // Allow all subdomains of sfb.vn
+      {
+        protocol: 'https',
+        hostname: '**.sfb.vn',
+      },
+      {
+        protocol: 'http',
+        hostname: '**.sfb.vn',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
   },

@@ -106,8 +106,16 @@ export function AboutHero({ data }: AboutHeroProps) {
                             <div className="w-full h-full rounded-[10px] lg:rounded-[14px] overflow-hidden relative">
                                 <ImageWithFallback
                                     src={image}
-                                    alt="About Hero Detail"
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                    alt={titleLine1 && titleLine2 
+                                        ? `${titleLine1} ${titleLine2}` 
+                                        : aboutHeroData.title?.line1 && aboutHeroData.title?.line2
+                                        ? `${aboutHeroData.title.line1} ${aboutHeroData.title.line2}`
+                                        : "About Hero"}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"
+                                    priority={true}
+                                    objectFit="cover"
+                                    className="transition-transform duration-1000 group-hover:scale-105"
                                 />
                                 {/* Overlay Glint */}
                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />

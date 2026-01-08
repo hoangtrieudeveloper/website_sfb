@@ -224,8 +224,12 @@ export function HeroBanner({ data }: HeroBannerProps) {
             >
               <ImageWithFallback
                 src={heroImage}
-                alt="SFB Technology Office"
-                className="w-full h-full object-cover"
+                alt={title || description || "SFB Technology Hero"}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"
+                priority={true}
+                objectFit="cover"
+                className="rounded-[14px]"
               />
             </div>
           </ScrollAnimation>

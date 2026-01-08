@@ -56,8 +56,12 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-lg transition-shadow duration-500">
           <ImageWithFallback
             src={imageSrc}
-            alt={article.title}
-            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+            alt={article.title || "Featured news article"}
+            fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            loading="lazy"
+            objectFit="cover"
+            className="transform group-hover:scale-105 transition-transform duration-700 ease-out"
           />
           <div className="absolute inset-0 bg-gradient-to-tr from-[#0870B4]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
