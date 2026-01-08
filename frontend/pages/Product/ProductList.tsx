@@ -59,7 +59,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
             return [
                 { id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" },
                 ...dynamicCategories
-                    .filter((cat: any) => cat.isActive !== false)
+                    .filter((cat: any) => cat.isActive !== false && cat.name !== "Tất cả sản phẩm")
                     .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
                     .map((cat: any) => {
                         const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
