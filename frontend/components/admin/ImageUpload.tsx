@@ -153,13 +153,13 @@ export default function ImageUpload({
     const url = window.prompt("Nhập URL hình ảnh:");
     if (url) {
       setPreview(url);
-      onImageSelect(url);
+      onImageSelect?.(url);
     }
   };
 
   const handleRemove = () => {
     setPreview("");
-    onImageSelect("");
+    onImageSelect?.("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
