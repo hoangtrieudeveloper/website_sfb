@@ -233,10 +233,12 @@ export default function NewsForm({
     try {
       setSaving(true);
       await onSave(formData);
-      toast.success(isEditing ? "Đã cập nhật bài viết" : "Đã tạo bài viết mới");
+      // Toast và redirect được handle bởi parent component (create/page.tsx hoặc edit/page.tsx)
+      // Không show toast ở đây để tránh duplicate
     } catch (error) {
       toast.error("Có lỗi xảy ra khi lưu bài viết");
       console.error(error);
+      throw error; // Re-throw để parent component có thể handle
     } finally {
       setSaving(false);
     }

@@ -223,6 +223,7 @@ exports.createNews = async (req, res, next) => {
       enableShareButtons = true,
       showAuthorBox = true,
       // highlightFirstParagraph deprecated, không dùng nữa
+      highlightFirstParagraph = false,
     } = req.body;
 
     if (!title || !title.trim()) {

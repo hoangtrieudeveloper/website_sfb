@@ -15,10 +15,14 @@ export default function CreateNewsPage() {
         body: JSON.stringify(formData),
       });
       toast.success("Đã tạo bài viết mới");
-      router.push("/admin/news");
+      // Delay nhỏ để toast hiển thị trước khi redirect
+      setTimeout(() => {
+        router.push("/admin/news");
+      }, 100);
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi xảy ra khi tạo bài viết");
       console.error(error);
+      throw error; // Re-throw để NewsForm có thể handle
     }
   };
 
