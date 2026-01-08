@@ -295,19 +295,19 @@ export default function AdminNewsPage() {
         </CardHeader>
 
         <CardContent>
-          <div className="overflow-x-auto px-1">
-            <table className="w-full min-w-[700px] border-separate border-spacing-y-2">
+          <div className="overflow-x-hidden px-1">
+            <table className="w-full table-fixed border-separate border-spacing-y-2">
               <thead>
                 <tr className="text-[13px] text-gray-600 font-semibold bg-gray-50">
-                  <th className="py-3 pl-5 pr-2 rounded-l-xl text-left">
+                  <th className="py-3 pl-3 md:pl-5 pr-1 md:pr-2 rounded-l-xl text-left w-[44px]">
                     #
                   </th>
-                  <th className="py-3 px-2 text-left">Tiêu đề</th>
-                  <th className="py-3 px-2 text-left">Chuyên mục</th>
-                  <th className="py-3 px-2 text-center">Nổi bật</th>
-                  <th className="py-3 px-2 text-center">Trạng thái</th>
-                  <th className="py-3 px-2 hidden md:table-cell text-center">Ngày tạo</th>
-                  <th className="py-3 px-4 text-center rounded-r-xl">Hành động</th>
+                  <th className="py-3 px-1 md:px-2 text-left">Tiêu đề</th>
+                  <th className="py-3 px-1 md:px-2 text-left w-[140px]">Chuyên mục</th>
+                  <th className="py-3 px-1 md:px-2 text-center w-[64px]">Nổi bật</th>
+                  <th className="py-3 px-1 md:px-2 text-center w-[120px]">Trạng thái</th>
+                  <th className="py-3 px-1 md:px-2 hidden md:table-cell text-center w-[120px]">Ngày tạo</th>
+                  <th className="py-3 px-2 md:px-4 text-center rounded-r-xl w-[140px]">Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -319,17 +319,17 @@ export default function AdminNewsPage() {
                     }`}
                     style={{ borderRadius: 12 }}
                   >
-                    <td className="py-3 px-2 md:pl-5 md:pr-2 align-middle text-xs text-gray-500">
+                    <td className="py-3 px-1 md:px-2 md:pl-5 md:pr-2 align-middle text-xs text-gray-500 w-[44px]">
                       {startIndex + i + 1}
                     </td>
-                    <td className="py-3 px-2 align-middle">
+                     <td className="py-3 px-1 md:px-2 align-middle overflow-hidden">
                       <div className="flex gap-2 items-start">
-                        <div className="flex flex-col gap-1 min-w-0">
-                          <span className="truncate font-medium text-gray-900 flex items-center gap-1">
+                        <div className="flex flex-col gap-1 min-w-0 w-full">
+                          <span className="font-medium text-gray-900 flex items-center gap-1 whitespace-normal break-words break-all leading-snug min-w-0 max-w-full">
                             {item.title}
                           </span>
                           {item.excerpt ? (
-                            <span className="text-xs text-gray-500 italic truncate max-w-[240px]">
+                            <span className="text-xs text-gray-500 italic whitespace-normal break-words break-all min-w-0 max-w-full">
                               {item.excerpt.length > 60
                                 ? `${item.excerpt.slice(0, 60)}...`
                                 : item.excerpt}
@@ -338,17 +338,19 @@ export default function AdminNewsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-2 align-middle">
-                      <Badge variant="outline" className="bg-blue-50 border-blue-100 text-blue-700 text-xs font-medium">{item.category}</Badge>
+                    <td className="py-3 px-1 md:px-2 align-middle">
+                      <Badge variant="outline" className="bg-blue-50 border-blue-100 text-blue-700 text-xs font-medium whitespace-normal break-words break-all max-w-full">
+                        {item.category}
+                      </Badge>
                     </td>
-                    <td className="py-3 px-2 align-middle text-center">
+                    <td className="py-3 px-1 md:px-2 align-middle text-center">
                       <span title={item.isFeatured ? "Nổi bật" : ""}>
                         <Star
                           className={`inline w-4 h-4 ${item.isFeatured ? "text-yellow-500 fill-yellow-200" : "text-gray-300 fill-white"}`}
                         />
                       </span>
                     </td>
-                    <td className="py-3 px-2 align-middle text-center">
+                    <td className="py-3 px-1 md:px-2 align-middle text-center">
                       <Badge
                         className={`gap-1 text-xs px-2 py-1 border-0 ${item.status === "published"
                           ? "bg-green-100 text-green-700"
@@ -364,23 +366,22 @@ export default function AdminNewsPage() {
                           : "Bản nháp"}
                       </Badge>
                     </td>
-                    <td className="py-3 px-2 align-middle text-center hidden md:table-cell">
+                    <td className="py-3 px-1 md:px-2 align-middle text-center hidden md:table-cell">
                       <span className="text-gray-400 text-xs">
                         {item.createdAt}
                       </span>
                     </td>
-                    <td className="py-3 px-4 align-middle text-center">
-                      <div className="flex items-center justify-center gap-2 min-w-[210px]">
+                    <td className="py-3 px-2 md:px-4 align-middle text-center">
+                      <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap">
                         <Button
                           variant="secondary"
                           size="icon"
-                          className={`rounded-full flex items-center justify-center shadow border ${item.status === "published"
+                          className={`rounded-full flex items-center justify-center shadow border h-8 w-8 md:h-9 md:w-9 ${item.status === "published"
                             ? "bg-yellow-100 border-yellow-200 text-yellow-800 hover:bg-yellow-200"
                             : "bg-green-100 border-green-200 text-green-800 hover:bg-green-200"
                           }`}
                           onClick={() => toggleStatus(item.id, item.status)}
                           title={item.status === "published" ? "Chuyển thành nháp" : "Xuất bản"}
-                          style={{ minWidth: 36, width: 36, height: 36 }}
                         >
                           {item.status === "published"
                             ? <EyeOff className="w-4 h-4" />
@@ -391,9 +392,8 @@ export default function AdminNewsPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleEdit(item)}
-                          className="h-9 w-9 rounded-full flex items-center justify-center text-primary hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center text-primary hover:bg-blue-50 hover:text-blue-700 transition-colors"
                           title="Chỉnh sửa"
-                          style={{ minWidth: 36 }}
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -401,9 +401,8 @@ export default function AdminNewsPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(item.id)}
-                          className="h-9 w-9 rounded-full flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
+                          className="h-8 w-8 md:h-9 md:w-9 rounded-full flex items-center justify-center text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors"
                           title="Xóa"
-                          style={{ minWidth: 36 }}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

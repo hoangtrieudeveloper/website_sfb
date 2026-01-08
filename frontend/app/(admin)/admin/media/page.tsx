@@ -858,7 +858,7 @@ const MediaLibraryPage: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="flex flex-col gap-3">
               <Label>Tên thư mục</Label>
               <Input
                 value={newFolderName}
@@ -906,9 +906,11 @@ const MediaLibraryPage: React.FC = () => {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewFile} onOpenChange={() => setPreviewFile(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-5xl">
           <DialogHeader>
-            <DialogTitle>{previewFile?.original_name}</DialogTitle>
+            <DialogTitle className="break-words break-all">
+              {previewFile?.original_name}
+            </DialogTitle>
             <DialogDescription>
               {previewFile
                 ? `${formatFileSize(previewFile.file_size)} • ${previewFile.file_type}`
@@ -916,8 +918,8 @@ const MediaLibraryPage: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           {previewFile && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2 flex items-center justify-center bg-gray-50 rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="md:col-span-3 flex items-center justify-center bg-gray-50 rounded-lg p-4">
                 {previewFile.file_type === "image" ? (
                   <img
                     src={
@@ -938,14 +940,48 @@ const MediaLibraryPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="space-y-2 text-sm text-gray-700">
+              <div className="md:col-span-2 space-y-2 text-sm text-gray-700 min-w-0">
                 <div className="font-semibold">Thông tin</div>
-                <div>Tên: {previewFile.original_name}</div>
-                <div>Kích thước: {formatFileSize(previewFile.file_size)}</div>
-                <div>Loại: {previewFile.file_type}</div>
-                <div>Tạo ngày: {new Date(previewFile.created_at).toLocaleString()}</div>
-                {previewFile.alt_text && <div>Alt: {previewFile.alt_text}</div>}
-                {previewFile.description && <div>Mô tả: {previewFile.description}</div>}
+                <div className="flex gap-2">
+                  <span className="shrink-0">Tên:</span>
+                  <span className="min-w-0 break-words break-all">
+                    {previewFile.original_name}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="shrink-0">Kích thước:</span>
+                  <span className="min-w-0 break-words break-all">
+                    {formatFileSize(previewFile.file_size)}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="shrink-0">Loại:</span>
+                  <span className="min-w-0 break-words break-all">
+                    {previewFile.file_type}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="shrink-0">Tạo ngày:</span>
+                  <span className="min-w-0 break-words break-all">
+                    {new Date(previewFile.created_at).toLocaleString()}
+                  </span>
+                </div>
+                {previewFile.alt_text && (
+                  <div className="flex gap-2">
+                    <span className="shrink-0">Alt:</span>
+                    <span className="min-w-0 break-words break-all">
+                      {previewFile.alt_text}
+                    </span>
+                  </div>
+                )}
+                {previewFile.description && (
+                  <div className="flex gap-2">
+                    <span className="shrink-0">Mô tả:</span>
+                    <span className="min-w-0 break-words break-all">
+                      {previewFile.description}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

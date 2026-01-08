@@ -210,8 +210,20 @@ export function NewsPageClient({
       <section className="pt-32 pb-8 bg-white border-b border-gray-100 z-40">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
             {/* Categories */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+               <div
+          className="p-2.5 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center flex-none"
+          aria-hidden="true"
+        >
+          <img
+            src="/icons/interface/iconnews.svg"
+            alt=""
+            className="w-5 h-5"
+            aria-hidden="true"
+          />
+        </div>
               {categoriesWithCount.map((category) => (
                 <button
                   key={category.id}
@@ -300,8 +312,8 @@ export function NewsPageClient({
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center mt-16 gap-2">
+              {news.length > 0 && (
+                <div className="flex justify-start mt-16 gap-2 w-full">
                   {/* Previous button */}
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
