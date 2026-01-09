@@ -82,26 +82,17 @@ export async function POST(req: Request) {
     });
 
     // Lưu thông tin user (không nhạy cảm) để client hiển thị UI
-    if (data.user) {
-      response.cookies.set("cms_sfb_user", JSON.stringify(data.user), {
-        httpOnly: false,
-        secure: isSecure,
-        sameSite: "lax",
-        path: "/",
-        maxAge,
-      });
-    }
+  if (data.user) {
+    response.cookies.set("cms_sfb_user", JSON.stringify(data.user), {
+      httpOnly: false,
+      secure: isSecure,
+      sameSite: "lax",
+      path: "/",
+      maxAge,
+    });
+  }
 
-    // Set cookie
-        secure: isSecure,
-        sameSite: "lax",
-        path: "/",
-        maxAge,
-        url: requestUrl,
-      });
-    }
-
-    return response;
+  return response;
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Lỗi hệ thống, vui lòng thử lại sau." },
