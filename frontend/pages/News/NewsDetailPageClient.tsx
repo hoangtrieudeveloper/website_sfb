@@ -509,7 +509,7 @@ export function NewsDetailPageClient({
 
       {/* Related Articles */}
       {relatedArticles.length > 0 && (
-        <section className="pb-28 bg-white">
+        <section className="pb-8 bg-white">
           <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Bài viết liên quan</h2>

@@ -10,7 +10,7 @@ interface ContactMapProps {
 export function ContactMap({ data }: ContactMapProps = {}) {
     const mapConfig = data || mapData;
     return (
-        <section className="h-[500px] w-full relative bg-gray-100">
+        <section className="w-full relative bg-gray-100 h-[360px] sm:h-[420px] md:h-[480px] lg:h-[520px] xl:h-[560px] 2xl:h-[600px]">
             <iframe
                 src={mapConfig.iframeSrc || mapData.iframeSrc}
                 width="100%"

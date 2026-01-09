@@ -23,7 +23,7 @@ export function ContactInfoCards({ data }: ContactInfoCardsProps = {}) {
     return (
         <section className="py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-cyan-50 relative">
             <div className="container mx-auto px-6 relative z-10">
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 ">
                     {infoCards.map((info, index) => {
                         const Icon = info.iconName ? ((LucideIcons as any)[info.iconName] || LucideIcons.MapPin) : (contactInfo[index]?.icon || LucideIcons.MapPin);
                         return (
