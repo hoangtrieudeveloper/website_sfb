@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { MoveRight, Check } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
 function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
@@ -94,9 +94,11 @@ export function Features({ data }: FeaturesProps) {
                       key={idx}
                       variant="slide-left"
                       delay={0.1 + idx * 0.15}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors"
+                      className="flex items-center gap-3 py-2 rounded-lg hover:bg-white/50 transition-colors"
                     >
-                      <CheckCircle className="h-5 w-5 text-sky-500" />
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#006FB3] flex-shrink-0 translate-y-[3px]">
+                        <Check className="h-4 w-4 text-white" />
+                      </span>
                       <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]">
                         {t}
                       </span>
@@ -108,7 +110,7 @@ export function Features({ data }: FeaturesProps) {
               {block.button?.text && (
                 <div>
                   <PrimaryLinkButton href={block.button.link || '#'}>
-                    {block.button.text} <ArrowRight className="h-4 w-4" />
+                    {block.button.text} <MoveRight className="h-5 w-5" />
                   </PrimaryLinkButton>
                 </div>
               )}
@@ -140,9 +142,11 @@ export function Features({ data }: FeaturesProps) {
                       key={idx}
                       variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
                       delay={idx * 0.15}
-                      className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                      className="flex gap-3 py-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
                     >
-                      <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
+                      <span className="mt-[3px] flex h-5 w-5 items-center justify-center rounded-full bg-[#006FB3] flex-shrink-0">
+                        <Check className="h-4 w-4 text-white" />
+                      </span>
                       <div className="flex flex-col items-start">
                         <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
                           {item.title}
@@ -159,7 +163,7 @@ export function Features({ data }: FeaturesProps) {
               {block.button?.text && (
                 <div>
                   <PrimaryLinkButton href={block.button.link || '#'}>
-                    {block.button.text} <ArrowRight className="h-4 w-4" />
+                    {block.button.text} <MoveRight className="h-5 w-5" />
                   </PrimaryLinkButton>
                 </div>
               )}

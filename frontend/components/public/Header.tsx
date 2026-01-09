@@ -307,7 +307,7 @@ export function Header() {
               style={{ height: "67px", gap: "10px" }}
             >
               <div className="relative">
-                <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                   <img
                     src={logoUrl}
                     alt="SFB Technology"
@@ -317,9 +317,35 @@ export function Header() {
                 {/* Glow Effect */}
                 <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
               </div>
-              <div className="flex flex-col">
-                <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>{siteName}</span>
-                <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>{slogan}</span>
+              <div className="flex flex-col justify-center">
+                <span
+                  className={`uppercase transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}
+                  style={{
+                    fontFamily: '"UTM Alexander", sans-serif',
+                    fontSize: "38px",
+                    fontStyle: "normal",
+                    fontWeight: 400,
+                    lineHeight: "100%",
+                    width: "62px",
+                    display: "inline-block",
+                  }}
+                >
+                  {siteName}
+                </span>
+                <span
+                  className={`uppercase transition-colors duration-500 ${useDarkText ? 'text-[#525252] group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}
+                  style={{
+                    fontFamily: '"UTM Alexander", sans-serif',
+                    fontSize: "8px",
+                    fontStyle: "normal",
+                    fontWeight: 400,
+                    lineHeight: "100%",
+                    width: "102px",
+                    display: "inline-block",
+                  }}
+                >
+                  {slogan}
+                </span>
               </div>
             </Link>
 

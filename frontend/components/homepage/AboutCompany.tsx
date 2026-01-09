@@ -198,9 +198,6 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             >
                               <span className="relative z-10 flex items-center gap-2">
                                 {slide.buttonText || slide.button?.text || "Xem thêm"}
-                                <span className="transition-transform duration-300 group-hover:translate-x-1">
-                                  →
-                                </span>
                               </span>
                             </Link>
                           </div>

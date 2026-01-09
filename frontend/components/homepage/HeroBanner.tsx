@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  ArrowRight,
+  MoveRight,
   Play,
 } from "lucide-react";
 import { motion } from "framer-motion"; // Add Framer Motion
@@ -154,7 +154,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
                   }}
                 >
                   {primaryButton.text}
-                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  <MoveRight size={22} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 {secondaryButton?.link ? (
@@ -173,8 +173,8 @@ export function HeroBanner({ data }: HeroBannerProps) {
                       background: "transparent",
                     }}
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Play size={14} className="text-white ml-0.5" />
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#1D8FCF] flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play size={14} className="text-[#1D8FCF] ml-0.5" />
                     </div>
                     <span>{secondaryButton.text}</span>
                   </button>
@@ -193,10 +193,11 @@ export function HeroBanner({ data }: HeroBannerProps) {
                       background: "transparent",
                     }}
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Play size={14} className="text-white ml-0.5" />
+                     <span>{secondaryButton.text}</span>
+                    <div className="w-8 h-8 rounded-full bg-white border border-[#1D8FCF] flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Play size={14} className="text-[#1D8FCF] ml-0.5" />
                     </div>
-                    <span>{secondaryButton.text}</span>
+                   
                   </button>
                 )}
               </div>
