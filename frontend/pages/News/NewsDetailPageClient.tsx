@@ -71,6 +71,8 @@ export function NewsDetailPageClient({
 }: NewsDetailPageClientProps) {
   const [linkCopied, setLinkCopied] = useState(false);
   const [supportsWebShare, setSupportsWebShare] = useState(false);
+  const [relatedPage, setRelatedPage] = useState<number>(1);
+  const RELATED_PAGE_SIZE = 6;
   
   // Kiểm tra Web Share API support
   useEffect(() => {
@@ -78,6 +80,11 @@ export function NewsDetailPageClient({
       setSupportsWebShare(true);
     }
   }, []);
+
+  // Reset phân trang bài liên quan khi dữ liệu thay đổi
+  useEffect(() => {
+    setRelatedPage(1);
+  }, [relatedArticles]);
   
   if (!article) {
     return null;
@@ -113,6 +120,52 @@ export function NewsDetailPageClient({
     html: contentHtml,
     enableToc: showTableOfContents,
   });
+
+  // Pagination cho bài viết liên quan
+  const relatedTotalPages = Math.max(1, Math.ceil(relatedArticles.length / RELATED_PAGE_SIZE));
+  const relatedCurrentPage = Math.min(relatedPage, relatedTotalPages);
+  const relatedStartIndex = (relatedCurrentPage - 1) * RELATED_PAGE_SIZE;
+  const relatedPaginated = relatedArticles.slice(
+    relatedStartIndex,
+    relatedStartIndex + RELATED_PAGE_SIZE,
+  );
+
+  const getRelatedPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (relatedTotalPages <= maxVisible) {
+      for (let i = 1; i <= relatedTotalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (relatedCurrentPage <= 3) {
+        for (let i = 2; i <= 4; i++) pages.push(i);
+        pages.push("...");
+        pages.push(relatedTotalPages);
+      } else if (relatedCurrentPage >= relatedTotalPages - 2) {
+        pages.push("...");
+        for (let i = relatedTotalPages - 3; i <= relatedTotalPages; i++) pages.push(i);
+      } else {
+        pages.push("...");
+        for (let i = relatedCurrentPage - 1; i <= relatedCurrentPage + 1; i++) pages.push(i);
+        pages.push("...");
+        pages.push(relatedTotalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const handleRelatedPageChange = (page: number) => {
+    if (page < 1 || page > relatedTotalPages) return;
+    setRelatedPage(page);
+
+    const relatedSection = document.querySelector('[data-related-news-section]');
+    if (relatedSection) {
+      const top = relatedSection.getBoundingClientRect().top + window.scrollY - 100;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
 
   // Hàm chia sẻ Facebook
   const shareToFacebook = () => {
@@ -458,7 +511,72 @@ export function NewsDetailPageClient({
               <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>
             </div>
 
-            <NewsList news={relatedArticles.slice(0, 6)} />
+            <div data-related-news-section>
+              <NewsList news={relatedPaginated.slice(0, 6)} />
+            </div>
+
+            {/* Pagination - Related */}
+            {relatedTotalPages > 0 && (
+              <div className="flex justify-start mt-16 gap-2 w-full">
+                {/* Previous button */}
+                <button
+                  onClick={() => handleRelatedPageChange(relatedCurrentPage - 1)}
+                  disabled={relatedCurrentPage === 1}
+                  className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${relatedCurrentPage === 1
+                    ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                    : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                    }`}
+                  aria-label="Trang trước"
+                >
+                  &lt;
+                </button>
+
+                {/* Page numbers */}
+                {getRelatedPageNumbers().map((page, index) => {
+                  if (page === "...") {
+                    return (
+                      <span
+                        key={`ellipsis-related-${index}`}
+                        className="w-10 h-10 flex items-center justify-center text-gray-400"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const pageNum = page as number;
+                  const isActive = pageNum === relatedCurrentPage;
+
+                  return (
+                    <button
+                      key={`related-${pageNum}`}
+                      onClick={() => handleRelatedPageChange(pageNum)}
+                      className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors font-medium ${isActive
+                        ? "bg-[#0870B4] text-white border-[#0870B4] shadow-md"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                        }`}
+                      aria-label={`Trang ${pageNum}`}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                {/* Next button */}
+                <button
+                  onClick={() => handleRelatedPageChange(relatedCurrentPage + 1)}
+                  disabled={relatedCurrentPage === relatedTotalPages}
+                  className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-colors ${relatedCurrentPage === relatedTotalPages
+                    ? "border-gray-200 text-gray-300 cursor-not-allowed"
+                    : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                    }`}
+                  aria-label="Trang sau"
+                >
+                  &gt;
+                </button>
+              </div>
+            )}
           </div>
         </section>
       )}
