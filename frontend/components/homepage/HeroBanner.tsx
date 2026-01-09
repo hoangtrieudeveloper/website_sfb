@@ -25,7 +25,7 @@ interface HeroBannerProps {
 
 export function HeroBanner({ data }: HeroBannerProps) {
   const [showVideoDialog, setShowVideoDialog] = useState(false);
-  
+
   // Use data from props if available, otherwise fallback to static data
   const title = data?.title || heroData.title;
   const description = data?.description || heroData.description;
@@ -52,9 +52,9 @@ export function HeroBanner({ data }: HeroBannerProps) {
   const isYouTubeOrVimeo = (url: string): boolean => {
     if (!url) return false;
     const lowerUrl = url.toLowerCase();
-    return lowerUrl.includes('youtube.com') || 
-           lowerUrl.includes('youtu.be') || 
-           lowerUrl.includes('vimeo.com');
+    return lowerUrl.includes('youtube.com') ||
+      lowerUrl.includes('youtu.be') ||
+      lowerUrl.includes('vimeo.com');
   };
 
   // Get video URL (build full URL if needed)
@@ -74,9 +74,9 @@ export function HeroBanner({ data }: HeroBannerProps) {
     e.preventDefault();
     const link = secondaryButton?.link || '';
     const buttonType = secondaryButton?.type || 'link'; // 'link' or 'video'
-    
+
     if (!link) return;
-    
+
     // Sử dụng type từ config thay vì auto-detect
     if (buttonType === 'video') {
       // Open video popup
@@ -266,13 +266,14 @@ export function HeroBanner({ data }: HeroBannerProps) {
       {/* Video Dialog */}
       {secondaryButton?.link && secondaryButton?.type === 'video' && (
         <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
-          <DialogContent 
-            className="p-0 flex flex-col"
-            style={{ 
-              maxWidth: "95vw", 
+          <DialogContent
+            className="p-0 flex flex-col data-[state=open]:duration-700 data-[state=open]:zoom-in-0"
+            style={{
+              maxWidth: "95vw",
               width: "90vw",
               maxHeight: "95vh",
-              height: "95vh"
+              height: "95vh",
+              animationTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)", // Flower bloom / bouncy effect
             }}
           >
             <DialogHeader className="p-6 pb-4 flex-shrink-0">
@@ -287,7 +288,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
                   (() => {
                     const youtubeId = getYouTubeVideoId(secondaryButton.link);
                     const vimeoId = getVimeoVideoId(secondaryButton.link);
-                    
+
                     if (youtubeId) {
                       return (
                         <iframe

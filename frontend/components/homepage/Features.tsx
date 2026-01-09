@@ -44,7 +44,7 @@ export function Features({ data }: FeaturesProps) {
   // Use data from props if available, otherwise fallback to static data
   const header = data?.header || featureData.header;
   const blocks = data?.blocks || [];
-  
+
   // Convert old block1/2/3 format to blocks array if needed
   let displayBlocks = blocks;
   if (blocks.length === 0 && (data?.block1 || data?.block2 || data?.block3)) {
@@ -54,7 +54,7 @@ export function Features({ data }: FeaturesProps) {
       data.block3 ? { ...data.block3, type: 'type2', imageSide: 'left' } : null,
     ].filter(Boolean);
   }
-  
+
   // Fallback to static data if no blocks
   if (displayBlocks.length === 0) {
     displayBlocks = [
@@ -78,7 +78,7 @@ export function Features({ data }: FeaturesProps) {
               {imageElement}
             </ScrollAnimation>
           )}
-          
+
           <ScrollAnimation variant="slide-left" delay={0.1}>
             <div className="flex w-full max-w-[549px] flex-col items-start gap-[30px]">
               {block.text && (
@@ -86,7 +86,7 @@ export function Features({ data }: FeaturesProps) {
                   {block.text}
                 </p>
               )}
-              
+
               {block.list && block.list.length > 0 && (
                 <div className="w-full space-y-[18px]">
                   {block.list.map((t: string, idx: number) => (
@@ -104,7 +104,7 @@ export function Features({ data }: FeaturesProps) {
                   ))}
                 </div>
               )}
-              
+
               {block.button?.text && (
                 <div>
                   <PrimaryLinkButton href={block.button.link || '#'}>
@@ -114,7 +114,7 @@ export function Features({ data }: FeaturesProps) {
               )}
             </div>
           </ScrollAnimation>
-          
+
           {imageSide === 'right' && (
             <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center xl:justify-end">
               {imageElement}
@@ -130,7 +130,7 @@ export function Features({ data }: FeaturesProps) {
               {imageElement}
             </ScrollAnimation>
           )}
-          
+
           <ScrollAnimation variant={imageSide === 'right' ? 'slide-right' : 'zoom-in'} delay={0.1}>
             <div className="flex w-full max-w-[549px] min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
               {block.items && block.items.length > 0 && (
@@ -155,7 +155,7 @@ export function Features({ data }: FeaturesProps) {
                   ))}
                 </div>
               )}
-              
+
               {block.button?.text && (
                 <div>
                   <PrimaryLinkButton href={block.button.link || '#'}>
@@ -165,7 +165,7 @@ export function Features({ data }: FeaturesProps) {
               )}
             </div>
           </ScrollAnimation>
-          
+
           {imageSide === 'right' && (
             <ScrollAnimation variant="slide-left" delay={0.1} className="flex justify-center xl:justify-end">
               {imageElement}
