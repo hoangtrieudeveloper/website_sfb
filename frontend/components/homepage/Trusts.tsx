@@ -34,7 +34,6 @@ export function Trusts({ data }: TrustsProps) {
             {description}
           </p>
         </ScrollAnimation>
-
         <div className="flex flex-col xl:flex-row justify-center items-center gap-12 xl:gap-20">
           {/* Left Column - Image */}
           <ScrollAnimation variant="slide-right" className="relative group">
