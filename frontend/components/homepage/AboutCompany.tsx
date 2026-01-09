@@ -83,8 +83,8 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
   return (
     <section id="about" className="py-[90px] bg-[#F4FAFE] overflow-hidden">
-      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
-        <div className="flex flex-col gap-[69px]">
+      <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-10 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
+        <div className="flex flex-col gap-10 md:gap-[69px]">
           {/* Header */}
           <ScrollAnimation
             variant="fade-down"
@@ -97,11 +97,11 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                   font-['Plus_Jakarta_Sans'] font-medium
                   text-[var(--Dark-Blue,#0F172A)]
                   [font-feature-settings:'liga'_off,'clig'_off]
-                  text-[clamp(32px,4.6vw,56px)]
-                  leading-[clamp(40px,5.8vw,71px)]
+                  text-[28px] sm:text-[32px] md:text-[40px] lg:text-[56px]
+                  leading-[1.2] lg:leading-[71px]
                 "
               >
-                <span className="lg:whitespace-nowrap">
+                <span className="xl:whitespace-nowrap">
                   {title.part1}
                   <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
                     {title.highlight1}
@@ -112,7 +112,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     {title.part2}
                   </span>
                 </span>
-                <br className="hidden lg:block" />
+                <br className="hidden xl:block" />
                 <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
                   {title.highlight2}
                 </span>
@@ -123,7 +123,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
             <p
               className="
                 mx-auto w-full max-w-[1000px] text-center
-                font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]
+                font-['Plus_Jakarta_Sans'] text-sm sm:text-base font-normal leading-relaxed sm:leading-[30px]
                 text-[var(--Color-2,#0F172A)]
                 [font-feature-settings:'liga'_off,'clig'_off]
               "
@@ -133,34 +133,35 @@ export function AboutCompany({ data }: AboutCompanyProps) {
           </ScrollAnimation>
 
           {/* Cards */}
-          <div className="mx-auto w-full max-w-[410px] sm:max-w-[860px] lg:max-w-[1340px]">
+          <div className="mx-auto w-full max-w-[360px] md:max-w-[720px] xl:max-w-[1230px]">
             <ScrollAnimation variant="blur-in" className="relative w-full">
               <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex gap-[34px]">
+                <div className="flex">
                   {slides.map((slide, index) => (
                     <div
                       key={index}
-                      className="flex-[0_0_100%] sm:flex-[0_0_410px]"
+                      className="flex-[0_0_100%] sm:flex-[0_0_360px] xl:flex-[0_0_410px] pl-4 md:pl-[34px]"
                     >
                       <div
-                        className="w-full max-w-[410px]"
+                        className="w-full max-w-[360px] xl:max-w-[410px]"
                       >
                         <div
                           className="
-                            group mx-auto w-full max-w-[410px] h-[523px]
-                            bg-white rounded-3xl p-6
-                            border-2 border-gray-100
-                            shadow-[0_8px_30px_rgba(0,0,0,0.04)]
-                            flex flex-col items-start gap-6
-                            transition-all duration-300
-                            hover:-translate-y-1
-                            hover:shadow-[0_18px_60px_rgba(0,0,0,0.10)]
-                          "
+                              group mx-auto w-full
+                              max-w-[360px] xl:max-w-[410px]
+                              h-[480px] xl:h-[523px]
+                              bg-white rounded-[24px]
+                              p-4 sm:p-5 xl:p-6
+                              border-2 border-gray-100
+                              flex flex-col items-start gap-4 sm:gap-6 xl:gap-6
+                              transition-all duration-300
+                              hover:-translate-y-1
+                            "
                         >
                           {/* IMAGE + RGB LED FRAME */}
                           <div className="relative w-full flex-shrink-0">
                             <div className="rgb-frame p-[3px] rounded-[14px]">
-                              <div className="relative w-full h-[234px] overflow-hidden rounded-lg bg-white lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
+                              <div className="relative w-full h-[200px] xl:h-[234px] overflow-hidden rounded-lg bg-white lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
                                 <ImageWithFallback
                                   src={slide.image || "/images/card-consulting.jpg"}
                                   alt={slide.title || "About Company Slide"}
@@ -177,7 +178,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                           {/* Content */}
                           <div className="flex-1 w-full flex flex-col items-start text-left gap-4">
                             <h3
-                              className="text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF]"
+                              className="text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg sm:text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF]"
                             >
                               {slide.title}
                             </h3>
@@ -237,7 +238,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
             </ScrollAnimation>
           </div>
         </div>
-      </div>
-    </section>
+      </div >
+    </section >
   );
 }

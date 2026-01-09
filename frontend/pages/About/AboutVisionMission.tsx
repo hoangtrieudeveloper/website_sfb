@@ -16,45 +16,45 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
     const items = displayData.items || visionMissionSectionData.items;
 
     return (
-        <section className="py-20 bg-white overflow-hidden relative">
+        <section className="py-10 sm:py-20 bg-white overflow-hidden relative">
             {/* Background Tech Pattern */}
             <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#2CA4E0_1px,transparent_1px)] bg-[size:20px_20px]" />
 
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] relative z-10">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Section header */}
-                    <FadeIn className="max-w-4xl mx-auto text-center mb-16">
+                    <FadeIn className="max-w-4xl mx-auto text-center mb-8 sm:mb-16">
                         {headerTitle && (
-                            <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
+                            <h2 className="text-[#0F172A] text-2xl sm:text-4xl md:text-5xl font-bold mb-6">
                                 {headerTitle}
                             </h2>
                         )}
                         {headerDescription && (
-                            <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
+                            <p className="text-gray-600 text-sm sm:text-lg leading-relaxed max-w-3xl mx-auto">
                                 {headerDescription}
                             </p>
                         )}
                     </FadeIn>
 
                     {/* Cards Grid */}
-                    <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                         {items.map((item: any, index: number) => (
                             <FadeIn key={item.id || index}>
                                 <motion.div
                                     whileHover={{ scale: 1.05, borderColor: "#2CA4E0", backgroundColor: "#F8FBFE" }}
                                     transition={{ duration: 0.3 }}
-                                    className="bg-[#EFF8FC] rounded-[16px] p-6 flex items-start gap-4 h-full border border-transparent cursor-default group relative overflow-hidden"
+                                    className="bg-[#EFF8FC] rounded-[16px] p-3 sm:p-6 flex items-start gap-3 sm:gap-4 h-full border border-transparent cursor-default group relative overflow-hidden"
                                 >
                                     {/* Highlight overlay */}
                                     <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-blue-400/10 to-transparent -mr-10 -mt-10 rounded-full group-hover:scale-150 transition-transform duration-500" />
 
-                                    <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-[#2CA4E0] flex items-center justify-center bg-white/50 relative z-10 group-hover:bg-white transition-colors">
-                                        <span className="text-[#2CA4E0] font-bold text-lg number-font">
+                                    <div className="flex-shrink-0 w-8 h-8 sm:w-12 sm:h-12 rounded-full border-2 border-[#2CA4E0] flex items-center justify-center bg-white/50 relative z-10 group-hover:bg-white transition-colors">
+                                        <span className="text-[#2CA4E0] font-bold text-sm sm:text-lg number-font">
                                             {index + 1}
                                         </span>
                                     </div>
-                                    <div className="mt-2.5 relative z-10">
-                                        <p className="text-[#334155] font-medium leading-relaxed group-hover:text-[#0F172A] transition-colors">
+                                    <div className="mt-1.5 sm:mt-2.5 relative z-10">
+                                        <p className="text-[#334155] font-medium leading-relaxed group-hover:text-[#0F172A] transition-colors text-xs sm:text-base">
                                             {item.text}
                                         </p>
                                     </div>

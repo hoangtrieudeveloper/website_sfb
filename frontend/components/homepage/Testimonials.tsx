@@ -85,11 +85,11 @@ export function Testimonials({ data }: TestimonialsProps) {
   );
 
   return (
-    <section className="bg-[#eff8ff] py-24 overflow-hidden">
-      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
+    <section className="bg-[#eff8ff] py-16 sm:py-24 overflow-hidden">
+      <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-10 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
         {/* Header */}
         <ScrollAnimation variant="blur-in">
-          <h2 className="text-center text-[#0F172A] text-4xl md:text-5xl font-bold mb-16">
+          <h2 className="text-center text-[#0F172A] text-3xl sm:text-4xl md:text-5xl font-bold mb-10 sm:mb-16">
             {title}
           </h2>
         </ScrollAnimation>
@@ -108,21 +108,21 @@ export function Testimonials({ data }: TestimonialsProps) {
                     className={`flex-[0_0_85%] ${widthClass} pl-6 min-w-0 transition-all duration-500`}
                   >
                     <div
-                      className="bg-white rounded-[32px] p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col items-start gap-6 h-auto"
+                      className="bg-white rounded-[24px] sm:rounded-[32px] p-6 sm:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col items-start gap-4 sm:gap-6 h-auto"
                     >
                       {/* Stars */}
                       <div className="flex gap-1">
                         {[...Array(item.rating)].map((_, i) => (
                           <Star
                             key={i}
-                            size={20}
-                            className="fill-[#FBBF24] text-[#FBBF24]"
+                            size={18}
+                            className="fill-[#FBBF24] text-[#FBBF24] w-[18px] sm:w-[20px] h-[18px] sm:h-[20px]"
                           />
                         ))}
                       </div>
 
                       {/* Quote */}
-                      <p className="text-[#334155] text-[15px] leading-relaxed">
+                      <p className="text-[#334155] text-sm sm:text-[15px] leading-relaxed">
                         “{item.quote}”
                       </p>
 

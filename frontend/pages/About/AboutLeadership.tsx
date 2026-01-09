@@ -34,18 +34,18 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
     }
 
     return (
-        <section className="py-20 bg-white">
+        <section className="py-10 sm:py-20 bg-white">
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
-                    <FadeIn className="text-center mb-16 max-w-4xl mx-auto">
+                    <FadeIn className="text-center mb-8 sm:mb-16 max-w-4xl mx-auto">
                         {headerTitle && (
-                            <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
+                            <h2 className="text-[#0F172A] text-2xl sm:text-4xl md:text-5xl font-bold mb-4">
                                 {headerTitle}
                             </h2>
                         )}
                         {headerDescription && (
-                            <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
+                            <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
                                 {headerDescription}
                             </p>
                         )}
@@ -65,7 +65,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                     <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
                                         <motion.div
                                             whileHover={{ y: -8 }}
-                                            className="group h-full bg-[#f9fafb] rounded-[16px] overflow-hidden hover:shadow-xl hover:shadow-blue-100 transition-all duration-300 flex flex-col items-center p-8 text-center border border-transparent hover:border-blue-200"
+                                            className="group h-full bg-[#f9fafb] rounded-[16px] overflow-hidden hover:shadow-xl hover:shadow-blue-100 transition-all duration-300 flex flex-col items-center p-6 sm:p-8 text-center border border-transparent hover:border-blue-200"
                                         >
                                             <div className="mb-6 relative w-48 h-48 flex-shrink-0">
                                                 <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-blue-100 transition-colors relative">
@@ -81,7 +81,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                                 </div>
                                             </div>
 
-                                            <h3 className="text-[#0F172A] text-xl font-bold mb-1">
+                                            <h3 className="text-[#0F172A] text-lg sm:text-xl font-bold mb-1">
                                                 {leader.name}
                                             </h3>
 

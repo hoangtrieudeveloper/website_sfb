@@ -267,8 +267,8 @@ export function Header() {
           : "bg-transparent shadow-none backdrop-blur-none"
           } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'} p-2.5 gap-2.5`}
       >
-        <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-[clamp(24px,calc((100vw-1280px)/2),320px)]">
-          <div className="flex items-center justify-between lg:justify-center gap-4 lg:gap-[60px] h-full min-w-0">
+        <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10 xl:px-[clamp(24px,calc((100vw-1280px)/2),320px)]">
+          <div className="flex items-center justify-between lg:justify-center gap-4 lg:gap-6 xl:gap-[60px] h-full min-w-0">
             {/* Logo */}
             <Link
               href="/"

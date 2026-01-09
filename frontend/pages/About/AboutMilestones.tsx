@@ -53,7 +53,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
 
     return (
         <section
-            className="mx-auto w-full max-w-[1920px] flex justify-center items-start gap-[10px] py-[120px] px-[10px] overflow-hidden"
+            className="mx-auto w-full max-w-[1920px] flex justify-center items-start gap-[10px] py-10 lg:py-[120px] px-[10px] overflow-hidden"
             style={{
                 background: "linear-gradient(254deg, rgba(128, 192, 228, 0.10) 1.7%, rgba(29, 143, 207, 0.10) 42.26%)"
             }}
@@ -61,14 +61,14 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
-                    <FadeIn className="text-center mb-24 max-w-4xl mx-auto">
+                    <FadeIn className="text-center mb-8 sm:mb-24 max-w-4xl mx-auto">
                         {headerTitle && (
-                            <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
+                            <h2 className="text-[#0F172A] text-2xl sm:text-4xl md:text-5xl font-bold mb-4">
                                 {headerTitle}
                             </h2>
                         )}
                         {headerDescription && (
-                            <p className="text-gray-600 md:text-lg leading-relaxed max-w-2xl mx-auto">
+                            <p className="text-gray-600 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mx-auto">
                                 {headerDescription}
                             </p>
                         )}
@@ -82,7 +82,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                 return (
                                     <div key={index} className="relative lg:min-h-[300px] flex flex-col lg:flex-row items-center justify-center">
                                         {/* Mobile Year Badge */}
-                                        <div className="lg:hidden mb-6 bg-[#2CA4E0] text-white px-6 py-2 rounded-full text-xl font-bold shadow-lg">
+                                        <div className="lg:hidden mb-6 bg-[#2CA4E0] text-white px-6 py-2 rounded-full text-lg sm:text-xl font-bold shadow-lg">
                                             {item.year}
                                         </div>
 
@@ -92,7 +92,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                                 custom={isLeft}
                                                 variants={cardVariants}
                                                 whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(44, 164, 224, 0.15)" }}
-                                                className="bg-white rounded-[24px] p-8 shadow-sm max-w-lg w-full relative z-10 border border-transparent hover:border-blue-100 transition-colors duration-300 cursor-default"
+                                                className="bg-white rounded-[24px] p-5 sm:p-8 shadow-none sm:shadow-sm max-w-lg w-full relative z-10 border border-gray-200 sm:border-transparent hover:border-blue-100 transition-colors duration-300 cursor-default"
                                             >
                                                 <div className="w-12 h-12 mb-4 flex items-center justify-center">
                                                     {typeof item.icon === 'string' && item.icon.startsWith('/') ? (

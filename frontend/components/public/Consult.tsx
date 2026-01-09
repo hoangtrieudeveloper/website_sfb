@@ -43,11 +43,11 @@ export function Consult({ data }: ConsultProps) {
                         {/* Content Container */}
                         <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
 
-                            <h2 className="text-white text-3xl md:text-5xl font-bold mb-6">
+                            <h2 className="text-white text-2xl sm:text-3xl md:text-5xl font-bold mb-4 sm:mb-6">
                                 {title}
                             </h2>
 
-                            <p className="text-white/95 text-base md:text-lg leading-relaxed mb-8 md:mb-10 max-w-2xl font-medium">
+                            <p className="text-white/95 text-sm sm:text-base md:text-lg leading-relaxed mb-8 md:mb-10 max-w-2xl font-medium">
                                 {description}
                             </p>
 
@@ -55,7 +55,7 @@ export function Consult({ data }: ConsultProps) {
                                 <Link
                                     href={buttons.secondary.link || "#"}
                                     prefetch={true}
-                                    className="flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 w-full sm:w-auto min-w-[180px]"
+                                    className="flex h-12 sm:h-[48px] px-6 sm:px-[29px] py-[7px] justify-center items-center gap-[10px] sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 w-full sm:w-auto min-w-0 sm:min-w-[180px] text-sm sm:text-base"
                                 >
                                     {buttons.secondary.text}
                                 </Link>
@@ -63,10 +63,10 @@ export function Consult({ data }: ConsultProps) {
                                 <Link
                                     href={buttons.primary.link || "#"}
                                     prefetch={true}
-                                    className="group flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 w-full sm:w-auto min-w-[200px]"
+                                    className="group flex h-12 sm:h-[48px] px-6 sm:px-[29px] py-[7px] justify-center items-center gap-[10px] sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 w-full sm:w-auto min-w-0 sm:min-w-[200px] text-sm sm:text-base"
                                 >
                                     <span>{buttons.primary.text}</span>
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>
 

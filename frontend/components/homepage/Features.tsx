@@ -32,7 +32,7 @@ function PrimaryLinkButton({
     <Link
       href={href}
       prefetch={true}
-      className="inline-flex h-[54px] w-fit items-center gap-[12px] rounded-[12px] border border-[var(--Color-7,#FFF)] bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] px-[29px] py-[7px] text-sm font-semibold text-white transition-all hover:brightness-110 active:brightness-95"
+      className="inline-flex h-10 sm:h-[54px] w-fit items-center gap-[8px] sm:gap-[12px] rounded-[10px] sm:rounded-[12px] border border-[var(--Color-7,#FFF)] bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] px-5 sm:px-[29px] py-[7px] text-xs sm:text-sm font-semibold text-white transition-all hover:brightness-110 active:brightness-95"
     >
       {children}
     </Link>
@@ -75,14 +75,15 @@ export function Features({ data }: FeaturesProps) {
   }
 
   const renderBlock = (block: any, index: number) => {
-    const imageSide = block.imageSide || 'left';
+    // Force alternating layout: Even=Left (Image-Text), Odd=Right (Text-Image)
+    const imageSide = index % 2 === 1 ? 'right' : 'left';
     const imageElement = block.image ? (
       <FeatureImageFrame src={block.image} alt={`Feature ${index + 1}`} />
     ) : null;
 
     if (block.type === 'type1') {
       return (
-        <div key={index} className="mx-auto flex flex-col xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full">
+        <div key={index} className={`mx-auto flex ${imageSide === 'right' ? 'flex-col-reverse' : 'flex-col'} xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full`}>
           {imageSide === 'left' && (
             <ScrollAnimation>
               {imageElement}
@@ -90,24 +91,24 @@ export function Features({ data }: FeaturesProps) {
           )}
 
           <ScrollAnimation variant="slide-left" delay={0.1}>
-            <div className="flex w-full max-w-[549px] flex-col items-start gap-[30px]">
+            <div className="flex w-full max-w-[549px] flex-col items-start gap-4 sm:gap-[30px]">
               {block.text && (
-                <p className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-normal leading-[38px]">
+                <p className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-normal leading-normal sm:leading-[38px]">
                   {block.text}
                 </p>
               )}
 
               {block.list && block.list.length > 0 && (
-                <div className="w-full space-y-[18px]">
+                <div className="w-full space-y-1 sm:space-y-[18px]">
                   {block.list.map((t: string, idx: number) => (
                     <ScrollAnimation
                       key={idx}
                       variant="slide-left"
                       delay={0.1 + idx * 0.15}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/50 transition-colors"
+                      className="flex items-center gap-2 sm:gap-3 p-1 sm:p-2 rounded-lg hover:bg-white/50 transition-colors"
                     >
-                      <CheckCircle className="h-5 w-5 text-sky-500" />
-                      <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]">
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-sky-500" />
+                      <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-tight sm:leading-[30px]">
                         {t}
                       </span>
                     </ScrollAnimation>
@@ -134,7 +135,7 @@ export function Features({ data }: FeaturesProps) {
       );
     } else if (block.type === 'type2') {
       return (
-        <div key={index} className="mx-auto flex flex-col xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full">
+        <div key={index} className={`mx-auto flex ${imageSide === 'right' ? 'flex-col-reverse' : 'flex-col'} xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full`}>
           {imageSide === 'left' && (
             <ScrollAnimation variant="zoom-in" className="flex justify-center xl:justify-start">
               {imageElement}
@@ -142,22 +143,22 @@ export function Features({ data }: FeaturesProps) {
           )}
 
           <ScrollAnimation variant={imageSide === 'right' ? 'slide-right' : 'zoom-in'} delay={0.1}>
-            <div className="flex w-full max-w-[549px] min-h-[374px] flex-col items-start gap-[30px] bg-transparent">
+            <div className="flex w-full max-w-[549px] min-h-0 sm:min-h-[374px] flex-col items-start gap-2 sm:gap-[30px] bg-transparent">
               {block.items && block.items.length > 0 && (
-                <div className="w-full space-y-5">
+                <div className="w-full space-y-2 sm:space-y-5">
                   {block.items.map((item: any, idx: number) => (
                     <ScrollAnimation
                       key={idx}
                       variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
                       delay={idx * 0.15}
-                      className="flex gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                      className="flex gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
                     >
-                      <CheckCircle className="mt-0.5 h-5 w-5 text-sky-500 flex-shrink-0" />
+                      <CheckCircle className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 text-sky-500 flex-shrink-0" />
                       <div className="flex flex-col items-start">
-                        <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
+                        <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-semibold leading-tight sm:leading-[30px]">
                           {item.title}
                         </p>
-                        <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[26px]">
+                        <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-snug sm:leading-[26px]">
                           {item.text}
                         </p>
                       </div>
@@ -189,25 +190,25 @@ export function Features({ data }: FeaturesProps) {
 
   return (
     <section
-      className="relative overflow-hidden mx-auto w-full max-w-[1920px] min-h-[2166px] flex justify-center items-start gap-[10px] py-[90px] px-6 xl:px-[clamp(24px,7.8125vw,150px)] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F9FD_100%)]"
+      className="relative overflow-hidden mx-auto w-full max-w-[1920px] flex justify-center items-start gap-[10px] py-10 sm:py-[90px] px-6 lg:px-10 xl:px-[clamp(24px,7.8125vw,150px)] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F9FD_100%)]"
     >
       <div className="relative z-10 w-full max-w-[1340px]">
         {/* HEADER */}
-        <ScrollAnimation variant="blur-in" className="mx-auto mb-[46px] max-w-4xl text-center flex flex-col items-center gap-6">
+        <ScrollAnimation variant="blur-in" className="mx-auto mb-8 sm:mb-[46px] max-w-4xl text-center flex flex-col items-center gap-6">
           <p className="text-[15px] font-medium uppercase text-[#1D8FCF]">
             {header.sub}
           </p>
 
-          <h2 className="text-[34px] sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
+          <h2 className="text-2xl sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
             {header.title}
           </h2>
 
-          <p className="mx-auto max-w-3xl text-[16px] leading-[26px] text-[#0F172A]">
+          <p className="mx-auto max-w-3xl text-sm sm:text-[16px] leading-[26px] text-[#0F172A]">
             {header.description}
           </p>
         </ScrollAnimation>
 
-        <div className="flex flex-col gap-[90px]">
+        <div className="flex flex-col gap-8 sm:gap-[90px]">
           {displayBlocks.map((block: any, index: number) => renderBlock(block, index))}
         </div>
       </div>

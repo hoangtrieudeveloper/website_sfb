@@ -56,7 +56,7 @@ export function AboutHero({ data }: AboutHeroProps) {
 
     return (
         <section
-            className="relative w-full flex flex-col justify-center overflow-hidden min-h-[100svh] lg:h-[847px] pt-28 pb-12 lg:py-0"
+            className="relative w-full flex flex-col justify-center overflow-hidden min-h-[100svh] lg:h-[847px] pt-24 pb-12 lg:py-0"
             style={{
                 background: backgroundGradient
             }}
@@ -76,10 +76,10 @@ export function AboutHero({ data }: AboutHeroProps) {
                             <FadeIn>
                                 <h1
                                     ref={titleRef}
-                                    className="inline-block max-w-full text-[28px] min-[375px]:text-[32px] min-[410px]:text-[36px] sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-6"
+                                    className="inline-block max-w-full text-2xl min-[375px]:text-[28px] sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-6"
                                 >
                                     {titleLine1}
-                                    <span className="block mt-1 sm:mt-2 text-white font-medium text-[22px] min-[375px]:text-[24px] min-[410px]:text-[28px] sm:text-3xl md:text-4xl lg:text-4xl xl:text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
+                                    <span className="block mt-1 sm:mt-2 text-white font-medium text-xl min-[375px]:text-[22px] sm:text-3xl md:text-4xl lg:text-4xl xl:text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
                                         {titleLine2}
                                         <br className="hidden sm:block" />
                                         {titleLine3}
@@ -100,7 +100,7 @@ export function AboutHero({ data }: AboutHeroProps) {
                         <FadeIn delay={0.4}>
                             <a
                                 href={buttonLink}
-                                className="inline-flex items-center gap-[12px] px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-15px sm:text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md whitespace-nowrap"
+                                className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-15px sm:text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md whitespace-nowrap"
                             >
                                 {buttonText}
                                 <ArrowRight size={20} />

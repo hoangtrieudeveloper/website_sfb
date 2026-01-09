@@ -29,20 +29,21 @@ export function Trusts({ data }: TrustsProps) {
   }
 
   return (
-    <section className="bg-white py-24 overflow-hidden">
-      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
+    <section className="bg-white py-10 sm:py-24 overflow-hidden">
+      <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-10 xl:px-0 xl:px-[clamp(24px,7.8125vw,150px)]">
         {/* Header */}
-        <ScrollAnimation variant="fade-up" className="text-center mb-16">
-          <span className="text-[#0088D9] font-bold text-sm tracking-widest uppercase mb-3 block">
+        <ScrollAnimation variant="fade-up" className="text-center mb-8 sm:mb-16">
+          <span className="text-[#0088D9] font-bold text-xs sm:text-sm tracking-widest uppercase mb-3 block">
             {subHeader}
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-[#0F172A] mb-4">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#0F172A] mb-4">
             {title}
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed text-sm sm:text-base">
             {description}
           </p>
         </ScrollAnimation>
+
         <div className="flex flex-col xl:flex-row justify-center items-center gap-12 xl:gap-20">
           {/* Left Column - Image */}
           <ScrollAnimation variant="slide-right" className="relative group">
@@ -54,13 +55,14 @@ export function Trusts({ data }: TrustsProps) {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
                 loading="lazy"
                 objectFit="cover"
-                className="transition-transform duration-700 group-hover:scale-105"
+                // className="transition-transform duration-700 group-hover:scale-105"
+                className="relative box-border w-full max-w-[320px] sm:max-w-[550px] xl:max-w-[701px] aspect-[701/555] object-cover rounded-[24px] shadow-[0px_24px_36px_0px_rgba(0,0,0,0.12)]"
               />
             </div>
           </ScrollAnimation>
 
           {/* Right Column - Content */}
-          <div className="flex w-full max-w-[549px] flex-col items-start gap-[30px] min-w-0">
+          <div className="flex w-full max-w-[549px] flex-col items-start gap-4 sm:gap-[30px] min-w-0">
             {features.map((feature: any, idx: number) => {
               const IconComponent = feature.iconName ? (LucideIcons as any)[feature.iconName] : feature.icon;
               const Icon = IconComponent || LucideIcons.BarChart3;
@@ -81,10 +83,9 @@ export function Trusts({ data }: TrustsProps) {
                   </div>
                   <div>
                     <h3
-                      className="self-stretch text-[#0F172A] mb-2 group-hover:text-[#006FB3] transition-colors"
+                      className="self-stretch text-[#0F172A] mb-2 group-hover:text-[#006FB3] transition-colors text-sm sm:text-[20px]"
                       style={{
                         fontFamily: '"Plus Jakarta Sans"',
-                        fontSize: "20px",
                         fontStyle: "normal",
                         fontWeight: 600,
                         lineHeight: "30px",
@@ -94,14 +95,13 @@ export function Trusts({ data }: TrustsProps) {
                       {feature.title}
                     </h3>
                     <p
-                      className="self-stretch text-[#0F172A]"
+                      className="self-stretch text-[#0F172A] text-xs sm:text-base"
                       style={{
                         textAlign: "justify",
                         fontFamily: '"Plus Jakarta Sans"',
-                        fontSize: "16px",
                         fontStyle: "normal",
                         fontWeight: 400,
-                        lineHeight: "30px",
+                        lineHeight: "24px",
                         fontFeatureSettings: "'liga' off, 'clig' off",
                       }}
                     >
@@ -116,7 +116,7 @@ export function Trusts({ data }: TrustsProps) {
               <Link
                 href={button.link || "#"}
                 prefetch={true}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1 transition-all duration-300 group"
+                className="inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1 transition-all duration-300 group text-xs sm:text-base"
               >
                 <span>{button.text}</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

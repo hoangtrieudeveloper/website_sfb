@@ -39,6 +39,132 @@ const splitMetaParts = (meta: string) => {
     return { parts: [normalized], separator: "•" };
 };
 
+const ProductCard = ({ product }: { product: any }) => {
+    return (
+        <div
+            className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)]"
+        >
+            {/* Image kiểu ảnh: có padding + khung */}
+            {product.image && (
+                <div className="w-full">
+                    <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white">
+                        <div className="relative aspect-[16/7]">
+                            <ImageWithFallback
+                                src={product.image}
+                                alt={product.name || PLACEHOLDER_TITLE}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                loading="lazy"
+                                objectFit="contain"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Content */}
+            <div className="w-full flex-1 flex flex-col">
+                {product.meta && (() => {
+                    const { parts, separator } = splitMetaParts(product.meta);
+
+                    if (parts.length <= 1) {
+                        return (
+                            <div className="text-xs text-gray-500 mb-2 truncate">
+                                {product.meta}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2 whitespace-nowrap overflow-hidden">
+                            {parts.map((part, idx) => (
+                                <Fragment key={`${part}-${idx}`}>
+                                    <span className="truncate">{part}</span>
+                                    {idx !== parts.length - 1 && (
+                                        <span className="shrink-0" aria-hidden="true">{separator}</span>
+                                    )}
+                                </Fragment>
+                            ))}
+                        </div>
+                    );
+                })()}
+
+                {product.name && (
+                    <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[60px] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold leading-[28px] lg:leading-[30px]">
+                        {product.name}
+                    </h3>
+                )}
+
+                {product.tagline && (
+                    <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs lg:text-[13px] font-medium leading-normal">
+                        {product.tagline}
+                    </div>
+                )}
+
+                {product.description && (
+                    <p className="self-stretch mb-4 lg:mb-5 line-clamp-3 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal leading-relaxed lg:leading-[30px]">
+                        {product.description}
+                    </p>
+                )}
+
+                {/* Features */}
+                {product.features && Array.isArray(product.features) && product.features.length > 0 && (
+                    <div className="space-y-2 lg:space-y-3 w-full mt-auto flex-[1_0_0]">
+                        {product.features.slice(0, 4).map((feature: string, i: number) => (
+                            <div key={i} className="flex items-start gap-3">
+                                <CheckCircle2
+                                    size={16}
+                                    className="text-white fill-[#1D8FCF] flex-shrink-0 mt-0.5 lg:w-[18px] lg:h-[18px]"
+                                />
+                                <span className="line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal leading-relaxed lg:leading-[30px]">
+                                    {feature}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+
+            <div className="w-full flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                    <div className="text-xs text-gray-500">Giá tham khảo</div>
+                    <div className="text-lg font-extrabold text-gray-900">
+                        {product.pricing || PLACEHOLDER_PRICING}
+                    </div>
+                </div>
+
+                <div className="flex gap-3">
+                    {product.demoLink && (
+                        <Link
+                            href={product.demoLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
+                    inline-flex items-center gap-2"
+                        >
+                            Demo nhanh
+                            <img
+                                src="/icons/custom/product_media.svg"
+                                alt="media"
+                                className="w-6 h-6"
+                            />
+                        </Link>
+                    )}
+                    <Link
+                        href={`/products/${product.slug || slugify(product.name || '')}`}
+                        className="px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                        prefetch={true}
+                    >
+                        Tìm hiểu thêm <ArrowRight size={16} />
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 interface ProductListProps {
     headerData?: any;
     products?: any[];
@@ -47,6 +173,8 @@ interface ProductListProps {
 
 export function ProductList({ headerData, products: dynamicProducts, categories: dynamicCategories }: ProductListProps) {
     const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
+    const [mobilePage, setMobilePage] = useState(1);
+    const MOBILE_ITEMS_PER_PAGE = 3;
 
     // Chỉ sử dụng data từ API, không có fallback static data
     if (!dynamicProducts || dynamicProducts.length === 0) {
@@ -89,10 +217,22 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
         });
     }, [products, selectedCategory]);
 
+    // Reset page when category changes
+    useMemo(() => {
+        setMobilePage(1);
+    }, [selectedCategory]);
+
+    const mobileTotalPages = Math.ceil(filteredProducts.length / MOBILE_ITEMS_PER_PAGE);
+    const mobileProducts = filteredProducts.slice(
+        (mobilePage - 1) * MOBILE_ITEMS_PER_PAGE,
+        mobilePage * MOBILE_ITEMS_PER_PAGE
+    );
+
     // Không render nếu không có header data
     if (!headerData) {
         return null;
     }
+
 
     const displayHeader = headerData;
 
@@ -145,133 +285,37 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     </div>
                 </div>
 
-                {/* Grid cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-[32px] px-6 lg:px-[290px]">
+                {/* Desktop Grid (>= lg) - Show All */}
+                <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-[32px] px-6 lg:px-10 xl:px-24 2xl:px-[150px] min-[1920px]:px-[290px]">
                     {filteredProducts.map((product: any) => (
-                        <div
-                            key={product.id}
-                            className="flex w-full h-full p-6 flex-col items-start gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)]"
-                        >
-                            {/* Image kiểu ảnh: có padding + khung */}
-                            {product.image && (
-                                <div className="w-full">
-                                    <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white">
-                                        <div className="relative aspect-[16/7] lg:ml-auto min-[1920px]:w-[600px] min-[1920px]:h-[262px] min-[1920px]:aspect-auto">
-                                            <ImageWithFallback
-                                                src={product.image}
-                                                alt={product.name || PLACEHOLDER_TITLE}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                loading="lazy"
-                                                objectFit="contain"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Content */}
-                            <div className="w-full flex-1 flex flex-col">
-                                {product.meta && (() => {
-                                    const { parts, separator } = splitMetaParts(product.meta);
-
-                                    if (parts.length <= 1) {
-                                        return (
-                                            <div className="text-xs text-gray-500 mb-2 truncate">
-                                                {product.meta}
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2 whitespace-nowrap overflow-hidden">
-                                            {parts.map((part, idx) => (
-                                                <Fragment key={`${part}-${idx}`}>
-                                                    <span className="truncate">{part}</span>
-                                                    {idx !== parts.length - 1 && (
-                                                        <span className="shrink-0" aria-hidden="true">{separator}</span>
-                                                    )}
-                                                </Fragment>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-
-                                {product.name && (
-                                    <h3 className="self-stretch mb-1 min-h-[60px] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
-                                        {product.name}
-                                    </h3>
-                                )}
-
-                                {product.tagline && (
-                                    <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[12px] sm:text-[13px] font-medium leading-normal">
-                                        {product.tagline}
-                                    </div>
-                                )}
-
-                                {product.description && (
-                                    <p className="self-stretch mb-5 line-clamp-3 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[14px] sm:text-[15px] lg:text-[16px] font-normal leading-[24px] sm:leading-[28px] lg:leading-[30px]">
-                                        {product.description}
-                                    </p>
-                                )}
-
-                                {/* Features */}
-                                {product.features && Array.isArray(product.features) && product.features.length > 0 && (
-                                    <div className="space-y-3 w-full mt-auto flex-[1_0_0]">
-                                        {product.features.slice(0, 4).map((feature: string, i: number) => (
-                                            <div key={i} className="flex items-start gap-3">
-                                                <CheckCircle2
-                                                    size={18}
-                                                    className="text-white fill-[#1D8FCF] flex-shrink-0 mt-0.5"
-                                                />
-                                                <span className="line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[14px] sm:text-[15px] lg:text-[16px] font-normal leading-[24px] sm:leading-[28px] lg:leading-[30px]">
-                                                    {feature}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-
-                            <div className="w-full flex items-center justify-between gap-4 flex-wrap">
-                                <div>
-                                    <div className="text-xs text-gray-500">Giá tham khảo</div>
-                                    <div className="text-lg font-extrabold text-gray-900">
-                                        {product.pricing || PLACEHOLDER_PRICING}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    {product.demoLink && (
-                                        <Link
-                                            href={product.demoLink}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
-                            font-semibold text-sm hover:bg-[#DCEFFF] transition
-                             inline-flex items-center gap-2"
-                                        >
-                                            Demo nhanh
-                                            <img
-                                                src="/icons/custom/product_media.svg"
-                                                alt="media"
-                                                className="w-6 h-6"
-                                            />
-                                        </Link>
-                                    )}
-
-                                    <Link
-                                        href={`/products/${product.slug || slugify(product.name || '')}`}
-                                        className="px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
-                                        prefetch={true}
-                                    >
-                                        Tìm hiểu thêm <ArrowRight size={16} />
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
+                        <ProductCard key={product.id} product={product} />
                     ))}
+                </div>
+
+                {/* Mobile Grid (< lg) - Pagination */}
+                <div className="lg:hidden flex flex-col gap-[32px] px-6">
+                    {mobileProducts.map((product: any) => (
+                        <ProductCard key={product.id} product={product} />
+                    ))}
+
+                    {/* Pagination Controls */}
+                    {mobileTotalPages > 1 && (
+                        <div className="flex justify-center gap-2 mt-8">
+                            {Array.from({ length: mobileTotalPages }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setMobilePage(page)}
+                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
+                                        ${page === mobilePage
+                                            ? "bg-[#0870B4] text-white shadow-md"
+                                            : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
