@@ -61,7 +61,7 @@ export function AboutHero({ data }: AboutHeroProps) {
             <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-400/20 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-[clamp(24px,7.8125vw,150px)] min-[1920px]:px-0 min-[1920px]:pl-[269px] relative z-10 h-full flex flex-col justify-center">
-                <div className="flex-1 flex flex-col justify-center lg:flex-row items-center lg:justify-center min-[1920px]:justify-start gap-6 min-[410px]:gap-8 lg:gap-[clamp(48px,5.1042vw,98px)] min-[1920px]:gap-[45px]">
+                <div className="flex-1 flex flex-col justify-center lg:flex-row items-center lg:justify-center min-[1920px]:justify-start gap-6 min-[410px]:gap-8 lg:gap-[45px]">
                     {/* Text Content */}
                     <StaggerContainer className="text-white w-full lg:max-w-[45%] min-[1920px]:max-w-none min-[1920px]:w-[851px] flex flex-col items-center lg:items-start text-center lg:text-left">
                         <div className="inline-block max-w-full">

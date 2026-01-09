@@ -10,11 +10,11 @@ interface ProductBenefitsProps {
 const BenefitCard = ({ benefit, className = "" }: { benefit: any, className?: string }) => {
     return (
         <div
-            className={`bg-white rounded-2xl p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-gray-100 hover:shadow-[0_16px_40px_rgba(0,0,0,0.10)] transition-all duration-300 h-full ${className}`}
+            className={`bg-white rounded-2xl p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-gray-100 hover:shadow-[0_16px_40px_rgba(0,0,0,0.10)] transition-all duration-300 h-full lg:flex lg:flex-col lg:items-center lg:gap-6 lg:p-[45px_30px] lg:rounded-[24px] lg:border-white lg:shadow-[0_12px_36px_0_rgba(59,90,136,0.12)] lg:flex-[1_0_0] ${className}`}
         >
             {/* Icon box */}
             {benefit.icon && (
-                <div className="flex justify-center mb-5">
+                <div className="flex justify-center mb-5 lg:mb-0">
                     <div
                         className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${benefit.gradient || 'from-[#006FB3] to-[#0088D9]'}
 flex items-center justify-center shadow-md`}
@@ -29,13 +29,13 @@ flex items-center justify-center shadow-md`}
             )}
 
             {benefit.title && (
-                <h4 className="text-gray-900 font-bold text-base mb-2">
+                <h4 className="text-gray-900 font-bold text-base mb-2 lg:mb-0 lg:self-stretch lg:text-[#0F172A] lg:text-center lg:text-[26px] lg:leading-[38px] lg:font-['Plus_Jakarta_Sans'] lg:[font-feature-settings:'liga'_off,'clig'_off]">
                     {benefit.title}
                 </h4>
             )}
 
             {benefit.description && (
-                <p className="text-gray-500 text-sm leading-relaxed">
+                <p className="text-gray-500 text-sm leading-relaxed lg:text-[#0F172A] lg:text-center lg:font-['Plus_Jakarta_Sans'] lg:text-[16px] lg:leading-[26px]">
                     {benefit.description}
                 </p>
             )}

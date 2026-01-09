@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { aboutCompanySectionData } from "./data";
-import { FadeIn, TechBorderReveal, InViewSection } from "../../components/ui/motion";
+import { FadeIn, InViewSection } from "../../components/ui/motion";
 import * as LucideIcons from "lucide-react";
 
 interface AboutCompanyProps {
@@ -48,15 +48,15 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 xl:gap-24 items-center mb-16 sm:mb-32">
                         {/* Left: Image Card */}
                         <FadeIn className="relative w-full max-w-[450px] xl:max-w-[701px] flex-shrink-0" delay={0.2}>
-                            <TechBorderReveal className="rounded-[24px] p-1">
-                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
+                            <div className="rounded-[24px] p-1">
+                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative">
                                     <ImageWithFallback
                                         src={displayData.contentImage1 || content?.image1}
                                         alt="SFB Team Meeting"
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        className="w-full h-full object-cover"
                                     />
                                 </div>
-                            </TechBorderReveal>
+                            </div>
                         </FadeIn>
 
                         {/* Right: Content */}
@@ -137,15 +137,15 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
                         {/* Right: Building Image */}
                         <FadeIn className="order-1 lg:order-2 relative w-full max-w-[450px] xl:max-w-[701px] flex-shrink-0" delay={0.4}>
-                            <TechBorderReveal className="rounded-[24px] p-1">
-                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
+                            <div className="rounded-[24px] p-1">
+                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative">
                                     <ImageWithFallback
                                         src={displayData.contactImage2 || contact?.image2}
                                         alt="SFB Office Building"
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        className="w-full h-full object-cover"
                                     />
                                 </div>
-                            </TechBorderReveal>
+                            </div>
                         </FadeIn>
                     </div>
                 </InViewSection>

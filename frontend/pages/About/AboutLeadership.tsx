@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone, Mail } from "lucide-react";
-import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+
 import {
     Carousel,
     CarouselContent,
@@ -54,43 +54,40 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                         >
                             <CarouselContent className="-ml-4 py-4">
                                 {items.filter((item: any) => item.isActive !== false).map((leader: any, index: number) => (
-                                    <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                                    <CarouselItem key={index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                                         <motion.div
                                             whileHover={{ y: -8 }}
-                                            className="group h-full bg-[#f9fafb] rounded-[16px] overflow-hidden hover:shadow-xl hover:shadow-blue-100 transition-all duration-300 flex flex-col items-center p-6 sm:p-8 text-center border border-transparent hover:border-blue-200"
+                                            className="group flex flex-col w-full max-w-[410px] h-[523px] p-6 items-start gap-6 rounded-[24px] bg-white shadow-none transition-all duration-300 mx-auto"
                                         >
-                                            <div className="mb-6 relative w-48 h-48 flex-shrink-0">
-                                                <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-blue-100 transition-colors">
-                                                    <ImageWithFallback
-                                                        src={leader.image}
-                                                        alt={leader.name}
-                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                    />
+                                            <div
+                                                className="h-[234px] flex-shrink-0 self-stretch rounded-[8px] bg-lightgray bg-no-repeat bg-cover bg-center"
+                                                style={{ backgroundImage: `url(${leader.image})` }}
+                                            />
+
+                                            <div className="flex flex-col items-start w-full">
+                                                <h3 className="self-stretch text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] [font-feature-settings:'liga'_off,'clig'_off] mb-1">
+                                                    {leader.name}
+                                                </h3>
+
+                                                <div className="w-full max-w-[336px] self-center text-[#1D8FCF] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-medium leading-normal uppercase [font-feature-settings:'liga'_off,'clig'_off] overflow-hidden text-ellipsis line-clamp-1 mb-3">
+                                                    {leader.position}
                                                 </div>
+
+                                                <p className="w-full max-w-[336px] self-center text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] mb-0">
+                                                    {leader.description}
+                                                </p>
                                             </div>
 
-                                            <h3 className="text-[#0F172A] text-lg sm:text-xl font-bold mb-1">
-                                                {leader.name}
-                                            </h3>
-
-                                            <div className="text-[#2CA4E0] font-semibold text-sm uppercase mb-4 tracking-wider">
-                                                {leader.position}
-                                            </div>
-
-                                            <p className="text-gray-500 text-xs leading-relaxed mb-6 max-w-xs mx-auto flex-grow">
-                                                {leader.description}
-                                            </p>
-
-                                            <div className="mt-auto flex items-center justify-center gap-6 w-full pt-4 border-t border-gray-100 group-hover:border-blue-100">
+                                            <div className="mt-auto flex flex-row flex-wrap sm:flex-nowrap gap-4 sm:gap-6 w-full pt-4 border-t border-gray-100 group-hover:border-blue-50 items-center justify-center">
                                                 <div className="flex items-center gap-2">
-                                                    <Phone size={14} className="text-[#2CA4E0]" />
-                                                    <a href={`tel:${leader.phone}`} className="text-[#334155] text-xs hover:text-[#2CA4E0] transition-colors font-medium">
+                                                    <Phone size={16} className="text-[#2CA4E0] flex-shrink-0" />
+                                                    <a href={`tel:${leader.phone}`} className="text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] hover:text-[#2CA4E0] transition-colors whitespace-nowrap">
                                                         {leader.phone}
                                                     </a>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <Mail size={14} className="text-[#2CA4E0]" />
-                                                    <a href={`mailto:${leader.email}`} className="text-[#334155] text-xs hover:text-[#2CA4E0] transition-colors font-medium">
+                                                    <Mail size={16} className="text-[#2CA4E0] flex-shrink-0" />
+                                                    <a href={`mailto:${leader.email}`} className="text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] hover:text-[#2CA4E0] transition-colors whitespace-nowrap">
                                                         {leader.email}
                                                     </a>
                                                 </div>
