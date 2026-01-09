@@ -74,16 +74,16 @@ export function ContactForm({ data }: ContactFormProps = {}) {
     };
 
     return (
-        <div>
-            <div className="mb-10">
+        <div className="w-full box-border px-4 sm:px-0">
+            <div className="mb-8 sm:mb-10">
                 <h2 className="text-gray-900 mb-4">{header}</h2>
                 <p className="text-lg text-gray-600 leading-relaxed">
                     {description}
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="space-y-6 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-gray-700 mb-2">
                             {fields.name.label} <span className="text-red-500">*</span>
@@ -94,7 +94,7 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                             value={formData.name}
                             onChange={handleChange}
                             required
-                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                             placeholder={fields.name.placeholder}
                         />
                     </div>
@@ -108,13 +108,13 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                             value={formData.email}
                             onChange={handleChange}
                             required
-                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                             placeholder={fields.email.placeholder}
                         />
                     </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-gray-700 mb-2">
                             {fields.phone.label} <span className="text-red-500">*</span>
@@ -125,7 +125,7 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                             value={formData.phone}
                             onChange={handleChange}
                             required
-                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                             placeholder={fields.phone.placeholder}
                         />
                     </div>
@@ -138,7 +138,7 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                             name="company"
                             value={formData.company}
                             onChange={handleChange}
-                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                             placeholder={fields.company.placeholder}
                         />
                     </div>
@@ -153,7 +153,7 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                         value={formData.service}
                         onChange={handleChange}
                         required
-                        className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                        className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
                     >
                         <option value="">{fields.service.placeholder}</option>
                         {servicesList.map((service, idx) => (
@@ -172,7 +172,7 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                         onChange={handleChange}
                         required
                         rows={6}
-                        className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                        className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors resize-none"
                         placeholder={fields.message.placeholder}
                     />
                 </div>
@@ -186,7 +186,7 @@ export function ContactForm({ data }: ContactFormProps = {}) {
                 <button
                     type="submit"
                     disabled={loading || submitted}
-                    className="group w-full px-8 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-2xl hover:shadow-cyan-500/50 transition-all transform hover:scale-105 flex items-center justify-center gap-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="group w-auto mx-auto sm:w-full sm:mx-0 px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl md:hover:shadow-2xl md:hover:shadow-cyan-500/50 transition-all md:hover:scale-105 flex items-center justify-center gap-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                     {submitted ? (
                         <>

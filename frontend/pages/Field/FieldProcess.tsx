@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { processSteps, fieldProcessSectionData } from "./data";
 import { FadeIn, SlideIn } from "../../components/ui/motion";
 import * as LucideIcons from "lucide-react";
@@ -17,7 +17,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
     };
     return (
         <section className="py-12 md:py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
-            <div className="relative z-10 w-full container mx-auto px-4 md:px-8 lg:px-[100px] xl:px-[290px]">
+            <div className="relative z-10 w-full container mx-auto px-4 md:px-8 lg:px-[100px] xl:px-[140px] 2xl:px-[290px]">
                 {/* Header */}
                 {displayData.header && (
                     <FadeIn className="text-center mb-10 md:mb-[46px] max-w-3xl mx-auto">
@@ -127,7 +127,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                                 <li key={idx} className="flex items-start gap-3">
                                                     <div className="flex-shrink-0 mt-1">
                                                         <div className="w-5 h-5 rounded-full bg-[#008CCB] flex items-center justify-center">
-                                                            <CheckCircle2 size={12} className="text-white" />
+                                                            <Check size={12} className="text-white" />
                                                         </div>
                                                     </div>
                                                     <span className="text-gray-700 font-medium text-sm md:text-base">{point}</span>
@@ -138,7 +138,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                         {/* Buttons from data */}
                                         {step.button?.text && (
                                             <div>
-                                                <a href={step.button.link || '#'} className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20 text-sm md:text-base">
+                                                <a href={step.button.link || '#'} className="inline-flex items-center gap-2 px-6 py-3 md:px-8 md:py-3 bg-[#2EABE2] hover:bg-[#1D8FCF] text-white rounded-lg  transition-colors shadow-lg shadow-blue-500/20 text-sm md:text-base">
                                                     {step.button.text === "Liên hệ với chúng tôi" ? (
                                                         <>
                                                             {step.button.text}

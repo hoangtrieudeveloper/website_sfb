@@ -378,7 +378,7 @@ export function NewsPageClient({
         </div>
       </section>
 
-      <section className="py-[45px] bg-white">
+      <section className="pb-[45px] bg-white">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <Consult />
         </div>

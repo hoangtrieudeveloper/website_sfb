@@ -45,11 +45,11 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
         : (contactSidebarData.socials?.title || "Kết nối với chúng tôi");
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 w-full box-border px-4 sm:px-0">
 
             {/* Quick Actions */}
-            <div className="bg-gradient-to-br from-[#0870B4] to-[#2EABE2] rounded-3xl p-10 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+            <div className="bg-gradient-to-br from-[#0870B4] to-[#2EABE2] rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden">
+               
 
                 <div className="relative z-10">
                     <h3 className="text-white mb-6">{quickActions?.title || contactSidebarData.quickActions.title}</h3>
@@ -60,7 +60,7 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
                     <div className="space-y-4">
                         <a
                             href={quickActions?.buttons?.hotline?.href || contactSidebarData.quickActions.buttons.hotline.href}
-                            className="flex items-center gap-4 p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/20 transition-all group"
+                            className="flex items-center gap-4 p-4 sm:p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/20 transition-all group"
                         >
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <Phone className="text-white" size={24} />
@@ -72,7 +72,7 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
                         </a>
 
                         <button
-                            className="w-full flex items-center gap-4 p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/20 transition-all group text-left"
+                            className="w-full flex items-center gap-4 p-4 sm:p-5 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 hover:bg-white/20 transition-all group text-left"
                         >
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <Calendar className="text-white" size={24} />
@@ -88,7 +88,7 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
 
             {/* Office Locations */}
             {offices.map((office: any, idx: number) => (
-                <div key={idx} className="bg-gray-50 rounded-3xl p-10 border border-gray-100">
+                <div key={idx} className="bg-gray-50 rounded-3xl p-6 sm:p-10 border border-gray-100">
                     <h3 className="text-gray-900 mb-6">{officesTitle}</h3>
                     <div className="space-y-6">
                         <div className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
@@ -116,19 +116,19 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
                 </div>
             ))}
             {/* Social Media */}
-            <div className="bg-white rounded-3xl p-10 border-2 border-gray-100">
+            <div className="bg-white rounded-3xl p-6 sm:p-10 border-2 border-gray-100">
                 <h4 className="text-gray-900 mb-6">{socialsTitle}</h4>
-                <div className="flex gap-4">
+                <div className="flex flex-nowrap gap-3 sm:gap-4 justify-center sm:justify-start overflow-x-auto">
                     {socials.map((social: any, idx: number) => {
                         const Icon = social.iconName ? ((LucideIcons as any)[social.iconName] || LucideIcons.Facebook) : (social.icon || LucideIcons.Facebook);
                         return (
                             <a
                                 key={idx}
                                 href={social.href}
-                                className={`flex items-center justify-center w-14 h-14 bg-gradient-to-r ${social.gradient || "from-blue-600 to-blue-700"} text-white rounded-full hover:shadow-lg transition-all transform hover:scale-110`}
+                                className={`flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 flex-shrink-0 bg-gradient-to-r ${social.gradient || "from-blue-600 to-blue-700"} text-white rounded-full md:hover:shadow-lg transition-all md:hover:scale-110`}
                                 aria-label={social.label || ""}
                             >
-                                <Icon size={24} />
+                                <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                             </a>
                         );
                     })}
