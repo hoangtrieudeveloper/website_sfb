@@ -2,23 +2,32 @@
 
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { aboutCompanySectionData } from "./data";
-import { FadeIn, TechBorderReveal, InViewSection } from "../../components/ui/motion";
+import { FadeIn, InViewSection } from "../../components/ui/motion";
 import * as LucideIcons from "lucide-react";
+import Link from "next/link";
 
 interface AboutCompanyProps {
     data?: any;
 }
 
 export function AboutCompany({ data }: AboutCompanyProps) {
-    // Use data from props if available, otherwise fallback to static data
-    const displayData = data?.data || aboutCompanySectionData;
-    const header = displayData.header || aboutCompanySectionData.header;
-    const content = displayData.content || aboutCompanySectionData.content;
-    const contact = displayData.contact || aboutCompanySectionData.contact;
+    // Chỉ sử dụng data từ API, không fallback static data
+    if (!data || !data.data) {
+        return null;
+    }
+
+    const displayData = data.data;
+    const header = displayData.header;
+    const content = displayData.content;
+    const contact = displayData.contact;
 
     // Handle contacts array
     const contacts = displayData.contacts || contact?.items || [];
+
+    // Không render nếu thiếu dữ liệu quan trọng
+    if (!displayData.headerTitleLine1 && !displayData.headerTitleLine2) {
+        return null;
+    }
 
     return (
         <section className="py-10 sm:py-20 bg-[#F8FBFE] overflow-hidden">
@@ -48,19 +57,19 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 xl:gap-24 items-center mb-16 sm:mb-32">
                         {/* Left: Image Card */}
                         <FadeIn className="relative w-full max-w-[450px] xl:max-w-[701px] flex-shrink-0" delay={0.2}>
-                            <TechBorderReveal className="rounded-[24px] p-1">
-                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
+                            <div className="rounded-[24px] p-1">
+                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
                                     <ImageWithFallback
                                         src={displayData.contentImage1 || content?.image1}
-                                        alt={header?.title || content?.title || "About Company"}
+                                        alt={displayData.contentTitle || displayData.headerTitleLine1 || "SFB Team Meeting"}
                                         fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                        sizes="(max-width: 450px) 100vw, (max-width: 1200px) 50vw, 701px"
                                         loading="lazy"
                                         objectFit="cover"
-                                        className="transition-transform duration-700 group-hover:scale-105"
+                                        className="rounded-[14px] transition-transform duration-700 hover:scale-105"
                                     />
                                 </div>
-                            </TechBorderReveal>
+                            </div>
                         </FadeIn>
 
                         {/* Right: Content */}
@@ -81,13 +90,14 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             )}
                             {displayData.contentButtonText && (
                                 <div>
-                                    <a
+                                    <Link
                                         href={displayData.contentButtonLink || content?.button?.link || '#'}
+                                        prefetch={true}
                                         className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-xs sm:text-sm transition-transform hover:scale-105 shadow-md hover:shadow-cyan-500/30"
                                     >
                                         {displayData.contentButtonText}
                                         <ArrowRight size={16} />
-                                    </a>
+                                    </Link>
                                 </div>
                             )}
                         </FadeIn>
@@ -128,32 +138,33 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
                             {displayData.contactButtonText && (
                                 <div className="pt-2">
-                                    <a
+                                    <Link
                                         href={displayData.contactButtonLink || contact?.button?.link || '#'}
+                                        prefetch={true}
                                         className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-xs sm:text-sm transition-transform hover:scale-105 shadow-md hover:shadow-cyan-500/30"
                                     >
                                         {displayData.contactButtonText || contact?.button?.text}
                                         <ArrowRight size={16} />
-                                    </a>
+                                    </Link>
                                 </div>
                             )}
                         </FadeIn>
 
                         {/* Right: Building Image */}
                         <FadeIn className="order-1 lg:order-2 relative w-full max-w-[450px] xl:max-w-[701px] flex-shrink-0" delay={0.4}>
-                            <TechBorderReveal className="rounded-[24px] p-1">
-                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
+                            <div className="rounded-[24px] p-1">
+                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
                                     <ImageWithFallback
                                         src={displayData.contactImage2 || contact?.image2}
-                                        alt={contact?.title || header?.title || "Contact Information"}
+                                        alt={displayData.headerTitleLine1 || displayData.headerTitleLine2 || "SFB Office Building"}
                                         fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                        sizes="(max-width: 450px) 100vw, (max-width: 1200px) 50vw, 701px"
                                         loading="lazy"
                                         objectFit="cover"
-                                        className="transition-transform duration-700 group-hover:scale-105"
+                                        className="rounded-[14px] transition-transform duration-700 hover:scale-105"
                                     />
                                 </div>
-                            </TechBorderReveal>
+                            </div>
                         </FadeIn>
                     </div>
                 </InViewSection>

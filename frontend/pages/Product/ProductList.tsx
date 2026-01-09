@@ -7,6 +7,7 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import Link from "next/link";
 import * as LucideIcons from "lucide-react";
 import { PLACEHOLDER_PRICING, PLACEHOLDER_TITLE } from "@/lib/placeholders";
+import Image from "next/image";
 
 const slugify = (s: string) =>
     s
@@ -42,20 +43,21 @@ const splitMetaParts = (meta: string) => {
 const ProductCard = ({ product }: { product: any }) => {
     return (
         <div
-            className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)]"
+            className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] lg:h-[786px] lg:max-w-[606px]"
         >
             {/* Image kiểu ảnh: có padding + khung */}
             {product.image && (
-                <div className="w-full">
-                    <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white">
-                        <div className="relative aspect-[16/7]">
+                <div className="w-full lg:self-stretch">
+                    <div className="rounded-2xl lg:rounded-[8px] overflow-hidden border border-gray-100 lg:border-none bg-white lg:bg-gray-200">
+                        <div className="relative aspect-[16/7] lg:aspect-[600/262] lg:ml-auto min-[1920px]:w-[600px] min-[1920px]:h-[262px] min-[1920px]:aspect-auto">
                             <ImageWithFallback
                                 src={product.image}
                                 alt={product.name || PLACEHOLDER_TITLE}
                                 fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                                 loading="lazy"
                                 objectFit="contain"
+                                className="rounded-[8px]"
                             />
                         </div>
                     </div>
@@ -90,19 +92,19 @@ const ProductCard = ({ product }: { product: any }) => {
                 })()}
 
                 {product.name && (
-                    <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[60px] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold leading-[28px] lg:leading-[30px]">
+                    <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[auto] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
                         {product.name}
                     </h3>
                 )}
 
                 {product.tagline && (
-                    <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs lg:text-[13px] font-medium leading-normal">
+                    <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs lg:text-[13px] font-medium lg:font-[500] leading-normal lg:leading-normal">
                         {product.tagline}
                     </div>
                 )}
 
                 {product.description && (
-                    <p className="self-stretch mb-4 lg:mb-5 line-clamp-3 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal leading-relaxed lg:leading-[30px]">
+                    <p className="self-stretch mb-4 lg:mb-5 line-clamp-3 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
                         {product.description}
                     </p>
                 )}
@@ -112,11 +114,10 @@ const ProductCard = ({ product }: { product: any }) => {
                     <div className="space-y-2 lg:space-y-3 w-full mt-auto flex-[1_0_0]">
                         {product.features.slice(0, 4).map((feature: string, i: number) => (
                             <div key={i} className="flex items-start gap-3">
-                                <CheckCircle2
-                                    size={16}
-                                    className="text-white fill-[#1D8FCF] flex-shrink-0 mt-0.5 lg:w-[18px] lg:h-[18px]"
-                                />
-                                <span className="line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal leading-relaxed lg:leading-[30px]">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-1 lg:mt-[5px] w-4 h-4 lg:w-[20px] lg:h-[20px]">
+                                    <path fillRule="evenodd" clipRule="evenodd" d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z" fill="#1D8FCF" />
+                                </svg>
+                                <span className="flex-[1_0_0] line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
                                     {feature}
                                 </span>
                             </div>
@@ -140,22 +141,26 @@ const ProductCard = ({ product }: { product: any }) => {
                             href={product.demoLink}
                             target="_blank"
                             rel="noopener noreferrer"
+                            prefetch={false}
                             className="px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
                 font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
                     inline-flex items-center gap-2"
                         >
                             Demo nhanh
-                            <img
+                            <Image
                                 src="/icons/custom/product_media.svg"
-                                alt="media"
+                                alt="media icon"
+                                width={24}
+                                height={24}
                                 className="w-6 h-6"
                             />
                         </Link>
                     )}
+
                     <Link
                         href={`/products/${product.slug || slugify(product.name || '')}`}
-                        className="px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
                         prefetch={true}
+                        className="px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
                     >
                         Tìm hiểu thêm <ArrowRight size={16} />
                     </Link>
@@ -176,43 +181,48 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
     const [mobilePage, setMobilePage] = useState(1);
     const MOBILE_ITEMS_PER_PAGE = 3;
 
-    // Chỉ sử dụng data từ API, không có fallback static data
-    if (!dynamicProducts || dynamicProducts.length === 0) {
+    // Chỉ sử dụng data từ API, không fallback static data
+    const products = dynamicProducts || [];
+    const categories = dynamicCategories || [];
+
+    // Không render nếu không có products
+    if (!products || products.length === 0) {
         return null;
     }
 
-    const products = dynamicProducts;
-
     // Map dynamic categories to include icon component
     const categoriesWithIcons = useMemo(() => {
-        if (!dynamicCategories || dynamicCategories.length === 0) {
-            return [{ id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" }];
+        if (categories && categories.length > 0) {
+            return [
+                { id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" },
+                ...categories
+                    .filter((cat: any) => cat.isActive !== false && cat.name !== "Tất cả sản phẩm")
+                    .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
+                    .map((cat: any) => {
+                        const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
+                        return {
+                            id: cat.id,
+                            name: cat.name,
+                            icon: IconComponent,
+                            slug: cat.slug,
+                        };
+                    }),
+            ];
         }
-        return [
-            { id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" },
-            ...dynamicCategories
-                .filter((cat: any) => cat.isActive !== false && cat.name !== "Tất cả sản phẩm")
-                .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
-                .map((cat: any) => {
-                    const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
-                    return {
-                        id: cat.id,
-                        name: cat.name,
-                        icon: IconComponent,
-                        slug: cat.slug,
-                    };
-                }),
-        ];
-    }, [dynamicCategories]);
+        // Fallback: chỉ có "Tất cả sản phẩm" nếu không có categories
+        return [{ id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" }];
+    }, [categories]);
 
     const filteredProducts = useMemo(() => {
         if (selectedCategory === "all") {
             return products;
         }
         return products.filter((p: any) => {
+            // Support both old format (category as string) and new format (categoryId as number)
             if (typeof p.categoryId === 'number') {
                 return p.categoryId === selectedCategory;
             }
+            // Fallback for old format
             return false;
         });
     }, [products, selectedCategory]);
@@ -228,13 +238,15 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
         mobilePage * MOBILE_ITEMS_PER_PAGE
     );
 
-    // Không render nếu không có header data
-    if (!headerData) {
-        return null;
-    }
 
+    // Default header data
+    const defaultHeader = {
+        subtitle: "",
+        title: "",
+        description: "",
+    };
 
-    const displayHeader = headerData;
+    const displayHeader = headerData || defaultHeader;
 
     return (
         <section id="products" className="bg-white">
@@ -286,7 +298,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                 </div>
 
                 {/* Desktop Grid (>= lg) - Show All */}
-                <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-[32px] px-6 lg:px-10 xl:px-24 2xl:px-[150px] min-[1920px]:px-[290px]">
+                <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-x-8 gap-y-[45px] justify-items-center w-full max-w-[1244px] mx-auto px-6">
                     {filteredProducts.map((product: any) => (
                         <ProductCard key={product.id} product={product} />
                     ))}
