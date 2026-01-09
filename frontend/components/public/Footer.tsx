@@ -105,10 +105,10 @@ export function Footer() {
   const solutions = parseLinks(settings.footer_solutions || '', solutionsFallback);
 
   return (
-    <footer className="relative flex flex-col items-center gap-[10px] w-full max-w-[1920px] mx-auto pt-[60px] lg:pt-[120px] pb-[20px] bg-[#F9FAFC] text-[#334155] overflow-hidden">
-      <div className="grid grid-cols-2 lg:flex lg:flex-row w-full max-w-[1298px] items-start gap-x-8 gap-y-10 lg:gap-[48px] mb-10 lg:mb-16 px-6 xl:px-0">
+    <footer className="relative flex flex-col items-center gap-0 lg:gap-[10px] w-full max-w-[1920px] mx-auto pt-8 lg:pt-[120px] pb-5 lg:pb-[20px] bg-[#F9FAFC] text-[#334155] overflow-hidden">
+      <div className="grid grid-cols-2 lg:flex lg:flex-row w-full max-w-[1298px] items-start gap-x-4 lg:gap-x-8 gap-y-6 lg:gap-[48px] mb-6 lg:mb-16 px-4 sm:px-6 xl:px-0">
         {/* Column 1: Logo & Intro */}
-        <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start space-y-4 lg:space-y-6 text-center lg:text-left">
+        <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start space-y-3 lg:space-y-6 text-center lg:text-left">
           <Link href="/" className="inline-block">
             {/* Logo Placeholder - replaced with actual logo when available or text fallback that looks good */}
             <div className="flex items-center gap-3">
@@ -164,13 +164,13 @@ export function Footer() {
 
         {/* Column 2: Links */}
         <div className="col-span-1 lg:flex-1">
-          <h4 className="text-[#0F172A] font-bold text-lg mb-4 lg:mb-6">Liên kết</h4>
-          <ul className="space-y-3">
+          <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">Liên kết</h4>
+          <ul className="space-y-2 lg:space-y-3">
             {quickLinks.map((link, idx) => (
               <li key={idx}>
                 <Link
                   href={link.href}
-                  className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]"
+                  className="text-[#334155] hover:text-[#006FB3] transition-colors text-sm lg:text-[15px]"
                 >
                   {link.name}
                 </Link>
@@ -181,13 +181,13 @@ export function Footer() {
 
         {/* Column 3: Services */}
         <div className="col-span-1 lg:flex-1">
-          <h4 className="text-[#0F172A] font-bold text-lg mb-4 lg:mb-6">Dịch vụ</h4>
-          <ul className="space-y-3">
+          <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">Dịch vụ</h4>
+          <ul className="space-y-1.5 lg:space-y-3">
             {solutions.map((item, idx) => (
-              <li key={idx}>
+              <li key={idx} className={idx > 2 ? "hidden lg:block" : ""}>
                 <Link
                   href={item.href}
-                  className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]"
+                  className="text-[#334155] hover:text-[#006FB3] transition-colors text-sm lg:text-[15px] leading-tight block"
                 >
                   {item.name}
                 </Link>
@@ -198,23 +198,23 @@ export function Footer() {
 
         {/* Column 4: Contact Info */}
         <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start text-center lg:text-left">
-          <h4 className="text-[#0F172A] font-bold text-lg mb-4 lg:mb-6">Thông tin liên hệ</h4>
-          <div className="space-y-4 w-full">
+          <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">Thông tin liên hệ</h4>
+          <div className="space-y-2 lg:space-y-4 w-full">
             <div>
-              <span className="font-bold text-[#334155] block mb-1 text-[15px]">Địa chỉ</span>
-              <p className="text-[#334155] text-[15px] leading-relaxed">
+              <span className="font-bold text-[#334155] block mb-0.5 text-sm lg:text-[15px]">Địa chỉ</span>
+              <p className="text-[#334155] text-sm lg:text-[15px] leading-relaxed">
                 {address}
               </p>
             </div>
             <div>
-              <span className="font-bold text-[#334155] inline-block mr-1 text-[15px]">Hotline:</span>
-              <a href={`tel:${phone.replace(/\s/g, '')}`} className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]">
+              <span className="font-bold text-[#334155] inline-block mr-1 text-sm lg:text-[15px]">Hotline:</span>
+              <a href={`tel:${phone.replace(/\s/g, '')}`} className="text-[#334155] hover:text-[#006FB3] transition-colors text-sm lg:text-[15px]">
                 {phone}
               </a>
             </div>
             <div>
-              <span className="font-bold text-[#334155] inline-block mr-1 text-[15px]">Email:</span>
-              <a href={`mailto:${email}`} className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]">
+              <span className="font-bold text-[#334155] inline-block mr-1 text-sm lg:text-[15px]">Email:</span>
+              <a href={`mailto:${email}`} className="text-[#334155] hover:text-[#006FB3] transition-colors text-sm lg:text-[15px]">
                 {email}
               </a>
             </div>

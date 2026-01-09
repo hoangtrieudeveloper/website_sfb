@@ -94,7 +94,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
   return (
     <section
       id="home"
-      className="relative w-full max-w-[1920px] mx-auto min-h-screen lg:h-[850px] flex items-center lg:items-start overflow-hidden bg-[#F4FAFE] pt-32 pb-[28px] lg:pt-[171px]"
+      className="relative w-full max-w-[1920px] mx-auto min-h-[100dvh] lg:min-h-[700px] xl:min-h-[850px] flex flex-col justify-center overflow-hidden bg-[#F4FAFE] pt-24 sm:pt-28 pb-8 lg:pt-20"
     >
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
@@ -103,13 +103,13 @@ export function HeroBanner({ data }: HeroBannerProps) {
         <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-[#006FB3]/15 rounded-full blur-3xl opacity-30 animate-blob animation-delay-4000" />
       </div>
 
-      <div className="mx-auto w-full max-w-[1920px] px-6 xl:px-0 xl:pl-[clamp(24px,17.45vw,335px)] xl:pr-[clamp(24px,7.8125vw,150px)] relative z-10">
-        <div className="grid lg:grid-cols-2 xl:[grid-template-columns:minmax(0,486px)_minmax(0,851px)] gap-[45px] xl:gap-[clamp(45px,5.1042vw,98px)] items-center">
+      <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-10 xl:px-0 xl:pl-[clamp(24px,17.45vw,335px)] xl:pr-[clamp(24px,7.8125vw,150px)] relative z-10 flex flex-col justify-center">
+        <div className="grid lg:grid-cols-2 xl:[grid-template-columns:minmax(0,486px)_minmax(0,851px)] gap-8 md:gap-[45px] xl:gap-[clamp(45px,5.1042vw,98px)] items-center">
           {/* Left */}
-          <div className="space-y-8">
+          <div className="space-y-6 lg:space-y-8">
             <ScrollAnimation variant="blur-in" delay={0.2}>
               <h1
-                className="text-[#0F172A] font-bold self-stretch text-4xl md:text-5xl lg:text-[54px] text-center lg:text-left"
+                className="text-[#0F172A] font-bold self-stretch text-3xl sm:text-4xl md:text-5xl lg:text-[54px] text-center lg:text-left"
                 style={{
                   fontFamily: '"Plus Jakarta Sans", sans-serif',
                   lineHeight: "1.2",
@@ -124,7 +124,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
 
             <ScrollAnimation variant="blur-in" delay={0.3}>
               <p
-                className="text-[#0F172A] text-base md:text-lg text-center lg:text-left mx-auto lg:mx-0 max-w-xl lg:max-w-[486px]"
+                className="text-[#0F172A] text-sm sm:text-base md:text-lg text-center lg:text-left mx-auto lg:mx-0 max-w-xl lg:max-w-[486px]"
                 style={{
                   fontFamily: '"Plus Jakarta Sans", sans-serif',
                   lineHeight: "30px",
@@ -137,14 +137,12 @@ export function HeroBanner({ data }: HeroBannerProps) {
             </ScrollAnimation>
 
             <ScrollAnimation variant="blur-in" delay={0.4}>
-              <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center lg:justify-start">
+              <div className="flex flex-row gap-3 sm:gap-4 pt-2 justify-center lg:justify-start">
                 <Link
                   href={primaryButton.link}
-                  className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold"
+                  className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold px-4 sm:px-[30px] h-12 sm:h-[56px] text-sm sm:text-base"
                   style={{
                     display: "flex",
-                    height: "56px",
-                    padding: "7px 30px",
                     alignItems: "center",
                     gap: "12px",
                     borderRadius: "12px",
@@ -160,14 +158,8 @@ export function HeroBanner({ data }: HeroBannerProps) {
                 {secondaryButton?.link ? (
                   <button
                     onClick={handleSecondaryButtonClick}
-                    className="group transition-all hover:shadow-[0_0_20px_rgba(29,143,207,0.3)] hover:bg-[#1D8FCF]/5 font-semibold text-[#1D8FCF]"
+                    className="group transition-all hover:shadow-[0_0_20px_rgba(29,143,207,0.3)] hover:bg-[#1D8FCF]/5 font-semibold text-[#1D8FCF] px-0 w-[48px] sm:w-auto sm:px-[30px] flex justify-center items-center gap-0 sm:gap-3 h-12 sm:h-[56px] text-sm sm:text-base"
                     style={{
-                      display: "flex",
-                      height: "56px",
-                      padding: "0 30px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "12px",
                       borderRadius: "12px",
                       border: "1.5px solid #1D8FCF",
                       background: "transparent",
@@ -176,18 +168,13 @@ export function HeroBanner({ data }: HeroBannerProps) {
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Play size={14} className="text-white ml-0.5" />
                     </div>
-                    <span>{secondaryButton.text}</span>
+                    <span className="hidden sm:inline">{secondaryButton.text}</span>
                   </button>
                 ) : (
                   <button
-                    className="group transition-all hover:shadow-[0_0_20px_rgba(29,143,207,0.3)] hover:bg-[#1D8FCF]/5 font-semibold text-[#1D8FCF]"
+                    className="group transition-all hover:shadow-[0_0_20px_rgba(29,143,207,0.3)] hover:bg-[#1D8FCF]/5 font-semibold text-[#1D8FCF] px-0 w-[56px] sm:w-auto sm:px-[30px] flex justify-center items-center gap-0 sm:gap-3"
                     style={{
-                      display: "flex",
                       height: "56px",
-                      padding: "0 30px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "12px",
                       borderRadius: "12px",
                       border: "1.5px solid #1D8FCF",
                       background: "transparent",
@@ -196,7 +183,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center group-hover:scale-110 transition-transform">
                       <Play size={14} className="text-white ml-0.5" />
                     </div>
-                    <span>{secondaryButton.text}</span>
+                    <span className="hidden sm:inline">{secondaryButton.text}</span>
                   </button>
                 )}
               </div>
@@ -235,7 +222,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
         <ScrollAnimation
           variant="fade-in"
           delay={0.6}
-          className="mt-[76px]"
+          className="mt-10 md:mt-[76px]"
         >
           <div
             className="relative mx-auto overflow-hidden mask-fade-x w-full max-w-[1120px]"
