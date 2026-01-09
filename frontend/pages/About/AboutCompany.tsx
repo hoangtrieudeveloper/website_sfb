@@ -49,7 +49,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         {/* Left: Image Card */}
                         <FadeIn className="relative w-full max-w-[701px] flex-shrink-0" delay={0.2}>
                             <TechBorderReveal className="rounded-[24px] p-1">
-                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group">
+                                <div className="w-full aspect-[701/511] rounded-[24px] border-[10px] border-white shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] overflow-hidden bg-gray-200 relative group lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
                                     <ImageWithFallback
                                         src={displayData.contentImage1 || content?.image1}
                                         alt={header?.title || content?.title || "About Company"}

@@ -228,7 +228,7 @@ export default function AdminIndustriesPage() {
       setIndustries(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách lĩnh vực");
-      console.error(error);
+      // Silently fail
     } finally {
       setLoading(false);
     }
@@ -594,7 +594,7 @@ export default function AdminIndustriesPage() {
           }
         } catch (error) {
           // If fetch fails, proceed with current data
-          console.error('Failed to fetch current process data:', error);
+          // Silently fail
         }
       }
       await adminApiCall(AdminEndpoints.industries.process.update, {

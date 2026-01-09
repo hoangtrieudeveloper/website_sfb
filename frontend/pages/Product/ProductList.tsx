@@ -4,7 +4,6 @@
 import { Fragment, useState, useMemo } from "react";
 import { CheckCircle2, ArrowRight, Package } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { products as staticProducts, categories as staticCategories, CategoryId } from "./data";
 import Link from "next/link";
 import * as LucideIcons from "lucide-react";
 import { PLACEHOLDER_PRICING, PLACEHOLDER_TITLE } from "@/lib/placeholders";
@@ -49,55 +48,53 @@ interface ProductListProps {
 export function ProductList({ headerData, products: dynamicProducts, categories: dynamicCategories }: ProductListProps) {
     const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
 
-    // Use dynamic data if available, otherwise fallback to static
-    const products = dynamicProducts && dynamicProducts.length > 0 ? dynamicProducts : staticProducts;
-    const categories = dynamicCategories && dynamicCategories.length > 0 ? dynamicCategories : staticCategories;
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!dynamicProducts || dynamicProducts.length === 0) {
+        return null;
+    }
+
+    const products = dynamicProducts;
 
     // Map dynamic categories to include icon component
     const categoriesWithIcons = useMemo(() => {
-        if (dynamicCategories && dynamicCategories.length > 0) {
-            return [
-                { id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" },
-                ...dynamicCategories
-                    .filter((cat: any) => cat.isActive !== false && cat.name !== "Tất cả sản phẩm")
-                    .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
-                    .map((cat: any) => {
-                        const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
-                        return {
-                            id: cat.id,
-                            name: cat.name,
-                            icon: IconComponent,
-                            slug: cat.slug,
-                        };
-                    }),
-            ];
+        if (!dynamicCategories || dynamicCategories.length === 0) {
+            return [{ id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" }];
         }
-        return categories;
-    }, [dynamicCategories, categories]);
+        return [
+            { id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" },
+            ...dynamicCategories
+                .filter((cat: any) => cat.isActive !== false && cat.name !== "Tất cả sản phẩm")
+                .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
+                .map((cat: any) => {
+                    const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
+                    return {
+                        id: cat.id,
+                        name: cat.name,
+                        icon: IconComponent,
+                        slug: cat.slug,
+                    };
+                }),
+        ];
+    }, [dynamicCategories]);
 
     const filteredProducts = useMemo(() => {
         if (selectedCategory === "all") {
             return products;
         }
         return products.filter((p: any) => {
-            // Support both old format (category as string) and new format (categoryId as number)
             if (typeof p.categoryId === 'number') {
                 return p.categoryId === selectedCategory;
             }
-            // Fallback for old format
             return false;
         });
     }, [products, selectedCategory]);
 
+    // Không render nếu không có header data
+    if (!headerData) {
+        return null;
+    }
 
-    // Default header data
-    const defaultHeader = {
-        subtitle: "",
-        title: "",
-        description: "",
-    };
-
-    const displayHeader = headerData || defaultHeader;
+    const displayHeader = headerData;
 
     return (
         <section id="products" className="bg-white">
@@ -159,7 +156,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                             {product.image && (
                                 <div className="w-full">
                                     <div className="rounded-2xl overflow-hidden border border-gray-100 bg-white">
-                                        <div className="relative aspect-[16/7]">
+                                        <div className="relative aspect-[16/7] lg:ml-auto min-[1920px]:w-[600px] min-[1920px]:h-[262px] min-[1920px]:aspect-auto">
                                             <ImageWithFallback
                                                 src={product.image}
                                                 alt={product.name || PLACEHOLDER_TITLE}

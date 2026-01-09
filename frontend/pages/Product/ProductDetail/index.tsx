@@ -311,9 +311,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                 });
             } catch (err) {
                 // User cancelled hoặc có lỗi
-                if ((err as Error).name !== "AbortError") {
-                    console.error("Error sharing:", err);
-                }
+                // Error sharing - silently fail
             }
         } else {
             // Fallback: mở dropdown menu
@@ -356,16 +354,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
     // Debug log để kiểm tra gallery data
     useEffect(() => {
-        if (isContentMode) {
-            console.log('[ProductDetail] Content mode:', {
-                isContentMode,
-                hasContentHtml,
-                hasGallery,
-                galleryImages,
-                galleryPosition,
-                galleryTitle,
-            });
-        }
+        // Content mode debug - removed
     }, [isContentMode, hasContentHtml, hasGallery, galleryImages, galleryPosition, galleryTitle]);
 
     return (

@@ -127,7 +127,7 @@ export default function AdminRolesPage() {
         })),
       );
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Không tải được danh sách phân quyền");
     } finally {
       setLoading(false);
@@ -248,7 +248,7 @@ export default function AdminRolesPage() {
         ) ?? [];
       setRolePermissionIds(permissionIds);
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       // Giữ popup mở để người dùng thấy thông báo, không tự đóng
       toast.error(error?.message || "Không tải được quyền của role. Vui lòng kiểm tra API backend.");
     } finally {
@@ -283,7 +283,7 @@ export default function AdminRolesPage() {
       setSelectedRole(null);
       setRolePermissionIds([]);
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi cập nhật quyền cho role");
     } finally {
       setSavingPermissions(false);
@@ -337,7 +337,7 @@ export default function AdminRolesPage() {
       setEditingRole(null);
       setFormData(EMPTY_FORM);
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi lưu phân quyền");
     } finally {
       setSaving(false);
@@ -363,7 +363,7 @@ export default function AdminRolesPage() {
       setRoles((prev) => prev.filter((r) => r.id !== role.id));
       toast.success("Đã xóa phân quyền");
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi xóa phân quyền");
     }
   };
@@ -383,7 +383,7 @@ export default function AdminRolesPage() {
         );
       }
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi cập nhật trạng thái role");
     }
   };
@@ -402,7 +402,7 @@ export default function AdminRolesPage() {
         void loadRoles();
       }
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi đặt role mặc định");
     }
   };

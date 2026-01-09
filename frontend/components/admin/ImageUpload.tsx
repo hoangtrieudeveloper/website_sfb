@@ -79,7 +79,7 @@ export default function ImageUpload({
         onImagesSelect?.([imageUrl]);
         toast.success("Upload ảnh thành công");
       } catch (error: any) {
-        console.error("Upload error:", error);
+        // Silently fail
         toast.error(error?.message || "Có lỗi xảy ra khi upload ảnh");
         setPreview(currentImage || "");
       } finally {
@@ -138,7 +138,7 @@ export default function ImageUpload({
           : "Upload ảnh thành công",
       );
     } catch (error: any) {
-      console.error("Upload error:", error);
+      // Silently fail
       toast.error(error?.message || "Có lỗi xảy ra khi upload ảnh");
       setPreview(currentImage || "");
     } finally {

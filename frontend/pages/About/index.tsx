@@ -53,7 +53,7 @@ export function AboutPage() {
         if (leadershipResponse.success && leadershipResponse.data) setLeadershipData(leadershipResponse.data);
 
       } catch (error) {
-        console.error("Error fetching about page data:", error);
+        // Silently fail
       } finally {
         setLoading(false);
       }

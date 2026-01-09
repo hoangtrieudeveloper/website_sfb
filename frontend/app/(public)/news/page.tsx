@@ -19,13 +19,10 @@ async function getNews() {
     ]);
 
     if (!newsRes.ok) {
-      const errorText = await newsRes.text();
-      console.error("Failed to fetch news:", newsRes.status, errorText);
       return { news: [], featured: null, categories: [] };
     }
 
     const newsData = await newsRes.json();
-    console.log("News data received:", newsData);
 
     const news = newsData.data || [];
 
@@ -54,7 +51,6 @@ async function getNews() {
       categories: [],
     };
   } catch (error) {
-    console.error("Error fetching news:", error);
     return { news: [], featured: null, categories: [] };
   }
 }
@@ -68,16 +64,12 @@ async function getCategories() {
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("Failed to fetch categories:", res.status, errorText);
       return [];
     }
 
     const data = await res.json();
-    console.log("Categories data received:", data);
     return data.data || [];
   } catch (error) {
-    console.error("Error fetching categories:", error);
     return [];
   }
 }

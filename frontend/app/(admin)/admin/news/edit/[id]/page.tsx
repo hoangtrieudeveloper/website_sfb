@@ -70,7 +70,7 @@ export default function EditNewsPage() {
       // Không redirect, giữ nguyên ở trang hiện tại
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi xảy ra khi cập nhật bài viết");
-      console.error(error);
+      // Silently fail
     }
   };
 

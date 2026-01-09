@@ -92,10 +92,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Debug log (chỉ trong development)
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[Login API] Cookie settings:", {
-        tokenSet: !!data.token,
+    // Set cookie
         secure: isSecure,
         sameSite: "lax",
         path: "/",

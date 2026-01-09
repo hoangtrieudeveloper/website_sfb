@@ -21,7 +21,7 @@ export default function CreateNewsPage() {
       }, 100);
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi xảy ra khi tạo bài viết");
-      console.error(error);
+      // Silently fail
       throw error; // Re-throw để NewsForm có thể handle
     }
   };

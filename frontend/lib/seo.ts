@@ -36,26 +36,13 @@ async function fetchSeoData(pagePath: string): Promise<SeoData | null> {
     });
 
     if (!res.ok) {
-      // Không log error cho 404 (trang chưa có SEO config)
-      if (res.status !== 404 && process.env.NODE_ENV === 'development') {
-        console.warn(`[SEO] Failed to fetch SEO data for ${pagePath}: ${res.status}`);
-      }
       return null;
     }
 
     const data = await res.json();
     return data.data || null;
   } catch (error: any) {
-    // Chỉ log error trong dev mode, không crash app
-    if (process.env.NODE_ENV === 'development') {
-      // Kiểm tra nếu là connection error (backend không chạy)
-      if (error?.code === 'ECONNREFUSED' || error?.cause?.code === 'ECONNREFUSED') {
-        console.warn(`[SEO] Backend không khả dụng, sử dụng default SEO data cho ${pagePath}`);
-      } else if (error?.name !== 'AbortError') {
-        // Không log timeout errors
-        console.warn(`[SEO] Error fetching SEO data for ${pagePath}:`, error?.message || error);
-      }
-    }
+    // Silently fail
     // Luôn return null để fallback về defaultData
     return null;
   }

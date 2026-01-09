@@ -9,16 +9,17 @@ interface CareerHeroProps {
 }
 
 export function CareerHero({ data }: CareerHeroProps) {
-    // Use data from props if available, otherwise fallback to static data
-    const displayData = data?.data || {
-        titleLine1: "Cùng xây dựng",
-        titleLine2: "tương lai công nghệ",
-        description: "Gia nhập đội ngũ 50+ chuyên gia công nghệ, làm việc với tech stack hiện đại nhất và triển khai dự án cho các khách hàng lớn",
-        buttonText: "Xem vị trí tuyển dụng",
-        buttonLink: "#positions",
-        image: "/images/hero.png",
-        backgroundGradient: "linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)",
-    };
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!data || !data.data) {
+        return null;
+    }
+
+    const displayData = data.data;
+
+    // Không render nếu thiếu dữ liệu cần thiết
+    if (!displayData.titleLine1 || !displayData.titleLine2 || !displayData.image) {
+        return null;
+    }
 
     return (
         <section
@@ -80,8 +81,11 @@ export function CareerHero({ data }: CareerHeroProps) {
                                         alt={displayData.titleLine1 && displayData.titleLine2 
                                             ? `${displayData.titleLine1} ${displayData.titleLine2}` 
                                             : "Career Hero"}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"
                                         priority={true}
-                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                        objectFit="cover"
+                                        className="transition-transform duration-1000 group-hover:scale-105"
                                     />
                                     {/* Overlay Glint */}
                                     <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />

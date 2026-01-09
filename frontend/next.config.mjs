@@ -39,6 +39,7 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
+    qualities: [75, 85], // Hỗ trợ cả quality 75 và 85
   },
   
   // Experimental features for better performance

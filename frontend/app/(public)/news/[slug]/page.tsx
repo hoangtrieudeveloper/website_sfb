@@ -23,7 +23,7 @@ async function getNewsBySlug(slug: string) {
     const data = await res.json();
     return data.data || null;
   } catch (error) {
-    console.error("Error fetching news detail:", error);
+    // Silently fail
     return null;
   }
 }
@@ -45,7 +45,7 @@ async function getRelatedNews(categoryId: string | undefined, excludeId: number 
     const filtered = typeof excludeId === "number" ? items.filter((n) => n?.id !== excludeId) : items;
     return filtered.slice(0, 6);
   } catch (error) {
-    console.error("Error fetching related news:", error);
+    // Silently fail
     return [];
   }
 }

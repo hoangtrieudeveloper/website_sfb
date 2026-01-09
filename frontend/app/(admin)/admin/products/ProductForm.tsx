@@ -272,7 +272,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         setActiveContentModeTab(response.data.contentMode === "content" ? "content" : "widget");
       }
     } catch (error: any) {
-      console.error("Error fetching product detail:", error);
+      // Silently fail
       // Nếu có lỗi, tạo empty data
       setDetailData({
         contentMode: "config",
@@ -324,18 +324,18 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         ...data,
         contentMode: data.contentMode || (activeContentModeTab === "content" ? "content" : "config"),
       };
-      console.log("🔄 Saving detail data:", dataToSaveWithMode); // Debug log
+      // Saving detail data
       const response = await adminApiCall(AdminEndpoints.products.detailPage(productId), {
         method: "PUT",
         body: JSON.stringify(dataToSaveWithMode),
       });
-      console.log("✅ Save response:", response); // Debug log
+      // Save successful
       toast.success("Đã lưu chi tiết sản phẩm");
       // Reload lại data từ backend để cập nhật UI với sort_order mới (force reload để bypass cache)
       setEditingSection(null); // Đóng các dialog đang mở
       await fetchProductDetail(true);
     } catch (error: any) {
-      console.error("❌ Save error:", error); // Debug log
+      // Save error - silently fail
       toast.error(error?.message || "Không thể lưu chi tiết sản phẩm");
     } finally {
       setLoading(false);
@@ -349,7 +349,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
       );
       setCategories(data.data || []);
     } catch (error) {
-      console.error(error);
+      // Silently fail
     }
   };
 
@@ -432,7 +432,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
               body: JSON.stringify(detailToSave),
             });
           } catch (detailError: any) {
-            console.error("Error saving detail:", detailError);
+            // Silently fail
             // Không throw error để vẫn lưu được thông tin cơ bản
           }
         }

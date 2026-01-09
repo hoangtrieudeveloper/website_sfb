@@ -95,7 +95,7 @@ export default function AdminContactRequestsPage() {
       setTotal(data?.pagination?.total || 0);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách yêu cầu");
-      console.error(error);
+      // Silently fail
     } finally {
       setLoading(false);
     }

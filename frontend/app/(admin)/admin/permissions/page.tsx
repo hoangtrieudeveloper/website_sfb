@@ -118,7 +118,7 @@ export default function AdminPermissionsPage() {
         })),
       );
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Không tải được danh sách quyền");
     } finally {
       setLoading(false);
@@ -272,7 +272,7 @@ export default function AdminPermissionsPage() {
       setEditingPermission(null);
       setFormData(EMPTY_FORM);
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi lưu quyền");
     } finally {
       setSaving(false);
@@ -298,7 +298,7 @@ export default function AdminPermissionsPage() {
       setPermissions((prev) => prev.filter((p) => p.id !== permission.id));
       toast.success("Đã xóa quyền");
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi xóa quyền");
     }
   };
@@ -325,7 +325,7 @@ export default function AdminPermissionsPage() {
         );
       }
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi cập nhật trạng thái quyền");
     }
   };

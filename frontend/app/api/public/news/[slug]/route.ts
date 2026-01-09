@@ -40,7 +40,6 @@ export async function GET(
       },
     });
   } catch (error: any) {
-    console.error("Error fetching news detail:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi hệ thống" },
       { status: 500 }

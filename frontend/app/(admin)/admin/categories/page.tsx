@@ -55,7 +55,7 @@ export default function AdminCategoriesPage() {
       setCategories(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Tải danh mục thất bại");
-      console.error(error);
+      // Silently fail
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function AdminCategoriesPage() {
       fetchCategories();
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi khi lưu danh mục");
-      console.error(error);
+      // Silently fail
     }
   };
 
@@ -120,7 +120,7 @@ export default function AdminCategoriesPage() {
       fetchCategories();
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi khi xóa danh mục");
-      console.error(error);
+      // Silently fail
     }
   };
 

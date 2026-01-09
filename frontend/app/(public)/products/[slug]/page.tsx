@@ -12,40 +12,23 @@ async function getProductBySlugFromAPI(slug: string) {
   try {
     const baseUrl = API_BASE_URL;
     
-    console.log(`[Product API] Fetching product from: ${baseUrl}/api/public/products/${slug}`);
-    
     const res = await fetch(`${baseUrl}/api/public/products/${slug}`, {
       next: { revalidate: 60 },
-      // Thêm cache control cho dev mode
       cache: process.env.NODE_ENV === "production" ? "default" : "no-store",
     });
 
     if (!res.ok) {
-      console.error(`[Product API] Failed to fetch product ${slug}: ${res.status} ${res.statusText}`);
-      // Log response body nếu có
-      try {
-        const errorBody = await res.text();
-        console.error(`[Product API] Error response body:`, errorBody);
-      } catch (e) {
-        // Ignore
-      }
       return null;
     }
 
     const data = await res.json();
     if (!data.success || !data.data) {
-      console.error(`[Product API] Invalid response for product ${slug}:`, data);
       return null;
     }
     
-    console.log(`[Product API] Successfully fetched product: ${slug}`);
     return data.data;
   } catch (error: any) {
-    console.error(`[Product API] Error fetching product detail for ${slug}:`, error?.message || error);
-    // Log thêm thông tin về error
-    if (error?.cause) {
-      console.error(`[Product API] Error cause:`, error.cause);
-    }
+    // Silently fail
     return null;
   }
 }
@@ -176,14 +159,14 @@ export default async function ProductDetailPage({
   const apiData = await getProductBySlugFromAPI(slug);
   
   if (!apiData) {
-    console.error(`[Product Page] Product not found: ${slug}`);
+    // Product not found - silently fail
     notFound();
   }
 
   const product = transformProductData(apiData);
   
   if (!product) {
-    console.error(`[Product Page] Failed to transform product data: ${slug}`);
+    // Failed to transform product data - silently fail
     notFound();
   }
 

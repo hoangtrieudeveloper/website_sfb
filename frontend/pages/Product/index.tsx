@@ -62,7 +62,7 @@ export function ProductsPage() {
                     setCtaData(ctaResponse.data);
                 }
             } catch (error) {
-                console.error("Error fetching products page data:", error);
+                // Silently fail
             } finally {
                 setLoading(false);
             }

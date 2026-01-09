@@ -43,7 +43,7 @@ export const CareersPage = () => {
         if (ctaResponse.success && ctaResponse.data) setCtaData(ctaResponse.data);
 
       } catch (error) {
-        console.error("Error fetching careers page data:", error);
+        // Silently fail
       } finally {
         setLoading(false);
       }

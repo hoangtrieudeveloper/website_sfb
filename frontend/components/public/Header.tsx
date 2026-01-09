@@ -51,30 +51,12 @@ export function Header() {
         const keys = 'logo,slogan,site_name,phone,email';
         const data = await getPublicSettings(keys);
         setSettings(data);
-      } catch (error) {
-        console.error('Error loading header settings:', error);
-        // Fallback to default values
-        setSettings({
-          logo: '/images/sfb.svg',
-          slogan: 'Smart Solutions Business',
-          site_name: 'SFB',
-          phone: '0888917999',
-          email: 'info@sfb.vn',
-        });
+      } catch (error: any) {
+        // Silently fail - component sẽ sử dụng giá trị mặc định từ settings state
       }
     };
     loadSettings();
   }, []);
-
-  // Debug: Log navLinks changes
-  useEffect(() => {
-    console.log('[Header] navLinks updated:', navLinks);
-    navLinks.forEach((link, idx) => {
-      if (link.children && link.children.length > 0) {
-        console.log(`[Header] Menu ${idx} "${link.label}" has ${link.children.length} children:`, link.children);
-      }
-    });
-  }, [navLinks]);
 
   // Load menus from API
   useEffect(() => {
@@ -85,8 +67,6 @@ export function Header() {
         );
         
         if (response.success && response.data) {
-          console.log('[Header] Raw menu data from API:', response.data);
-          
           // Convert menu items to NavLink format
           const convertMenuToNavLink = (menu: MenuItem): NavLink => {
             const navLink: NavLink = {
@@ -97,7 +77,6 @@ export function Header() {
             
             // Convert children if exists (recursive for nested children)
             if (menu.children && Array.isArray(menu.children) && menu.children.length > 0) {
-              console.log(`[Header] Menu "${menu.title}" (ID: ${menu.id}) has ${menu.children.length} children:`, menu.children);
               navLink.children = menu.children.map(child => ({
                 href: child.url,
                 label: child.title,
@@ -110,22 +89,15 @@ export function Header() {
                 //     }))
                 //   : undefined,
               }));
-              console.log(`[Header] Converted children for "${menu.title}":`, navLink.children);
-            } else {
-              console.log(`[Header] Menu "${menu.title}" (ID: ${menu.id}) has no children`);
             }
-            
             return navLink;
           };
           
           const links = response.data.map(convertMenuToNavLink);
-          console.log('[Header] Final converted menus:', links);
           setNavLinks(links);
-        } else {
-          console.warn('[Header] No menu data from API');
         }
       } catch (error) {
-        console.error('Error loading menus:', error);
+        // error handled
       }
     };
     loadMenus();
@@ -139,16 +111,17 @@ export function Header() {
     }
   }, []);
 
-  // Get settings with fallbacks
-  const logoUrl = settings.logo || '/images/sfb.svg';
-  const slogan = settings.slogan || 'Smart Solutions Business';
-  const siteName = settings.site_name || 'SFB';
-  const phone = settings.phone || '0888917999';
-  const email = settings.email || 'info@sfb.vn';
+  // Chỉ sử dụng data từ API, không có fallback
+  const logoUrl = settings.logo;
+  const slogan = settings.slogan;
+  const siteName = settings.site_name;
+  const phone = settings.phone;
+  const email = settings.email;
   
   // Format phone for display (remove non-digit characters except dots)
-  const formattedPhone = phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3');
-  const phoneHref = `tel:${phone.replace(/\D/g, '')}`;
+  // Kiểm tra phone tồn tại trước khi gọi replace
+  const formattedPhone = phone ? phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') : '';
+  const phoneHref = phone ? `tel:${phone.replace(/\D/g, '')}` : '';
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);
@@ -170,13 +143,11 @@ export function Header() {
   // Transparent pages (like About): White text
   const useDarkText = scrolled || pathname === '/' || !isTransparentHeader;
 
-
   // Language options with flags
   const languages = [
     { code: "vi" as const, native_name: "Tiếng Việt", img_icon_url: "/icons/flags/vi.svg" },
     { code: "en" as const, native_name: "English", img_icon_url: "/icons/flags/en.svg" },
   ];
-
 
   const currentLanguageObj = languages.find(lang => lang.code === language);
 
@@ -255,12 +226,10 @@ export function Header() {
 
   const handleDropdownEnter = (href: string) => {
     clearTimeout(dropdownTimeoutRef.current);
-    console.log('[Header] Dropdown enter:', href);
     setActiveDropdown(href);
   };
 
   const handleDropdownLeave = () => {
-    console.log('[Header] Dropdown leave');
     dropdownTimeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
     }, 200);
@@ -306,20 +275,26 @@ export function Header() {
               className="flex items-center group relative z-50 shrink-0"
               style={{ height: "67px", gap: "10px" }}
             >
-              <div className="relative">
-                <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <img
-                    src={logoUrl}
-                    alt="SFB Technology"
-                    className={`w-full h-full object-contain transition-all duration-500 drop-shadow-md group-hover:drop-shadow-xl ${!useDarkText ? 'brightness-0 invert' : ''}`}
-                  />
+              {logoUrl && (
+                <div className="relative">
+                  <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                    <img
+                      src={logoUrl}
+                      alt="SFB Technology"
+                      className={`w-full h-full object-contain transition-all duration-500 drop-shadow-md group-hover:drop-shadow-xl ${!useDarkText ? 'brightness-0 invert' : ''}`}
+                    />
+                  </div>
+                  {/* Glow Effect */}
+                  <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
                 </div>
-                {/* Glow Effect */}
-                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
-              </div>
+              )}
               <div className="flex flex-col">
-                <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>{siteName}</span>
-                <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>{slogan}</span>
+                {siteName && (
+                  <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>{siteName}</span>
+                )}
+                {slogan && (
+                  <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>{slogan}</span>
+                )}
               </div>
             </Link>
 
@@ -333,7 +308,6 @@ export function Header() {
                   className="relative"
                   onMouseEnter={() => {
                     if (link.children && link.children.length > 0) {
-                      console.log('[Header] Mouse enter on menu with children:', link.label, link.children, 'dropdownKey:', dropdownKey);
                       handleDropdownEnter(dropdownKey);
                     }
                   }}
@@ -432,14 +406,20 @@ export function Header() {
 
             {/* Contact Info & CTA */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
-              <div className="text-right group">
-                <a href={`mailto:${email}`} className={`block text-[11px] xl:text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
-                  {email}
-                </a>
-                <a href={phoneHref} className={`block text-xs xl:text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
-                  {formattedPhone}
-                </a>
-              </div>
+              {(email || phone) && (
+                <div className="text-right group">
+                  {email && (
+                    <a href={`mailto:${email}`} className={`block text-[11px] xl:text-xs font-medium mb-0.5 transition-colors duration-500 ${useDarkText ? 'text-gray-600 group-hover:text-[#006FB3]' : 'text-white/80 group-hover:text-white'}`}>
+                      {email}
+                    </a>
+                  )}
+                  {phone && phoneHref && (
+                    <a href={phoneHref} className={`block text-xs xl:text-sm font-bold transition-all duration-500 ${useDarkText ? 'text-gray-900 group-hover:text-[#006FB3]' : 'text-white group-hover:text-cyan-200'}`}>
+                      {formattedPhone}
+                    </a>
+                  )}
+                </div>
+              )}
               <Link
                 href="/contact"
                 className="relative text-white hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 text-[11px] xl:text-xs font-bold uppercase tracking-wide overflow-hidden group flex items-center justify-center h-[50px] px-4 xl:px-5 min-[1920px]:px-[30px] py-[7px] whitespace-nowrap"
@@ -550,22 +530,28 @@ export function Header() {
                     </Link>
 
                     {/* Contact Info */}
-                    <div className="pt-4 border-t border-gray-100 space-y-3">
-                      <a
-                        href={phoneHref}
-                        className="flex items-center gap-3 text-gray-600 hover:text-[#006FB3] transition-colors"
-                      >
-                        <Phone size={18} />
-                        <span className="font-semibold">{formattedPhone}</span>
-                      </a>
-                      <a
-                        href={`mailto:${email}`}
-                        className="flex items-center gap-3 text-gray-600 hover:text-[#006FB3] transition-colors"
-                      >
-                        <Mail size={18} />
-                        <span>{email}</span>
-                      </a>
-                    </div>
+                    {(phone || email) && (
+                      <div className="pt-4 border-t border-gray-100 space-y-3">
+                        {phone && phoneHref && (
+                          <a
+                            href={phoneHref}
+                            className="flex items-center gap-3 text-gray-600 hover:text-[#006FB3] transition-colors"
+                          >
+                            <Phone size={18} />
+                            <span className="font-semibold">{formattedPhone}</span>
+                          </a>
+                        )}
+                        {email && (
+                          <a
+                            href={`mailto:${email}`}
+                            className="flex items-center gap-3 text-gray-600 hover:text-[#006FB3] transition-colors"
+                          >
+                            <Mail size={18} />
+                            <span>{email}</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
 
                     {/* Social Media */}
                     <div className="flex items-center justify-center gap-3 pt-4">

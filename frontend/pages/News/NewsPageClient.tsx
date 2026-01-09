@@ -67,8 +67,7 @@ export function NewsPageClient({
         setNews(newsWithoutFeatured);
       }
     } catch (error) {
-      console.error("Error fetching filtered news:", error);
-      // Fallback to initial news on error
+      // Silently fail
       setNews(initialNews);
     } finally {
       setLoading(false);
@@ -105,7 +104,7 @@ export function NewsPageClient({
 
         setCategoryCounts(counts);
       } catch (error) {
-        console.error("Error fetching category counts:", error);
+        // Silently fail
       }
     };
 

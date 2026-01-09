@@ -339,7 +339,7 @@ export default function AdminProductsPage() {
       setProducts(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách sản phẩm");
-      console.error(error);
+      // Silently fail
     } finally {
       setLoading(false);
     }
@@ -354,7 +354,7 @@ export default function AdminProductsPage() {
       }>(AdminEndpoints.productCategories.list);
       setCategories(data.data || []);
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
     } finally {
       setLoadingCategories(false);
     }
@@ -567,7 +567,7 @@ export default function AdminProductsPage() {
         }
       } catch (error) {
         // If fetch fails, use current state
-        console.error("Error fetching current hero data:", error);
+        // Silently fail
       }
 
       // Merge: prioritize form values if they are not empty, otherwise use existing values
@@ -936,7 +936,7 @@ export default function AdminProductsPage() {
         }
       } catch (error) {
         // If fetch fails, use current state
-        console.error("Error fetching current list header data:", error);
+        // Silently fail
       }
 
       // Merge: prioritize form values
@@ -976,7 +976,7 @@ export default function AdminProductsPage() {
         }
       } catch (error) {
         // If fetch fails, use current state
-        console.error("Error fetching current CTA data:", error);
+        // Silently fail
       }
 
       // Merge: prioritize form values if they are not empty, otherwise use existing values
@@ -1390,7 +1390,7 @@ export default function AdminProductsPage() {
                               });
                             }
                           } catch (error) {
-                            console.error("Error fetching hero data:", error);
+                            // Silently fail
                             setHeroData({ ...heroData, isActive: checked });
                           }
                         } else {
@@ -2150,7 +2150,7 @@ export default function AdminProductsPage() {
                                 });
                               }
                             } catch (error) {
-                              console.error("Error fetching CTA data:", error);
+                              // Silently fail
                               setCtaData({ ...ctaData, isActive: checked });
                             }
                           } else {
@@ -2309,7 +2309,7 @@ export default function AdminProductsPage() {
                               });
                             }
                           } catch (error) {
-                            console.error("Error fetching list header data:", error);
+                            // Silently fail
                             setListHeaderData({ ...listHeaderData, isActive: checked });
                           }
                         } else {

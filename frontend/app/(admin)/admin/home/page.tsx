@@ -185,7 +185,7 @@ export default function AdminHomepagePage() {
           }
         } catch (error) {
           // Block might not exist yet, that's okay
-          console.log(`Block ${blockType} not found, will use defaults`);
+          // Block not found - use defaults
         }
       }
     } catch (error: any) {

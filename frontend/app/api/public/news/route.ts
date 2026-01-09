@@ -38,7 +38,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: any) {
-    console.error("Error fetching news:", error);
     return NextResponse.json(
       { success: false, message: "Lỗi hệ thống" },
       { status: 500 }

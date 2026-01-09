@@ -89,7 +89,7 @@ export function NewsList({ news }: NewsListProps) {
                   ].join(" ")}
                 >
                   {/* IMAGE */}
-                  <div className="w-full rounded-[12px] overflow-hidden shrink-0 relative group h-[220px] md:h-[273.243px]">
+                  <div className="w-full rounded-[12px] overflow-hidden shrink-0 relative group h-[220px] md:h-[273.243px] lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[273px] min-[1920px]:aspect-auto">
                     <ImageWithFallback
                       src={img}
                       alt={article.title || "News article"}

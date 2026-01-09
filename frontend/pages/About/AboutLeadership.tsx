@@ -10,7 +10,6 @@ import {
     CarouselPrevious,
 } from "../../components/ui/carousel";
 
-import { leaders } from "./data";
 import { FadeIn, InViewSection } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 
@@ -19,11 +18,20 @@ interface AboutLeadershipProps {
 }
 
 export function AboutLeadership({ data }: AboutLeadershipProps) {
-    // Use data from props if available, otherwise fallback to static data
-    const displayData = data?.data || { items: leaders };
-    const headerTitle = displayData.headerTitle || "Ban lãnh đạo";
-    const headerDescription = displayData.headerDescription || "Đội ngũ lãnh đạo chủ chốt của SFB Technology, định hướng chiến lược và đồng hành cùng khách hàng trong mọi dự án";
-    const items = displayData.items || leaders;
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!data || !data.data) {
+        return null;
+    }
+
+    const displayData = data.data;
+    const headerTitle = displayData.headerTitle;
+    const headerDescription = displayData.headerDescription;
+    const items = displayData.items || [];
+
+    // Không render nếu không có dữ liệu cần thiết
+    if (!headerTitle || !items || items.length === 0) {
+        return null;
+    }
 
     return (
         <section className="py-20 bg-white">

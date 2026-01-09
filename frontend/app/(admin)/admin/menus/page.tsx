@@ -81,7 +81,7 @@ export default function AdminMenusPage() {
       setMenus(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách menu");
-      console.error(error);
+      // Silently fail
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ export default function AdminMenusPage() {
       void fetchMenus();
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi khi xóa menu");
-      console.error(error);
+      // Silently fail
     }
   };
 
@@ -189,7 +189,7 @@ export default function AdminMenusPage() {
       void fetchMenus();
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi khi lưu menu");
-      console.error(error);
+      // Silently fail
     } finally {
       setSaving(false);
     }
@@ -231,7 +231,7 @@ export default function AdminMenusPage() {
       );
       toast.success("Đã cập nhật thứ tự menu");
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Không thể lưu thứ tự menu");
     } finally {
       setSavingOrder(false);

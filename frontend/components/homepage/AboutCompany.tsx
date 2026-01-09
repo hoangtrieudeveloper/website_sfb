@@ -4,18 +4,26 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
-
-import { aboutSlides, aboutCompanyData } from "./data";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 interface AboutCompanyProps {
   data?: any;
 }
 
 export function AboutCompany({ data }: AboutCompanyProps) {
-  // Use data from props if available, otherwise fallback to static data
-  const title = data?.title || aboutCompanyData.title;
-  const description = data?.description || aboutCompanyData.description;
-  const slidesData = data?.slides || aboutSlides;
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  const title = data?.title;
+  const description = data?.description;
+  const slidesData = data?.slides || [];
+
+  // Không render nếu không có dữ liệu cần thiết
+  if (!title || slidesData.length === 0) {
+    return null;
+  }
 
   const baseSlides = slidesData;
   const slides = [...baseSlides, ...baseSlides, ...baseSlides];
@@ -152,15 +160,15 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                           {/* IMAGE + RGB LED FRAME */}
                           <div className="relative w-full flex-shrink-0">
                             <div className="rgb-frame p-[3px] rounded-[14px]">
-                              <div className="relative w-full h-[234px] overflow-hidden rounded-lg bg-white">
-                                <img
+                              <div className="relative w-full h-[234px] overflow-hidden rounded-lg bg-white lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
+                                <ImageWithFallback
                                   src={slide.image || "/images/card-consulting.jpg"}
-                                  alt={slide.title || "Slide"}
-                                  className="
-                                    w-full h-full object-cover
-                                    transition-transform duration-500
-                                    group-hover:scale-[1.05]
-                                  "
+                                  alt={slide.title || "About Company Slide"}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, 410px"
+                                  loading="lazy"
+                                  objectFit="cover"
+                                  className="transition-transform duration-500 group-hover:scale-[1.05]"
                                 />
                               </div>
                             </div>
@@ -183,6 +191,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             {/* BUTTON */}
                             <Link
                               href={slide.buttonLink || slide.button?.link || "#"}
+                              prefetch={true}
                               className="
                                 relative mt-auto w-full h-12 rounded-lg
                                 flex items-center justify-center gap-2

@@ -1,6 +1,5 @@
 "use client";
 
-import { contactHeroData } from "./data";
 import * as LucideIcons from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 
@@ -15,12 +14,21 @@ interface ContactHeroProps {
 }
 
 export function ContactHero({ data }: ContactHeroProps = {}) {
-    const heroData = data || contactHeroData;
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!data) {
+        return null;
+    }
+
+    const heroData = data;
+
+    // Không render nếu thiếu dữ liệu cần thiết
+    if (!heroData.title?.prefix || !heroData.title?.highlight) {
+        return null;
+    }
+
     let Icon: any = LucideIcons.MessageCircle;
-    if (data?.iconName && (LucideIcons as any)[data.iconName]) {
-        Icon = (LucideIcons as any)[data.iconName];
-    } else if (contactHeroData.icon) {
-        Icon = contactHeroData.icon;
+    if (heroData.iconName && (LucideIcons as any)[heroData.iconName]) {
+        Icon = (LucideIcons as any)[heroData.iconName];
     }
 
     return (
@@ -43,21 +51,25 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
 
                     {/* Left Column: Content */}
                     <div className="w-full lg:w-1/2 text-center lg:text-left order-2 lg:order-1">
-                        <div className="inline-flex items-center gap-2 px-4 md:px-6 lg:px-6 py-2 md:py-3 lg:py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6 md:mb-6 lg:mb-8">
-                            <Icon className="text-cyan-400" size={20} />
-                            <span className="text-white font-semibold text-xs md:text-sm lg:text-sm">{heroData.badge || contactHeroData.badge}</span>
-                        </div>
+                        {heroData.badge && (
+                            <div className="inline-flex items-center gap-2 px-4 md:px-6 lg:px-6 py-2 md:py-3 lg:py-3 bg-white/10 backdrop-blur-lg rounded-full border border-white/20 mb-6 md:mb-6 lg:mb-8">
+                                <Icon className="text-cyan-400" size={20} />
+                                <span className="text-white font-semibold text-xs md:text-sm lg:text-sm">{heroData.badge}</span>
+                            </div>
+                        )}
 
                         <h1 className="text-white mb-4 md:mb-6 lg:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                            {(heroData.title?.prefix || contactHeroData.title.prefix)} <br />
+                            {heroData.title.prefix} <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 to-white">
-                                {(heroData.title?.highlight || contactHeroData.title.highlight)}
+                                {heroData.title.highlight}
                             </span>
                         </h1>
 
-                        <p className="text-base sm:text-lg md:text-xl lg:text-xl text-blue-50 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                            {(heroData.description || contactHeroData.description)}
-                        </p>
+                        {heroData.description && (
+                            <p className="text-base sm:text-lg md:text-xl lg:text-xl text-blue-50 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                                {heroData.description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Right Column: Image */}
@@ -66,19 +78,9 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
                             <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full filter blur-3xl opacity-40 transform scale-90 animate-pulse" />
                             <div className="relative z-10 w-full h-full flex items-center justify-center p-4">
                                 <ImageWithFallback
-                                    src={
-                                        data 
-                                            ? ((heroData.image && heroData.image.trim() !== '') 
-                                                ? heroData.image 
-                                                : "/images/no_cover.jpeg")
-                                            : ((contactHeroData.image && contactHeroData.image.trim() !== '') 
-                                                ? contactHeroData.image 
-                                                : "/images/no_cover.jpeg")
-                                    }
+                                    src={heroData.image || "/images/no_cover.jpeg"}
                                     alt={heroData.title?.prefix && heroData.title?.highlight 
                                         ? `${heroData.title.prefix} ${heroData.title.highlight}` 
-                                        : contactHeroData.title?.prefix && contactHeroData.title?.highlight
-                                        ? `${contactHeroData.title.prefix} ${contactHeroData.title.highlight}`
                                         : "Contact Support"}
                                     fill
                                     sizes="(max-width: 320px) 280px, (max-width: 400px) 320px, 400px"

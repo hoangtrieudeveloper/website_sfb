@@ -152,7 +152,7 @@ const MediaLibraryPage: React.FC = () => {
       setFolderMap(map);
     } catch (err: any) {
       const msg = err?.message || "Không thể tải danh sách thư mục";
-      console.error("Load folders error", err);
+      // Silently fail
       toast.error(msg);
     }
   };
@@ -177,7 +177,7 @@ const MediaLibraryPage: React.FC = () => {
       setFiles(resp.data || []);
     } catch (err: any) {
       const msg = err?.message || "Không thể tải danh sách file";
-      console.error("Load files error", err);
+      // Silently fail
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -215,7 +215,7 @@ const MediaLibraryPage: React.FC = () => {
       loadFolders();
     } catch (err: any) {
       const msg = err?.message || "Không thể tạo thư mục";
-      console.error("Create folder error", err);
+      // Silently fail
       toast.error(msg);
     }
   };
@@ -369,7 +369,7 @@ const MediaLibraryPage: React.FC = () => {
           setSelectedFolder(null);
         }
       } catch (err: any) {
-        console.error("Delete folder error", err);
+        // Silently fail
         failed++;
       }
     }

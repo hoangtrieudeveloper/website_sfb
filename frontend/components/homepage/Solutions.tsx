@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ScrollAnimation } from "../public/ScrollAnimation";
-import { solutionsSectionData } from "./data";
 import {
   ArrowRight,
   CheckCircle2,
@@ -14,11 +13,20 @@ interface SolutionsProps {
 }
 
 export function Solutions({ data }: SolutionsProps) {
-  // Use data from props if available, otherwise fallback to static data
-  const subHeader = data?.subHeader || solutionsSectionData.subHeader;
-  const title = data?.title || solutionsSectionData.title;
-  const domains = data?.domains || solutionsSectionData.domains;
-  const items = data?.items || solutionsSectionData.items;
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  const subHeader = data?.subHeader;
+  const title = data?.title;
+  const domains = data?.domains || [];
+  const items = data?.items || [];
+
+  // Không render nếu không có dữ liệu cần thiết
+  if (!subHeader || !title || items.length === 0) {
+    return null;
+  }
 
 
 
@@ -121,6 +129,7 @@ export function Solutions({ data }: SolutionsProps) {
                     {/* Button */}
                     <Link
                       href={s.buttonLink || s.button?.link || "#"}
+                      prefetch={true}
                       className="
                         mt-auto
                         inline-flex items-center justify-center gap-3

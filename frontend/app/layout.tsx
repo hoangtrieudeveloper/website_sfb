@@ -37,9 +37,6 @@ async function getFavicon(): Promise<string | undefined> {
     }
   } catch (error) {
     // Silently fail - will use default favicon
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Favicon] Could not load favicon from settings:', error);
-    }
   }
   return undefined;
 }
@@ -71,9 +68,6 @@ async function getGoogleSiteVerification(): Promise<string | undefined> {
     }
   } catch (error) {
     // Silently fail - will use fallback
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[Google Site Verification] Could not load from settings:', error);
-    }
   }
   return undefined;
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { trustSectionData } from "./data";
 import { ArrowRight } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
 import * as LucideIcons from "lucide-react";
 
 interface TrustsProps {
@@ -11,13 +11,22 @@ interface TrustsProps {
 }
 
 export function Trusts({ data }: TrustsProps) {
-  // Use data from props if available, otherwise fallback to static data
-  const subHeader = data?.subHeader || trustSectionData.subHeader;
-  const title = data?.title || trustSectionData.title;
-  const description = data?.description || trustSectionData.description;
-  const image = data?.image || trustSectionData.image;
-  const button = data?.button || trustSectionData.button;
-  const features = data?.features || trustSectionData.features;
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  const subHeader = data?.subHeader;
+  const title = data?.title;
+  const description = data?.description;
+  const image = data?.image;
+  const button = data?.button;
+  const features = data?.features || [];
+
+  // Không render nếu không có dữ liệu cần thiết
+  if (!subHeader || !title || !image || features.length === 0) {
+    return null;
+  }
 
   return (
     <section className="bg-white py-24 overflow-hidden">
@@ -37,18 +46,17 @@ export function Trusts({ data }: TrustsProps) {
         <div className="flex flex-col xl:flex-row justify-center items-center gap-12 xl:gap-20">
           {/* Left Column - Image */}
           <ScrollAnimation variant="slide-right" className="relative group">
-            <div
-              className="relative box-border w-full max-w-[701px] aspect-[701/555]"
-              style={{
-                width: "701px",
-                height: "555px",
-                maxWidth: "100%",
-                flexShrink: 0,
-                borderRadius: "24px",
-                background: `url(${image}) lightgray -51.4px 0px / 140.667% 100% no-repeat`,
-                boxShadow: "0px 24px 36px 0px rgba(0, 0, 0, 0.12)",
-              }}
-            />
+            <div className="relative box-border w-full max-w-[701px] aspect-[701/555] rounded-[24px] overflow-hidden shadow-[0px_24px_36px_0px_rgba(0,0,0,0.12)] lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[555px] min-[1920px]:aspect-auto">
+              <ImageWithFallback
+                src={image}
+                alt={title || "Trust Section"}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                loading="lazy"
+                objectFit="cover"
+                className="transition-transform duration-700 group-hover:scale-105"
+              />
+            </div>
           </ScrollAnimation>
 
           {/* Right Column - Content */}
@@ -107,6 +115,7 @@ export function Trusts({ data }: TrustsProps) {
             <ScrollAnimation variant="fade-up" delay={0.4}>
               <Link
                 href={button.link || "#"}
+                prefetch={true}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1 transition-all duration-300 group"
               >
                 <span>{button.text}</span>

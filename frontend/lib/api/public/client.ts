@@ -35,11 +35,9 @@ export async function publicApiCall<T = any>(
   } catch (error: any) {
     // Improve error message for connection errors
     if (error?.message === 'Failed to fetch' || error?.code === 'ECONNREFUSED') {
-      const url = buildUrl(endpoint);
-      console.error(`[Public API] Connection failed to ${url}. Backend may not be running.`);
       throw new Error(
         `Không thể kết nối đến backend server. Vui lòng kiểm tra:\n` +
-        `- Backend server đang chạy tại ${url}\n` +
+        `- Backend server đang chạy tại ${buildUrl(endpoint)}\n` +
         `- Kiểm tra biến môi trường NEXT_PUBLIC_API_SFB_URL\n` +
         `- Đảm bảo backend đang lắng nghe trên port đúng`
       );

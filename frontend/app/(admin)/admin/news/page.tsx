@@ -66,7 +66,7 @@ export default function AdminNewsPage() {
       setNews(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách bài viết");
-      console.error(error);
+      // Silently fail
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export default function AdminNewsPage() {
       }>(AdminEndpoints.categories.list);
       setCategories(data.data || []);
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
     } finally {
       setLoadingCategories(false);
     }
@@ -151,7 +151,7 @@ export default function AdminNewsPage() {
       fetchNews();
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi khi xóa bài viết");
-      console.error(error);
+      // Silently fail
     }
   };
 
@@ -166,7 +166,7 @@ export default function AdminNewsPage() {
       fetchNews();
     } catch (error: any) {
       toast.error(error?.message || "Có lỗi khi cập nhật trạng thái");
-      console.error(error);
+      // Silently fail
     }
   };
 

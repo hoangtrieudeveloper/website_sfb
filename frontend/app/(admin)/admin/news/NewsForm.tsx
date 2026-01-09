@@ -189,7 +189,7 @@ export default function NewsForm({
         }));
         setCategories(cats);
       } catch (error) {
-        console.error(error);
+        // Silently fail
       } finally {
         setLoadingCategories(false);
       }
@@ -237,7 +237,7 @@ export default function NewsForm({
       // Không show toast ở đây để tránh duplicate
     } catch (error) {
       toast.error("Có lỗi xảy ra khi lưu bài viết");
-      console.error(error);
+      // Silently fail
       throw error; // Re-throw để parent component có thể handle
     } finally {
       setSaving(false);

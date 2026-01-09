@@ -140,7 +140,7 @@ export default function AdminUsersPage() {
         })),
       );
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Không tải được dữ liệu người dùng / roles");
     } finally {
       setLoading(false);
@@ -272,7 +272,7 @@ export default function AdminUsersPage() {
         roleId: defaultRoleId,
       });
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi lưu người dùng");
     } finally {
       setSaving(false);
@@ -305,7 +305,7 @@ export default function AdminUsersPage() {
       setUsers((prev) => prev.filter((user) => user.id !== id));
       toast.success("Đã xóa người dùng");
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi xóa người dùng");
     }
   };
@@ -331,7 +331,7 @@ export default function AdminUsersPage() {
         prev.map((u) => (u.id === id ? { ...u, status: newStatus } : u)),
       );
     } catch (error: any) {
-      console.error(error);
+      // Silently fail
       toast.error(error?.message || "Lỗi hệ thống khi cập nhật trạng thái");
     }
   };

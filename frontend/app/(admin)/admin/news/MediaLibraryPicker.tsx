@@ -76,7 +76,7 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
       setFiles(allFiles);
     } catch (err: any) {
       const msg = err?.message || "Không thể tải thư viện media";
-      console.error("Load media picker files error", err);
+      // Silently fail
       toast.error(msg);
     } finally {
       setLoading(false);

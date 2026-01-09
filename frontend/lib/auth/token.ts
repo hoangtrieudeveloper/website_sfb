@@ -25,7 +25,7 @@ export function setAuthToken(token: string): void {
   try {
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
   } catch (error) {
-    console.error("Failed to save token:", error);
+    // Silently fail
   }
 }
 
@@ -37,7 +37,7 @@ export function removeAuthToken(): void {
   try {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
   } catch (error) {
-    console.error("Failed to remove token:", error);
+    // Silently fail
   }
 }
 

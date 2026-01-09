@@ -5,10 +5,6 @@ export async function GET(request: Request) {
   try {
     const url = `${API_BASE_URL}/api/public/homepage`;
     
-    // Log the URL being used (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[Homepage API] Fetching from: ${url}`);
-    }
 
     // Add timeout to fetch request
     const controller = new AbortController();
@@ -40,15 +36,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: any) {
-    console.error("Error fetching homepage:", error);
-    console.error(`[Homepage API] Attempted URL: ${API_BASE_URL}/api/public/homepage`);
-    console.error(`[Homepage API] Error details:`, {
-      message: error?.message,
-      code: error?.code,
-      name: error?.name,
-      cause: error?.cause
-    });
-    
     // Check if it's a connection error or timeout
     const isConnectionError = 
       error?.message?.includes('fetch failed') || 

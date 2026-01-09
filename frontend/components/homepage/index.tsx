@@ -37,12 +37,7 @@ export function HomepageContent() {
           setBlocks(blocksMap);
         }
       } catch (error: any) {
-        console.error("Error fetching homepage blocks:", error);
-        // If it's a connection error, log more details
-        if (error?.message?.includes('ECONNREFUSED') || error?.message?.includes('backend')) {
-          console.warn("Backend server may not be running. Homepage will use empty blocks.");
-        }
-        // Fallback: continue with empty blocks, components will use static data
+        // Silently fail - components sẽ return null nếu không có data
       } finally {
         setLoading(false);
       }
@@ -65,20 +60,27 @@ export function HomepageContent() {
     return block && block.isActive ? block.data : null;
   };
 
-  // Khi loading, không render gì cả (hoặc có thể render loading state)
-  if (loading) {
-    return null; // Hoặc có thể return <div>Loading...</div>
-  }
+  // Render hero ngay khi có data (không cần đợi loading = false)
+  // Điều này giúp cải thiện LCP và FCP
+  const heroData = getBlockData("hero");
+  const shouldRenderHero = shouldRender("hero");
 
   return (
     <>
-      {shouldRender("hero") && <HeroBanner data={getBlockData("hero")} />}
-      {shouldRender("aboutCompany") && <AboutCompany data={getBlockData("aboutCompany")} />}
-      {shouldRender("features") && <Features data={getBlockData("features")} />}
-      {shouldRender("solutions") && <Solutions data={getBlockData("solutions")} />}
-      {shouldRender("trusts") && <Trusts data={getBlockData("trusts")} />}
-      {shouldRender("testimonials") && <Testimonials data={getBlockData("testimonials")} />}
-      {shouldRender("consult") && <Consult data={getBlockData("consult")} />}
+      {/* Hero được render ngay khi có data, không cần đợi loading */}
+      {shouldRenderHero && <HeroBanner data={heroData} />}
+      
+      {/* Các sections khác render sau khi loading xong để tránh flash */}
+      {!loading && (
+        <>
+          {shouldRender("aboutCompany") && <AboutCompany data={getBlockData("aboutCompany")} />}
+          {shouldRender("features") && <Features data={getBlockData("features")} />}
+          {shouldRender("solutions") && <Solutions data={getBlockData("solutions")} />}
+          {shouldRender("trusts") && <Trusts data={getBlockData("trusts")} />}
+          {shouldRender("testimonials") && <Testimonials data={getBlockData("testimonials")} />}
+          {shouldRender("consult") && <Consult data={getBlockData("consult")} />}
+        </>
+      )}
     </>
   );
 }

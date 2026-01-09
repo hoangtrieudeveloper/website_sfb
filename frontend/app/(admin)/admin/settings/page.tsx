@@ -84,7 +84,7 @@ export default function AdminSettingsPage() {
         google_site_verification: settings.google_site_verification?.value || '',
       });
     } catch (error: any) {
-      console.error('Error loading settings:', error);
+      // Silently fail
       toast.error('Không thể tải cấu hình');
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export default function AdminSettingsPage() {
       
       toast.success('Đã lưu cấu hình thông tin chung');
     } catch (error: any) {
-      console.error('Error saving settings:', error);
+      // Silently fail
       toast.error('Không thể lưu cấu hình');
     } finally {
       setSaving(false);

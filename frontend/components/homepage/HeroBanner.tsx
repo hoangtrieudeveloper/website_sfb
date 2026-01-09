@@ -17,8 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { buildUrl } from "@/lib/api/base";
 
-import { partners, heroData } from "./data";
-
 interface HeroBannerProps {
   data?: any;
 }
@@ -26,13 +24,17 @@ interface HeroBannerProps {
 export function HeroBanner({ data }: HeroBannerProps) {
   const [showVideoDialog, setShowVideoDialog] = useState(false);
 
-  // Use data from props if available, otherwise fallback to static data
-  const title = data?.title || heroData.title;
-  const description = data?.description || heroData.description;
-  const primaryButton = data?.primaryButton || heroData.primaryButton;
-  const secondaryButton = data?.secondaryButton || heroData.secondaryButton;
-  const heroImage = data?.heroImage || heroData.heroImage;
-  const partnersList = data?.partners || partners;
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  const title = data?.title;
+  const description = data?.description;
+  const primaryButton = data?.primaryButton;
+  const secondaryButton = data?.secondaryButton;
+  const heroImage = data?.heroImage;
+  const partnersList = data?.partners || [];
 
   // Get YouTube video ID from URL
   const getYouTubeVideoId = (url: string): string | null => {
@@ -140,6 +142,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
               <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center lg:justify-start">
                 <Link
                   href={primaryButton.link}
+                  prefetch={true}
                   className="group transition-all hover:shadow-[0_0_20px_rgba(46,171,226,0.6)] text-white font-semibold"
                   style={{
                     display: "flex",

@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { fieldHeroData } from "./data";
 import { FadeIn, SlideIn, ZoomIn, StaggerContainer, zoomInVariant } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
@@ -12,17 +11,17 @@ interface FieldHeroProps {
 }
 
 export function FieldHero({ data }: FieldHeroProps) {
-    // Use data from props if available, otherwise fallback to static data
-    const displayData = data || {
-        titlePrefix: fieldHeroData.title.prefix,
-        titleSuffix: fieldHeroData.title.suffix,
-        description: fieldHeroData.description,
-        buttonText: fieldHeroData.button.text,
-        buttonLink: fieldHeroData.button.link,
-        image: fieldHeroData.image,
-        backgroundGradient: 'linear-gradient(31deg, #0870B4 51.21%, #2EABE2 97.73%)',
-        stats: fieldHeroData.stats,
-    };
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!data) {
+        return null;
+    }
+
+    const displayData = data;
+
+    // Không render nếu thiếu dữ liệu cần thiết
+    if (!displayData.titlePrefix || !displayData.titleSuffix || !displayData.image) {
+        return null;
+    }
     return (
         <section
             className="relative overflow-hidden pt-[100px] md:pt-[120px] lg:pt-0 pb-10 md:pb-16 lg:pb-0 lg:h-[847px] lg:pt-[87px]"

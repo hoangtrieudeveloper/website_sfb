@@ -4,18 +4,25 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ScrollAnimation } from "./ScrollAnimation";
 
-import { consultData } from "./data";
-
 interface ConsultProps {
     data?: any;
 }
 
 export function Consult({ data }: ConsultProps) {
-    // Use data from props if available, otherwise fallback to static data
-    const title = data?.title || consultData.title;
-    const description = data?.description || consultData.description;
-    const buttons = data?.buttons || consultData.buttons;
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!data) {
+        return null;
+    }
+
+    const title = data?.title;
+    const description = data?.description;
+    const buttons = data?.buttons;
     const backgroundColor = data?.backgroundColor || '#29A3DD';
+
+    // Không render nếu không có dữ liệu cần thiết
+    if (!title || !description || !buttons) {
+        return null;
+    }
 
     return (
         <section className="py-10 px-4 flex justify-center">
@@ -47,6 +54,7 @@ export function Consult({ data }: ConsultProps) {
                             <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
                                 <Link
                                     href={buttons.secondary.link || "#"}
+                                    prefetch={true}
                                     className="flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 w-full sm:w-auto min-w-[180px]"
                                 >
                                     {buttons.secondary.text}
@@ -54,6 +62,7 @@ export function Consult({ data }: ConsultProps) {
 
                                 <Link
                                     href={buttons.primary.link || "#"}
+                                    prefetch={true}
                                     className="group flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 w-full sm:w-auto min-w-[200px]"
                                 >
                                     <span>{buttons.primary.text}</span>

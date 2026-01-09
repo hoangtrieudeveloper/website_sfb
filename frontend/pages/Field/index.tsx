@@ -44,7 +44,7 @@ export function FieldPage() {
                     setCtaData(ctaRes.data);
                 }
             } catch (error) {
-                console.error("Error fetching industries data:", error);
+                // Silently fail
             } finally {
                 setLoading(false);
             }

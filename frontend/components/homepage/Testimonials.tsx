@@ -5,16 +5,23 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Star } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 
-import { testimonialsSectionData } from "./data";
-
 interface TestimonialsProps {
   data?: any;
 }
 
 export function Testimonials({ data }: TestimonialsProps) {
-  // Use data from props if available, otherwise fallback to static data
-  const title = data?.title || testimonialsSectionData.title;
-  const reviewsData = data?.reviews || testimonialsSectionData.reviews;
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  const title = data?.title;
+  const reviewsData = data?.reviews || [];
+
+  // Không render nếu không có dữ liệu cần thiết
+  if (!title || reviewsData.length === 0) {
+    return null;
+  }
 
   const baseTestimonials = reviewsData;
   const [emblaRef, emblaApi] = useEmblaCarousel({

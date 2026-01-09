@@ -43,17 +43,20 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.6 }}
-      className="grid lg:grid-cols-12 gap-8 items-center group relative"
+      className="grid lg:grid-cols-12 gap-8 lg:gap-[90px] items-center group relative"
     >
-      {/* Glow Effect - Removed blur for performance */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-blue-500/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
       {/* Image - Left Side (Span 7) */}
-      <div className="lg:col-span-7 relative z-10">
-        <div className="relative aspect-[16/10] rounded-2xl overflow-hidden shadow-sm group-hover:shadow-lg transition-shadow duration-500">
+      <div className="lg:col-span-7 relative z-10 order-1 lg:order-1">
+        <div 
+          className="relative overflow-hidden box-border w-full aspect-[16/10] rounded-[24px] lg:ml-auto min-[1920px]:w-[800px] min-[1920px]:h-[500px] min-[1920px]:aspect-auto"
+          style={{
+            border: "10px solid #FFF",
+            background: "#FFF",
+            boxShadow: "0 18px 36px 0 rgba(0, 95, 148, 0.12)",
+          }}
+        >
           <ImageWithFallback
             src={imageSrc}
             alt={article.title || "Featured news article"}
@@ -61,14 +64,13 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
             sizes="(max-width: 1024px) 100vw, 50vw"
             loading="lazy"
             objectFit="cover"
-            className="transform group-hover:scale-105 transition-transform duration-700 ease-out"
+            className="rounded-[14px] transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#0870B4]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
       </div>
 
       {/* Content - Right Side (Span 5) */}
-      <div className="lg:col-span-5 flex flex-col justify-center space-y-6 relative z-10">
+      <div className="lg:col-span-5 flex flex-col justify-center space-y-6 relative z-10 order-2 lg:order-2">
 
         {/* Meta Row */}
         <motion.div
@@ -76,12 +78,12 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="flex flex-wrap items-center gap-4 text-sm"
+          className="flex flex-wrap items-center gap-3 text-sm"
         >
           {/* Category Name */}
           {article.categoryName && (
             <span
-              className={`${gradientBg} text-white font-medium px-3 py-1 rounded-full border border-white/40 shadow-sm`}
+              className={`${gradientBg} text-white font-medium px-3 py-1.5 rounded-full border border-white/40 shadow-sm text-xs`}
             >
               {article.categoryName}
             </span>
@@ -91,15 +93,17 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           {article.publishedDate && (
             <div className="flex items-center gap-1.5 text-gray-500">
               <Calendar size={14} />
-              <span>{formatDateVN(article.publishedDate)}</span>
+              <span className="text-sm">{formatDateVN(article.publishedDate)}</span>
             </div>
           )}
 
           {/* Author */}
-          <div className="flex items-center gap-1.5 text-gray-500">
-            <User size={14} />
-            <span>{article.author || "SFB Technology"}</span>
-          </div>
+          {article.author && (
+            <div className="flex items-center gap-1.5 text-gray-500">
+              <User size={14} />
+              <span className="text-sm">{article.author}</span>
+            </div>
+          )}
         </motion.div>
 
         {/* Title */}
@@ -108,15 +112,8 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="relative"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold leading-tight text-gray-900 transition-all group-hover:text-transparent group-hover:bg-clip-text">
-            {article.title}
-          </h2>
-          <h2
-            className={`absolute inset-0 text-3xl lg:text-4xl font-bold leading-tight text-transparent bg-clip-text opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${gradientBg}`}
-            aria-hidden="true"
-          >
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-gray-900 mb-4">
             {article.title}
           </h2>
         </motion.div>
@@ -128,7 +125,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600 text-lg leading-relaxed line-clamp-3"
+            className="text-gray-600 text-base lg:text-lg leading-relaxed line-clamp-3"
           >
             {article.excerpt}
           </motion.p>
@@ -144,7 +141,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         >
           <Link
             href={`/news/${article.slug}`}
-            className={`inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white text-white font-medium shadow-sm transform hover:-translate-y-1 transition-all ${gradientBg} hover:shadow-[0_0_20px_rgba(45,156,219,0.4)]`}
+            className={`inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white text-white font-semibold shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all ${gradientBg}`}
             prefetch={true}
           >
             Đọc ngay

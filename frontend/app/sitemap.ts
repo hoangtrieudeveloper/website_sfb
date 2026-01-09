@@ -22,7 +22,6 @@ async function fetchProducts(): Promise<Product[]> {
     const data = await res.json();
     return data.data || [];
   } catch (error) {
-    console.error('Error fetching products for sitemap:', error);
     return [];
   }
 }
@@ -38,7 +37,6 @@ async function fetchPublishedNews(): Promise<News[]> {
     const data = await res.json();
     return data.data || [];
   } catch (error) {
-    console.error('Error fetching news for sitemap:', error);
     return [];
   }
 }

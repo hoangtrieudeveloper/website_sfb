@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
-import { aboutHeroData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 
 interface AboutHeroProps {
@@ -11,16 +10,25 @@ interface AboutHeroProps {
 }
 
 export function AboutHero({ data }: AboutHeroProps) {
-    // Use data from props if available, otherwise fallback to static data
-    const displayData = data?.data || aboutHeroData;
+    // Chỉ sử dụng data từ API, không có fallback static data
+    if (!data || !data.data) {
+        return null;
+    }
+
+    const displayData = data.data;
     const backgroundGradient = displayData.backgroundGradient || 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)';
-    const titleLine1 = displayData.titleLine1 || displayData.title?.line1 || aboutHeroData.title.line1;
-    const titleLine2 = displayData.titleLine2 || displayData.title?.line2 || aboutHeroData.title.line2;
-    const titleLine3 = displayData.titleLine3 || displayData.title?.line3 || aboutHeroData.title.line3;
-    const description = displayData.description || aboutHeroData.description;
-    const buttonText = displayData.buttonText || displayData.button?.text || aboutHeroData.button.text;
-    const buttonLink = displayData.buttonLink || displayData.button?.link || aboutHeroData.button.link;
-    const image = displayData.image || aboutHeroData.image;
+    const titleLine1 = displayData.titleLine1 || displayData.title?.line1;
+    const titleLine2 = displayData.titleLine2 || displayData.title?.line2;
+    const titleLine3 = displayData.titleLine3 || displayData.title?.line3;
+    const description = displayData.description;
+    const buttonText = displayData.buttonText || displayData.button?.text;
+    const buttonLink = displayData.buttonLink || displayData.button?.link;
+    const image = displayData.image;
+
+    // Không render nếu thiếu dữ liệu cần thiết
+    if (!titleLine1 || !titleLine2 || !image) {
+        return null;
+    }
 
     const titleRef = useRef<HTMLHeadingElement | null>(null);
     const [titleWidth, setTitleWidth] = useState<number | null>(null);
@@ -108,8 +116,8 @@ export function AboutHero({ data }: AboutHeroProps) {
                                     src={image}
                                     alt={titleLine1 && titleLine2 
                                         ? `${titleLine1} ${titleLine2}` 
-                                        : aboutHeroData.title?.line1 && aboutHeroData.title?.line2
-                                        ? `${aboutHeroData.title.line1} ${aboutHeroData.title.line2}`
+                                        : titleLine3
+                                        ? `${titleLine1} ${titleLine3}`
                                         : "About Hero"}
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"

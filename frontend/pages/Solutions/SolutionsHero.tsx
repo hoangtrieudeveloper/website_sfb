@@ -67,8 +67,11 @@ export function SolutionsHero() {
                                     alt={solutionsHeroData.title?.line1 && solutionsHeroData.title?.line2 
                                         ? `${solutionsHeroData.title.line1} ${solutionsHeroData.title.line2}` 
                                         : solutionsHeroData.description || "Solutions Hero"}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"
                                     priority={true}
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                    objectFit="cover"
+                                    className="transition-transform duration-1000 group-hover:scale-105"
                                 />
                                 {/* Overlay Glint */}
                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />

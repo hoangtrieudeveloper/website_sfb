@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import Link from "next/link";
-import { newsDetailData, newsSectionHeaders } from "./data";
 import { NewsList } from "../../components/news/NewsList";
 import { Consult } from "../../components/public/Consult";
 import {
@@ -221,9 +220,7 @@ export function NewsDetailPageClient({
         });
       } catch (err) {
         // User cancelled hoặc có lỗi
-        if ((err as Error).name !== "AbortError") {
-          console.error("Error sharing:", err);
-        }
+        // Error sharing - silently fail
       }
     } else {
       // Fallback: mở dropdown menu
@@ -243,12 +240,16 @@ export function NewsDetailPageClient({
               prefetch={true}
             >
               <ArrowLeft size={16} />
-              {newsDetailData.breadcrumb}
+              Tin tức
             </Link>
-            <ChevronRight size={16} className="text-gray-400" />
-            <span className="text-gray-400">
-              {article.categoryName || newsDetailData.defaultCategory}
-            </span>
+            {article.categoryName && (
+              <>
+                <ChevronRight size={16} className="text-gray-400" />
+                <span className="text-gray-400">
+                  {article.categoryName}
+                </span>
+              </>
+            )}
           </nav>
 
           {/* Banner image */}
@@ -399,10 +400,12 @@ export function NewsDetailPageClient({
                 </span>
               )}
 
-              <span className="inline-flex items-center gap-2">
-                <User size={16} className="text-gray-400" />
-                {article.author || newsDetailData.authorDefault}
-              </span>
+              {article.author && (
+                <span className="inline-flex items-center gap-2">
+                  <User size={16} className="text-gray-400" />
+                  {article.author}
+                </span>
+              )}
             </div>
 
             <h1 className="mt-6 text-gray-900 text-3xl md:text-4xl font-bold">
@@ -482,22 +485,24 @@ export function NewsDetailPageClient({
       {showAuthorBox && (
         <section className="pb-16 bg-white">
           <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-start gap-3 shadow-sm">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
-                {(article.author || newsDetailData.authorDefault || "A").charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Tác giả</p>
-                <p className="text-base font-semibold text-gray-900">
-                  {article.author || newsDetailData.authorDefault}
-                </p>
-                {article.publishedDate && (
-                  <p className="text-xs text-gray-500">
-                    Ngày đăng: {new Date(article.publishedDate).toLocaleDateString("vi-VN")}
+            {article.author && (
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-start gap-3 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
+                  {article.author.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Tác giả</p>
+                  <p className="text-base font-semibold text-gray-900">
+                    {article.author}
                   </p>
-                )}
+                  {article.publishedDate && (
+                    <p className="text-xs text-gray-500">
+                      Ngày đăng: {new Date(article.publishedDate).toLocaleDateString("vi-VN")}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       )}
@@ -508,7 +513,7 @@ export function NewsDetailPageClient({
           <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Bài viết liên quan</h2>
-              <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>
+              {/* <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p> */}
             </div>
 
             <div data-related-news-section>

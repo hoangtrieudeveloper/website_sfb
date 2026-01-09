@@ -3,14 +3,19 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
+import { ImageWithFallback } from "../figma/ImageWithFallback";
 
 function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="box-border w-full max-w-[701px] aspect-[701/511] overflow-hidden rounded-[24px] border-[10px] border-[var(--White,#FFF)] bg-[lightgray] shadow-[0_18px_36px_0_rgba(0,95,148,0.12)]">
-      <img
+    <div className="box-border w-full max-w-[701px] aspect-[701/511] overflow-hidden rounded-[24px] border-[10px] border-[var(--White,#FFF)] bg-[lightgray] shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] relative lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
+      <ImageWithFallback
         src={src}
         alt={alt}
-        className="block h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+        loading="lazy"
+        objectFit="cover"
+        className="transition-transform duration-700 hover:scale-105"
       />
     </div>
   );
@@ -26,6 +31,7 @@ function PrimaryLinkButton({
   return (
     <Link
       href={href}
+      prefetch={true}
       className="inline-flex h-[54px] w-fit items-center gap-[12px] rounded-[12px] border border-[var(--Color-7,#FFF)] bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] px-[29px] py-[7px] text-sm font-semibold text-white transition-all hover:brightness-110 active:brightness-95"
     >
       {children}
@@ -33,7 +39,6 @@ function PrimaryLinkButton({
   );
 }
 
-import { featureData } from "./data";
 import * as LucideIcons from "lucide-react";
 
 interface FeaturesProps {
@@ -41,8 +46,12 @@ interface FeaturesProps {
 }
 
 export function Features({ data }: FeaturesProps) {
-  // Use data from props if available, otherwise fallback to static data
-  const header = data?.header || featureData.header;
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  const header = data?.header;
   const blocks = data?.blocks || [];
 
   // Convert old block1/2/3 format to blocks array if needed
@@ -55,13 +64,14 @@ export function Features({ data }: FeaturesProps) {
     ].filter(Boolean);
   }
 
-  // Fallback to static data if no blocks
-  if (displayBlocks.length === 0) {
-    displayBlocks = [
-      { ...featureData.block1, type: 'type1', imageSide: 'left' },
-      { ...featureData.block2, type: 'type2', imageSide: 'right' },
-      { ...featureData.block3, type: 'type2', imageSide: 'left' },
-    ];
+  // Không render nếu không có blocks
+  if (!displayBlocks || displayBlocks.length === 0) {
+    return null;
+  }
+
+  // Không render nếu không có header
+  if (!header) {
+    return null;
   }
 
   const renderBlock = (block: any, index: number) => {
@@ -74,7 +84,7 @@ export function Features({ data }: FeaturesProps) {
       return (
         <div key={index} className="mx-auto flex flex-col xl:flex-row justify-center items-center gap-10 xl:gap-[90px] xl:min-h-[511px] w-full">
           {imageSide === 'left' && (
-            <ScrollAnimation variant="slide-right" className="flex justify-center xl:justify-start">
+            <ScrollAnimation>
               {imageElement}
             </ScrollAnimation>
           )}

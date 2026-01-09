@@ -12,7 +12,6 @@ export async function getContactData() {
     });
 
     if (!response.ok) {
-      console.error(`[Contact Page] Failed to fetch contact data: ${response.status}`);
       return null;
     }
 
@@ -23,7 +22,6 @@ export async function getContactData() {
 
     return null;
   } catch (error) {
-    console.error("[Contact Page] Error fetching contact data:", error);
     return null;
   }
 }
