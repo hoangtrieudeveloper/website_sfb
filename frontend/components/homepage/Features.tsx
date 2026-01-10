@@ -11,7 +11,7 @@ function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
       <ImageWithFallback
         src={src}
         alt={alt}
-        fill
+        
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
         loading="lazy"
         objectFit="cover"

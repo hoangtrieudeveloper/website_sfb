@@ -453,7 +453,7 @@ export function NewsDetailPageClient({
                 </ol>
               ) : (
                 <p className="text-xs text-gray-500">
-                  Chưa có tiêu đề (H2/H3) để tạo mục lục.
+                  Chưa có tiêu đề
                 </p>
               )}
             </div>

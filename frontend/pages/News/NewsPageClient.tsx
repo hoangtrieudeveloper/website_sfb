@@ -242,11 +242,20 @@ export function NewsPageClient({
 
       {/* Featured News */}
       {initialFeatured && (
-        <section className="py-[45px] bg-white">
-          <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-            <FeaturedNews article={initialFeatured} />
+        <>
+          <section className="py-[45px] bg-white">
+            <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+              <FeaturedNews article={initialFeatured} />
+            </div>
+          </section>
+
+          {/* Divider between Featured and Latest */}
+          <div className="bg-white">
+            <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+              <div className="h-px w-full bg-[var(--stroke-01,#E5E5E5)]" />
+            </div>
           </div>
-        </section>
+        </>
       )}
 
       {/* News Grid */}

@@ -51,12 +51,10 @@ export function Trusts({ data }: TrustsProps) {
               <ImageWithFallback
                 src={image}
                 alt={title || "Trust Section"}
-                fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
                 loading="lazy"
                 objectFit="cover"
-                // className="transition-transform duration-700 group-hover:scale-105"
-                className="relative box-border w-full max-w-[320px] sm:max-w-[550px] xl:max-w-[701px] aspect-[701/555] object-cover rounded-[24px] shadow-[0px_24px_36px_0px_rgba(0,0,0,0.12)]"
+                className="transition-transform duration-700 group-hover:scale-105"
               />
             </div>
           </ScrollAnimation>

@@ -36,12 +36,12 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                     {/* Header */}
                     <FadeIn className="text-center mb-8 sm:mb-16">
                         {displayData.headerSub && (
-                            <span className="text-[#2CA4E0] font-semibold text-sm tracking-wider uppercase mb-3 block">
+                            <span className="text-[#2CA4E0] font-semibold text-[11px] sm:text-xs tracking-wider uppercase mb-3 block">
                                 {displayData.headerSub}
                             </span>
                         )}
                         {(displayData.headerTitleLine1 || displayData.headerTitleLine2) && (
-                            <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-3xl sm:text-4xl lg:text-[56px] leading-[normal]">
+                            <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xl sm:text-2xl md:text-3xl lg:text-[56px] leading-tight sm:leading-[normal] break-words">
                                 <span className="font-bold">
                                     {displayData.headerTitleLine1}
                                 </span>
@@ -77,12 +77,12 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             {(displayData.contentTitle || displayData.contentDescription) && (
                                 <div className="space-y-6 mb-[30px]">
                                     {displayData.contentTitle && (
-                                        <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-base sm:text-[20px] font-normal leading-relaxed sm:leading-[38px]">
+                                        <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-sm md:text-base lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
                                             {displayData.contentTitle}
                                         </h3>
                                     )}
                                     {displayData.contentDescription && (
-                                        <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-base sm:text-[20px] font-normal leading-relaxed sm:leading-[38px]">
+                                        <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-sm md:text-base lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
                                             {displayData.contentDescription}
                                         </p>
                                     )}
@@ -119,13 +119,13 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                             </div>
                                             <div>
                                                 {item.isHighlight ? (
-                                                    <h4 className="font-bold text-gray-900 mb-1">
+                                                    <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm break-words">
                                                         {item.title}: <span className="font-normal text-gray-600">{item.text}</span>
                                                     </h4>
                                                 ) : (
                                                     <>
-                                                        <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
-                                                        <p className="text-gray-600 text-sm leading-relaxed">
+                                                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm break-words">{item.title}</h4>
+                                                        <p className="text-gray-600 text-[11px] sm:text-xs leading-relaxed break-words">
                                                             {item.text}
                                                         </p>
                                                     </>

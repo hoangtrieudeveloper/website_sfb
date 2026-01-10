@@ -130,7 +130,7 @@ export function ImageWithFallback({
       src={imgSrc} 
       alt={alt} 
       className={className} 
-      style={style} 
+      style={{ ...style, objectFit, objectPosition }} 
       loading={loading}
       onError={handleError}
       {...rest}

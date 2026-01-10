@@ -16,8 +16,8 @@ export function ProductHero({ data }: ProductHeroProps) {
         <section
             className="relative flex items-center overflow-hidden"
             style={{
-                height: '847px',
-                paddingTop: '87px',
+                height: '787px',
+                paddingTop: '57px',
                 background: displayData.backgroundGradient || 'linear-gradient(to bottom right, #0870B4, #2EABE2)'
             }}
         >

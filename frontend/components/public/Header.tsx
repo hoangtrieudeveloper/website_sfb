@@ -38,11 +38,13 @@ export function Header() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoverLang, setHoverLang] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [announcementHeight, setAnnouncementHeight] = useState(0);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const pathname = usePathname();
   const dropdownTimeoutRef = useRef<NodeJS.Timeout>();
   const headerRef = useRef<HTMLElement>(null);
+  const announcementRef = useRef<HTMLDivElement>(null);
 
   // Load settings from API
   useEffect(() => {
@@ -111,6 +113,27 @@ export function Header() {
     }
   }, []);
 
+  // Measure announcement bar height so header/top spacing is correct on mobile (banner can wrap to 2 lines)
+  useEffect(() => {
+    const el = announcementRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setAnnouncementHeight(showAnnouncement ? el.getBoundingClientRect().height : 0);
+    };
+
+    update();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(() => update());
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [showAnnouncement]);
+
   // Chỉ sử dụng data từ API, không có fallback
   const logoUrl = settings.logo;
   const slogan = settings.slogan;
@@ -133,7 +156,7 @@ export function Header() {
 
   // Define routes with dark backgrounds behind the transparent header
   // Define routes where header starts as transparent
-  const transparentHeaderRoutes = ['/about'];
+  const transparentHeaderRoutes: string[] = [];
   const isTransparentHeader = pathname === '/' || transparentHeaderRoutes.some(route => pathname?.startsWith(route)) || false;
 
   // Determine text color
@@ -250,7 +273,7 @@ export function Header() {
       </div>
 
       {/* Announcement Bar - positioned at very top */}
-      <div className="fixed top-0 left-0 right-0 z-[51]">
+      <div ref={announcementRef} className="relative z-[51]">
         <AnnouncementBar
           isVisible={showAnnouncement}
           onDismiss={handleDismissAnnouncement}
@@ -262,10 +285,11 @@ export function Header() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{ top: !scrolled && showAnnouncement ? announcementHeight : 0 }}
         className={`fixed left-0 right-0 z-50 transition-all duration-500 flex flex-col items-center max-w-[1920px] mx-auto ${scrolled || !isTransparentHeader
           ? "bg-white shadow-lg border-b border-gray-100"
           : "bg-transparent shadow-none backdrop-blur-none"
-          } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'} p-2.5 gap-2.5`}
+          } top-0 p-2.5 gap-2.5`}
       >
         <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10 xl:px-[clamp(24px,calc((100vw-1280px)/2),320px)]">
           <div className="flex items-center justify-between lg:justify-center gap-4 lg:gap-6 xl:gap-[60px] h-full min-w-0">
@@ -277,7 +301,7 @@ export function Header() {
             >
               {logoUrl && (
                 <div className="relative">
-                  <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                     <img
                       src={logoUrl}
                       alt="SFB Technology"
@@ -288,12 +312,38 @@ export function Header() {
                   <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
                 </div>
               )}
-              <div className="flex flex-col">
+              <div className="flex flex-col justify-center">
                 {siteName && (
-                  <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>{siteName}</span>
+                  <span
+                    className={`uppercase transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}
+                    style={{
+                      fontFamily: '"UTM Alexander", sans-serif',
+                      fontSize: "38px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "100%",
+                      width: "62px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {siteName}
+                  </span>
                 )}
                 {slogan && (
-                  <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>{slogan}</span>
+                  <span
+                    className={`uppercase transition-colors duration-500 ${useDarkText ? 'text-[#525252] group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}
+                    style={{
+                      fontFamily: '"UTM Alexander", sans-serif',
+                      fontSize: "8px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "100%",
+                      width: "102px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {slogan}
+                  </span>
                 )}
               </div>
             </Link>

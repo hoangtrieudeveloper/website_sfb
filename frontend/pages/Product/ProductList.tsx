@@ -111,13 +111,13 @@ const ProductCard = ({ product }: { product: any }) => {
 
                 {/* Features */}
                 {product.features && Array.isArray(product.features) && product.features.length > 0 && (
-                    <div className="space-y-2 lg:space-y-3 w-full mt-auto flex-[1_0_0]">
+                    <div className="space-y-2 lg:space-y-3 w-full max-w-full mt-auto flex-[1_0_0] min-w-0">
                         {product.features.slice(0, 4).map((feature: string, i: number) => (
-                            <div key={i} className="flex items-start gap-3">
+                            <div key={i} className="flex items-start gap-3 w-full min-w-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-1 lg:mt-[5px] w-4 h-4 lg:w-[20px] lg:h-[20px]">
                                     <path fillRule="evenodd" clipRule="evenodd" d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z" fill="#1D8FCF" />
                                 </svg>
-                                <span className="flex-[1_0_0] line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
+                                <span className="flex-1 min-w-0 whitespace-normal break-words line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
                                     {feature}
                                 </span>
                             </div>
@@ -274,7 +274,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     </div>
 
                     {/* Pills filter ngay dưới description */}
-                    <div className="flex flex-wrap items-center justify-center gap-3 mt-8 lg:mt-10 mb-14">
+                    <div className="w-full mx-auto max-w-[720px] sm:max-w-[900px] lg:max-w-[1244px] flex flex-wrap items-center justify-center gap-3 mt-8 lg:mt-10 mb-14">
                         {categoriesWithIcons.map((category: any) => {
                             const Icon = category.icon;
                             const active = selectedCategory === category.id;
@@ -283,14 +283,16 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                 <button
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.id)}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2
+                                    className={`px-4 sm:px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2 min-w-0 max-w-[220px] sm:max-w-[280px] lg:max-w-none
                                         ${active
                                             ? "bg-[#0870B4] text-white shadow-md"
                                             : "bg-[#EAF5FF] text-[#0870B4] hover:bg-[#DCEFFF]"
                                         }`}
                                 >
-                                    <Icon size={16} />
-                                    {category.name}
+                                    <Icon size={16} className="shrink-0" />
+                                    <span className="min-w-0 whitespace-normal break-words text-center leading-snug line-clamp-2">
+                                        {category.name}
+                                    </span>
                                 </button>
                             );
                         })}

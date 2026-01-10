@@ -25,7 +25,7 @@ export function Consult({ data }: ConsultProps) {
     }
 
     return (
-        <section className="py-8 sm:py-10 px-4 flex justify-center">
+        <section className="pb-8 sm:py-10 px-4 flex justify-center mb-8">
             <div className="container mx-auto flex justify-center">
                 <ScrollAnimation variant="elastic-up" className="w-full flex justify-center">
                     <div

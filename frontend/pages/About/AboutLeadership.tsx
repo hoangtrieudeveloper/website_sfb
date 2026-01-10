@@ -72,11 +72,11 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                                 <ImageWithFallback
                                                     src={leader.image}
                                                     alt={leader.name ? `${leader.name} - ${leader.position || 'Leadership'}` : "Leadership Team Member"}
-                                                    fill
+                                                    
                                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                     loading="lazy"
-                                                    objectFit="cover"
-                                                    className="rounded-[8px] transition-transform duration-500 group-hover:scale-105"
+                                                    objectFit="contain"
+                                                    className="rounded-[8px] transition-opacity duration-300"
                                                 />
                                             </div>
 
