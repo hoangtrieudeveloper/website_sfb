@@ -13,19 +13,19 @@ interface AboutCoreValuesProps {
     data?: any;
 }
 
-const CoreValueCard = ({ item, className = "" }: { item: any, className?: string }) => {
+const CoreValueCard = ({ item, className = "", enableHover = true }: { item: any, className?: string, enableHover?: boolean }) => {
     const IconComponent = item.iconName
         ? ((LucideIcons as any)[item.iconName] || LucideIcons.Lightbulb)
         : (item.icon || LucideIcons.Lightbulb);
 
     return (
         <motion.div
-            whileHover={{ y: -10, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)" }}
-            className={`bg-white rounded-[24px] p-6 sm:p-8 flex flex-col items-center text-center shadow-[0_18px_36px_0_rgba(0,0,0,0.05)] transition-all duration-300 h-full border border-transparent hover:border-blue-100 ${className}`}
+            whileHover={enableHover ? { y: -10, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)" } : {}}
+            className={`bg-white rounded-[24px] p-6 sm:p-8 flex flex-col items-center text-center shadow-[0_18px_36px_0_rgba(0,0,0,0.05)] transition-all duration-300 h-full border border-transparent lg:hover:border-blue-100 ${className}`}
         >
             <motion.div
                 className="mb-6 text-[#2CA4E0] p-4 bg-blue-50/50 rounded-full"
-                whileHover={{ rotate: 360, backgroundColor: "#E0F2FE" }}
+                whileHover={enableHover ? { rotate: 360, backgroundColor: "#E0F2FE" } : {}}
                 transition={{ duration: 0.6 }}
             >
                 <IconComponent size={32} strokeWidth={1.5} className="w-8 h-8 sm:w-12 sm:h-12" />
@@ -84,10 +84,9 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
     );
 }
 
-// Default export để tránh lỗi Next.js build
 // Mobile Slider Component
 function MobileSlider({ items }: { items: any[] }) {
-    const [emblaRef, emblaApi] = useEmblaCarousel({ align: "center", loop: false });
+    const [emblaRef, emblaApi] = useEmblaCarousel({ align: "center", loop: true });
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     const onSelect = useCallback(() => {
@@ -108,14 +107,12 @@ function MobileSlider({ items }: { items: any[] }) {
     return (
         <div className="relative">
             <div className="overflow-hidden" ref={emblaRef}>
-                <div className="flex touch-pan-y touch-pinch-zoom gap-4 ml-[-1rem]">
+                <div className="flex touch-pan-y touch-pinch-zoom">
                     {items.map((item, index) => (
-                        <div key={index} className="flex-[0_0_85%] min-w-0 pl-4">
-                            <CoreValueCard item={item} className="shadow-none border-gray-200" />
+                        <div key={index} className="flex-[0_0_85%] min-w-0 px-2 py-8">
+                            <CoreValueCard item={item} enableHover={false} />
                         </div>
                     ))}
-                    {/* Spacer for right padding */}
-                    <div className="flex-[0_0_1px]" />
                 </div>
             </div>
 

@@ -105,7 +105,7 @@ export function FieldHero({ data }: FieldHeroProps) {
                                 {displayData.stats.map((metric: any, index: number) => (
                                     <ZoomIn key={index} >
                                         <div
-                                            className="mb-1 md:mb-2 text-2xl sm:text-3xl lg:text-[26px] leading-tight lg:leading-[38px]"
+                                            className="mb-1 md:mb-2 text-xl sm:text-2xl lg:text-[22px] leading-tight lg:leading-[30px]"
                                             style={{
                                                 color: '#FFF',
                                                 textAlign: 'center',

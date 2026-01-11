@@ -55,6 +55,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                 >
                                     {displayData.header.titleHighlight}
                                     <br className="hidden md:block" />
+                                    <span className="md:hidden"> </span>
                                     {displayData.header.titlePart2}
                                 </span>
                             </h2>

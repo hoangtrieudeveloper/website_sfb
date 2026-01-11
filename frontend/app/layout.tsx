@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { API_BASE_URL } from "@/lib/api/base";
+import ScrollToTop from "@/components/common/ScrollToTop";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin", "vietnamese"],
@@ -16,7 +17,7 @@ async function getFavicon(): Promise<string | undefined> {
     // Fetch directly from backend API in server-side
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
-    
+
     const res = await fetch(`${API_BASE_URL}/api/public/settings?keys=favicon`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
       signal: controller.signal,
@@ -30,7 +31,7 @@ async function getFavicon(): Promise<string | undefined> {
 
     const data = await res.json();
     const favicon = data.data?.favicon;
-    
+
     // Return favicon URL if it exists and is not empty
     if (favicon && favicon.trim()) {
       return favicon;
@@ -47,7 +48,7 @@ async function getGoogleSiteVerification(): Promise<string | undefined> {
     // Fetch directly from backend API in server-side
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
-    
+
     const res = await fetch(`${API_BASE_URL}/api/public/settings?keys=google_site_verification`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
       signal: controller.signal,
@@ -61,7 +62,7 @@ async function getGoogleSiteVerification(): Promise<string | undefined> {
 
     const data = await res.json();
     const verificationCode = data.data?.google_site_verification;
-    
+
     // Return verification code if it exists and is not empty
     if (verificationCode && verificationCode.trim()) {
       return verificationCode.trim();
@@ -78,14 +79,14 @@ export async function generateMetadata(): Promise<Metadata> {
     getFavicon(),
     getGoogleSiteVerification(),
   ]);
-  
+
   // Fallback order: settings -> env variable -> hardcoded default
-  const verificationCode = googleVerification 
-    || process.env.GOOGLE_SITE_VERIFICATION 
+  const verificationCode = googleVerification
+    || process.env.GOOGLE_SITE_VERIFICATION
     || 'nskAzb2wgDby-HUyaAmxjuyMNgkQ1Z-GSbTs-Tx1RJw';
-  
+
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
-  
+
   return {
     metadataBase: new URL(baseUrl),
     title: {
@@ -121,6 +122,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${plusJakarta.className} min-h-screen bg-white antialiased`}
       >
+        <ScrollToTop />
         {children}
       </body>
     </html>

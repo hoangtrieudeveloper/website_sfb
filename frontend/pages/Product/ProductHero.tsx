@@ -14,9 +14,8 @@ export function ProductHero({ data }: ProductHeroProps) {
 
     return (
         <section
-            className="relative flex items-center overflow-hidden"
+            className="relative flex items-center overflow-hidden min-h-screen lg:min-h-0 lg:h-[787px]"
             style={{
-                height: '787px',
                 paddingTop: '57px',
                 background: displayData.backgroundGradient || 'linear-gradient(to bottom right, #0870B4, #2EABE2)'
             }}
@@ -29,10 +28,10 @@ export function ProductHero({ data }: ProductHeroProps) {
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
                 <div className="max-w-4xl mx-auto text-center">
                     {displayData.title && (
-                        <h1 className="text-white mb-6 sm:mb-8 text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-tight">
+                        <h1 className="text-white mb-4 sm:mb-8 text-xl min-[400px]:text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-tight">
                             {displayData.title}
                             {displayData.subtitle && (
-                                <span className="block text-white font-extrabold text-2xl sm:text-3xl md:text-4xl lg:text-5xl mt-3">
+                                <span className="block text-white font-extrabold text-2xl min-[400px]:text-3xl sm:text-3xl md:text-4xl lg:text-5xl mt-2 sm:mt-3">
                                     {displayData.subtitle}
                                 </span>
                             )}
@@ -40,67 +39,67 @@ export function ProductHero({ data }: ProductHeroProps) {
                     )}
 
                     {displayData.description && (
-                        <p className="text-base sm:text-lg lg:text-xl text-blue-100 leading-relaxed mb-8 sm:mb-10 max-w-3xl mx-auto">
+                        <p className="text-base sm:text-lg lg:text-xl text-blue-100 leading-relaxed mb-6 sm:mb-10 max-w-3xl mx-auto px-2">
                             {displayData.description}
                         </p>
                     )}
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 sm:gap-4 justify-center">
                         {displayData.primaryCtaText && (
                             <a
                                 href={displayData.primaryCtaLink || "#products"}
-                                className="group px-6 py-3 md:px-10 md:py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-3 font-semibold text-sm md:text-base"
+                                className="group px-4 py-3 sm:px-6 sm:py-3 md:px-10 md:py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm md:text-base min-w-[140px] sm:w-auto"
                             >
-                                {displayData.primaryCtaText}
+                                <span className="truncate">{displayData.primaryCtaText}</span>
                                 <ArrowRight
-                                    className="group-hover:translate-x-2 transition-transform"
-                                    size={20}
+                                    className="group-hover:translate-x-2 transition-transform flex-shrink-0"
+                                    size={16}
                                 />
                             </a>
                         )}
                         {displayData.secondaryCtaText && (
                             <a
                                 href={displayData.secondaryCtaLink || "/contact"}
-                                className="px-6 py-3 md:px-10 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-3 font-semibold text-sm md:text-base"
+                                className="px-4 py-3 sm:px-6 sm:py-3 md:px-10 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm md:text-base min-w-[140px] sm:w-auto"
                             >
-                                {displayData.secondaryCtaText}
+                                <span className="truncate">{displayData.secondaryCtaText}</span>
                                 <ArrowRight
-                                    className="group-hover:translate-x-2 transition-transform"
-                                    size={20}
+                                    className="group-hover:translate-x-2 transition-transform flex-shrink-0"
+                                    size={16}
                                 />
                             </a>
                         )}
                     </div>
 
                     {(displayData.stat1Value || displayData.stat2Value || displayData.stat3Value) && (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16 max-w-3xl mx-auto">
+                        <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-8 mt-8 sm:mt-16 max-w-3xl mx-auto">
                             {displayData.stat1Value && (
                                 <div className="text-center">
-                                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
+                                    <div className="text-xl min-[400px]:text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
                                         {displayData.stat1Value}
                                     </div>
                                     {displayData.stat1Label && (
-                                        <div className="text-blue-200">{displayData.stat1Label}</div>
+                                        <div className="text-blue-200 text-xs sm:text-base">{displayData.stat1Label}</div>
                                     )}
                                 </div>
                             )}
                             {displayData.stat2Value && (
                                 <div className="text-center">
-                                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
+                                    <div className="text-xl min-[400px]:text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
                                         {displayData.stat2Value}
                                     </div>
                                     {displayData.stat2Label && (
-                                        <div className="text-blue-200">{displayData.stat2Label}</div>
+                                        <div className="text-blue-200 text-xs sm:text-base">{displayData.stat2Label}</div>
                                     )}
                                 </div>
                             )}
                             {displayData.stat3Value && (
                                 <div className="text-center">
-                                    <div className="text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
+                                    <div className="text-xl min-[400px]:text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
                                         {displayData.stat3Value}
                                     </div>
                                     {displayData.stat3Label && (
-                                        <div className="text-blue-200">{displayData.stat3Label}</div>
+                                        <div className="text-blue-200 text-xs sm:text-base">{displayData.stat3Label}</div>
                                     )}
                                 </div>
                             )}

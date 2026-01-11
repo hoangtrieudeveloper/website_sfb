@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, User, ArrowRight, Clock, Eye } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -49,7 +49,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
     >
       {/* Image - Left Side (Span 7) */}
       <div className="lg:col-span-7 relative z-10 order-1 lg:order-1">
-        <div 
+        <div
           className="relative overflow-hidden box-border w-full aspect-[16/10] rounded-[24px] lg:ml-auto min-[1920px]:w-[800px] min-[1920px]:h-[500px] min-[1920px]:aspect-auto"
           style={{
             border: "10px solid #FFF",
@@ -78,30 +78,38 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="flex flex-wrap items-center gap-3 text-sm"
+          className="flex flex-wrap items-center gap-4 text-sm"
         >
           {/* Category Name */}
           {article.categoryName && (
-            <span
-              className={`${gradientBg} text-white font-medium px-3 py-1.5 rounded-full border border-white/40 shadow-sm text-xs`}
-            >
-              {article.categoryName}
-            </span>
+            <div className="flex items-center">
+              <span className="text-[#1D8FCF] text-[14px] font-normal leading-[250%] font-['Plus_Jakarta_Sans']">
+                {article.categoryName}
+              </span>
+            </div>
           )}
 
           {/* Date */}
           {article.publishedDate && (
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <Calendar size={14} />
-              <span className="text-sm">{formatDateVN(article.publishedDate)}</span>
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M6.66634 3.33332H5.99984C5.06642 3.33332 4.59936 3.33332 4.24284 3.51498C3.92924 3.67477 3.67445 3.92955 3.51466 4.24315C3.33301 4.59967 3.33301 5.06673 3.33301 6.00015V6.66666M6.66634 3.33332H13.333M6.66634 3.33332V1.66666M13.333 3.33332H13.9998C14.9333 3.33332 15.3993 3.33332 15.7558 3.51498C16.0694 3.67477 16.3251 3.92955 16.4849 4.24315C16.6663 4.59932 16.6663 5.06582 16.6663 5.99741V6.66666M13.333 3.33332V1.66666M3.33301 6.66666V14.0002C3.33301 14.9336 3.33301 15.4 3.51466 15.7566C3.67445 16.0702 3.92924 16.3254 4.24284 16.4852C4.59901 16.6667 5.0655 16.6667 5.9971 16.6667H14.0022C14.9338 16.6667 15.3997 16.6667 15.7558 16.4852C16.0694 16.3254 16.3251 16.0702 16.4849 15.7566C16.6663 15.4004 16.6663 14.9346 16.6663 14.003V6.66666M3.33301 6.66666H16.6663M13.333 13.3333H13.3347L13.3346 13.335L13.333 13.335V13.3333ZM9.99967 13.3333H10.0013L10.0013 13.335L9.99967 13.335V13.3333ZM6.66634 13.3333H6.66801L6.66797 13.335L6.66634 13.335V13.3333ZM13.3346 9.99999V10.0017L13.333 10.0016V9.99999H13.3346ZM9.99967 9.99999H10.0013L10.0013 10.0017L9.99967 10.0016V9.99999ZM6.66634 9.99999H6.66801L6.66797 10.0017L6.66634 10.0016V9.99999Z" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-[#64748B] text-[14px] font-normal leading-[250%] font-['Plus_Jakarta_Sans']">
+                {formatDateVN(article.publishedDate)}
+              </span>
             </div>
           )}
 
           {/* Author */}
           {article.author && (
-            <div className="flex items-center gap-1.5 text-gray-500">
-              <User size={14} />
-              <span className="text-sm">{article.author}</span>
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M5 15C5.05305 15 5.10772 15 5.16409 15H10M5 15C4.17644 14.9993 3.74445 14.989 3.40983 14.8185C3.09623 14.6587 2.84144 14.4031 2.68166 14.0895C2.5 13.733 2.5 13.2669 2.5 12.3335V7.66683C2.5 6.73341 2.5 6.26635 2.68166 5.90983C2.84144 5.59623 3.09623 5.34144 3.40983 5.18166C3.76635 5 4.23341 5 5.16683 5H14.8335C15.7669 5 16.233 5 16.5895 5.18166C16.9031 5.34144 17.1587 5.59623 17.3185 5.90983C17.5 6.266 17.5 6.73249 17.5 7.66409V12.3359C17.5 13.2675 17.5 13.7333 17.3185 14.0895C17.1587 14.4031 16.9031 14.6587 16.5895 14.8185C16.2333 15 15.7675 15 14.8359 15H10M5 15C5.00003 14.0795 6.11931 13.3333 7.5 13.3333C8.88071 13.3333 10 14.0795 10 15M5 15C5 15 5 14.9999 5 15ZM15 11.6667H11.6667M15 9.16667H12.5M7.5 10.8333C6.57953 10.8333 5.83333 10.0871 5.83333 9.16667C5.83333 8.24619 6.57953 7.5 7.5 7.5C8.42047 7.5 9.16667 8.24619 9.16667 9.16667C9.16667 10.0871 8.42047 10.8333 7.5 10.8333Z" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-[#64748B] text-[14px] font-normal leading-[250%] font-['Plus_Jakarta_Sans']">
+                {article.author}
+              </span>
             </div>
           )}
         </motion.div>

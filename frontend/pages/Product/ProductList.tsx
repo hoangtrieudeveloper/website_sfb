@@ -127,32 +127,33 @@ const ProductCard = ({ product }: { product: any }) => {
             </div>
 
 
-            <div className="w-full flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                    <div className="text-xs text-gray-500">Giá tham khảo</div>
-                    <div className="text-lg font-extrabold text-gray-900">
+            <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
+                <div className="min-w-0 shrink">
+                    <div className="text-xs text-gray-500 truncate">Giá tham khảo</div>
+                    <div className="text-lg font-extrabold text-gray-900 truncate">
                         {product.pricing || PLACEHOLDER_PRICING}
                     </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-2 shrink-0">
                     {product.demoLink && (
                         <Link
                             href={product.demoLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             prefetch={false}
-                            className="px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                            className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
                 font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
-                    inline-flex items-center gap-2"
+                    inline-flex items-center gap-1 sm:gap-2"
                         >
-                            Demo nhanh
+                            <span className="whitespace-nowrap sm:inline hidden">Demo nhanh</span>
+                            <span className="whitespace-nowrap sm:hidden inline">Demo</span>
                             <Image
                                 src="/icons/custom/product_media.svg"
                                 alt="media icon"
                                 width={24}
                                 height={24}
-                                className="w-6 h-6"
+                                className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
                             />
                         </Link>
                     )}
@@ -160,9 +161,11 @@ const ProductCard = ({ product }: { product: any }) => {
                     <Link
                         href={`/products/${product.slug || slugify(product.name || '')}`}
                         prefetch={true}
-                        className="px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                        className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-1 sm:gap-2"
                     >
-                        Tìm hiểu thêm <ArrowRight size={16} />
+                        <span className="whitespace-nowrap sm:inline hidden">Tìm hiểu thêm</span>
+                        <span className="whitespace-nowrap sm:hidden inline">Chi tiết</span>
+                        <ArrowRight size={16} className="shrink-0" />
                     </Link>
                 </div>
             </div>

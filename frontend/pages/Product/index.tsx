@@ -82,9 +82,9 @@ export function ProductsPage() {
             {shouldRender(heroData) && <ProductHero data={heroData} />}
             {benefitsData.length > 0 && <ProductBenefits data={benefitsData} />}
             {shouldRender(listHeaderData) && (
-                <ProductList 
-                    headerData={listHeaderData} 
-                    products={productsData} 
+                <ProductList
+                    headerData={listHeaderData}
+                    products={productsData}
                     categories={categoriesData}
                 />
             )}
