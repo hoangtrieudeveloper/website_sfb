@@ -114,18 +114,18 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                         : (item.icon || LucideIcons.Building2);
                                     return (
                                         <div key={idx} className="flex items-start gap-4 group">
-                                            <div className="mt-1 p-2 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                                            <div className="flex-shrink-0 p-2 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
                                                 <IconComponent className="text-[#2CA4E0]" size={20} />
                                             </div>
-                                            <div>
+                                            <div className="flex flex-col justify-center min-h-[40px]">
                                                 {item.isHighlight ? (
-                                                    <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm break-words">
+                                                    <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-relaxed">
                                                         {item.title}: <span className="font-normal text-gray-600">{item.text}</span>
                                                     </h4>
                                                 ) : (
                                                     <>
-                                                        <h4 className="font-bold text-gray-900 mb-1 text-xs sm:text-sm break-words">{item.title}</h4>
-                                                        <p className="text-gray-600 text-[11px] sm:text-xs leading-relaxed break-words">
+                                                        <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-tight mb-1">{item.title}</h4>
+                                                        <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words">
                                                             {item.text}
                                                         </p>
                                                     </>

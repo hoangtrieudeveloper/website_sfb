@@ -5,6 +5,7 @@ import { FadeIn, SlideIn, ZoomIn, StaggerContainer, zoomInVariant } from "../../
 import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
+import { API_BASE_URL } from "@/lib/api/base";
 
 interface FieldHeroProps {
     data?: any;
@@ -22,6 +23,19 @@ export function FieldHero({ data }: FieldHeroProps) {
     if (!displayData.titlePrefix || !displayData.titleSuffix || !displayData.image) {
         return null;
     }
+    const apiBase = API_BASE_URL;
+    const imageSrc = displayData.image
+        ? displayData.image.startsWith("http")
+            ? displayData.image
+            : !displayData.image.includes("/")
+                ? `/images/${displayData.image}`
+                : displayData.image.includes("images/")
+                    ? displayData.image.startsWith("/") ? displayData.image : `/${displayData.image}`
+                    : `${apiBase}${displayData.image.startsWith("/") ? "" : "/"}${displayData.image}`
+        : "/images/no_cover.jpeg";
+
+    const finalImageSrc = imageSrc || "/images/no_cover.jpeg";
+
     return (
         <section
             className="relative overflow-hidden pt-[100px] md:pt-[120px] lg:pt-0 pb-10 md:pb-16 lg:pb-0 lg:h-[847px] lg:pt-[87px]"
@@ -47,25 +61,21 @@ export function FieldHero({ data }: FieldHeroProps) {
                     className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-10 2xl:gap-0"
                 >
                     {/* Left Column: Image */}
-                    <div className="relative order-1 lg:order-1 flex justify-center lg:justify-start z-10 w-full lg:w-1/2 2xl:w-auto mb-4 md:mb-6 lg:mb-0 lg:mr-[-55px]">
+                    <div className="relative order-1 lg:order-1 flex justify-center lg:justify-start z-10 w-full lg:w-1/2 mb-6 lg:mb-0">
                         <div
-                            className="relative overflow-hidden box-border w-full max-w-[300px] sm:max-w-[400px] md:max-w-[640px] lg:max-w-[840px] 2xl:max-w-[991px] aspect-[991/782] min-[1920px]:w-[991px] min-[1920px]:h-[782px] min-[1920px]:aspect-auto flex-shrink-0"
+                            className="relative w-full max-w-[500px] lg:max-w-[600px] xl:max-w-[700px] rounded-2xl overflow-hidden"
                             style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                borderRadius: "16px",
-                                background: "transparent",
+                                aspectRatio: '991/782',
                             }}
                         >
                             <ImageWithFallback
-                                src={displayData.image}
+                                src={finalImageSrc}
                                 alt={displayData.titlePrefix || displayData.title || "Business operations illustration"}
                                 fill
-                                sizes="(max-width: 300px) 300px, (max-width: 400px) 400px, (max-width: 500px) 500px, (max-width: 700px) 700px, 991px"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
                                 priority={true}
                                 objectFit="cover"
-                                className="rounded-2xl drop-shadow-2xl"
+                                className="transition-transform duration-700 hover:scale-105"
                             />
                         </div>
                     </div>

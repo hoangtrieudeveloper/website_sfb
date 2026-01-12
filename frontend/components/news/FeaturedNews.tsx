@@ -32,11 +32,15 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
   const gradientBg = `bg-gradient-to-r ${gradient}`;
 
   const imageSrc = isTuyenSinh
-    ? `${apiBase}/images/news/news1.png`
+    ? "/images/news/news1.png"
     : article.imageUrl
       ? article.imageUrl.startsWith("http")
         ? article.imageUrl
-        : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
+        : !article.imageUrl.includes("/")
+          ? `/images/news/${article.imageUrl}`
+          : article.imageUrl.includes("images/")
+            ? article.imageUrl.startsWith("/") ? article.imageUrl : `/${article.imageUrl}`
+            : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
       : "/images/no_cover.jpeg";
 
   return (
