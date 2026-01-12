@@ -320,9 +320,14 @@ export function NewsPageClient({
                 </AnimatePresence>
               </div>
 
+              {/* Divider between Latest and Pagination */}
+              <div className="mt-12">
+                <div className="h-px w-full bg-[#E5E5E5]" />
+              </div>
+
               {/* Pagination */}
               {news.length > 0 && (
-                <div className="flex justify-start mt-16 gap-2 w-full">
+                <div className="flex justify-start mt-8 gap-2 w-full">
                   {/* Previous button */}
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}

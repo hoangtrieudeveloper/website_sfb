@@ -35,12 +35,12 @@ export function CareerHero({ data }: CareerHeroProps) {
             <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-white/10 rounded-full blur-[100px] animate-pulse pointer-events-none" />
             <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-cyan-400/20 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="container mx-auto px-6 relative z-10 w-full">
-                <div className="flex flex-col lg:flex-row items-center lg:items-center justify-center gap-12 lg:gap-14 xl:gap-16">
+            <div className="max-w-[1340px] mx-auto px-6 relative z-10 w-full">
+                <div className="flex flex-col lg:flex-row items-center lg:items-center lg:justify-between gap-10 lg:gap-12 xl:gap-14">
                     {/* Text Content */}
                     <StaggerContainer className="text-white lg:flex-1 lg:max-w-[640px] xl:max-w-[720px]">
                         <FadeIn>
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl 2xl:text-6xl font-bold leading-tight mb-4 sm:mb-5 lg:mb-6">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl 2xl:text-[56px] font-bold leading-tight mb-4 sm:mb-5 lg:mb-6">
                                 {displayData.titleLine1}
                                 <span className="block mt-2">
                                     {displayData.titleLine2}
@@ -50,7 +50,7 @@ export function CareerHero({ data }: CareerHeroProps) {
 
                         {displayData.description && (
                             <FadeIn delay={0.2}>
-                                <p className="text-sm sm:text-base lg:text-lg text-white/90 mb-7 sm:mb-8 lg:mb-10 leading-relaxed font-light">
+                                <p className="text-base md:text-lg text-white/90 mb-7 sm:mb-8 lg:mb-10 leading-relaxed font-light">
                                     {displayData.description}
                                 </p>
                             </FadeIn>
@@ -72,7 +72,7 @@ export function CareerHero({ data }: CareerHeroProps) {
                     {/* Image Content */}
                     {displayData.image && (
                         <FadeIn delay={0.5} className="w-full lg:w-auto">
-                            <div className="relative flex-none w-full max-w-[851px] h-[220px] sm:h-[320px] lg:w-[680px] lg:h-[408px] xl:w-[720px] xl:h-[432px] 2xl:w-[780px] 2xl:h-[468px] flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
+                            <div className="relative flex-none w-full max-w-[851px] h-[220px] sm:h-[320px] lg:w-[560px] lg:h-[360px] xl:w-[620px] xl:h-[390px] 2xl:w-[660px] 2xl:h-[420px] flex justify-center items-center bg-white border-[10px] border-white rounded-[24px] shadow-[0_18px_36px_0_rgba(0,0,0,0.12)] flex-shrink-0 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-shadow duration-500">
                                 <div className="w-full h-full rounded-[14px] overflow-hidden relative">
                                     <ImageWithFallback
                                         src={displayData.image}

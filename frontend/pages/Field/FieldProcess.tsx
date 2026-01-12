@@ -16,7 +16,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
         steps: processSteps,
     };
     return (
-        <section className="py-12 md:py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
+        <section className="pt-12 md:pt-[90px] pb-8 md:pb-[45px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
             <div className="relative z-10 w-full container mx-auto px-4 md:px-6">
                 {/* Header */}
                 {displayData.header && (
