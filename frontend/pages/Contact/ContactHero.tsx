@@ -2,6 +2,7 @@
 
 import * as LucideIcons from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
+import { API_BASE_URL } from "@/lib/api/base";
 
 interface ContactHeroProps {
     data?: {
@@ -30,6 +31,20 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
     if (heroData.iconName && (LucideIcons as any)[heroData.iconName]) {
         Icon = (LucideIcons as any)[heroData.iconName];
     }
+
+    const apiBase = API_BASE_URL;
+    const imageSrc = heroData.image
+        ? heroData.image.startsWith("http")
+            ? heroData.image
+            : !heroData.image.includes("/")
+                ? `/images/${heroData.image}`
+                : heroData.image.includes("images/")
+                    ? heroData.image.startsWith("/") ? heroData.image : `/${heroData.image}`
+                    : `${apiBase}${heroData.image.startsWith("/") ? "" : "/"}${heroData.image}`
+        : "/images/no_cover.jpeg";
+
+    // Fallback if imageSrc is still invalid or empty
+    const finalImageSrc = imageSrc || "/images/no_cover.jpeg";
 
     return (
         <section
@@ -74,19 +89,27 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
 
                     {/* Right Column: Image */}
                     <div className="w-full lg:w-1/2 flex justify-center lg:justify-end relative order-1 lg:order-2 mb-6 lg:mb-0">
-                        <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-lg aspect-square bg-white/5 rounded-2xl overflow-hidden">
-                            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-full filter blur-3xl opacity-40 transform scale-90 animate-pulse" />
-                            <div className="relative z-10 w-full h-full flex items-center justify-center p-4">
+                        {/* Decorative background elements for image */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-br from-[#ffffff30] to-transparent rounded-full blur-3xl -z-10 opacity-60 pointer-events-none" />
+
+                        <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-lg aspect-square 
+                                        bg-white/10 backdrop-blur-md rounded-[32px] overflow-hidden border border-white/20 
+                                        shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] 
+                                        transition-all duration-500 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.3)] hover:-translate-y-2">
+                            {/* Inner glow */}
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+
+                            <div className="relative z-10 w-full h-full flex items-center justify-center p-8">
                                 <ImageWithFallback
-                                    src={heroData.image || "/images/no_cover.jpeg"}
-                                    alt={heroData.title?.prefix && heroData.title?.highlight 
-                                        ? `${heroData.title.prefix} ${heroData.title.highlight}` 
+                                    src={finalImageSrc}
+                                    alt={heroData.title?.prefix && heroData.title?.highlight
+                                        ? `${heroData.title.prefix} ${heroData.title.highlight}`
                                         : "Contact Support"}
                                     fill
                                     sizes="(max-width: 320px) 280px, (max-width: 400px) 320px, 400px"
                                     priority={true}
                                     objectFit="contain"
-                                    className="drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                                    className="drop-shadow-2xl transition-transform duration-700 hover:scale-110"
                                 />
                             </div>
                         </div>

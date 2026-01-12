@@ -453,7 +453,7 @@ export function NewsDetailPageClient({
                 </ol>
               ) : (
                 <p className="text-xs text-gray-500">
-                  Chưa có tiêu đề (H2/H3) để tạo mục lục.
+                  Chưa có tiêu đề
                 </p>
               )}
             </div>
@@ -511,6 +511,11 @@ export function NewsDetailPageClient({
       {relatedArticles.length > 0 && (
         <section className="pb-8 bg-white">
           <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+            {/* Divider above Related heading */}
+            <div className="mb-10">
+              <div className="h-px w-full bg-[#E5E5E5]" />
+            </div>
+
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Bài viết liên quan</h2>
               {/* <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p> */}
@@ -520,9 +525,14 @@ export function NewsDetailPageClient({
               <NewsList news={relatedPaginated.slice(0, 6)} />
             </div>
 
+            {/* Divider between Related list and pagination */}
+            <div className="mt-12">
+              <div className="h-px w-full bg-[#E5E5E5]" />
+            </div>
+
             {/* Pagination - Related */}
             {relatedTotalPages > 0 && (
-              <div className="flex justify-start mt-16 gap-2 w-full">
+              <div className="flex justify-start mt-8 gap-2 w-full">
                 {/* Previous button */}
                 <button
                   onClick={() => handleRelatedPageChange(relatedCurrentPage - 1)}

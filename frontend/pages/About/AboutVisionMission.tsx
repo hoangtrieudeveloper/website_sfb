@@ -44,11 +44,30 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
                                 <motion.div
                                     className="flex flex-1 items-center gap-3 px-6 py-[42px] rounded-[12px] border border-white bg-[linear-gradient(237deg,rgba(128,192,228,0.10)_7%,rgba(29,143,207,0.10)_71.94%)] relative overflow-hidden"
                                 >
-                                    <div className="relative w-[42px] h-[42px] flex items-center justify-center flex-shrink-0">
-                                        <svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 text-[#1D8FCF]">
-                                            <path d="M38.2 12.9 A 19 19 0 1 1 29 3.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                        </svg>
-                                        <div className="absolute top-0 right-0 translate-x-[10%] translate-y-[-10%]">
+                                    <div
+                                        className="relative flex items-center justify-center flex-shrink-0"
+                                        style={{
+                                            width: '42px',
+                                            padding: '6px 0',
+                                            flexDirection: 'column',
+                                            gap: '10px',
+                                            borderRadius: '100px',
+                                            border: '1.5px solid var(--Linear, #1D8FCF)',
+                                        }}
+                                    >
+                                        <div
+                                            className="absolute"
+                                            style={{
+                                                display: 'flex',
+                                                padding: '3.771px',
+                                                alignItems: 'center',
+                                                gap: '6.857px',
+                                                right: '-4.546px',
+                                                top: '-5.455px',
+                                                borderRadius: '685.714px',
+                                                background: '#E5F2FA'
+                                            }}
+                                        >
                                             <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '16.457px', height: '16.457px' }}>
                                                 <path d="M1.60121 7.08803C1.38641 6.88939 1.50309 6.53028 1.79363 6.49584L5.91037 6.00755C6.02878 5.99351 6.13163 5.91915 6.18157 5.81087L7.91795 2.04645C8.0405 1.78078 8.41818 1.78072 8.54072 2.0464L10.2771 5.81079C10.327 5.91907 10.4292 5.99363 10.5476 6.00767L14.6646 6.49584C14.9551 6.53028 15.0715 6.88949 14.8567 7.08814L11.8134 9.90298C11.7259 9.98394 11.6869 10.1044 11.7101 10.2214L12.5178 14.2875C12.5748 14.5744 12.2694 14.7968 12.0141 14.6539L8.39677 12.6285C8.29272 12.5702 8.16631 12.5705 8.06226 12.6288L4.44451 14.6533C4.18922 14.7963 3.88326 14.5744 3.94028 14.2875L4.74808 10.2216C4.77132 10.1047 4.73244 9.98391 4.6449 9.90296L1.60121 7.08803Z" fill={`url(#paint0_linear_${index})`} />
                                                 <defs>
@@ -59,12 +78,25 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
                                                 </defs>
                                             </svg>
                                         </div>
-                                        <span className="text-[#1D8FCF] font-['Plus_Jakarta_Sans'] font-semibold text-[20px] leading-none pt-1">
+                                        <span
+                                            style={{
+                                                fontFeatureSettings: "'liga' off, 'clig' off",
+                                                fontFamily: '"Plus Jakarta Sans"',
+                                                fontSize: '20px',
+                                                fontStyle: 'normal',
+                                                fontWeight: 600,
+                                                lineHeight: '30px',
+                                                background: 'var(--Linear, linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%))',
+                                                backgroundClip: 'text',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                            }}
+                                        >
                                             {index + 1}
                                         </span>
                                     </div>
                                     <div className="relative z-10 self-stretch flex items-center">
-                                        <p className="w-full text-[#64748B] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
+                                        <p className="w-full text-[#64748B] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-base md:text-lg font-semibold leading-relaxed">
                                             {item.text}
                                         </p>
                                     </div>

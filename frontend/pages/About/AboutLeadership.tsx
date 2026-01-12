@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Phone, Mail } from "lucide-react";
 
 import {
@@ -8,6 +9,7 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
+    type CarouselApi,
 } from "../../components/ui/carousel";
 
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
@@ -19,6 +21,22 @@ interface AboutLeadershipProps {
 }
 
 export function AboutLeadership({ data }: AboutLeadershipProps) {
+    const [api, setApi] = useState<CarouselApi>();
+    const [current, setCurrent] = useState(0);
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        if (!api) {
+            return;
+        }
+
+        setCount(api.scrollSnapList().length);
+        setCurrent(api.selectedScrollSnap());
+
+        api.on("select", () => {
+            setCurrent(api.selectedScrollSnap());
+        });
+    }, [api]);
     // Chỉ sử dụng data từ API, không fallback static data
     if (!data || !data.data) {
         return null;
@@ -55,6 +73,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                     {/* Carousel */}
                     <FadeIn delay={0.2} className="px-[clamp(16px,3.125vw,48px)] relative">
                         <Carousel
+                            setApi={setApi}
                             opts={{
                                 align: "start",
                                 loop: true,
@@ -72,11 +91,11 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                                 <ImageWithFallback
                                                     src={leader.image}
                                                     alt={leader.name ? `${leader.name} - ${leader.position || 'Leadership'}` : "Leadership Team Member"}
-                                                    fill
+
                                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                     loading="lazy"
-                                                    objectFit="cover"
-                                                    className="rounded-[8px] transition-transform duration-500 group-hover:scale-105"
+                                                    objectFit="contain"
+                                                    className="rounded-[8px] transition-opacity duration-300"
                                                 />
                                             </div>
 
@@ -115,6 +134,19 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                             <CarouselPrevious className="hidden md:flex -left-12 border-[#2CA4E0] text-[#2CA4E0] hover:bg-[#2CA4E0] hover:text-white" />
                             <CarouselNext className="hidden md:flex -right-12 border-[#2CA4E0] text-[#2CA4E0] hover:bg-[#2CA4E0] hover:text-white" />
                         </Carousel>
+
+                        {/* Mobile Indicators */}
+                        <div className="flex justify-center gap-2 mt-6 md:hidden">
+                            {Array.from({ length: count }).map((_, index) => (
+                                <button
+                                    key={index}
+                                    className={`h-2 rounded-full transition-all duration-300 ${index === current ? "w-8 bg-[#2CA4E0]" : "w-2 bg-gray-300"
+                                        }`}
+                                    onClick={() => api?.scrollTo(index)}
+                                    aria-label={`Go to slide ${index + 1}`}
+                                />
+                            ))}
+                        </div>
                     </FadeIn>
                 </InViewSection>
             </div>

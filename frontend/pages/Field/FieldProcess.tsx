@@ -16,8 +16,8 @@ export function FieldProcess({ data }: FieldProcessProps) {
         steps: processSteps,
     };
     return (
-        <section className="py-12 md:py-[90px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
-            <div className="relative z-10 w-full container mx-auto px-4 md:px-8 lg:px-[100px] xl:px-[140px] 2xl:px-[290px]">
+        <section className="pt-12 md:pt-[90px] pb-8 md:pb-[45px] bg-[linear-gradient(203deg,#F1F9FD_26.63%,#FFF_87.3%)] relative overflow-hidden">
+            <div className="relative z-10 w-full container mx-auto px-4 md:px-6">
                 {/* Header */}
                 {displayData.header && (
                     <FadeIn className="text-center mb-10 md:mb-[46px] max-w-3xl mx-auto">
@@ -55,6 +55,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                 >
                                     {displayData.header.titleHighlight}
                                     <br className="hidden md:block" />
+                                    <span className="md:hidden"> </span>
                                     {displayData.header.titlePart2}
                                 </span>
                             </h2>
@@ -64,7 +65,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
 
                 {/* Steps */}
                 {displayData.steps && displayData.steps.length > 0 && (
-                    <div className="mx-auto flex w-full max-w-[1340px] flex-col items-start gap-16 lg:gap-[90px]">
+                    <div className="flex w-full flex-col items-start gap-16 lg:gap-[90px]">
                         {displayData.steps.map((step: any, index: number) => {
                             const isEven = index % 2 !== 0;
 
@@ -85,13 +86,12 @@ export function FieldProcess({ data }: FieldProcessProps) {
                             return (
                                 <div
                                     key={step.id}
-                                    className={`flex flex-col lg:flex-row items-center gap-10 lg:gap-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
+                                    className={`flex flex-col lg:flex-row items-center gap-10 lg:gap-14 xl:gap-16 2xl:gap-20 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
                                 >
                                     {/* Image Column */}
-                                    <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-1/2">
+                                    <SlideIn direction={isEven ? "right" : "left"} className="w-full lg:w-[52%] xl:w-[52%] 2xl:w-[54%]">
                                         <div className="relative group">
-                                            <div className="absolute inset-0 bg-blue-500/5 rounded-[2rem] transform rotate-3 scale-105 transition-transform group-hover:rotate-6 duration-500" />
-                                            <div className="relative rounded-[2rem] overflow-hidden bg-white p-3 shadow-2xl border border-gray-100">
+                                            <div className="relative rounded-[2rem] overflow-hidden bg-white p-2 sm:p-3 border border-gray-100">
                                                 <div className="relative aspect-[4/3] rounded-[1.5rem] overflow-hidden bg-gray-100">
                                                     {/* Placeholder for images since generation failed */}
                                                     <img
@@ -114,7 +114,7 @@ export function FieldProcess({ data }: FieldProcessProps) {
                                     </SlideIn>
 
                                     {/* Content Column */}
-                                    <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-1/2">
+                                    <SlideIn direction={isEven ? "left" : "right"} className="w-full lg:w-[48%] xl:w-[48%] 2xl:w-[46%]">
                                         <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
                                             {step.title}
                                         </h3>

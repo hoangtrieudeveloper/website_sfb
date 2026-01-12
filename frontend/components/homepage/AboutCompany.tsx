@@ -153,6 +153,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                               bg-white rounded-[24px]
                               p-4 sm:p-5 xl:p-6
                               border-2 border-gray-100
+                                overflow-hidden
                               flex flex-col items-start gap-4 sm:gap-6 xl:gap-6
                               transition-all duration-300
                               hover:-translate-y-1
@@ -160,8 +161,8 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                         >
                           {/* IMAGE + RGB LED FRAME */}
                           <div className="relative w-full flex-shrink-0">
-                            <div className="rgb-frame p-[3px] rounded-[14px]">
-                              <div className="relative w-full h-[200px] xl:h-[234px] overflow-hidden rounded-lg bg-white lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
+                              <div className="rgb-frame p-[3px] rounded-[14px] overflow-hidden">
+                                <div className="relative w-full max-w-full h-[234px] max-[1279px]:h-[200px] overflow-hidden rounded-lg bg-white">
                                 <ImageWithFallback
                                   src={slide.image || "/images/card-consulting.jpg"}
                                   alt={slide.title || "About Company Slide"}

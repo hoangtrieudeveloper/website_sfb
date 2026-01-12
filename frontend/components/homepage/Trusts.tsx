@@ -47,16 +47,15 @@ export function Trusts({ data }: TrustsProps) {
         <div className="flex flex-col xl:flex-row justify-center items-center gap-12 xl:gap-20">
           {/* Left Column - Image */}
           <ScrollAnimation variant="slide-right" className="relative group">
-            <div className="relative box-border w-full max-w-[701px] aspect-[701/555] rounded-[24px] overflow-hidden shadow-[0px_24px_36px_0px_rgba(0,0,0,0.12)] lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[555px] min-[1920px]:aspect-auto">
+            <div className="relative box-border w-full max-w-[701px] rounded-[24px] overflow-hidden shadow-[0px_24px_36px_0px_rgba(0,0,0,0.12)] lg:ml-auto">
               <ImageWithFallback
                 src={image}
                 alt={title || "Trust Section"}
-                fill
+                width={701}
+                height={555}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
                 loading="lazy"
-                objectFit="cover"
-                // className="transition-transform duration-700 group-hover:scale-105"
-                className="relative box-border w-full max-w-[320px] sm:max-w-[550px] xl:max-w-[701px] aspect-[701/555] object-cover rounded-[24px] shadow-[0px_24px_36px_0px_rgba(0,0,0,0.12)]"
+                className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
               />
             </div>
           </ScrollAnimation>

@@ -38,11 +38,13 @@ export function Header() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoverLang, setHoverLang] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [announcementHeight, setAnnouncementHeight] = useState(0);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const pathname = usePathname();
   const dropdownTimeoutRef = useRef<NodeJS.Timeout>();
   const headerRef = useRef<HTMLElement>(null);
+  const announcementRef = useRef<HTMLDivElement>(null);
 
   // Load settings from API
   useEffect(() => {
@@ -65,7 +67,7 @@ export function Header() {
         const response = await publicApiCall<{ success: boolean; data?: MenuItem[] }>(
           '/api/public/menus'
         );
-        
+
         if (response.success && response.data) {
           // Convert menu items to NavLink format
           const convertMenuToNavLink = (menu: MenuItem): NavLink => {
@@ -74,7 +76,7 @@ export function Header() {
               href: menu.url,
               label: menu.title,
             };
-            
+
             // Convert children if exists (recursive for nested children)
             if (menu.children && Array.isArray(menu.children) && menu.children.length > 0) {
               navLink.children = menu.children.map(child => ({
@@ -92,7 +94,7 @@ export function Header() {
             }
             return navLink;
           };
-          
+
           const links = response.data.map(convertMenuToNavLink);
           setNavLinks(links);
         }
@@ -111,13 +113,34 @@ export function Header() {
     }
   }, []);
 
+  // Measure announcement bar height so header/top spacing is correct on mobile (banner can wrap to 2 lines)
+  useEffect(() => {
+    const el = announcementRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setAnnouncementHeight(showAnnouncement ? el.getBoundingClientRect().height : 0);
+    };
+
+    update();
+
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(() => update());
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [showAnnouncement]);
+
   // Chỉ sử dụng data từ API, không có fallback
   const logoUrl = settings.logo;
   const slogan = settings.slogan;
   const siteName = settings.site_name;
   const phone = settings.phone;
   const email = settings.email;
-  
+
   // Format phone for display (remove non-digit characters except dots)
   // Kiểm tra phone tồn tại trước khi gọi replace
   const formattedPhone = phone ? phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3') : '';
@@ -133,7 +156,7 @@ export function Header() {
 
   // Define routes with dark backgrounds behind the transparent header
   // Define routes where header starts as transparent
-  const transparentHeaderRoutes = ['/about'];
+  const transparentHeaderRoutes: string[] = [];
   const isTransparentHeader = pathname === '/' || transparentHeaderRoutes.some(route => pathname?.startsWith(route)) || false;
 
   // Determine text color
@@ -263,7 +286,7 @@ export function Header() {
       </div>
 
       {/* Announcement Bar - positioned at very top */}
-      <div className="fixed top-0 left-0 right-0 z-[51]">
+      <div ref={announcementRef} className="relative z-[51]">
         <AnnouncementBar
           isVisible={showAnnouncement}
           onDismiss={handleDismissAnnouncement}
@@ -275,10 +298,11 @@ export function Header() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{ top: !scrolled && showAnnouncement ? announcementHeight : 0 }}
         className={`fixed left-0 right-0 z-50 transition-all duration-500 flex flex-col items-center max-w-[1920px] mx-auto ${scrolled || !isTransparentHeader
           ? "bg-white shadow-lg border-b border-gray-100"
           : "bg-transparent shadow-none backdrop-blur-none"
-          } ${!scrolled && showAnnouncement ? 'top-12' : 'top-0'} p-2.5 gap-2.5`}
+          } top-0 p-2.5 gap-2.5`}
       >
         <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10 xl:px-[clamp(24px,calc((100vw-1280px)/2),320px)]">
           <div className="flex items-center justify-between lg:justify-center gap-4 lg:gap-6 xl:gap-[60px] h-full min-w-0">
@@ -290,7 +314,7 @@ export function Header() {
             >
               {logoUrl && (
                 <div className="relative">
-                  <div className="flex items-center justify-center w-12 h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
                     <img
                       src={logoUrl}
                       alt="SFB Technology"
@@ -301,12 +325,38 @@ export function Header() {
                   <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#006FB3]/0 via-[#0088D9]/40 to-[#006FB3]/0 opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500 pointer-events-none" />
                 </div>
               )}
-              <div className="flex flex-col">
+              <div className="flex flex-col justify-center">
                 {siteName && (
-                  <span className={`font-bold text-lg leading-tight transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}>{siteName}</span>
+                  <span
+                    className={`uppercase transition-colors duration-500 ${useDarkText ? 'text-[#006FB3] group-hover:text-[#0088D9]' : 'text-white group-hover:text-cyan-200'}`}
+                    style={{
+                      fontFamily: '"UTM Alexander", sans-serif',
+                      fontSize: "38px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "100%",
+                      width: "62px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {siteName}
+                  </span>
                 )}
                 {slogan && (
-                  <span className={`text-[10px] leading-tight uppercase tracking-wide transition-colors duration-500 ${useDarkText ? 'text-[#006FB3]/70 group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}>{slogan}</span>
+                  <span
+                    className={`uppercase transition-colors duration-500 ${useDarkText ? 'text-[#525252] group-hover:text-[#0088D9]' : 'text-white/70 group-hover:text-white/90'}`}
+                    style={{
+                      fontFamily: '"UTM Alexander", sans-serif',
+                      fontSize: "8px",
+                      fontStyle: "normal",
+                      fontWeight: 400,
+                      lineHeight: "100%",
+                      width: "102px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {slogan}
+                  </span>
                 )}
               </div>
             </Link>
@@ -316,104 +366,104 @@ export function Header() {
               {navLinks.map((link, linkIdx) => {
                 const dropdownKey = link.id ? `menu-${link.id}` : link.href;
                 return (
-                <div
-                  key={dropdownKey}
-                  className="relative"
-                  onMouseEnter={() => {
-                    if (link.children && link.children.length > 0) {
-                      handleDropdownEnter(dropdownKey);
-                    }
-                  }}
-                  onMouseLeave={handleDropdownLeave}
-                >
-                  <Link
-                    href={link.href}
-                    className={`px-2.5 xl:px-3 min-[1920px]:px-4 py-2 transition-all duration-500 relative group text-[11px] xl:text-xs font-bold uppercase tracking-wide flex items-center gap-1 whitespace-nowrap ${isActivePath(link.href)
-                      ? useDarkText
-                        ? "text-[#006FB3]"
-                        : "text-white"
-                      : useDarkText
-                        ? "text-gray-700 hover:text-[#006FB3] hover:-translate-y-0.5"
-                        : "text-white/90 hover:text-white hover:-translate-y-0.5"
-                      }`}
-                    aria-label={link.label}
-                    aria-haspopup={link.children && link.children.length > 0 ? "true" : undefined}
-                    aria-expanded={link.children && link.children.length > 0 && activeDropdown === dropdownKey ? "true" : "false"}
-                    prefetch={true}
+                  <div
+                    key={dropdownKey}
+                    className="relative"
+                    onMouseEnter={() => {
+                      if (link.children && link.children.length > 0) {
+                        handleDropdownEnter(dropdownKey);
+                      }
+                    }}
+                    onMouseLeave={handleDropdownLeave}
                   >
-                    {link.label}
-                    {link.children && link.children.length > 0 && (
-                      <ChevronDown
-                        size={12}
-                        className={`transition-transform duration-300 ${activeDropdown === dropdownKey ? "rotate-180" : ""}`}
-                      />
-                    )}
-                    {/* Active indicator */}
-                    {isActivePath(link.href) && (
-                      <motion.span
-                        layoutId="activeNav"
-                        className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-colors duration-500 ${useDarkText ? 'bg-gradient-to-r from-[#006FB3] to-[#0088D9]' : 'bg-white'}`}
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    {/* Hover underline effect */}
-                    <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full scale-x-0 group-hover:scale-x-100 transition-all duration-500 origin-left ${useDarkText ? 'bg-gradient-to-r from-[#006FB3] to-[#0088D9]' : 'bg-white'}`} />
-                  </Link>
-
-                  {/* Dropdown Menu */}
-                  {link.children && link.children.length > 0 && (
-                    <AnimatePresence>
-                      {activeDropdown === dropdownKey && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-xl z-50"
-                          onMouseEnter={() => handleDropdownEnter(dropdownKey)}
-                          onMouseLeave={handleDropdownLeave}
-                        >
-                          {/* Gradient header */}
-                          <div className="h-1 bg-gradient-to-r from-[#006FB3] via-cyan-500 to-[#0088D9]" />
-
-                          <div className="p-3">
-                            {link.children.map((child, idx) => (
-                              <motion.div
-                                key={child.href}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.05 }}
-                              >
-                                <Link
-                                  href={child.href}
-                                  className="block p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group border border-transparent hover:border-blue-100 hover:shadow-md"
-                                  prefetch={true}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                      <span className="text-white font-bold text-sm">{idx + 1}</span>
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="font-semibold text-gray-900 group-hover:text-[#006FB3] transition-colors mb-1">
-                                        {child.label}
-                                      </div>
-                                      {child.description && (
-                                        <div className="text-xs text-gray-500 leading-relaxed">
-                                          {child.description}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </Link>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </motion.div>
+                    <Link
+                      href={link.href}
+                      className={`px-2.5 xl:px-3 min-[1920px]:px-4 py-2 transition-all duration-500 relative group text-[11px] xl:text-xs font-bold uppercase tracking-wide flex items-center gap-1 whitespace-nowrap ${isActivePath(link.href)
+                        ? useDarkText
+                          ? "text-[#006FB3]"
+                          : "text-white"
+                        : useDarkText
+                          ? "text-gray-700 hover:text-[#006FB3] hover:-translate-y-0.5"
+                          : "text-white/90 hover:text-white hover:-translate-y-0.5"
+                        }`}
+                      aria-label={link.label}
+                      aria-haspopup={link.children && link.children.length > 0 ? "true" : undefined}
+                      aria-expanded={link.children && link.children.length > 0 && activeDropdown === dropdownKey ? "true" : "false"}
+                      prefetch={true}
+                    >
+                      {link.label}
+                      {link.children && link.children.length > 0 && (
+                        <ChevronDown
+                          size={12}
+                          className={`transition-transform duration-300 ${activeDropdown === dropdownKey ? "rotate-180" : ""}`}
+                        />
                       )}
-                    </AnimatePresence>
-                  )}
-                </div>
-              );
+                      {/* Active indicator */}
+                      {isActivePath(link.href) && (
+                        <motion.span
+                          layoutId="activeNav"
+                          className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full transition-colors duration-500 ${useDarkText ? 'bg-gradient-to-r from-[#006FB3] to-[#0088D9]' : 'bg-white'}`}
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      {/* Hover underline effect */}
+                      <span className={`absolute bottom-0 left-0 right-0 h-0.5 rounded-full scale-x-0 group-hover:scale-x-100 transition-all duration-500 origin-left ${useDarkText ? 'bg-gradient-to-r from-[#006FB3] to-[#0088D9]' : 'bg-white'}`} />
+                    </Link>
+
+                    {/* Dropdown Menu */}
+                    {link.children && link.children.length > 0 && (
+                      <AnimatePresence>
+                        {activeDropdown === dropdownKey && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="absolute top-full left-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden backdrop-blur-xl z-50"
+                            onMouseEnter={() => handleDropdownEnter(dropdownKey)}
+                            onMouseLeave={handleDropdownLeave}
+                          >
+                            {/* Gradient header */}
+                            <div className="h-1 bg-gradient-to-r from-[#006FB3] via-cyan-500 to-[#0088D9]" />
+
+                            <div className="p-3">
+                              {link.children.map((child, idx) => (
+                                <motion.div
+                                  key={child.href}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.05 }}
+                                >
+                                  <Link
+                                    href={child.href}
+                                    className="block p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group border border-transparent hover:border-blue-100 hover:shadow-md"
+                                    prefetch={true}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#006FB3] to-[#0088D9] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                        <span className="text-white font-bold text-sm">{idx + 1}</span>
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-gray-900 group-hover:text-[#006FB3] transition-colors mb-1">
+                                          {child.label}
+                                        </div>
+                                        {child.description && (
+                                          <div className="text-xs text-gray-500 leading-relaxed">
+                                            {child.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </Link>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    )}
+                  </div>
+                );
               })}
             </nav>
 

@@ -215,7 +215,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
               <ImageWithFallback
                 src={heroImage}
                 alt={title || description || "SFB Technology Hero"}
-                fill
+
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"
                 priority={true}
                 objectFit="cover"

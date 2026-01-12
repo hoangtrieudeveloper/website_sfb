@@ -46,7 +46,11 @@ export function NewsList({ news }: NewsListProps) {
           const img = article.imageUrl
             ? article.imageUrl.startsWith("http")
               ? article.imageUrl
-              : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
+              : !article.imageUrl.includes("/")
+                ? `/images/news/${article.imageUrl}`
+                : article.imageUrl.includes("images/")
+                  ? article.imageUrl.startsWith("/") ? article.imageUrl : `/${article.imageUrl}`
+                  : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
             : "/images/no_cover.jpeg";
 
           const likes = article.likes ?? 0;

@@ -111,13 +111,13 @@ const ProductCard = ({ product }: { product: any }) => {
 
                 {/* Features */}
                 {product.features && Array.isArray(product.features) && product.features.length > 0 && (
-                    <div className="space-y-2 lg:space-y-3 w-full mt-auto flex-[1_0_0]">
+                    <div className="space-y-2 lg:space-y-3 w-full max-w-full mt-auto flex-[1_0_0] min-w-0">
                         {product.features.slice(0, 4).map((feature: string, i: number) => (
-                            <div key={i} className="flex items-start gap-3">
+                            <div key={i} className="flex items-start gap-3 w-full min-w-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-1 lg:mt-[5px] w-4 h-4 lg:w-[20px] lg:h-[20px]">
                                     <path fillRule="evenodd" clipRule="evenodd" d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z" fill="#1D8FCF" />
                                 </svg>
-                                <span className="flex-[1_0_0] line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
+                                <span className="flex-1 min-w-0 whitespace-normal break-words line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
                                     {feature}
                                 </span>
                             </div>
@@ -127,32 +127,33 @@ const ProductCard = ({ product }: { product: any }) => {
             </div>
 
 
-            <div className="w-full flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                    <div className="text-xs text-gray-500">Giá tham khảo</div>
-                    <div className="text-lg font-extrabold text-gray-900">
+            <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
+                <div className="min-w-0 shrink">
+                    <div className="text-xs text-gray-500 truncate">Giá tham khảo</div>
+                    <div className="text-lg font-extrabold text-gray-900 truncate">
                         {product.pricing || PLACEHOLDER_PRICING}
                     </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-2 shrink-0">
                     {product.demoLink && (
                         <Link
                             href={product.demoLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             prefetch={false}
-                            className="px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                            className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
                 font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
-                    inline-flex items-center gap-2"
+                    inline-flex items-center gap-1 sm:gap-2"
                         >
-                            Demo nhanh
+                            <span className="whitespace-nowrap sm:inline hidden">Demo nhanh</span>
+                            <span className="whitespace-nowrap sm:hidden inline">Demo</span>
                             <Image
                                 src="/icons/custom/product_media.svg"
                                 alt="media icon"
                                 width={24}
                                 height={24}
-                                className="w-6 h-6"
+                                className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
                             />
                         </Link>
                     )}
@@ -160,9 +161,11 @@ const ProductCard = ({ product }: { product: any }) => {
                     <Link
                         href={`/products/${product.slug || slugify(product.name || '')}`}
                         prefetch={true}
-                        className="px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-2"
+                        className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-1 sm:gap-2"
                     >
-                        Tìm hiểu thêm <ArrowRight size={16} />
+                        <span className="whitespace-nowrap sm:inline hidden">Tìm hiểu thêm</span>
+                        <span className="whitespace-nowrap sm:hidden inline">Chi tiết</span>
+                        <ArrowRight size={16} className="shrink-0" />
                     </Link>
                 </div>
             </div>
@@ -274,7 +277,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     </div>
 
                     {/* Pills filter ngay dưới description */}
-                    <div className="flex flex-wrap items-center justify-center gap-3 mt-8 lg:mt-10 mb-14">
+                    <div className="w-full mx-auto max-w-[720px] sm:max-w-[900px] lg:max-w-[1244px] flex flex-wrap items-center justify-center gap-3 mt-8 lg:mt-10 mb-14">
                         {categoriesWithIcons.map((category: any) => {
                             const Icon = category.icon;
                             const active = selectedCategory === category.id;
@@ -283,14 +286,16 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                 <button
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.id)}
-                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2
+                                    className={`px-4 sm:px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2 min-w-0 max-w-[220px] sm:max-w-[280px] lg:max-w-none
                                         ${active
                                             ? "bg-[#0870B4] text-white shadow-md"
                                             : "bg-[#EAF5FF] text-[#0870B4] hover:bg-[#DCEFFF]"
                                         }`}
                                 >
-                                    <Icon size={16} />
-                                    {category.name}
+                                    <Icon size={16} className="shrink-0" />
+                                    <span className="min-w-0 whitespace-normal break-words text-center leading-snug line-clamp-2">
+                                        {category.name}
+                                    </span>
                                 </button>
                             );
                         })}
