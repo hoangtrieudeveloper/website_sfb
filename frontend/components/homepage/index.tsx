@@ -10,6 +10,8 @@ import { Testimonials } from "./Testimonials";
 import { Consult } from "../public/Consult";
 import { publicApiCall } from "@/lib/api/public/client";
 import { PublicEndpoints } from "@/lib/api/public/endpoints";
+import { useLocale } from "@/lib/hooks/useLocale";
+import { applyLocale } from "@/lib/utils/i18n";
 
 interface HomepageBlock {
   id: number;
@@ -19,6 +21,7 @@ interface HomepageBlock {
 }
 
 export function HomepageContent() {
+  const locale = useLocale();
   const [blocks, setBlocks] = useState<Record<string, HomepageBlock>>({});
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +29,7 @@ export function HomepageContent() {
     const fetchBlocks = async () => {
       try {
         const response = await publicApiCall<{ success: boolean; data: HomepageBlock[] }>(
-          PublicEndpoints.homepage.list
+          `${PublicEndpoints.homepage.list}?locale=${locale}`
         );
         
         if (response.success && response.data) {
@@ -44,7 +47,7 @@ export function HomepageContent() {
     };
 
     void fetchBlocks();
-  }, []);
+  }, [locale]);
 
   // Chỉ render các blocks có isActive = true
   // Nếu không có block trong API hoặc isActive = false thì không render (không fallback)
@@ -55,9 +58,63 @@ export function HomepageContent() {
   };
 
   // Get block data, return null if not active or not found
+  // Apply locale để đảm bảo data luôn được localize đúng cách
   const getBlockData = (sectionType: string) => {
     const block = blocks[sectionType];
-    return block && block.isActive ? block.data : null;
+    if (!block || !block.isActive) return null;
+    
+    // Apply locale cho data để đảm bảo tất cả locale objects được chuyển thành strings
+    // Điều này đảm bảo hoạt động đúng dù backend có apply locale hay chưa
+    // Xử lý đệ quy tất cả nested objects và arrays
+    try {
+      const localizedData = applyLocale(block.data || {}, locale);
+      
+      // Debug log trong development
+      if (process.env.NODE_ENV === 'development') {
+        // Kiểm tra xem còn locale objects nào không được xử lý
+        const checkLocaleObjects = (obj: any, path: string = ''): string[] => {
+          const issues: string[] = [];
+          if (!obj || typeof obj !== 'object') return issues;
+          
+          if (Array.isArray(obj)) {
+            obj.forEach((item, idx) => {
+              if (item && typeof item === 'object') {
+                if ('vi' in item || 'en' in item || 'ja' in item) {
+                  issues.push(`${path}[${idx}] is still a locale object`);
+                } else {
+                  issues.push(...checkLocaleObjects(item, `${path}[${idx}]`));
+                }
+              }
+            });
+          } else {
+            for (const [key, value] of Object.entries(obj)) {
+              const currentPath = path ? `${path}.${key}` : key;
+              if (value && typeof value === 'object' && !Array.isArray(value)) {
+                if ('vi' in value || 'en' in value || 'ja' in value) {
+                  issues.push(`${currentPath} is still a locale object`);
+                } else {
+                  issues.push(...checkLocaleObjects(value, currentPath));
+                }
+              } else if (Array.isArray(value)) {
+                issues.push(...checkLocaleObjects(value, currentPath));
+              }
+            }
+          }
+          return issues;
+        };
+        
+        const issues = checkLocaleObjects(localizedData, sectionType);
+        if (issues.length > 0) {
+          console.warn(`[${sectionType}] Locale objects not fully processed:`, issues);
+        }
+      }
+      
+      return localizedData;
+    } catch (error) {
+      // Nếu có lỗi khi apply locale, trả về data gốc
+      console.warn(`Error applying locale to ${sectionType}:`, error);
+      return block.data;
+    }
   };
 
   // Render hero ngay khi có data (không cần đợi loading = false)

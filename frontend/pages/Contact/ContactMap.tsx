@@ -1,8 +1,11 @@
 import { mapData } from './data';
+import { getLocalizedText } from '@/lib/utils/i18n';
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface ContactMapProps {
     data?: {
-        address?: string;
+        address?: string | Record<Locale, string>;
         iframeSrc?: string;
     };
 }

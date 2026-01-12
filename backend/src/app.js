@@ -33,6 +33,7 @@ const homepageRoutes = require('./routes/homepage.routes');
 const contactRoutes = require('./routes/contact.routes');
 const seoRoutes = require('./routes/seo.routes');
 const settingsRoutes = require('./routes/settings.routes');
+const translationRoutes = require('./routes/translation.routes');
 const healthRoutes = require('./routes/health.routes');
 const requireAuth = require('./middlewares/auth.middleware');
 const logger = require('./middlewares/logger.middleware');
@@ -148,6 +149,8 @@ app.use('/api/admin/contact', requireAuth, contactRoutes);
 app.use('/api/admin/seo', requireAuth, seoRoutes);
 // Settings routes
 app.use('/api/admin/settings', requireAuth, settingsRoutes);
+// Translation routes
+app.use('/api/admin/translate', translationRoutes);
 
 // 404 & error handlers
 app.use(notFound);

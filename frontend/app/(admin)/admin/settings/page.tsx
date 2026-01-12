@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Globe2, Bell, Shield, Database, Plus, Trash2 } from "lucide-react";
+import { Save, Globe2, Bell, Shield, Database, Plus, Trash2, Languages } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,24 +9,31 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { getSettings, updateSettings } from "@/lib/api/settings";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface FooterLink {
-  name: string;
+  name: string | Record<Locale, string>;
   href: string;
 }
 
 interface GeneralSettings {
   favicon: string;
   logo: string;
-  slogan: string;
-  site_name: string;
-  site_description: string;
+  slogan: string | Record<Locale, string>;
+  site_name: string | Record<Locale, string>;
+  site_description: string | Record<Locale, string>;
   phone: string;
   email: string;
-  address: string;
+  address: string | Record<Locale, string>;
   social_facebook: string;
   social_twitter: string;
   social_linkedin: string;
@@ -34,20 +41,30 @@ interface GeneralSettings {
   footer_quick_links: string;
   footer_solutions: string;
   google_site_verification: string;
+  openai_api_key: string;
+  gemini_api_key: string;
 }
 
 export default function AdminSettingsPage() {
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+  } = useTranslationControls();
+
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
     favicon: '',
     logo: '',
-    slogan: '',
-    site_name: '',
-    site_description: '',
+    slogan: { vi: '', en: '', ja: '' },
+    site_name: { vi: '', en: '', ja: '' },
+    site_description: { vi: '', en: '', ja: '' },
     phone: '',
     email: '',
-    address: '',
+    address: { vi: '', en: '', ja: '' },
     social_facebook: '',
     social_twitter: '',
     social_linkedin: '',
@@ -55,6 +72,8 @@ export default function AdminSettingsPage() {
     footer_quick_links: '',
     footer_solutions: '',
     google_site_verification: '',
+    openai_api_key: '',
+    gemini_api_key: '',
   });
 
   useEffect(() => {
@@ -69,12 +88,12 @@ export default function AdminSettingsPage() {
       setGeneralSettings({
         favicon: settings.favicon?.value || '',
         logo: settings.logo?.value || '',
-        slogan: settings.slogan?.value || '',
-        site_name: settings.site_name?.value || '',
-        site_description: settings.site_description?.value || '',
+        slogan: migrateObjectToLocale(settings.slogan?.value || ''),
+        site_name: migrateObjectToLocale(settings.site_name?.value || ''),
+        site_description: migrateObjectToLocale(settings.site_description?.value || ''),
         phone: settings.phone?.value || '',
         email: settings.email?.value || '',
-        address: settings.address?.value || '',
+        address: migrateObjectToLocale(settings.address?.value || ''),
         social_facebook: settings.social_facebook?.value || '',
         social_twitter: settings.social_twitter?.value || '',
         social_linkedin: settings.social_linkedin?.value || '',
@@ -82,6 +101,8 @@ export default function AdminSettingsPage() {
         footer_quick_links: settings.footer_quick_links?.value || '',
         footer_solutions: settings.footer_solutions?.value || '',
         google_site_verification: settings.google_site_verification?.value || '',
+        openai_api_key: settings.openai_api_key?.value || '',
+        gemini_api_key: settings.gemini_api_key?.value || '',
       });
     } catch (error: any) {
       // Silently fail
@@ -95,15 +116,16 @@ export default function AdminSettingsPage() {
     try {
       setSaving(true);
       
-      await updateSettings({
+      // Process locale fields before saving
+      const settingsToSave: Record<string, string> = {
         favicon: generalSettings.favicon,
         logo: generalSettings.logo,
-        slogan: generalSettings.slogan,
-        site_name: generalSettings.site_name,
-        site_description: generalSettings.site_description,
+        slogan: typeof generalSettings.slogan === 'string' ? generalSettings.slogan : JSON.stringify(generalSettings.slogan),
+        site_name: typeof generalSettings.site_name === 'string' ? generalSettings.site_name : JSON.stringify(generalSettings.site_name),
+        site_description: typeof generalSettings.site_description === 'string' ? generalSettings.site_description : JSON.stringify(generalSettings.site_description),
         phone: generalSettings.phone,
         email: generalSettings.email,
-        address: generalSettings.address,
+        address: typeof generalSettings.address === 'string' ? generalSettings.address : JSON.stringify(generalSettings.address),
         social_facebook: generalSettings.social_facebook,
         social_twitter: generalSettings.social_twitter,
         social_linkedin: generalSettings.social_linkedin,
@@ -111,7 +133,11 @@ export default function AdminSettingsPage() {
         footer_quick_links: generalSettings.footer_quick_links,
         footer_solutions: generalSettings.footer_solutions,
         google_site_verification: generalSettings.google_site_verification,
-      });
+        openai_api_key: generalSettings.openai_api_key,
+        gemini_api_key: generalSettings.gemini_api_key,
+      };
+      
+      await updateSettings(settingsToSave);
       
       toast.success('Đã lưu cấu hình thông tin chung');
     } catch (error: any) {
@@ -135,7 +161,12 @@ export default function AdminSettingsPage() {
     try {
       if (!jsonString) return [];
       const parsed = JSON.parse(jsonString);
-      return Array.isArray(parsed) ? parsed : [];
+      const links = Array.isArray(parsed) ? parsed : [];
+      // Normalize name field to locale object
+      return links.map(link => ({
+        ...link,
+        name: migrateObjectToLocale(link.name || '')
+      }));
     } catch {
       return [];
     }
@@ -147,7 +178,7 @@ export default function AdminSettingsPage() {
 
   const addFooterLink = (field: 'footer_quick_links' | 'footer_solutions') => {
     const links = parseFooterLinks(generalSettings[field]);
-    links.push({ name: '', href: '' });
+    links.push({ name: { vi: '', en: '', ja: '' }, href: '' });
     setGeneralSettings({
       ...generalSettings,
       [field]: formatFooterLinks(links),
@@ -179,12 +210,44 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl text-gray-900">Cấu hình hệ thống</h1>
-        <p className="text-gray-500 mt-1">
-          Thiết lập các thông số cho website và hệ thống admin
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl text-gray-900">Cấu hình hệ thống</h1>
+          <p className="text-gray-500 mt-1">
+            Thiết lập các thông số cho website và hệ thống admin
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector */}
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
+        </div>
       </div>
+
+      {/* Translation Controls */}
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            {/* Locale Selector */}
+            <div className="flex items-center gap-2">
+              <Languages className="h-4 w-4 text-gray-500" />
+              <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+              <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                  <SelectItem value="en">🇬🇧 English</SelectItem>
+                  <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
@@ -217,35 +280,45 @@ export default function AdminSettingsPage() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="siteName">Tên website</Label>
-                      <Input
-                        id="siteName"
-                        value={generalSettings.site_name}
-                        onChange={(e) => setGeneralSettings({ ...generalSettings, site_name: e.target.value })}
+                      <LocaleInput
+                        label="Tên website"
+                        value={getLocaleValue(generalSettings, 'site_name')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(generalSettings, 'site_name', value);
+                          setGeneralSettings(updated as GeneralSettings);
+                        }}
                         placeholder="Nhập tên website"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="slogan">Slogan</Label>
-                      <Input
-                        id="slogan"
-                        value={generalSettings.slogan}
-                        onChange={(e) => setGeneralSettings({ ...generalSettings, slogan: e.target.value })}
+                      <LocaleInput
+                        label="Slogan"
+                        value={getLocaleValue(generalSettings, 'slogan')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(generalSettings, 'slogan', value);
+                          setGeneralSettings(updated as GeneralSettings);
+                        }}
                         placeholder="Smart Solutions Business"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="siteDescription">
-                      Mô tả ngắn (hiển thị trong footer)
-                    </Label>
-                    <Textarea
-                      id="siteDescription"
-                      rows={3}
-                      value={generalSettings.site_description}
-                      onChange={(e) => setGeneralSettings({ ...generalSettings, site_description: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả ngắn (hiển thị trong footer)"
+                      value={getLocaleValue(generalSettings, 'site_description')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(generalSettings, 'site_description', value);
+                        setGeneralSettings(updated as GeneralSettings);
+                      }}
                       placeholder="Mô tả về công ty..."
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
 
@@ -289,13 +362,17 @@ export default function AdminSettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="address">Địa chỉ</Label>
-                    <Textarea
-                      id="address"
-                      rows={2}
-                      value={generalSettings.address}
-                      onChange={(e) => setGeneralSettings({ ...generalSettings, address: e.target.value })}
+                    <LocaleInput
+                      label="Địa chỉ"
+                      value={getLocaleValue(generalSettings, 'address')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(generalSettings, 'address', value);
+                        setGeneralSettings(updated as GeneralSettings);
+                      }}
                       placeholder="Địa chỉ văn phòng..."
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
 
@@ -364,6 +441,48 @@ export default function AdminSettingsPage() {
                   </div>
 
                   <div className="space-y-4 pt-4 border-t">
+                    <Label className="text-base font-semibold">API Keys cho Dịch thuật AI</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="openai_api_key">
+                          OpenAI API Key
+                        </Label>
+                        <Input
+                          id="openai_api_key"
+                          type="password"
+                          value={generalSettings.openai_api_key}
+                          onChange={(e) => setGeneralSettings({ ...generalSettings, openai_api_key: e.target.value })}
+                          placeholder="sk-proj-..."
+                        />
+                        <p className="text-sm text-gray-500">
+                          API key từ OpenAI để sử dụng dịch thuật bằng GPT-4o-mini.
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gemini_api_key">
+                          Google Gemini API Key
+                        </Label>
+                        <Input
+                          id="gemini_api_key"
+                          type="password"
+                          value={generalSettings.gemini_api_key}
+                          onChange={(e) => setGeneralSettings({ ...generalSettings, gemini_api_key: e.target.value })}
+                          placeholder="AIzaSy..."
+                        />
+                        <p className="text-sm text-gray-500">
+                          API key từ Google Gemini để sử dụng dịch thuật bằng Gemini AI.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>Lưu ý:</strong> API keys sẽ được lưu trong database và sử dụng cho dịch thuật tự động. 
+                        Đảm bảo API keys có đủ quota và quyền truy cập.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
                     <Label className="text-base font-semibold">Quản lý Footer Links</Label>
                     
                     {/* Quick Links */}
@@ -380,30 +499,46 @@ export default function AdminSettingsPage() {
                           Thêm link
                         </Button>
                       </div>
-                      <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+                      <div className="grid grid-cols-3 gap-3 border rounded-lg p-3 bg-gray-50">
                         {parseFooterLinks(generalSettings.footer_quick_links).map((link, idx) => (
-                          <div key={idx} className="flex gap-2 items-center">
-                            <Input
-                              placeholder="Tên link"
-                              value={link.name}
-                              onChange={(e) => updateFooterLink('footer_quick_links', idx, 'name', e.target.value)}
-                              className="flex-1"
-                            />
-                            <Input
-                              placeholder="/path"
-                              value={link.href}
-                              onChange={(e) => updateFooterLink('footer_quick_links', idx, 'href', e.target.value)}
-                              className="flex-1"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeFooterLink('footer_quick_links', idx)}
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </div>
+                          <Card key={idx} className="border border-gray-200 shadow-sm">
+                            <CardContent className="p-3">
+                              <div className="flex flex-col gap-2">
+                                <LocaleInput
+                                  label="Tên link"
+                                  value={getLocaleValue(link, 'name')}
+                                  onChange={(value) => {
+                                    const links = parseFooterLinks(generalSettings.footer_quick_links);
+                                    links[idx] = { ...links[idx], name: value };
+                                    setGeneralSettings({
+                                      ...generalSettings,
+                                      footer_quick_links: formatFooterLinks(links)
+                                    });
+                                  }}
+                                  placeholder="Tên link"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
+                                />
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    placeholder="/path"
+                                    value={link.href}
+                                    onChange={(e) => updateFooterLink('footer_quick_links', idx, 'href', e.target.value)}
+                                    className="flex-1"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeFooterLink('footer_quick_links', idx)}
+                                    className="h-8 w-8 flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
                         {parseFooterLinks(generalSettings.footer_quick_links).length === 0 && (
                           <p className="text-sm text-gray-500 text-center py-2">Chưa có link nào. Click "Thêm link" để thêm.</p>
@@ -425,30 +560,46 @@ export default function AdminSettingsPage() {
                           Thêm dịch vụ
                         </Button>
                       </div>
-                      <div className="space-y-2 border rounded-lg p-3 bg-gray-50">
+                      <div className="grid grid-cols-3 gap-3 border rounded-lg p-3 bg-gray-50">
                         {parseFooterLinks(generalSettings.footer_solutions).map((link, idx) => (
-                          <div key={idx} className="flex gap-2 items-center">
-                            <Input
-                              placeholder="Tên dịch vụ"
-                              value={link.name}
-                              onChange={(e) => updateFooterLink('footer_solutions', idx, 'name', e.target.value)}
-                              className="flex-1"
-                            />
-                            <Input
-                              placeholder="/path"
-                              value={link.href}
-                              onChange={(e) => updateFooterLink('footer_solutions', idx, 'href', e.target.value)}
-                              className="flex-1"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeFooterLink('footer_solutions', idx)}
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </div>
+                          <Card key={idx} className="border border-gray-200 shadow-sm">
+                            <CardContent className="p-3">
+                              <div className="flex flex-col gap-2">
+                                <LocaleInput
+                                  label="Tên dịch vụ"
+                                  value={getLocaleValue(link, 'name')}
+                                  onChange={(value) => {
+                                    const links = parseFooterLinks(generalSettings.footer_solutions);
+                                    links[idx] = { ...links[idx], name: value };
+                                    setGeneralSettings({
+                                      ...generalSettings,
+                                      footer_solutions: formatFooterLinks(links)
+                                    });
+                                  }}
+                                  placeholder="Tên dịch vụ"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
+                                />
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    placeholder="/path"
+                                    value={link.href}
+                                    onChange={(e) => updateFooterLink('footer_solutions', idx, 'href', e.target.value)}
+                                    className="flex-1"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeFooterLink('footer_solutions', idx)}
+                                    className="h-8 w-8 flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
                         {parseFooterLinks(generalSettings.footer_solutions).length === 0 && (
                           <p className="text-sm text-gray-500 text-center py-2">Chưa có dịch vụ nào. Click "Thêm dịch vụ" để thêm.</p>

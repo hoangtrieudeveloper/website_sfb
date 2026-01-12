@@ -54,10 +54,23 @@ exports.updateListHeader = async (req, res, next) => {
     // Get existing data to preserve fields that are not provided
     const existingData = existing?.data || {};
 
+    // Helper function to check if a value is not empty (handles both string and locale objects)
+    const isNotEmpty = (value) => {
+      if (value === undefined || value === null) return false;
+      if (typeof value === 'string') return value.trim() !== '';
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        // Check if it's a locale object
+        if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+          return (value.vi && value.vi.trim() !== '') || (value.en && value.en.trim() !== '') || (value.ja && value.ja.trim() !== '');
+        }
+      }
+      return false;
+    };
+
     const data = {
-      subtitle: (subtitle !== undefined && subtitle !== null && subtitle.trim() !== '') ? subtitle : (existingData.subtitle || ''),
-      title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
-      description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
+      subtitle: isNotEmpty(subtitle) ? subtitle : (existingData.subtitle || ''),
+      title: isNotEmpty(title) ? title : (existingData.title || ''),
+      description: isNotEmpty(description) ? description : (existingData.description || ''),
     };
 
     let result;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Save, Plus, X, ArrowRight, Play, CheckCircle2, ChevronUp, ChevronDown, Trash2, Link as LinkIcon, Search as SearchIcon, Sparkles, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Plus, X, ArrowRight, Play, CheckCircle2, ChevronUp, ChevronDown, Trash2, Link as LinkIcon, Search as SearchIcon, Sparkles, Image as ImageIcon, Languages, Loader2 } from "lucide-react";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,29 +28,37 @@ import { ExpandWidget } from "@/components/admin/ProductWidgets/ExpandWidget";
 import RichTextEditor from "@/components/admin/RichTextEditor";
 import { generateSlug } from "@/lib/date";
 import { buildUrl } from "@/lib/api/base";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { TranslationControls } from "@/components/admin/TranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface ProductFormData {
   categoryId: number | "";
-  name: string;
+  name: string | Record<Locale, string>;
   slug: string;
-  tagline: string;
-  meta: string;
-  description: string;
+  tagline: string | Record<Locale, string>;
+  meta: string | Record<Locale, string>;
+  description: string | Record<Locale, string>;
   image: string;
   gradient: string;
-  pricing: string;
-  badge: string;
-  statsUsers: string;
+  pricing: string | Record<Locale, string>;
+  badge: string | Record<Locale, string>;
+  statsUsers: string | Record<Locale, string>;
   statsRating: number;
-  statsDeploy: string;
+  statsDeploy: string | Record<Locale, string>;
   sortOrder: number;
   isFeatured: boolean;
   isActive: boolean;
-  features: string[];
+  features: (string | Record<Locale, string>)[];
   demoLink: string;
-  seoTitle: string;
-  seoDescription: string;
-  seoKeywords: string;
+  seoTitle: string | Record<Locale, string>;
+  seoDescription: string | Record<Locale, string>;
+  seoKeywords: string | Record<Locale, string>;
 }
 
 interface CategoryOption {
@@ -76,6 +84,18 @@ interface ProductFormProps {
 
 export default function ProductForm({ productId, onSuccess }: ProductFormProps) {
   const router = useRouter();
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData
+  } = useTranslationControls();
+
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(!!productId);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -87,29 +107,30 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [galleryUploadKey, setGalleryUploadKey] = useState(0);
+  const [contentHtmlEditorKey, setContentHtmlEditorKey] = useState(0);
 
   const [formData, setFormData] = useState<ProductFormData>({
     categoryId: "",
-    name: "",
+    name: { vi: "", en: "", ja: "" },
     slug: "",
-    tagline: "",
-    meta: "",
-    description: "",
+    tagline: { vi: "", en: "", ja: "" },
+    meta: { vi: "", en: "", ja: "" },
+    description: { vi: "", en: "", ja: "" },
     image: "",
     gradient: GRADIENT_OPTIONS[0].value,
-    pricing: "Liên hệ",
-    badge: "",
-    statsUsers: "",
+    pricing: { vi: "Liên hệ", en: "", ja: "" },
+    badge: { vi: "", en: "", ja: "" },
+    statsUsers: { vi: "", en: "", ja: "" },
     statsRating: 0,
-    statsDeploy: "",
+    statsDeploy: { vi: "", en: "", ja: "" },
     sortOrder: 0,
     isFeatured: false,
     isActive: true,
     features: [],
     demoLink: "",
-    seoTitle: "",
-    seoDescription: "",
-    seoKeywords: ""
+    seoTitle: { vi: "", en: "", ja: "" },
+    seoDescription: { vi: "", en: "", ja: "" },
+    seoKeywords: { vi: "", en: "", ja: "" }
   });
 
   useEffect(() => {
@@ -127,12 +148,20 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     // 2. Có tên sản phẩm
     // 3. Không phải đang edit với slug đã có từ DB
     if (!slugManuallyEdited && formData.name && !(productId && formData.slug)) {
-      const autoSlug = generateSlug(formData.name);
-      if (autoSlug && autoSlug !== formData.slug) {
-        setFormData(prev => ({ ...prev, slug: autoSlug }));
+      const nameStr = typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale);
+      if (nameStr) {
+        const autoSlug = generateSlug(nameStr);
+        if (autoSlug && autoSlug !== formData.slug) {
+          setFormData(prev => ({ ...prev, slug: autoSlug }));
+        }
       }
     }
-  }, [formData.name, slugManuallyEdited, productId, formData.slug]);
+  }, [formData.name, slugManuallyEdited, productId, formData.slug, globalLocale]);
+
+  // Force re-mount RichTextEditor khi globalLocale thay đổi
+  useEffect(() => {
+    setContentHtmlEditorKey(prev => prev + 1);
+  }, [globalLocale]);
 
   const fetchProductDetail = async (forceReload = false) => {
     if (!productId) return;
@@ -148,40 +177,40 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
 
       // Handle 304 Not Modified or null response
       if (!response || response === null) {
-        // If 304 or null, use empty data structure
+        // If 304 or null, use empty data structure with locale objects
         setDetailData({
           contentMode: "config",
-          contentHtml: "",
-          metaTop: "",
-          heroDescription: "",
+          contentHtml: { vi: "", en: "", ja: "" },
+          metaTop: { vi: "", en: "", ja: "" },
+          heroDescription: { vi: "", en: "", ja: "" },
           heroImage: "",
-          ctaContactText: "",
+          ctaContactText: { vi: "", en: "", ja: "" },
           ctaContactHref: "",
-          ctaDemoText: "",
+          ctaDemoText: { vi: "", en: "", ja: "" },
           ctaDemoHref: "",
-          overviewKicker: "",
-          overviewTitle: "",
+          overviewKicker: { vi: "", en: "", ja: "" },
+          overviewTitle: { vi: "", en: "", ja: "" },
           overviewCards: [],
           showcase: {
-            title: "",
-            desc: "",
+            title: { vi: "", en: "", ja: "" },
+            desc: { vi: "", en: "", ja: "" },
             bullets: [],
-            ctaText: "",
+            ctaText: { vi: "", en: "", ja: "" },
             ctaHref: "",
             imageBack: "",
             imageFront: "",
           },
           numberedSections: [],
           expand: {
-            title: "",
+            title: { vi: "", en: "", ja: "" },
             bullets: [],
-            ctaText: "",
+            ctaText: { vi: "", en: "", ja: "" },
             ctaHref: "",
             image: "",
           },
           galleryImages: [],
           galleryPosition: "top",
-          galleryTitle: "",
+          galleryTitle: { vi: "", en: "", ja: "" },
           showTableOfContents: true,
           enableShareButtons: true,
           showAuthorBox: true,
@@ -194,115 +223,158 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
       if (response.data === null || response.data === undefined) {
         setDetailData({
           contentMode: "config",
-          contentHtml: "",
-          metaTop: "",
-          heroDescription: "",
+          contentHtml: { vi: "", en: "", ja: "" },
+          metaTop: { vi: "", en: "", ja: "" },
+          heroDescription: { vi: "", en: "", ja: "" },
           heroImage: "",
-          ctaContactText: "",
+          ctaContactText: { vi: "", en: "", ja: "" },
           ctaContactHref: "",
-          ctaDemoText: "",
+          ctaDemoText: { vi: "", en: "", ja: "" },
           ctaDemoHref: "",
-          overviewKicker: "",
-          overviewTitle: "",
+          overviewKicker: { vi: "", en: "", ja: "" },
+          overviewTitle: { vi: "", en: "", ja: "" },
           overviewCards: [],
           showcase: {
-            title: "",
-            desc: "",
+            title: { vi: "", en: "", ja: "" },
+            desc: { vi: "", en: "", ja: "" },
             bullets: [],
-            ctaText: "",
+            ctaText: { vi: "", en: "", ja: "" },
             ctaHref: "",
             imageBack: "",
             imageFront: "",
           },
           numberedSections: [],
           expand: {
-            title: "",
+            title: { vi: "", en: "", ja: "" },
             bullets: [],
-            ctaText: "",
+            ctaText: { vi: "", en: "", ja: "" },
             ctaHref: "",
             image: "",
           },
           galleryImages: [],
           galleryPosition: "top",
-          galleryTitle: "",
+          galleryTitle: { vi: "", en: "", ja: "" },
           showTableOfContents: true,
           enableShareButtons: true,
           showAuthorBox: true,
         });
         setActiveContentModeTab("widget");
       } else {
-        // Đảm bảo tất cả các field đều có giá trị mặc định
-        setDetailData({
-          contentMode: response.data.contentMode || "config",
-          contentHtml: response.data.contentHtml || "",
-          metaTop: response.data.metaTop || "",
-          heroDescription: response.data.heroDescription || "",
-          heroImage: response.data.heroImage || "",
-          ctaContactText: response.data.ctaContactText || "",
-          ctaContactHref: response.data.ctaContactHref || "",
-          ctaDemoText: response.data.ctaDemoText || "",
-          ctaDemoHref: response.data.ctaDemoHref || "",
-          overviewKicker: response.data.overviewKicker || "",
-          overviewTitle: response.data.overviewTitle || "",
-          overviewCards: response.data.overviewCards || [],
-          showcase: {
-            title: response.data.showcase?.title || "",
-            desc: response.data.showcase?.desc || "",
-            bullets: response.data.showcase?.bullets || [],
-            ctaText: response.data.showcase?.ctaText || "",
-            ctaHref: response.data.showcase?.ctaHref || "",
-            imageBack: response.data.showcase?.imageBack || "",
-            imageFront: response.data.showcase?.imageFront || "",
-          },
-          numberedSections: response.data.numberedSections || [],
-          expand: {
-            title: response.data.expand?.title || "",
-            bullets: response.data.expand?.bullets || [],
-            ctaText: response.data.expand?.ctaText || "",
-            ctaHref: response.data.expand?.ctaHref || "",
-            image: response.data.expand?.image || "",
-          },
-          galleryImages: response.data.galleryImages || [],
-          galleryPosition: response.data.galleryPosition || "top",
-          galleryTitle: response.data.galleryTitle || "",
-          showTableOfContents: response.data.showTableOfContents !== false,
-          enableShareButtons: response.data.enableShareButtons !== false,
-          showAuthorBox: response.data.showAuthorBox !== false,
-        });
-        setActiveContentModeTab(response.data.contentMode === "content" ? "content" : "widget");
+        // Normalize dữ liệu để đảm bảo các field có thể dịch luôn là locale object
+        const normalizedData = migrateObjectToLocale(response.data);
+        
+        // Helper function để normalize nested objects
+        const normalizeDetailData = (data: any) => {
+          const normalized: any = {
+            contentMode: data.contentMode || "config",
+            contentHtml: migrateObjectToLocale(data.contentHtml || ""),
+            metaTop: migrateObjectToLocale(data.metaTop || ""),
+            heroDescription: migrateObjectToLocale(data.heroDescription || ""),
+            heroImage: data.heroImage || "",
+            ctaContactText: migrateObjectToLocale(data.ctaContactText || ""),
+            ctaContactHref: data.ctaContactHref || "",
+            ctaDemoText: migrateObjectToLocale(data.ctaDemoText || ""),
+            ctaDemoHref: data.ctaDemoHref || "",
+            overviewKicker: migrateObjectToLocale(data.overviewKicker || ""),
+            overviewTitle: migrateObjectToLocale(data.overviewTitle || ""),
+            overviewCards: (data.overviewCards || []).map((card: any) => ({
+              ...card,
+              step: card.step || card.no || 0,
+              title: migrateObjectToLocale(card.title || ""),
+              description: migrateObjectToLocale(card.description || card.desc || ""),
+              desc: migrateObjectToLocale(card.description || card.desc || ""),
+            })),
+            showcase: {
+              title: migrateObjectToLocale(data.showcase?.title || ""),
+              desc: migrateObjectToLocale(data.showcase?.desc || ""),
+              bullets: (data.showcase?.bullets || []).map((b: any) => 
+                typeof b === 'string' ? migrateObjectToLocale(b) : migrateObjectToLocale(b)
+              ),
+              ctaText: migrateObjectToLocale(data.showcase?.ctaText || ""),
+              ctaHref: data.showcase?.ctaHref || "",
+              imageBack: data.showcase?.imageBack || "",
+              imageFront: data.showcase?.imageFront || "",
+              overlay: data.showcase?.overlay || {},
+            },
+            numberedSections: (data.numberedSections || []).map((section: any) => ({
+              ...section,
+              sectionNo: section.sectionNo || section.no || 0,
+              no: section.sectionNo || section.no || 0,
+              title: migrateObjectToLocale(section.title || ""),
+              image: section.image || "",
+              imageBack: section.imageBack || "",
+              imageFront: section.imageFront || "",
+              imageSide: section.imageSide || "left",
+              paragraphs: (section.paragraphs || []).map((para: any) => {
+                if (typeof para === 'string') {
+                  return { title: { vi: "", en: "", ja: "" }, text: migrateObjectToLocale(para) };
+                }
+                return {
+                  title: migrateObjectToLocale(para.title || ""),
+                  text: migrateObjectToLocale(para.text || ""),
+                };
+              }),
+              overlay: section.overlay || {},
+            })),
+            expand: {
+              title: migrateObjectToLocale(data.expand?.title || ""),
+              bullets: (data.expand?.bullets || []).map((b: any) => 
+                typeof b === 'string' ? migrateObjectToLocale(b) : migrateObjectToLocale(b)
+              ),
+              ctaText: migrateObjectToLocale(data.expand?.ctaText || ""),
+              ctaHref: data.expand?.ctaHref || "",
+              image: data.expand?.image || "",
+            },
+            galleryImages: data.galleryImages || [],
+            galleryPosition: data.galleryPosition || "top",
+            galleryTitle: migrateObjectToLocale(data.galleryTitle || ""),
+            showTableOfContents: data.showTableOfContents !== false,
+            enableShareButtons: data.enableShareButtons !== false,
+            showAuthorBox: data.showAuthorBox !== false,
+          };
+          return normalized;
+        };
+        
+        const normalizedDetail = normalizeDetailData(normalizedData);
+        setDetailData(normalizedDetail);
+        setActiveContentModeTab(normalizedDetail.contentMode === "content" ? "content" : "widget");
       }
     } catch (error: any) {
       // Silently fail
-      // Nếu có lỗi, tạo empty data
+      // Nếu có lỗi, tạo empty data với locale objects
       setDetailData({
         contentMode: "config",
         contentHtml: "",
-        metaTop: "",
-        heroDescription: "",
+        metaTop: { vi: "", en: "", ja: "" },
+        heroDescription: { vi: "", en: "", ja: "" },
         heroImage: "",
-        overviewKicker: "",
-        overviewTitle: "",
+        ctaContactText: { vi: "", en: "", ja: "" },
+        ctaContactHref: "",
+        ctaDemoText: { vi: "", en: "", ja: "" },
+        ctaDemoHref: "",
+        overviewKicker: { vi: "", en: "", ja: "" },
+        overviewTitle: { vi: "", en: "", ja: "" },
         overviewCards: [],
         showcase: {
-          title: "",
-          desc: "",
+          title: { vi: "", en: "", ja: "" },
+          desc: { vi: "", en: "", ja: "" },
           bullets: [],
-          ctaText: "",
+          ctaText: { vi: "", en: "", ja: "" },
           ctaHref: "",
           imageBack: "",
           imageFront: "",
         },
         numberedSections: [],
         expand: {
-          title: "",
+          title: { vi: "", en: "", ja: "" },
           bullets: [],
-          ctaText: "",
+          ctaText: { vi: "", en: "", ja: "" },
           ctaHref: "",
           image: "",
         },
         galleryImages: [],
         galleryPosition: "top",
-        galleryTitle: "",
+        galleryTitle: { vi: "", en: "", ja: "" },
         showTableOfContents: true,
         enableShareButtons: true,
         showAuthorBox: true,
@@ -360,31 +432,35 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         AdminEndpoints.products.detail(productId!),
       );
       if (data.data) {
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedData = migrateObjectToLocale(data.data);
         // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
-        const hasSlug = !!(data.data.slug);
+        const hasSlug = !!(normalizedData.slug);
         setSlugManuallyEdited(hasSlug);
         setFormData({
-          categoryId: data.data.categoryId || "",
-          name: data.data.name || "",
-          slug: data.data.slug || "",
-          tagline: data.data.tagline || "",
-          meta: data.data.meta || "",
-          description: data.data.description || "",
-          image: data.data.image || "",
-          gradient: data.data.gradient || GRADIENT_OPTIONS[0].value,
-          pricing: data.data.pricing || "Liên hệ",
-          badge: data.data.badge || "",
-          statsUsers: data.data.statsUsers || "",
-          statsRating: data.data.statsRating || 0,
-          statsDeploy: data.data.statsDeploy || "",
-          sortOrder: data.data.sortOrder || 0,
-          isFeatured: data.data.isFeatured || false,
-          isActive: data.data.isActive !== undefined ? data.data.isActive : true,
-          features: data.data.features || [],
-          demoLink: data.data.demoLink || "",
-          seoTitle: data.data.seoTitle || "",
-          seoDescription: data.data.seoDescription || "",
-          seoKeywords: data.data.seoKeywords || ""
+          categoryId: normalizedData.categoryId || "",
+          name: normalizedData.name || { vi: "", en: "", ja: "" },
+          slug: normalizedData.slug || "",
+          tagline: normalizedData.tagline || { vi: "", en: "", ja: "" },
+          meta: normalizedData.meta || { vi: "", en: "", ja: "" },
+          description: normalizedData.description || { vi: "", en: "", ja: "" },
+          image: normalizedData.image || "",
+          gradient: normalizedData.gradient || GRADIENT_OPTIONS[0].value,
+          pricing: normalizedData.pricing || { vi: "Liên hệ", en: "", ja: "" },
+          badge: normalizedData.badge || { vi: "", en: "", ja: "" },
+          statsUsers: normalizedData.statsUsers || { vi: "", en: "", ja: "" },
+          statsRating: normalizedData.statsRating || 0,
+          statsDeploy: normalizedData.statsDeploy || { vi: "", en: "", ja: "" },
+          sortOrder: normalizedData.sortOrder || 0,
+          isFeatured: normalizedData.isFeatured || false,
+          isActive: normalizedData.isActive !== undefined ? normalizedData.isActive : true,
+          features: (normalizedData.features || []).map((f: any) => 
+            typeof f === 'string' ? { vi: f, en: "", ja: "" } : migrateObjectToLocale(f)
+          ),
+          demoLink: normalizedData.demoLink || "",
+          seoTitle: normalizedData.seoTitle || { vi: "", en: "", ja: "" },
+          seoDescription: normalizedData.seoDescription || { vi: "", en: "", ja: "" },
+          seoKeywords: normalizedData.seoKeywords || { vi: "", en: "", ja: "" }
         });
       }
     } catch (error: any) {
@@ -397,7 +473,8 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
+    const nameStr = typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale);
+    if (!nameStr || !nameStr.trim()) {
       toast.error("Tên sản phẩm không được để trống");
       return;
     }
@@ -475,7 +552,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   };
 
   const addFeature = () => {
-    setFormData({ ...formData, features: [...formData.features, ""] });
+    setFormData({ ...formData, features: [...formData.features, { vi: "", en: "", ja: "" }] });
   };
 
   const removeFeature = (index: number) => {
@@ -485,7 +562,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     });
   };
 
-  const updateFeature = (index: number, value: string) => {
+  const updateFeature = (index: number, value: string | Record<Locale, string>) => {
     const newFeatures = [...formData.features];
     newFeatures[index] = value;
     setFormData({ ...formData, features: newFeatures });
@@ -506,7 +583,11 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             {productId ? "Cập nhật thông tin sản phẩm" : "Thêm sản phẩm mới vào hệ thống"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
           <Button
             type="button"
             variant="outline"
@@ -531,7 +612,13 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         <TabsContent value="basic" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Thông tin sản phẩm</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Thông tin sản phẩm</CardTitle>
+                <TranslationControls
+                  globalLocale={globalLocale}
+                  setGlobalLocale={setGlobalLocale}
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -543,7 +630,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       setFormData({ ...formData, categoryId: value === "" ? "" : Number(value) })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger suppressHydrationWarning>
                       <SelectValue placeholder="Chọn danh mục" />
                     </SelectTrigger>
                     <SelectContent>
@@ -551,7 +638,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                         .filter((c) => c.isActive && c.slug !== "all")
                         .map((category) => (
                           <SelectItem key={category.id} value={String(category.id)}>
-                            {category.name}
+                            {typeof category.name === 'string' ? category.name : getLocalizedText(category.name, globalLocale)}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -559,13 +646,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-900">Tên sản phẩm *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  <LocaleInput
+                    label="Tên sản phẩm *"
+                    value={getLocaleValue(formData, 'name')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'name', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Nhập tên sản phẩm"
-                    required
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
 
@@ -591,42 +681,58 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tagline" className="text-gray-900">Dòng mô tả ngắn (Tagline)</Label>
-                  <Input
-                    id="tagline"
-                    value={formData.tagline}
-                    onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                  <LocaleInput
+                    label="Dòng mô tả ngắn (Tagline)"
+                    value={getLocaleValue(formData, 'tagline')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'tagline', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Ví dụ: Tuyển sinh trực tuyến minh bạch, đúng quy chế"
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="meta" className="text-gray-900">Thông tin meta</Label>
-                  <Input
-                    id="meta"
-                    value={formData.meta}
-                    onChange={(e) => setFormData({ ...formData, meta: e.target.value })}
+                  <LocaleInput
+                    label="Thông tin meta"
+                    value={getLocaleValue(formData, 'meta')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'meta', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Ví dụ: Sản phẩm • Tin công nghệ • 07/08/2025"
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="pricing" className="text-gray-900">Giá</Label>
-                  <Input
-                    id="pricing"
-                    value={formData.pricing}
-                    onChange={(e) => setFormData({ ...formData, pricing: e.target.value })}
+                  <LocaleInput
+                    label="Giá"
+                    value={getLocaleValue(formData, 'pricing')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'pricing', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Ví dụ: Liên hệ"
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="badge" className="text-gray-900">Nhãn hiển thị (Badge)</Label>
-                  <Input
-                    id="badge"
-                    value={formData.badge}
-                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                  <LocaleInput
+                    label="Nhãn hiển thị (Badge)"
+                    value={getLocaleValue(formData, 'badge')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'badge', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Ví dụ: Giải pháp nổi bật"
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
 
@@ -636,8 +742,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                     value={formData.gradient}
                     onValueChange={(value) => setFormData({ ...formData, gradient: value })}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger suppressHydrationWarning>
+                      <SelectValue>
+                        {GRADIENT_OPTIONS.find(opt => opt.value === formData.gradient)?.label || "Chọn màu"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {GRADIENT_OPTIONS.map((option) => (
@@ -673,13 +781,17 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-gray-900">Mô tả</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                <LocaleInput
+                  label="Mô tả"
+                  value={getLocaleValue(formData, 'description')}
+                  onChange={(value) => {
+                    const updated = setLocaleValue(formData, 'description', value);
+                    setFormData(updated);
+                  }}
                   placeholder="Mô tả chi tiết về sản phẩm..."
-                  rows={4}
+                  multiline={true}
+                  defaultLocale={globalLocale}
+                  aiProvider={aiProvider}
                 />
               </div>
 
@@ -701,12 +813,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="statsUsers" className="text-gray-900">Số lượng người dùng</Label>
-                  <Input
-                    id="statsUsers"
-                    value={formData.statsUsers}
-                    onChange={(e) => setFormData({ ...formData, statsUsers: e.target.value })}
+                  <LocaleInput
+                    label="Số lượng người dùng"
+                    value={getLocaleValue(formData, 'statsUsers')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'statsUsers', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Ví dụ: Nhiều trường học áp dụng"
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
 
@@ -725,12 +841,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="statsDeploy" className="text-gray-900">Hình thức triển khai</Label>
-                  <Input
-                    id="statsDeploy"
-                    value={formData.statsDeploy}
-                    onChange={(e) => setFormData({ ...formData, statsDeploy: e.target.value })}
+                  <LocaleInput
+                    label="Hình thức triển khai"
+                    value={getLocaleValue(formData, 'statsDeploy')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'statsDeploy', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Ví dụ: Triển khai Cloud/On-premise"
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
               </div>
@@ -742,23 +862,28 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
               <CardTitle>Tính năng</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {formData.features.map((feature, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    value={feature}
-                    onChange={(e) => updateFeature(index, e.target.value)}
-                    placeholder={`Tính năng ${index + 1}`}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => removeFeature(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {formData.features.map((feature, index) => (
+                  <div key={index} className="flex gap-2">
+                    <LocaleInput
+                      label={`Tính năng ${index + 1}`}
+                      value={getLocaleValue(feature, '')}
+                      onChange={(value) => updateFeature(index, value)}
+                      placeholder={`Tính năng ${index + 1}`}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeFeature(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
               <Button type="button" variant="outline" onClick={addFeature}>
                 <Plus className="h-4 w-4 mr-2" />
                 Thêm tính năng
@@ -839,12 +964,13 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       size="sm"
                       className="h-6 text-xs px-2"
                       onClick={() => {
-                        if (formData.name) {
+                        const nameStr = typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale);
+                        if (nameStr) {
                           const autoTitle =
-                            formData.name.length > 60
-                              ? formData.name.substring(0, 57) + "..."
-                              : formData.name;
-                          setFormData({ ...formData, seoTitle: autoTitle });
+                            nameStr.length > 60
+                              ? nameStr.substring(0, 57) + "..."
+                              : nameStr;
+                          setFormData({ ...formData, seoTitle: { ...(typeof formData.seoTitle === 'object' ? formData.seoTitle : { vi: "", en: "", ja: "" }), [globalLocale]: autoTitle } });
                         }
                       }}
                       disabled={!formData.name}
@@ -853,34 +979,36 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       Tự động
                     </Button>
                   </div>
-                  <Input
-                    id="seoTitle"
-                    value={formData.seoTitle}
-                    onChange={(e) =>
-                      setFormData({ ...formData, seoTitle: e.target.value })
-                    }
+                  <LocaleInput
+                    label=""
+                    value={getLocaleValue(formData, 'seoTitle')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'seoTitle', value);
+                      setFormData(updated);
+                    }}
                     placeholder={
-                      formData.name
-                        ? `Tự động: ${formData.name.substring(0, 40)}...`
+                      (typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale))
+                        ? `Tự động: ${(typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale)).substring(0, 40)}...`
                         : "Nhập tiêu đề SEO..."
                     }
-                    maxLength={60}
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                     className="text-sm"
                   />
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
                     <span
-                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoTitle.length > 60
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${(typeof formData.seoTitle === 'string' ? formData.seoTitle : getLocalizedText(formData.seoTitle, globalLocale)).length > 60
                           ? "text-red-600 bg-red-50"
-                          : formData.seoTitle.length >= 50 &&
-                            formData.seoTitle.length <= 60
+                          : (typeof formData.seoTitle === 'string' ? formData.seoTitle : getLocalizedText(formData.seoTitle, globalLocale)).length >= 50 &&
+                            (typeof formData.seoTitle === 'string' ? formData.seoTitle : getLocalizedText(formData.seoTitle, globalLocale)).length <= 60
                             ? "text-green-600 bg-green-50"
-                            : formData.seoTitle.length > 0
+                            : (typeof formData.seoTitle === 'string' ? formData.seoTitle : getLocalizedText(formData.seoTitle, globalLocale)).length > 0
                               ? "text-yellow-600 bg-yellow-50"
                               : "text-gray-400 bg-gray-50"
                         }`}
                     >
-                      {formData.seoTitle.length}/60
+                      {(typeof formData.seoTitle === 'string' ? formData.seoTitle : getLocalizedText(formData.seoTitle, globalLocale)).length}/60
                     </span>
                   </div>
                 </div>
@@ -896,14 +1024,15 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       size="sm"
                       className="h-6 text-xs px-2"
                       onClick={() => {
-                        if (formData.description) {
+                        const descStr = typeof formData.description === 'string' ? formData.description : getLocalizedText(formData.description, globalLocale);
+                        if (descStr) {
                           const autoDesc =
-                            formData.description.length > 160
-                              ? formData.description.substring(0, 157) + "..."
-                              : formData.description;
+                            descStr.length > 160
+                              ? descStr.substring(0, 157) + "..."
+                              : descStr;
                           setFormData({
                             ...formData,
-                            seoDescription: autoDesc,
+                            seoDescription: { ...(typeof formData.seoDescription === 'object' ? formData.seoDescription : { vi: "", en: "", ja: "" }), [globalLocale]: autoDesc },
                           });
                         }
                       }}
@@ -913,22 +1042,21 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       Tự động
                     </Button>
                   </div>
-                  <Textarea
-                    id="seoDescription"
-                    value={formData.seoDescription}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        seoDescription: e.target.value,
-                      })
-                    }
+                  <LocaleInput
+                    label=""
+                    value={getLocaleValue(formData, 'seoDescription')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'seoDescription', value);
+                      setFormData(updated);
+                    }}
                     placeholder={
-                      formData.description
-                        ? `Tự động: ${formData.description.substring(0, 60)}...`
+                      (typeof formData.description === 'string' ? formData.description : getLocalizedText(formData.description, globalLocale))
+                        ? `Tự động: ${(typeof formData.description === 'string' ? formData.description : getLocalizedText(formData.description, globalLocale)).substring(0, 60)}...`
                         : "Nhập mô tả SEO..."
                     }
-                    rows={3}
-                    maxLength={160}
+                    multiline={true}
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                     className="resize-none text-sm"
                   />
                   <div className="flex items-center justify-between">
@@ -936,32 +1064,32 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       Khuyến nghị: 150-160 ký tự
                     </p>
                     <span
-                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoDescription.length > 160
+                      className={`text-xs font-semibold px-1.5 py-0.5 rounded ${(typeof formData.seoDescription === 'string' ? formData.seoDescription : getLocalizedText(formData.seoDescription, globalLocale)).length > 160
                           ? "text-red-600 bg-red-50"
-                          : formData.seoDescription.length >= 150 &&
-                            formData.seoDescription.length <= 160
+                          : (typeof formData.seoDescription === 'string' ? formData.seoDescription : getLocalizedText(formData.seoDescription, globalLocale)).length >= 150 &&
+                            (typeof formData.seoDescription === 'string' ? formData.seoDescription : getLocalizedText(formData.seoDescription, globalLocale)).length <= 160
                             ? "text-green-600 bg-green-50"
-                            : formData.seoDescription.length > 0
+                            : (typeof formData.seoDescription === 'string' ? formData.seoDescription : getLocalizedText(formData.seoDescription, globalLocale)).length > 0
                               ? "text-yellow-600 bg-yellow-50"
                               : "text-gray-400 bg-gray-50"
                         }`}
                     >
-                      {formData.seoDescription.length}/160
+                      {(typeof formData.seoDescription === 'string' ? formData.seoDescription : getLocalizedText(formData.seoDescription, globalLocale)).length}/160
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="seoKeywords" className="text-sm font-semibold">
-                    Từ khóa SEO
-                  </Label>
-                  <Input
-                    id="seoKeywords"
-                    value={formData.seoKeywords}
-                    onChange={(e) =>
-                      setFormData({ ...formData, seoKeywords: e.target.value })
-                    }
+                  <LocaleInput
+                    label="Từ khóa SEO"
+                    value={getLocaleValue(formData, 'seoKeywords')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'seoKeywords', value);
+                      setFormData(updated);
+                    }}
                     placeholder="từ khóa 1, từ khóa 2..."
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                     className="text-sm"
                   />
                   <p className="text-xs text-gray-500">
@@ -976,14 +1104,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                     </p>
                     <div className="space-y-1">
                       <div className="text-xs text-blue-600 font-medium line-clamp-1">
-                        {formData.seoTitle || formData.name || "Tên sản phẩm"}
+                        {typeof formData.seoTitle === 'string' ? formData.seoTitle : getLocalizedText(formData.seoTitle, globalLocale) || 
+                         (typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale)) || 
+                         "Tên sản phẩm"}
                       </div>
                       <div className="text-xs text-green-700">
                         {formData.slug ? `/products/${formData.slug}` : "/products/..."}
                       </div>
                       <div className="text-xs text-gray-600 line-clamp-2">
-                        {formData.seoDescription ||
-                          formData.description ||
+                        {(typeof formData.seoDescription === 'string' ? formData.seoDescription : getLocalizedText(formData.seoDescription, globalLocale)) ||
+                          (typeof formData.description === 'string' ? formData.description : getLocalizedText(formData.description, globalLocale)) ||
                           "Mô tả sản phẩm..."}
                       </div>
                     </div>
@@ -1031,7 +1161,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                 setActiveContentModeTab(value === "content" ? "content" : "widget");
                               }}
                             >
-                              <SelectTrigger>
+                              <SelectTrigger suppressHydrationWarning>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -1064,31 +1194,45 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                             {detailData && (
                               <Card>
                                 <CardHeader>
-                                  <CardTitle>Khối 1 - Hero trang chi tiết</CardTitle>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    Tiêu đề, đoạn mở đầu và ảnh lớn ở đầu trang chi tiết sản phẩm.
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle>Khối 1 - Hero trang chi tiết</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Tiêu đề, đoạn mở đầu và ảnh lớn ở đầu trang chi tiết sản phẩm.
+                                      </p>
+                                    </div>
+                                    <TranslationControls
+                                      globalLocale={globalLocale}
+                                      setGlobalLocale={setGlobalLocale}
+                                    />
+                                  </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                   <div>
-                                    <Label className="mb-2">Dòng chữ phía trên (Meta Top)</Label>
-                                    <Input
-                                      value={detailData.metaTop || ""}
-                                      onChange={(e) => {
-                                        setDetailData({ ...detailData, metaTop: e.target.value });
+                                    <LocaleInput
+                                      label="Dòng chữ phía trên (Meta Top)"
+                                      value={getLocaleValue(detailData, 'metaTop')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'metaTop', value);
+                                        setDetailData(updated);
                                       }}
                                       placeholder="Ví dụ: Giải pháp phần mềm"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
-                                    <Label className="mb-2">Mô tả Hero</Label>
-                                    <Textarea
-                                      value={detailData.heroDescription || ""}
-                                      onChange={(e) => {
-                                        setDetailData({ ...detailData, heroDescription: e.target.value });
+                                    <LocaleInput
+                                      label="Mô tả Hero"
+                                      value={getLocaleValue(detailData, 'heroDescription')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'heroDescription', value);
+                                        setDetailData(updated);
                                       }}
-                                      rows={4}
+                                      multiline={true}
                                       placeholder="Mô tả về sản phẩm..."
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
@@ -1102,13 +1246,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <Label className="mb-2">Nút liên hệ - Văn bản</Label>
-                                      <Input
-                                        value={detailData.ctaContactText || ""}
-                                        onChange={(e) => {
-                                          setDetailData({ ...detailData, ctaContactText: e.target.value });
+                                      <LocaleInput
+                                        label="Nút liên hệ - Văn bản"
+                                        value={getLocaleValue(detailData, 'ctaContactText')}
+                                        onChange={(value) => {
+                                          const updated = setLocaleValue(detailData, 'ctaContactText', value);
+                                          setDetailData(updated);
                                         }}
                                         placeholder="LIÊN HỆ NGAY"
+                                        defaultLocale={globalLocale}
+                                        aiProvider={aiProvider}
                                       />
                                     </div>
                                     <div>
@@ -1124,13 +1271,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <Label className="mb-2">Nút demo - Văn bản</Label>
-                                      <Input
-                                        value={detailData.ctaDemoText || ""}
-                                        onChange={(e) => {
-                                          setDetailData({ ...detailData, ctaDemoText: e.target.value });
+                                      <LocaleInput
+                                        label="Nút demo - Văn bản"
+                                        value={getLocaleValue(detailData, 'ctaDemoText')}
+                                        onChange={(value) => {
+                                          const updated = setLocaleValue(detailData, 'ctaDemoText', value);
+                                          setDetailData(updated);
                                         }}
                                         placeholder="DEMO HỆ THỐNG"
+                                        defaultLocale={globalLocale}
+                                        aiProvider={aiProvider}
                                       />
                                     </div>
                                     <div>
@@ -1152,30 +1302,44 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                             {detailData && (
                               <Card>
                                 <CardHeader>
-                                  <CardTitle>Khối 2 - Tổng quan (Overview)</CardTitle>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    Kicker, tiêu đề và các card mô tả các bước / tính năng chính.
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle>Khối 2 - Tổng quan (Overview)</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Kicker, tiêu đề và các card mô tả các bước / tính năng chính.
+                                      </p>
+                                    </div>
+                                    <TranslationControls
+                                      globalLocale={globalLocale}
+                                      setGlobalLocale={setGlobalLocale}
+                                    />
+                                  </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                   <div>
-                                    <Label className="mb-2">Dòng chữ nhỏ phía trên (Kicker)</Label>
-                                    <Input
-                                      value={detailData.overviewKicker || ""}
-                                      onChange={(e) => {
-                                        setDetailData({ ...detailData, overviewKicker: e.target.value });
+                                    <LocaleInput
+                                      label="Dòng chữ nhỏ phía trên (Kicker)"
+                                      value={getLocaleValue(detailData, 'overviewKicker')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'overviewKicker', value);
+                                        setDetailData(updated);
                                       }}
                                       placeholder="Ví dụ: Tổng quan"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
-                                    <Label className="mb-2">Tiêu đề chính</Label>
-                                    <Input
-                                      value={detailData.overviewTitle || ""}
-                                      onChange={(e) => {
-                                        setDetailData({ ...detailData, overviewTitle: e.target.value });
+                                    <LocaleInput
+                                      label="Tiêu đề chính"
+                                      value={getLocaleValue(detailData, 'overviewTitle')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'overviewTitle', value);
+                                        setDetailData(updated);
                                       }}
                                       placeholder="Tiêu đề overview"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
@@ -1213,28 +1377,34 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                               />
                                             </div>
                                             <div>
-                                              <Label className="mb-2">Tiêu đề thẻ</Label>
-                                              <Input
-                                                value={card.title || ""}
-                                                onChange={(e) => {
+                                              <LocaleInput
+                                                label="Tiêu đề thẻ"
+                                                value={getLocaleValue(card, 'title')}
+                                                onChange={(value) => {
                                                   const newCards = [...(detailData.overviewCards || [])];
-                                                  newCards[index] = { ...card, title: e.target.value };
+                                                  const updatedCard = setLocaleValue(card, 'title', value);
+                                                  newCards[index] = updatedCard;
                                                   setDetailData({ ...detailData, overviewCards: newCards });
                                                 }}
                                                 placeholder="Tiêu đề card"
+                                                defaultLocale={globalLocale}
+                                                aiProvider={aiProvider}
                                               />
                                             </div>
                                             <div>
-                                              <Label className="mb-2">Mô tả thẻ</Label>
-                                              <Textarea
-                                                value={card.description || card.desc || ""}
-                                                onChange={(e) => {
+                                              <LocaleInput
+                                                label="Mô tả thẻ"
+                                                value={getLocaleValue(card, 'description')}
+                                                onChange={(value) => {
                                                   const newCards = [...(detailData.overviewCards || [])];
-                                                  newCards[index] = { ...card, description: e.target.value, desc: e.target.value };
+                                                  const updatedCard = { ...setLocaleValue(card, 'description', value), desc: value };
+                                                  newCards[index] = updatedCard;
                                                   setDetailData({ ...detailData, overviewCards: newCards });
                                                 }}
-                                                rows={2}
+                                                multiline={true}
                                                 placeholder="Mô tả card"
+                                                defaultLocale={globalLocale}
+                                                aiProvider={aiProvider}
                                               />
                                             </div>
                                           </CardContent>
@@ -1246,7 +1416,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         onClick={() => {
                                           const newCards = [
                                             ...(detailData.overviewCards || []),
-                                            { step: (detailData.overviewCards?.length || 0) + 1, title: "", description: "", desc: "" },
+                                            { 
+                                              step: (detailData.overviewCards?.length || 0) + 1, 
+                                              title: { vi: "", en: "", ja: "" }, 
+                                              description: { vi: "", en: "", ja: "" }, 
+                                              desc: { vi: "", en: "", ja: "" } 
+                                            },
                                           ];
                                           setDetailData({ ...detailData, overviewCards: newCards });
                                         }}
@@ -1264,55 +1439,72 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                             {detailData && detailData.showcase && (
                               <Card>
                                 <CardHeader>
-                                  <CardTitle>Khối 3 - Showcase màn hình</CardTitle>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    Bố cục 2 cột: bên trái là ảnh màn hình, bên phải là tiêu đề, mô tả và bullets.
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle>Khối 3 - Showcase màn hình</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Bố cục 2 cột: bên trái là ảnh màn hình, bên phải là tiêu đề, mô tả và bullets.
+                                      </p>
+                                    </div>
+                                    <TranslationControls
+                                      globalLocale={globalLocale}
+                                      setGlobalLocale={setGlobalLocale}
+                                    />
+                                  </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                   <div>
-                                    <Label className="mb-2">Tiêu đề showcase</Label>
-                                    <Input
-                                      value={detailData.showcase?.title || ""}
-                                      onChange={(e) => {
+                                    <LocaleInput
+                                      label="Tiêu đề showcase"
+                                      value={getLocaleValue(detailData.showcase, 'title')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData.showcase, 'title', value);
                                         setDetailData({
                                           ...detailData,
-                                          showcase: { ...detailData.showcase, title: e.target.value },
+                                          showcase: { ...detailData.showcase, ...updated },
                                         });
                                       }}
                                       placeholder="Tiêu đề showcase"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
-                                    <Label className="mb-2">Mô tả showcase</Label>
-                                    <Textarea
-                                      value={detailData.showcase?.desc || ""}
-                                      onChange={(e) => {
+                                    <LocaleInput
+                                      label="Mô tả showcase"
+                                      value={getLocaleValue(detailData.showcase, 'desc')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData.showcase, 'desc', value);
                                         setDetailData({
                                           ...detailData,
-                                          showcase: { ...detailData.showcase, desc: e.target.value },
+                                          showcase: { ...detailData.showcase, ...updated },
                                         });
                                       }}
-                                      rows={3}
+                                      multiline={true}
                                       placeholder="Mô tả showcase"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
                                     <Label className="mb-2">Danh sách điểm nổi bật (Bullets)</Label>
                                     <div className="space-y-2">
-                                      {(detailData.showcase?.bullets || []).map((bullet: string, index: number) => (
+                                      {(detailData.showcase?.bullets || []).map((bullet: any, index: number) => (
                                         <div key={index} className="flex gap-2">
-                                          <Input
-                                            value={bullet}
-                                            onChange={(e) => {
+                                          <LocaleInput
+                                            label={`Bullet ${index + 1}`}
+                                            value={getLocaleValue(bullet, '')}
+                                            onChange={(value) => {
                                               const newBullets = [...(detailData.showcase?.bullets || [])];
-                                              newBullets[index] = e.target.value;
+                                              newBullets[index] = value;
                                               setDetailData({
                                                 ...detailData,
                                                 showcase: { ...detailData.showcase, bullets: newBullets },
                                               });
                                             }}
                                             placeholder={`Bullet ${index + 1}`}
+                                            defaultLocale={globalLocale}
+                                            aiProvider={aiProvider}
                                           />
                                           <Button
                                             type="button"
@@ -1320,7 +1512,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                             size="icon"
                                             onClick={() => {
                                               const newBullets = (detailData.showcase?.bullets || []).filter(
-                                                (_: string, i: number) => i !== index
+                                                (_: any, i: number) => i !== index
                                               );
                                               setDetailData({
                                                 ...detailData,
@@ -1336,7 +1528,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         type="button"
                                         variant="outline"
                                         onClick={() => {
-                                          const newBullets = [...(detailData.showcase?.bullets || []), ""];
+                                          const newBullets = [...(detailData.showcase?.bullets || []), { vi: "", en: "", ja: "" }];
                                           setDetailData({
                                             ...detailData,
                                             showcase: { ...detailData.showcase, bullets: newBullets },
@@ -1350,16 +1542,19 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <Label className="mb-2">Nút kêu gọi hành động - Văn bản</Label>
-                                      <Input
-                                        value={detailData.showcase?.ctaText || ""}
-                                        onChange={(e) => {
+                                      <LocaleInput
+                                        label="Nút kêu gọi hành động - Văn bản"
+                                        value={getLocaleValue(detailData.showcase, 'ctaText')}
+                                        onChange={(value) => {
+                                          const updated = setLocaleValue(detailData.showcase, 'ctaText', value);
                                           setDetailData({
                                             ...detailData,
-                                            showcase: { ...detailData.showcase, ctaText: e.target.value },
+                                            showcase: { ...detailData.showcase, ...updated },
                                           });
                                         }}
                                         placeholder="Liên hệ"
+                                        defaultLocale={globalLocale}
+                                        aiProvider={aiProvider}
                                       />
                                     </div>
                                     <div>
@@ -1433,27 +1628,33 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         Mỗi section gồm số thứ tự, tiêu đề, ảnh minh họa và các đoạn mô tả chi tiết.
                                       </p>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      onClick={() => {
-                                        const newSections = [
-                                          ...(detailData.numberedSections || []),
-                                          {
-                                            sectionNo: (detailData.numberedSections?.length || 0) + 1,
-                                            no: (detailData.numberedSections?.length || 0) + 1,
-                                            title: "",
-                                            image: "",
-                                            imageSide: "left",
-                                            paragraphs: [],
-                                          },
-                                        ];
-                                        setDetailData({ ...detailData, numberedSections: newSections });
-                                      }}
-                                    >
-                                      <Plus className="h-4 w-4 mr-2" />
-                                      Thêm Section
-                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                      <TranslationControls
+                                        globalLocale={globalLocale}
+                                        setGlobalLocale={setGlobalLocale}
+                                      />
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => {
+                                          const newSections = [
+                                            ...(detailData.numberedSections || []),
+                                            {
+                                              sectionNo: (detailData.numberedSections?.length || 0) + 1,
+                                              no: (detailData.numberedSections?.length || 0) + 1,
+                                              title: { vi: "", en: "", ja: "" },
+                                              image: "",
+                                              imageSide: "left",
+                                              paragraphs: [],
+                                            },
+                                          ];
+                                          setDetailData({ ...detailData, numberedSections: newSections });
+                                        }}
+                                      >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Thêm Section
+                                      </Button>
+                                    </div>
                                   </div>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
@@ -1530,15 +1731,18 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                       </CardHeader>
                                       <CardContent className="space-y-4">
                                         <div>
-                                          <Label className="mb-2">Tiêu đề section</Label>
-                                          <Input
-                                            value={section.title || ""}
-                                            onChange={(e) => {
+                                          <LocaleInput
+                                            label="Tiêu đề section"
+                                            value={getLocaleValue(section, 'title')}
+                                            onChange={(value) => {
                                               const newSections = [...detailData.numberedSections];
-                                              newSections[index] = { ...section, title: e.target.value };
+                                              const updatedSection = setLocaleValue(section, 'title', value);
+                                              newSections[index] = updatedSection;
                                               setDetailData({ ...detailData, numberedSections: newSections });
                                             }}
                                             placeholder="Tiêu đề section"
+                                            defaultLocale={globalLocale}
+                                            aiProvider={aiProvider}
                                           />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1594,7 +1798,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                               setDetailData({ ...detailData, numberedSections: newSections });
                                             }}
                                           >
-                                            <SelectTrigger>
+                                            <SelectTrigger suppressHydrationWarning>
                                               <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -1616,32 +1820,38 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                                 <div key={paraIndex} className="space-y-2 rounded-lg border border-gray-200 p-3">
                                                   <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                                                     <div className="md:col-span-2">
-                                                      <Label className="mb-1">Tiêu đề đoạn</Label>
-                                                      <Input
-                                                        value={paraObj.title || ""}
-                                                        onChange={(e) => {
+                                                      <LocaleInput
+                                                        label="Tiêu đề đoạn"
+                                                        value={getLocaleValue(paraObj, 'title')}
+                                                        onChange={(value) => {
                                                           const newSections = [...detailData.numberedSections];
                                                           const newParagraphs = [...(section.paragraphs || [])];
-                                                          newParagraphs[paraIndex] = { ...paraObj, title: e.target.value };
+                                                          const updatedPara = setLocaleValue(paraObj, 'title', value);
+                                                          newParagraphs[paraIndex] = updatedPara;
                                                           newSections[index] = { ...section, paragraphs: newParagraphs };
                                                           setDetailData({ ...detailData, numberedSections: newSections });
                                                         }}
                                                         placeholder="Ví dụ: Học sinh"
+                                                        defaultLocale={globalLocale}
+                                                        aiProvider={aiProvider}
                                                       />
                                                     </div>
                                                     <div className="md:col-span-3">
-                                                      <Label className="mb-1">Nội dung</Label>
-                                                      <Textarea
-                                                        value={paraObj.text || ""}
-                                                        onChange={(e) => {
+                                                      <LocaleInput
+                                                        label="Nội dung"
+                                                        value={getLocaleValue(paraObj, 'text')}
+                                                        onChange={(value) => {
                                                           const newSections = [...detailData.numberedSections];
                                                           const newParagraphs = [...(section.paragraphs || [])];
-                                                          newParagraphs[paraIndex] = { ...paraObj, text: e.target.value };
+                                                          const updatedPara = setLocaleValue(paraObj, 'text', value);
+                                                          newParagraphs[paraIndex] = updatedPara;
                                                           newSections[index] = { ...section, paragraphs: newParagraphs };
                                                           setDetailData({ ...detailData, numberedSections: newSections });
                                                         }}
-                                                        rows={2}
+                                                        multiline={true}
                                                         placeholder={`Đoạn ${paraIndex + 1}`}
+                                                        defaultLocale={globalLocale}
+                                                        aiProvider={aiProvider}
                                                       />
                                                     </div>
                                                   </div>
@@ -1670,7 +1880,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                               variant="outline"
                                               onClick={() => {
                                                 const newSections = [...detailData.numberedSections];
-                                                const newParagraphs = [...(section.paragraphs || []), { title: "", text: "" }];
+                                                const newParagraphs = [...(section.paragraphs || []), { 
+                                                  title: { vi: "", en: "", ja: "" }, 
+                                                  text: { vi: "", en: "", ja: "" } 
+                                                }];
                                                 newSections[index] = { ...section, paragraphs: newParagraphs };
                                                 setDetailData({ ...detailData, numberedSections: newSections });
                                               }}
@@ -1691,44 +1904,56 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                             {detailData && detailData.expand && (
                               <Card>
                                 <CardHeader>
-                                  <CardTitle>Khối 5 - Expand (Mở rộng lợi ích)</CardTitle>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    Danh sách bullets nhấn mạnh lợi ích và một ảnh minh họa bên cạnh.
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle>Khối 5 - Expand (Mở rộng lợi ích)</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Danh sách bullets nhấn mạnh lợi ích và một ảnh minh họa bên cạnh.
+                                      </p>
+                                    </div>
+                                    <TranslationControls
+                                      globalLocale={globalLocale}
+                                      setGlobalLocale={setGlobalLocale}
+                                    />
+                                  </div>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                   <div>
-                                    <Label className="mb-2">Tiêu đề expand</Label>
-                                    <Input
-                                      value={detailData.expand?.title || detailData.expandTitle || ""}
-                                      onChange={(e) => {
+                                    <LocaleInput
+                                      label="Tiêu đề expand"
+                                      value={getLocaleValue(detailData.expand, 'title')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData.expand, 'title', value);
                                         setDetailData({
                                           ...detailData,
-                                          expand: { ...detailData.expand, title: e.target.value },
-                                          expandTitle: e.target.value,
+                                          expand: { ...detailData.expand, ...updated },
                                         });
                                       }}
                                       placeholder="Tiêu đề expand"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <div>
                                     <Label className="mb-2">Danh sách điểm nổi bật (Bullets)</Label>
                                     <div className="space-y-2">
                                       {((detailData.expand?.bullets || detailData.expandBullets) || []).map(
-                                        (bullet: string, index: number) => (
+                                        (bullet: any, index: number) => (
                                           <div key={index} className="flex gap-2">
-                                            <Input
-                                              value={bullet}
-                                              onChange={(e) => {
+                                            <LocaleInput
+                                              label={`Bullet ${index + 1}`}
+                                              value={getLocaleValue(bullet, '')}
+                                              onChange={(value) => {
                                                 const newBullets = [...((detailData.expand?.bullets || detailData.expandBullets) || [])];
-                                                newBullets[index] = e.target.value;
+                                                newBullets[index] = value;
                                                 setDetailData({
                                                   ...detailData,
                                                   expand: { ...detailData.expand, bullets: newBullets },
-                                                  expandBullets: newBullets,
                                                 });
                                               }}
                                               placeholder={`Bullet ${index + 1}`}
+                                              defaultLocale={globalLocale}
+                                              aiProvider={aiProvider}
                                             />
                                             <Button
                                               type="button"
@@ -1736,12 +1961,11 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                               size="icon"
                                               onClick={() => {
                                                 const newBullets = ((detailData.expand?.bullets || detailData.expandBullets) || []).filter(
-                                                  (_: string, i: number) => i !== index
+                                                  (_: any, i: number) => i !== index
                                                 );
                                                 setDetailData({
                                                   ...detailData,
                                                   expand: { ...detailData.expand, bullets: newBullets },
-                                                  expandBullets: newBullets,
                                                 });
                                               }}
                                             >
@@ -1755,11 +1979,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         variant="outline"
                                         onClick={() => {
                                           const currentBullets = (detailData.expand?.bullets || detailData.expandBullets) || [];
-                                          const newBullets = [...currentBullets, ""];
+                                          const newBullets = [...currentBullets, { vi: "", en: "", ja: "" }];
                                           setDetailData({
                                             ...detailData,
                                             expand: { ...detailData.expand, bullets: newBullets },
-                                            expandBullets: newBullets,
                                           });
                                         }}
                                       >
@@ -1770,17 +1993,19 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                      <Label className="mb-2">Nút kêu gọi hành động - Văn bản</Label>
-                                      <Input
-                                        value={detailData.expand?.ctaText || detailData.expandCtaText || ""}
-                                        onChange={(e) => {
+                                      <LocaleInput
+                                        label="Nút kêu gọi hành động - Văn bản"
+                                        value={getLocaleValue(detailData.expand, 'ctaText')}
+                                        onChange={(value) => {
+                                          const updated = setLocaleValue(detailData.expand, 'ctaText', value);
                                           setDetailData({
                                             ...detailData,
-                                            expand: { ...detailData.expand, ctaText: e.target.value },
-                                            expandCtaText: e.target.value,
+                                            expand: { ...detailData.expand, ...updated },
                                           });
                                         }}
                                         placeholder="Liên hệ"
+                                        defaultLocale={globalLocale}
+                                        aiProvider={aiProvider}
                                       />
                                     </div>
                                     <div>
@@ -1791,7 +2016,6 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                           setDetailData({
                                             ...detailData,
                                             expand: { ...detailData.expand, ctaHref: e.target.value },
-                                            expandCtaHref: e.target.value,
                                           });
                                         }}
                                         placeholder="/contact"
@@ -1819,23 +2043,38 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                           <TabsContent value="content" className="space-y-4 mt-4">
                             <Card>
                               <CardHeader>
-                                <CardTitle>Nội dung HTML</CardTitle>
-                                <p className="text-sm text-gray-600 mt-1">
-                                  Sử dụng trình soạn thảo để tạo nội dung chi tiết sản phẩm với định dạng phong phú.
-                                </p>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <CardTitle>Nội dung HTML</CardTitle>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      Sử dụng trình soạn thảo để tạo nội dung chi tiết sản phẩm với định dạng phong phú.
+                                    </p>
+                                  </div>
+                                  <TranslationControls
+                                    globalLocale={globalLocale}
+                                    setGlobalLocale={setGlobalLocale}
+                                  />
+                                </div>
                               </CardHeader>
                               <CardContent>
                                 <div className="space-y-2">
                                   <Label className="text-sm font-semibold">
-                                    Nội dung chi tiết
+                                    Nội dung chi tiết ({globalLocale.toUpperCase()})
                                   </Label>
                                   <div className="border rounded-lg min-h-[360px]">
                                     <RichTextEditor
-                                      value={detailData?.contentHtml || ""}
+                                      key={`contentHtml-${globalLocale}-${contentHtmlEditorKey}`}
+                                      value={typeof detailData?.contentHtml === 'string' 
+                                        ? detailData.contentHtml 
+                                        : getLocalizedText(detailData?.contentHtml || { vi: "", en: "", ja: "" }, globalLocale) || ""}
                                       onChange={(value) => {
+                                        const currentContentHtml = detailData?.contentHtml || { vi: "", en: "", ja: "" };
+                                        const updatedContentHtml = typeof currentContentHtml === 'string' 
+                                          ? { vi: currentContentHtml, en: "", ja: "" }
+                                          : { ...currentContentHtml, [globalLocale]: value };
                                         setDetailData({
                                           ...detailData,
-                                          contentHtml: value,
+                                          contentHtml: updatedContentHtml,
                                           contentMode: "content"
                                         });
                                         // Đảm bảo tab cũng được cập nhật khi thay đổi nội dung
@@ -1843,10 +2082,15 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                           setActiveContentModeTab("content");
                                         }
                                       }}
+                                      globalLocale={globalLocale}
+                                      translateData={translateData}
+                                      translatingAll={translatingAll}
+                                      translateSourceLang={translateSourceLang}
+                                      setTranslateSourceLang={setTranslateSourceLang}
                                     />
                                   </div>
                                   <p className="text-xs text-gray-500">
-                                    Sử dụng trình soạn thảo để tạo nội dung sản phẩm với định dạng phong phú.
+                                    Sử dụng trình soạn thảo để tạo nội dung sản phẩm với định dạng phong phú. Nội dung sẽ được lưu riêng cho từng ngôn ngữ.
                                   </p>
                                 </div>
                               </CardContent>
@@ -1863,19 +2107,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                               <CardContent>
                                 <div className="space-y-4">
                                   <div className="space-y-2">
-                                    <Label htmlFor="galleryTitle" className="text-sm font-semibold">
-                                      Tiêu đề bộ sưu tập (tuỳ chọn)
-                                    </Label>
-                                    <Input
-                                      id="galleryTitle"
+                                    <LocaleInput
+                                      label="Tiêu đề bộ sưu tập (tuỳ chọn)"
+                                      value={getLocaleValue(detailData, 'galleryTitle')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'galleryTitle', value);
+                                        setDetailData(updated);
+                                      }}
                                       placeholder="Nhập tiêu đề cho gallery (nếu cần)"
-                                      value={detailData?.galleryTitle || ""}
-                                      onChange={(e) =>
-                                        setDetailData({
-                                          ...detailData,
-                                          galleryTitle: e.target.value,
-                                        })
-                                      }
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
                                   </div>
                                   <p className="text-xs text-gray-500">
@@ -2104,18 +2345,18 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                       className="text-white uppercase font-medium text-[16px]"
                                       style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                                     >
-                                      {detailData.metaTop}
+                                      {typeof detailData.metaTop === 'string' ? detailData.metaTop : getLocalizedText(detailData.metaTop, globalLocale)}
                                     </div>
                                   )}
                                   <h1
                                     className="text-[56px] leading-[normal] font-extrabold w-[543px]"
                                     style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                                   >
-                                    {formData.name}
+                                    {typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale)}
                                   </h1>
                                   {detailData.heroDescription && (
                                     <p className="text-white/85 text-[14px] leading-[22px]">
-                                      {detailData.heroDescription}
+                                      {typeof detailData.heroDescription === 'string' ? detailData.heroDescription : getLocalizedText(detailData.heroDescription, globalLocale)}
                                     </p>
                                   )}
                                   <div className="flex flex-row items-center gap-4">
@@ -2124,7 +2365,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         href={detailData.ctaContactHref || "#"}
                                         className="h-[48px] px-6 rounded-xl bg-white text-[#0B78B8] font-semibold text-[16px] inline-flex items-center gap-2 hover:bg-white/90 transition"
                                       >
-                                        {detailData.ctaContactText} <ArrowRight size={18} />
+                                        {typeof detailData.ctaContactText === 'string' ? detailData.ctaContactText : getLocalizedText(detailData.ctaContactText, globalLocale)} <ArrowRight size={18} />
                                       </a>
                                     )}
                                     {detailData.ctaDemoText && (
@@ -2132,7 +2373,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         href={detailData.ctaDemoHref || "#"}
                                         className="h-[48px] px-6 rounded-xl border border-white/80 text-white font-semibold text-[16px] inline-flex items-center gap-3 hover:bg-white/10 transition"
                                       >
-                                        {detailData.ctaDemoText}
+                                        {typeof detailData.ctaDemoText === 'string' ? detailData.ctaDemoText : getLocalizedText(detailData.ctaDemoText, globalLocale)}
                                         <span className="w-7 h-7 rounded-full border border-white/70 flex items-center justify-center">
                                           <Play size={14} className="ml-[1px]" />
                                         </span>
@@ -2145,7 +2386,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     <div className="w-[701px] h-[511px] rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden">
                                       <img
                                         src={detailData.heroImage}
-                                        alt={formData.name}
+                                        alt={typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale)}
                                         className="w-full h-full object-cover"
                                       />
                                     </div>
@@ -2163,7 +2404,11 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                             <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px]">
                               <div
                                 className="prose prose-lg max-w-none"
-                                dangerouslySetInnerHTML={{ __html: detailData.contentHtml }}
+                                dangerouslySetInnerHTML={{ 
+                                  __html: typeof detailData.contentHtml === 'string' 
+                                    ? detailData.contentHtml 
+                                    : getLocalizedText(detailData.contentHtml, globalLocale) 
+                                }}
                               />
                             </div>
                           </section>
@@ -2178,12 +2423,12 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     <div className="w-full text-center space-y-4">
                                       {detailData.overviewKicker && (
                                         <div className="w-full text-center text-[#1D8FCF] uppercase font-plus-jakarta text-[15px] font-medium leading-normal tracking-widest [font-feature-settings:'liga'_off,'clig'_off]">
-                                          {detailData.overviewKicker}
+                                          {typeof detailData.overviewKicker === 'string' ? detailData.overviewKicker : getLocalizedText(detailData.overviewKicker, globalLocale)}
                                         </div>
                                       )}
                                       {detailData.overviewTitle && (
                                         <h2 className="mx-auto max-w-[840px] text-center text-[#0F172A] font-plus-jakarta text-[32px] sm:text-[44px] lg:text-[56px] font-bold leading-normal [font-feature-settings:'liga'_off,'clig'_off]">
-                                          {detailData.overviewTitle}
+                                          {typeof detailData.overviewTitle === 'string' ? detailData.overviewTitle : getLocalizedText(detailData.overviewTitle, globalLocale)}
                                         </h2>
                                       )}
                                     </div>
@@ -2206,12 +2451,14 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                             )}
                                             {card.title && (
                                               <div className="text-[#0B78B8] font-semibold text-center">
-                                                {card.title}
+                                                {typeof card.title === 'string' ? card.title : getLocalizedText(card.title, globalLocale)}
                                               </div>
                                             )}
                                             {(card.description || card.desc) && (
                                               <div className="text-gray-600 text-sm leading-relaxed text-center">
-                                                {card.description || card.desc}
+                                                {typeof (card.description || card.desc) === 'string' 
+                                                  ? (card.description || card.desc) 
+                                                  : getLocalizedText(card.description || card.desc, globalLocale)}
                                               </div>
                                             )}
                                           </div>
@@ -2253,20 +2500,22 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     <div className="flex flex-shrink-0 w-[549px] flex-col items-start gap-6">
                                       {detailData.showcase.title && (
                                         <h3 className="text-gray-900 text-2xl font-bold">
-                                          {detailData.showcase.title}
+                                          {typeof detailData.showcase.title === 'string' ? detailData.showcase.title : getLocalizedText(detailData.showcase.title, globalLocale)}
                                         </h3>
                                       )}
                                       {detailData.showcase.desc && (
                                         <p className="text-gray-600 leading-relaxed">
-                                          {detailData.showcase.desc}
+                                          {typeof detailData.showcase.desc === 'string' ? detailData.showcase.desc : getLocalizedText(detailData.showcase.desc, globalLocale)}
                                         </p>
                                       )}
                                       {detailData.showcase.bullets && detailData.showcase.bullets.length > 0 && (
                                         <div className="space-y-3">
-                                          {detailData.showcase.bullets.map((b: string, i: number) => (
+                                          {detailData.showcase.bullets.map((b: any, i: number) => (
                                             <div key={i} className="flex items-start gap-3">
                                               <CheckCircle2 size={18} className="text-[#0B78B8] mt-0.5" />
-                                              <span className="text-gray-700">{b}</span>
+                                              <span className="text-gray-700">
+                                                {typeof b === 'string' ? b : getLocalizedText(b, globalLocale)}
+                                              </span>
                                             </div>
                                           ))}
                                         </div>
@@ -2276,7 +2525,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                           href={detailData.showcase.ctaHref}
                                           className="inline-flex items-center gap-2 h-[42px] px-5 rounded-lg bg-[#2EABE2] text-white font-semibold hover:opacity-90 transition"
                                         >
-                                          {detailData.showcase.ctaText} <ArrowRight size={18} />
+                                          {typeof detailData.showcase.ctaText === 'string' ? detailData.showcase.ctaText : getLocalizedText(detailData.showcase.ctaText, globalLocale)} <ArrowRight size={18} />
                                         </a>
                                       )}
                                     </div>
@@ -2320,14 +2569,21 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                         <div className={section.imageSide === "left" ? "order-2" : "order-1 lg:order-1"}>
                                           {section.title && (
                                             <div className="text-gray-900 text-xl md:text-2xl font-bold mb-4">
-                                              {(section.sectionNo || section.no || index + 1)}. {section.title}
+                                              {(section.sectionNo || section.no || index + 1)}. {typeof section.title === 'string' ? section.title : getLocalizedText(section.title, globalLocale)}
                                             </div>
                                           )}
                                           {section.paragraphs && section.paragraphs.length > 0 && (
                                             <div className="space-y-4 text-gray-600 leading-relaxed">
-                                              {section.paragraphs.map((p: string, i: number) => (
-                                                <p key={i}>{p}</p>
-                                              ))}
+                                              {section.paragraphs.map((p: any, i: number) => {
+                                                const paraText = typeof p === 'string' ? p : (p?.text ? (typeof p.text === 'string' ? p.text : getLocalizedText(p.text, globalLocale)) : '');
+                                                const paraTitle = p?.title ? (typeof p.title === 'string' ? p.title : getLocalizedText(p.title, globalLocale)) : '';
+                                                return (
+                                                  <div key={i}>
+                                                    {paraTitle && <p className="font-semibold mb-1">{paraTitle}</p>}
+                                                    <p>{paraText}</p>
+                                                  </div>
+                                                );
+                                              })}
                                             </div>
                                           )}
                                         </div>
@@ -2345,15 +2601,19 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     <div className="space-y-5">
                                       {(detailData.expand.title || detailData.expandTitle) && (
                                         <h3 className="text-gray-900 text-2xl font-bold">
-                                          {detailData.expand.title || detailData.expandTitle}
+                                          {typeof (detailData.expand.title || detailData.expandTitle) === 'string' 
+                                            ? (detailData.expand.title || detailData.expandTitle) 
+                                            : getLocalizedText(detailData.expand.title || detailData.expandTitle, globalLocale)}
                                         </h3>
                                       )}
                                       {((detailData.expand.bullets || detailData.expandBullets) || []).length > 0 && (
                                         <div className="space-y-3">
-                                          {(detailData.expand.bullets || detailData.expandBullets || []).map((b: string, i: number) => (
+                                          {(detailData.expand.bullets || detailData.expandBullets || []).map((b: any, i: number) => (
                                             <div key={i} className="flex items-start gap-3">
                                               <CheckCircle2 size={18} className="text-[#0B78B8] mt-0.5" />
-                                              <span className="text-gray-700">{b}</span>
+                                              <span className="text-gray-700">
+                                                {typeof b === 'string' ? b : getLocalizedText(b, globalLocale)}
+                                              </span>
                                             </div>
                                           ))}
                                         </div>
@@ -2363,7 +2623,9 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                           href={detailData.expand.ctaHref || detailData.expandCtaHref}
                                           className="inline-flex items-center gap-2 h-[44px] px-5 rounded-lg bg-[#2EABE2] text-white font-semibold hover:opacity-90 transition"
                                         >
-                                          {detailData.expand.ctaText || detailData.expandCtaText} <ArrowRight size={18} />
+                                          {typeof (detailData.expand.ctaText || detailData.expandCtaText) === 'string' 
+                                            ? (detailData.expand.ctaText || detailData.expandCtaText) 
+                                            : getLocalizedText(detailData.expand.ctaText || detailData.expandCtaText, globalLocale)} <ArrowRight size={18} />
                                         </a>
                                       )}
                                     </div>
@@ -2373,7 +2635,9 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                           <div className="relative aspect-[16/9]">
                                             <img
                                               src={detailData.expand.image || detailData.expandImage}
-                                              alt={detailData.expand.title || detailData.expandTitle}
+                                              alt={typeof (detailData.expand.title || detailData.expandTitle) === 'string' 
+                                                ? (detailData.expand.title || detailData.expandTitle) 
+                                                : getLocalizedText(detailData.expand.title || detailData.expandTitle, globalLocale)}
                                               className="w-full h-full object-cover"
                                             />
                                           </div>

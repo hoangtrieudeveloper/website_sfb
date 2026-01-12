@@ -1,5 +1,39 @@
 const { pool } = require('../config/database');
 
+// Helper function to check if value is empty (supports both string and locale object)
+const isEmpty = (value) => {
+  if (!value) return true;
+  if (typeof value === 'string') {
+    return value.trim() === '';
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // Check if it's a locale object (has vi, en, ja keys)
+    if ('vi' in value || 'en' in value || 'ja' in value) {
+      // Locale object - check if all values are empty
+      const vi = (value.vi || '').trim();
+      const en = (value.en || '').trim();
+      const ja = (value.ja || '').trim();
+      return vi === '' && en === '' && ja === '';
+    }
+  }
+  return false;
+};
+
+// Helper function to get value (supports both string and locale object)
+const getValue = (value, defaultValue = '') => {
+  if (!value) return defaultValue;
+  if (typeof value === 'string') {
+    return value.trim() || defaultValue;
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // If it's a locale object, return it as is
+    if ('vi' in value || 'en' in value || 'ja' in value) {
+      return value;
+    }
+  }
+  return defaultValue;
+};
+
 // Helper function to get section by type (only active)
 const getSection = async (sectionType) => {
   const { rows } = await pool.query(
@@ -104,10 +138,10 @@ exports.updateProcess = async (req, res, next) => {
         const existingData = section.data || {};
         const headerData = {
           // Only update if new value is provided and not empty, otherwise keep existing
-          subtitle: (header.subtitle && header.subtitle.trim() !== '') ? header.subtitle : (existingData.subtitle || ''),
-          titlePart1: (header.titlePart1 && header.titlePart1.trim() !== '') ? header.titlePart1 : (existingData.titlePart1 || ''),
-          titleHighlight: (header.titleHighlight && header.titleHighlight.trim() !== '') ? header.titleHighlight : (existingData.titleHighlight || ''),
-          titlePart2: (header.titlePart2 && header.titlePart2.trim() !== '') ? header.titlePart2 : (existingData.titlePart2 || ''),
+          subtitle: !isEmpty(header.subtitle) ? getValue(header.subtitle) : (existingData.subtitle || ''),
+          titlePart1: !isEmpty(header.titlePart1) ? getValue(header.titlePart1) : (existingData.titlePart1 || ''),
+          titleHighlight: !isEmpty(header.titleHighlight) ? getValue(header.titleHighlight) : (existingData.titleHighlight || ''),
+          titlePart2: !isEmpty(header.titlePart2) ? getValue(header.titlePart2) : (existingData.titlePart2 || ''),
         };
         await client.query(
           'UPDATE industries_sections SET data = $1, is_active = $2 WHERE id = $3',
@@ -116,10 +150,10 @@ exports.updateProcess = async (req, res, next) => {
       } else {
         // Insert new
         const headerData = {
-          subtitle: header.subtitle || '',
-          titlePart1: header.titlePart1 || '',
-          titleHighlight: header.titleHighlight || '',
-          titlePart2: header.titlePart2 || '',
+          subtitle: getValue(header.subtitle),
+          titlePart1: getValue(header.titlePart1),
+          titleHighlight: getValue(header.titleHighlight),
+          titlePart2: getValue(header.titlePart2),
         };
         const { rows: inserted } = await client.query(
           'INSERT INTO industries_sections (section_type, data, is_active) VALUES ($1, $2, $3) RETURNING id',

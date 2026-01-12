@@ -217,5 +217,9 @@ export const AdminEndpoints = {
       delete: (id: number) => `/api/admin/contact/requests/${id}`,
     },
   },
+  
+  // Translation
+  translate: "/api/admin/translate",
+  translateField: "/api/admin/translate/field",
 } as const;
 

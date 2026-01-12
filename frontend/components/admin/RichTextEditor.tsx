@@ -24,6 +24,9 @@ import {
   Heading4,
   Type,
   Palette,
+  Languages,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,24 +35,47 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import MediaLibraryPicker from "@/app/(admin)/admin/news/MediaLibraryPicker";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  globalLocale?: Locale;
+  translateData?: (data: any, updateCallback: (translated: any) => void, sectionName?: string) => Promise<void>;
+  translatingAll?: boolean;
+  translateSourceLang?: Locale;
+  setTranslateSourceLang?: (lang: Locale) => void;
 }
 
 export default function RichTextEditor({
   value,
   onChange,
   placeholder = "Nhập nội dung...",
+  globalLocale = 'vi',
+  translateData,
+  translatingAll = false,
+  translateSourceLang = 'vi',
+  setTranslateSourceLang,
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef<Range | null>(null);
   const isUpdatingRef = useRef(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMediaDialog, setShowMediaDialog] = useState(false);
+  const [showTranslateDialog, setShowTranslateDialog] = useState(false);
+  const [translateText, setTranslateText] = useState("");
   const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
   const [selectedImageRect, setSelectedImageRect] = useState<{
     top: number;
@@ -718,6 +744,35 @@ export default function RichTextEditor({
           <ImageIcon className="w-3 h-3 mr-1" />
           Thư viện media
         </Button>
+        {translateData && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2 text-xs font-medium"
+            onClick={() => {
+              // Lấy text đã chọn hoặc toàn bộ nội dung
+              const selection = window.getSelection();
+              let selectedText = "";
+              
+              if (selection && selection.rangeCount > 0 && selection.toString().trim()) {
+                // Có text được chọn
+                selectedText = selection.toString();
+              } else if (editorRef.current) {
+                // Lấy toàn bộ text từ HTML (bỏ tags)
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = editorRef.current.innerHTML;
+                selectedText = tempDiv.textContent || tempDiv.innerText || "";
+              }
+              
+              setTranslateText(selectedText);
+              setShowTranslateDialog(true);
+            }}
+          >
+            <Languages className="w-3 h-3 mr-1" />
+            Dịch thuật
+          </Button>
+        )}
       </div>
 
       {/* Editor */}
@@ -943,6 +998,160 @@ export default function RichTextEditor({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Translate Dialog */}
+      {translateData && (
+        <Dialog open={showTranslateDialog} onOpenChange={setShowTranslateDialog}>
+          <DialogContent style={{ width: "1200px", maxWidth: "95vw" }}>
+            <DialogHeader>
+              <DialogTitle>Dịch thuật nội dung</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Nội dung cần dịch ({translateSourceLang?.toUpperCase()})</Label>
+                  {setTranslateSourceLang && (
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs text-gray-600">Dịch từ:</Label>
+                      <Select 
+                        value={translateSourceLang} 
+                        onValueChange={(val: Locale) => setTranslateSourceLang(val)}
+                      >
+                        <SelectTrigger className="w-[130px] h-8 text-xs" suppressHydrationWarning>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                          <SelectItem value="en">🇬🇧 English</SelectItem>
+                          <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+                <Textarea
+                  value={translateText}
+                  onChange={(e) => setTranslateText(e.target.value)}
+                  placeholder="Nhập nội dung cần dịch..."
+                  style={{ minHeight: "220px", height: "300px" }}
+                  className="resize-none"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowTranslateDialog(false);
+                    setTranslateText("");
+                  }}
+                  disabled={translatingAll}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    if (!translateText.trim()) {
+                      return;
+                    }
+
+                    // Tạo locale object với nội dung ở ngôn ngữ nguồn
+                    const contentToTranslate = {
+                      vi: translateSourceLang === 'vi' ? translateText : "",
+                      en: translateSourceLang === 'en' ? translateText : "",
+                      ja: translateSourceLang === 'ja' ? translateText : "",
+                    };
+
+                    await translateData(
+                      { contentHtml: contentToTranslate },
+                      (translated: any) => {
+                        // Lấy nội dung đã dịch theo ngôn ngữ hiện tại
+                        const translatedContent = translated.contentHtml?.[globalLocale] || translateText;
+                        
+                        if (editorRef.current && translatedContent) {
+                          editorRef.current.focus();
+                          
+                          try {
+                            if (selectionRef.current) {
+                              // Chèn nội dung đã dịch tại vị trí con trỏ
+                              const range = selectionRef.current;
+                              range.collapse(false);
+                              
+                              // Tạo một div tạm để chuyển text thành HTML (giữ format)
+                              const tempDiv = document.createElement("div");
+                              tempDiv.innerHTML = translatedContent;
+                              
+                              // Chèn các node từ tempDiv vào editor
+                              const fragment = document.createDocumentFragment();
+                              while (tempDiv.firstChild) {
+                                fragment.appendChild(tempDiv.firstChild);
+                              }
+                              
+                              range.insertNode(fragment);
+                              
+                              // Di chuyển caret ra sau nội dung đã chèn
+                              const newRange = document.createRange();
+                              newRange.setStartAfter(fragment.lastChild || range.startContainer);
+                              newRange.setEndAfter(fragment.lastChild || range.startContainer);
+                              const sel = window.getSelection();
+                              if (sel) {
+                                sel.removeAllRanges();
+                                sel.addRange(newRange);
+                              }
+                              
+                              selectionRef.current = newRange;
+                              
+                              const htmlAfter = editorRef.current.innerHTML || "";
+                              if (htmlAfter !== value) {
+                                onChange(htmlAfter);
+                              }
+                            } else {
+                              // Fallback: append vào cuối
+                              const currentHtml = editorRef.current.innerHTML || value || "";
+                              const mergedHtml = currentHtml ? `${currentHtml}${translatedContent}` : translatedContent;
+                              editorRef.current.innerHTML = mergedHtml;
+                              if (mergedHtml !== value) {
+                                onChange(mergedHtml);
+                              }
+                            }
+                          } catch (error) {
+                            // Fallback: append vào cuối
+                            const currentHtml = editorRef.current.innerHTML || value || "";
+                            const mergedHtml = currentHtml ? `${currentHtml}${translatedContent}` : translatedContent;
+                            editorRef.current.innerHTML = mergedHtml;
+                            if (mergedHtml !== value) {
+                              onChange(mergedHtml);
+                            }
+                          }
+                        }
+                        
+                        setShowTranslateDialog(false);
+                        setTranslateText("");
+                      },
+                      'Nội dung HTML'
+                    );
+                  }}
+                  disabled={translatingAll || !translateText.trim()}
+                  className="gap-2"
+                >
+                  {translatingAll ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Đang dịch...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      <span>Dịch và chèn vào editor</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

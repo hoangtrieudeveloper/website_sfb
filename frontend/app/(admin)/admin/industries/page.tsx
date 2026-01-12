@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, Plus, Edit, Trash2, ChevronUp, ChevronDown, Save, ArrowRight, Target, Users, Award, Sparkles, Phone, Briefcase, CheckCircle2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2, ChevronUp, ChevronDown, Save, ArrowRight, Target, Users, Award, Sparkles, Phone, Briefcase, CheckCircle2, Languages, Bot, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { TranslationControls } from "@/components/admin/TranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+import { checkHasSourceLanguageContent } from "@/lib/utils/translation-helpers";
+
+type Locale = 'vi' | 'en' | 'ja';
 import {
   Select,
   SelectContent,
@@ -32,9 +41,9 @@ import {
 interface IndustryItem {
   id: number;
   iconName: string;
-  title: string;
-  short: string;
-  points: string[];
+  title: string | Record<Locale, string>;
+  short: string | Record<Locale, string>;
+  points: (string | Record<Locale, string>)[];
   gradient: string;
   sortOrder: number;
   isActive: boolean;
@@ -45,18 +54,18 @@ interface IndustryItem {
 interface HeroStat {
   id?: number;
   iconName: string;
-  value: string;
-  label: string;
+  value: string | Record<Locale, string>;
+  label: string | Record<Locale, string>;
   gradient: string;
   sortOrder: number;
 }
 
 interface HeroData {
   id?: number;
-  titlePrefix: string;
-  titleSuffix: string;
-  description: string;
-  buttonText: string;
+  titlePrefix: string | Record<Locale, string>;
+  titleSuffix: string | Record<Locale, string>;
+  description: string | Record<Locale, string>;
+  buttonText: string | Record<Locale, string>;
   buttonLink: string;
   image: string;
   backgroundGradient: string;
@@ -66,8 +75,8 @@ interface HeroData {
 
 interface ListHeaderData {
   id?: number;
-  title: string;
-  description: string;
+  title: string | Record<Locale, string>;
+  description: string | Record<Locale, string>;
   isActive: boolean;
 }
 
@@ -75,9 +84,9 @@ interface ProcessStep {
   id?: number;
   stepId: string;
   iconName: string;
-  title: string;
-  description: string;
-  points: string[];
+  title: string | Record<Locale, string>;
+  description: string | Record<Locale, string>;
+  points: (string | Record<Locale, string>)[];
   image: string;
   colors: {
     gradient: string;
@@ -88,7 +97,7 @@ interface ProcessStep {
     check: string;
   };
   button: {
-    text: string;
+    text: string | Record<Locale, string>;
     link: string;
     iconName: string;
     iconSize: number;
@@ -100,21 +109,21 @@ interface ProcessStep {
 interface ProcessData {
   header: {
     id?: number;
-    subtitle: string;
-    titlePart1: string;
-    titleHighlight: string;
-    titlePart2: string;
+    subtitle: string | Record<Locale, string>;
+    titlePart1: string | Record<Locale, string>;
+    titleHighlight: string | Record<Locale, string>;
+    titlePart2: string | Record<Locale, string>;
     isActive: boolean;
   } | null;
   steps: ProcessStep[];
 }
 
 interface CtaFormData {
-  title: string;
-  description: string;
-  primaryButtonText: string;
+  title: string | Record<Locale, string>;
+  description: string | Record<Locale, string>;
+  primaryButtonText: string | Record<Locale, string>;
   primaryButtonLink: string;
-  secondaryButtonText: string;
+  secondaryButtonText: string | Record<Locale, string>;
   secondaryButtonLink: string;
   backgroundColor: string;
   isActive: boolean;
@@ -163,6 +172,18 @@ const HERO_GRADIENT_OPTIONS = [
 ];
 
 export default function AdminIndustriesPage() {
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData
+  } = useTranslationControls();
+
   // Industries List State
   const [industries, setIndustries] = useState<IndustryItem[]>([]);
   const [search, setSearch] = useState("");
@@ -225,7 +246,9 @@ export default function AdminIndustriesPage() {
       const data = await adminApiCall<{ success: boolean; data?: IndustryItem[] }>(
         AdminEndpoints.industries.list,
       );
-      setIndustries(data?.data || []);
+      // Normalize dữ liệu để đảm bảo các field luôn là locale object
+      const normalizedIndustries = (data?.data || []).map(industry => migrateObjectToLocale(industry));
+      setIndustries(normalizedIndustries);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách lĩnh vực");
       // Silently fail
@@ -242,7 +265,15 @@ export default function AdminIndustriesPage() {
         AdminEndpoints.industries.hero.get,
       );
       if (data?.data) {
-        setHeroData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedHero = migrateObjectToLocale(data.data);
+        // Đảm bảo backgroundGradient là string, không phải locale object
+        if (normalizedHero.backgroundGradient && typeof normalizedHero.backgroundGradient === 'object' && !Array.isArray(normalizedHero.backgroundGradient)) {
+          if ('vi' in normalizedHero.backgroundGradient || 'en' in normalizedHero.backgroundGradient || 'ja' in normalizedHero.backgroundGradient) {
+            normalizedHero.backgroundGradient = (normalizedHero.backgroundGradient as any).vi || (normalizedHero.backgroundGradient as any).en || HERO_GRADIENT_OPTIONS[0].value;
+          }
+        }
+        setHeroData(normalizedHero as HeroData);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải hero");
@@ -259,7 +290,9 @@ export default function AdminIndustriesPage() {
         AdminEndpoints.industries.listHeader.get,
       );
       if (data?.data) {
-        setListHeaderData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedHeader = migrateObjectToLocale(data.data);
+        setListHeaderData(normalizedHeader as ListHeaderData);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải list header");
@@ -276,7 +309,9 @@ export default function AdminIndustriesPage() {
         AdminEndpoints.industries.process.get,
       );
       if (data?.data) {
-        setProcessData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedProcess = migrateObjectToLocale(data.data);
+        setProcessData(normalizedProcess as ProcessData);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải process");
@@ -293,7 +328,26 @@ export default function AdminIndustriesPage() {
         AdminEndpoints.industries.cta.get,
       );
       if (data?.data) {
-        setCtaData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedCta = migrateObjectToLocale(data.data);
+        // Xử lý các field link: nếu là locale object, lấy giá trị vi
+        if (normalizedCta.primaryButtonLink && typeof normalizedCta.primaryButtonLink === 'object' && !Array.isArray(normalizedCta.primaryButtonLink)) {
+          if ('vi' in normalizedCta.primaryButtonLink || 'en' in normalizedCta.primaryButtonLink || 'ja' in normalizedCta.primaryButtonLink) {
+            normalizedCta.primaryButtonLink = (normalizedCta.primaryButtonLink as any).vi || (normalizedCta.primaryButtonLink as any).en || '';
+          }
+        }
+        if (normalizedCta.secondaryButtonLink && typeof normalizedCta.secondaryButtonLink === 'object' && !Array.isArray(normalizedCta.secondaryButtonLink)) {
+          if ('vi' in normalizedCta.secondaryButtonLink || 'en' in normalizedCta.secondaryButtonLink || 'ja' in normalizedCta.secondaryButtonLink) {
+            normalizedCta.secondaryButtonLink = (normalizedCta.secondaryButtonLink as any).vi || (normalizedCta.secondaryButtonLink as any).en || '';
+          }
+        }
+        // Đảm bảo backgroundColor là string, không phải locale object
+        if (normalizedCta.backgroundColor && typeof normalizedCta.backgroundColor === 'object' && !Array.isArray(normalizedCta.backgroundColor)) {
+          if ('vi' in normalizedCta.backgroundColor || 'en' in normalizedCta.backgroundColor || 'ja' in normalizedCta.backgroundColor) {
+            normalizedCta.backgroundColor = (normalizedCta.backgroundColor as any).vi || (normalizedCta.backgroundColor as any).en || '#29A3DD';
+          }
+        }
+        setCtaData(normalizedCta as CtaFormData);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải CTA");
@@ -315,11 +369,12 @@ export default function AdminIndustriesPage() {
     let filtered = industries;
 
     if (search) {
-      filtered = filtered.filter(
-        (item) =>
-          item.title.toLowerCase().includes(search.toLowerCase()) ||
-          item.short.toLowerCase().includes(search.toLowerCase()),
-      );
+      filtered = filtered.filter((item) => {
+        const title = typeof item.title === 'string' ? item.title : (item.title as any)?.vi || '';
+        const short = typeof item.short === 'string' ? item.short : (item.short as any)?.vi || '';
+        return title.toLowerCase().includes(search.toLowerCase()) ||
+               short.toLowerCase().includes(search.toLowerCase());
+      });
     }
 
     if (activeFilter === "active") {
@@ -342,9 +397,9 @@ export default function AdminIndustriesPage() {
     setEditingId(-1);
     setFormData({
       iconName: "Code2",
-      title: "",
-      short: "",
-      points: [""],
+      title: { vi: '', en: '', ja: '' },
+      short: { vi: '', en: '', ja: '' },
+      points: [{ vi: '', en: '', ja: '' }],
       gradient: GRADIENT_OPTIONS[0].value,
       sortOrder: industries.length,
       isActive: true,
@@ -353,7 +408,9 @@ export default function AdminIndustriesPage() {
 
   const handleEdit = (industry: IndustryItem) => {
     setEditingId(industry.id);
-    setFormData(industry);
+    // Normalize dữ liệu để đảm bảo các field luôn là locale object
+    const normalizedIndustry = migrateObjectToLocale(industry);
+    setFormData(normalizedIndustry);
   };
 
   const handleCancel = () => {
@@ -363,12 +420,29 @@ export default function AdminIndustriesPage() {
 
   const handleSave = async () => {
     try {
-      if (!formData.title) {
+      // Validate title - check if it's a locale object or string
+      const titleValue = formData.title;
+      const hasTitle = typeof titleValue === 'string' 
+        ? titleValue.trim() !== ''
+        : (titleValue && typeof titleValue === 'object' && (titleValue.vi?.trim() || titleValue.en?.trim() || titleValue.ja?.trim() || ''));
+
+      if (!hasTitle) {
         toast.error("Title không được để trống");
         return;
       }
 
-      const cleanPoints = (formData.points || []).filter((p) => p.trim() !== "");
+      // Clean points - filter out empty ones
+      const cleanPoints = (formData.points || []).filter((p) => {
+        if (typeof p === 'string') return p.trim() !== '';
+        if (typeof p === 'object' && p !== null) {
+          // Check if it's a locale object
+          if ('vi' in p || 'en' in p || 'ja' in p) {
+            const text = (p as any)?.vi?.trim() || (p as any)?.en?.trim() || (p as any)?.ja?.trim() || '';
+            return text !== '';
+          }
+        }
+        return false;
+      });
 
       const dataToSave = {
         ...formData,
@@ -482,6 +556,138 @@ export default function AdminIndustriesPage() {
     const newPoints = [...(formData.points || [])];
     newPoints[index] = value;
     setFormData({ ...formData, points: newPoints });
+  };
+
+  // Translation handlers for sections
+  const handleTranslateSection = async (section: 'list' | 'hero' | 'process' | 'cta') => {
+    let dataToTranslate: any;
+    let updateCallback: (translatedData: any) => void;
+    let sectionName: string;
+
+    // Prepare data and update callback based on section
+    if (section === 'list') {
+      // Loại bỏ các trường không cần dịch: iconName, gradient trong industries
+      const translatedIndustries = industries.map((industry: any) => {
+        const { iconName, gradient, sortOrder, isActive, ...industryFields } = industry;
+        return industryFields;
+      });
+      dataToTranslate = {
+        header: listHeaderData,
+        industries: translatedIndustries
+      };
+      updateCallback = (translated: any) => {
+        if (translated.header) {
+          setListHeaderData(translated.header as ListHeaderData);
+        }
+        if (translated.industries) {
+          // Giữ nguyên iconName, gradient, sortOrder, isActive của industries
+          const updatedIndustries = translated.industries.map((industry: any, index: number) => ({
+            ...industry,
+            iconName: industries[index]?.iconName || 'Code2',
+            gradient: industries[index]?.gradient || GRADIENT_OPTIONS[0].value,
+            sortOrder: industries[index]?.sortOrder ?? index,
+            isActive: industries[index]?.isActive ?? true
+          }));
+          setIndustries(updatedIndustries);
+        }
+      };
+      sectionName = 'Danh sách lĩnh vực';
+    } else if (section === 'hero') {
+      // Loại bỏ các trường không cần dịch: image, buttonLink, backgroundGradient, isActive, stats (stats có iconName, gradient)
+      const { image, buttonLink, backgroundGradient, isActive, stats, ...dataToTranslateFields } = heroData;
+      const translatedStats = stats.map((stat: any) => {
+        const { iconName, gradient, sortOrder, ...statFields } = stat;
+        return statFields;
+      });
+      dataToTranslate = {
+        ...dataToTranslateFields,
+        stats: translatedStats
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên iconName, gradient, sortOrder của stats
+        const updatedStats = translated.stats.map((stat: any, index: number) => ({
+          ...stat,
+          iconName: stats[index]?.iconName || 'Award',
+          gradient: stats[index]?.gradient || GRADIENT_OPTIONS[0].value,
+          sortOrder: stats[index]?.sortOrder ?? index
+        }));
+        setHeroData({
+          ...translated,
+          image,
+          buttonLink,
+          backgroundGradient,
+          isActive,
+          stats: updatedStats
+        } as HeroData);
+      };
+      sectionName = 'Hero Banner';
+    } else if (section === 'process') {
+      // Loại bỏ các trường không cần dịch: iconName, image, colors, button.link, button.iconName trong steps
+      const { header, steps, ...processFields } = processData;
+      const translatedSteps = steps.map((step: any) => {
+        const { iconName, image, colors, button, sortOrder, isActive, stepId, ...stepFields } = step;
+        const { link, iconName: buttonIconName, iconSize, ...buttonFields } = button || {};
+        return {
+          ...stepFields,
+          button: buttonFields
+        };
+      });
+      dataToTranslate = {
+        header,
+        ...processFields,
+        steps: translatedSteps
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên iconName, image, colors, button.link, button.iconName, button.iconSize, sortOrder, isActive, stepId của steps
+        const updatedSteps = translated.steps.map((step: any, index: number) => ({
+          ...step,
+          iconName: steps[index]?.iconName || 'Target',
+          image: steps[index]?.image || '',
+          colors: steps[index]?.colors || {
+            gradient: 'from-blue-500 to-cyan-500',
+            strip: 'from-blue-500 via-cyan-500 to-sky-400',
+            border: 'border-blue-100',
+            shadowBase: 'rgba(15,23,42,0.06)',
+            shadowHover: 'rgba(37,99,235,0.18)',
+            check: 'text-blue-600'
+          },
+          button: {
+            ...step.button,
+            link: steps[index]?.button?.link || '',
+            iconName: steps[index]?.button?.iconName || 'ArrowRight',
+            iconSize: steps[index]?.button?.iconSize || 18
+          },
+          sortOrder: steps[index]?.sortOrder ?? index,
+          isActive: steps[index]?.isActive ?? true,
+          stepId: steps[index]?.stepId || String(index + 1).padStart(2, '0')
+        }));
+        setProcessData({
+          ...translated,
+          steps: updatedSteps
+        } as ProcessData);
+      };
+      sectionName = 'Lộ trình đồng hành';
+    } else if (section === 'cta') {
+      // Loại bỏ các trường không cần dịch: primaryButtonLink, secondaryButtonLink, backgroundColor, isActive
+      const { primaryButtonLink, secondaryButtonLink, backgroundColor, isActive, ...dataWithoutLinks } = ctaData;
+      dataToTranslate = dataWithoutLinks;
+      updateCallback = (translated: any) => {
+        // Giữ nguyên các giá trị link, backgroundColor, isActive khi cập nhật dữ liệu đã dịch
+        setCtaData({
+          ...translated,
+          primaryButtonLink,
+          secondaryButtonLink,
+          backgroundColor,
+          isActive
+        } as CtaFormData);
+      };
+      sectionName = 'CTA';
+    } else {
+      return;
+    }
+
+    // Use translateData from hook
+    await translateData(dataToTranslate, updateCallback, sectionName);
   };
 
   // Hero handlers
@@ -631,8 +837,8 @@ export default function AdminIndustriesPage() {
     setStepFormData({
       stepId: String(processData.steps.length + 1).padStart(2, "0"),
       iconName: "Target",
-      title: "",
-      description: "",
+      title: { vi: '', en: '', ja: '' },
+      description: { vi: '', en: '', ja: '' },
       points: [],
       image: "",
       colors: {
@@ -644,7 +850,7 @@ export default function AdminIndustriesPage() {
         check: "text-blue-600",
       },
       button: {
-        text: "",
+        text: { vi: '', en: '', ja: '' },
         link: "",
         iconName: "ArrowRight",
         iconSize: 18,
@@ -898,6 +1104,13 @@ export default function AdminIndustriesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Quản lý lĩnh vực</h1>
           <p className="text-gray-600 mt-1">Quản lý đầy đủ các phần của trang lĩnh vực</p>
         </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector */}
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
+        </div>
       </div>
 
       {/* Progress Stepper */}
@@ -963,6 +1176,69 @@ export default function AdminIndustriesPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('list')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* List Header Section */}
               <Card>
                 <CardHeader className="p-0">
@@ -990,20 +1266,30 @@ export default function AdminIndustriesPage() {
                 {!collapsedBlocks.listHeader && (
                   <CardContent className="space-y-4 px-6 py-4">
                   <div>
-                    <Label className="pb-2">Tiêu đề *</Label>
-                    <Input
-                      value={listHeaderData.title}
-                      onChange={(e) => setListHeaderData({ ...listHeaderData, title: e.target.value })}
+                    <LocaleInput
+                      label="Tiêu đề"
+                      value={getLocaleValue(listHeaderData, 'title')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(listHeaderData, 'title', value);
+                        setListHeaderData(updated as ListHeaderData);
+                      }}
                       placeholder="Các lĩnh vực hoạt động & dịch vụ"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={listHeaderData.description}
-                      onChange={(e) => setListHeaderData({ ...listHeaderData, description: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(listHeaderData, 'description')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(listHeaderData, 'description', value);
+                        setListHeaderData(updated as ListHeaderData);
+                      }}
                       placeholder="Mô tả..."
-                      rows={3}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -1131,7 +1417,7 @@ export default function AdminIndustriesPage() {
                   handleCancel();
                 }
               }}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent style={{ maxWidth: '1200px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
                   <DialogHeader>
                     <DialogTitle>
                       {editingId === -1 ? "Thêm lĩnh vực mới" : "Chỉnh sửa lĩnh vực"}
@@ -1181,19 +1467,27 @@ export default function AdminIndustriesPage() {
                         </Select>
                       </div>
                       <div className="md:col-span-2">
-                        <Label className="pb-2">Tiêu đề *</Label>
-                        <Input
-                          value={formData.title || ""}
-                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        <LocaleInput
+                          label="Tiêu đề"
+                          value={getLocaleValue(formData, 'title')}
+                          onChange={(value) => {
+                            const updated = setLocaleValue(formData, 'title', value);
+                            setFormData(updated as Partial<IndustryItem>);
+                          }}
                           placeholder="Nhập tiêu đề lĩnh vực..."
+                          defaultLocale={globalLocale}
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <Label className="pb-2">Mô tả ngắn</Label>
-                        <Input
-                          value={formData.short || ""}
-                          onChange={(e) => setFormData({ ...formData, short: e.target.value })}
+                        <LocaleInput
+                          label="Mô tả ngắn"
+                          value={getLocaleValue(formData, 'short')}
+                          onChange={(value) => {
+                            const updated = setLocaleValue(formData, 'short', value);
+                            setFormData(updated as Partial<IndustryItem>);
+                          }}
                           placeholder="Nhập mô tả ngắn..."
+                          defaultLocale={globalLocale}
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -1201,22 +1495,34 @@ export default function AdminIndustriesPage() {
                         <div className="space-y-2">
                           {(formData.points || []).map((point, index) => (
                             <div key={index} className="flex gap-2">
-                              <Input
-                                value={point}
-                                onChange={(e) => handlePointChange(index, e.target.value)}
-                                placeholder={`Điểm ${index + 1}...`}
-                              />
+                              <div className="flex-1">
+                                <LocaleInput
+                                  label={`Điểm ${index + 1}`}
+                                  value={getLocaleValue(point, '')}
+                                  onChange={(value) => {
+                                    const newPoints = [...(formData.points || [])];
+                                    newPoints[index] = value;
+                                    setFormData({ ...formData, points: newPoints });
+                                  }}
+                                  placeholder={`Điểm ${index + 1}...`}
+                                  defaultLocale={globalLocale}
+                                />
+                              </div>
                               <Button
                                 type="button"
                                 variant="outline"
                                 size="icon"
+                                className="mt-6"
                                 onClick={() => handleRemovePoint(index)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           ))}
-                          <Button type="button" variant="outline" onClick={handleAddPoint}>
+                          <Button type="button" variant="outline" onClick={() => {
+                            const newPoints = [...(formData.points || []), { vi: '', en: '', ja: '' }];
+                            setFormData({ ...formData, points: newPoints });
+                          }}>
                             <Plus className="h-4 w-4 mr-2" />
                             Thêm điểm
                           </Button>
@@ -1281,15 +1587,15 @@ export default function AdminIndustriesPage() {
                                       {renderIcon(industry.iconName)}
                                     </div>
                                     <div>
-                                      <h3 className="font-semibold text-lg">{industry.title}</h3>
-                                      <p className="text-sm text-gray-600">{industry.short}</p>
+                                      <h3 className="font-semibold text-lg">{getLocalizedText(industry.title, globalLocale)}</h3>
+                                      <p className="text-sm text-gray-600">{getLocalizedText(industry.short, globalLocale)}</p>
                                     </div>
                                   </div>
                                   <ul className="ml-13 space-y-1 mt-2">
                                     {industry.points.map((point, idx) => (
                                       <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
                                         <CheckCircle2 className="w-4 h-4 text-[#008CCB] mt-0.5 flex-shrink-0" />
-                                        <span>{point}</span>
+                                        <span>{getLocalizedText(point, globalLocale)}</span>
                                       </li>
                                     ))}
                                   </ul>
@@ -1388,7 +1694,7 @@ export default function AdminIndustriesPage() {
                             lineHeight: "normal",
                           }}
                         >
-                          {listHeaderData.title}
+                          {getLocalizedText(listHeaderData.title, globalLocale)}
                         </h2>
                       )}
                       {listHeaderData.description && (
@@ -1399,7 +1705,7 @@ export default function AdminIndustriesPage() {
                             fontFeatureSettings: "'liga' off, 'clig' off",
                           }}
                         >
-                          {listHeaderData.description}
+                          {getLocalizedText(listHeaderData.description, globalLocale)}
                         </p>
                       )}
                     </div>
@@ -1420,11 +1726,11 @@ export default function AdminIndustriesPage() {
                                   {index + 1}
                                 </div>
                                 <h3 className="text-lg font-bold text-gray-900 pt-1 leading-snug">
-                                  {industry.title}
+                                  {getLocalizedText(industry.title, globalLocale)}
                                 </h3>
                               </div>
                               <p className="text-gray-600 text-sm leading-relaxed min-h-[40px]">
-                                {industry.short}
+                                {getLocalizedText(industry.short, globalLocale)}
                               </p>
                               <ul className="space-y-3">
                                 {industry.points.map((point, idx) => (
@@ -1434,7 +1740,7 @@ export default function AdminIndustriesPage() {
                                         <CheckCircle2 size={12} className="text-white" />
                                       </div>
                                     </div>
-                                    <span className="text-sm text-gray-600 leading-snug">{point}</span>
+                                    <span className="text-sm text-gray-600 leading-snug">{getLocalizedText(point, globalLocale)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -1461,16 +1767,68 @@ export default function AdminIndustriesPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Hero Banner</h2>
-                  <p className="text-gray-600 mt-1">Cấu hình hero banner cho trang lĩnh vực</p>
-                </div>
-                <Button onClick={handleSaveHero} disabled={loadingHero}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {loadingHero ? "Đang lưu..." : "Lưu thay đổi"}
-                </Button>
-              </div>
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('hero')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <Card>
                 <CardHeader className="p-0">
@@ -1486,44 +1844,65 @@ export default function AdminIndustriesPage() {
                       )}
                       Thông tin chính
                     </CardTitle>
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveHero(); }} disabled={loadingHero} size="sm">
+                      <Save className="h-4 w-4 mr-2" />
+                      {loadingHero ? "Đang lưu..." : "Lưu"}
+                    </Button>
                   </div>
                 </CardHeader>
                 {!collapsedBlocks.heroMainInfo && (
                   <CardContent className="space-y-4 px-6 py-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề Prefix *</Label>
-                      <Input
-                        value={heroData.titlePrefix}
-                        onChange={(e) => setHeroData({ ...heroData, titlePrefix: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề Prefix"
+                        value={getLocaleValue(heroData, 'titlePrefix')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titlePrefix', value);
+                          setHeroData(updated as HeroData);
+                        }}
                         placeholder="Giải pháp công nghệ tối ưu"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề Suffix *</Label>
-                      <Input
-                        value={heroData.titleSuffix}
-                        onChange={(e) => setHeroData({ ...heroData, titleSuffix: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề Suffix"
+                        value={getLocaleValue(heroData, 'titleSuffix')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titleSuffix', value);
+                          setHeroData(updated as HeroData);
+                        }}
                         placeholder="vận hành doanh nghiệp"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={heroData.description}
-                      onChange={(e) => setHeroData({ ...heroData, description: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(heroData, 'description')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(heroData, 'description', value);
+                        setHeroData(updated as HeroData);
+                      }}
                       placeholder="Mô tả..."
-                      rows={4}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="pb-2">Button Text</Label>
-                      <Input
-                        value={heroData.buttonText}
-                        onChange={(e) => setHeroData({ ...heroData, buttonText: e.target.value })}
+                      <LocaleInput
+                        label="Button Text"
+                        value={getLocaleValue(heroData, 'buttonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'buttonText', value);
+                          setHeroData(updated as HeroData);
+                        }}
                         placeholder="KHÁM PHÁ GIẢI PHÁP"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
@@ -1545,11 +1924,13 @@ export default function AdminIndustriesPage() {
                   <div>
                     <Label className="pb-2">Background Gradient</Label>
                     <Select
-                      value={heroData.backgroundGradient}
+                      value={heroData.backgroundGradient || HERO_GRADIENT_OPTIONS[0].value}
                       onValueChange={(value) => setHeroData({ ...heroData, backgroundGradient: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue>
+                          {HERO_GRADIENT_OPTIONS.find(opt => opt.value === (heroData.backgroundGradient || HERO_GRADIENT_OPTIONS[0].value))?.label || "Chọn màu nền"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {HERO_GRADIENT_OPTIONS.map((opt) => (
@@ -1610,10 +1991,10 @@ export default function AdminIndustriesPage() {
                                   </div>
                                   <div>
                                     <h4 className="font-semibold">
-                                      {stat.value || "Chưa có giá trị"}
+                                      {getLocalizedText(stat.value, globalLocale) || "Chưa có giá trị"}
                                     </h4>
                                     <p className="text-sm text-gray-600">
-                                      {stat.label || "Chưa có label"}
+                                      {getLocalizedText(stat.label, globalLocale) || "Chưa có label"}
                                     </p>
                                   </div>
                                 </div>
@@ -1651,7 +2032,7 @@ export default function AdminIndustriesPage() {
                   handleCancelStat();
                 }
               }}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent style={{ maxWidth: '1200px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
                   <DialogHeader>
                     <DialogTitle>
                       {editingStatIndex === -1 ? "Thêm Stat mới" : `Chỉnh sửa Stat`}
@@ -1702,19 +2083,27 @@ export default function AdminIndustriesPage() {
                           </Select>
                         </div>
                         <div>
-                          <Label className="pb-2">Value</Label>
-                          <Input
-                            value={statFormData.value || ""}
-                            onChange={(e) => handleStatFormChange("value", e.target.value)}
+                          <LocaleInput
+                            label="Value"
+                            value={getLocaleValue(statFormData, 'value')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(statFormData!, 'value', value);
+                              setStatFormData(updated as HeroStat);
+                            }}
                             placeholder="8+ năm"
+                            defaultLocale={globalLocale}
                           />
                         </div>
                         <div>
-                          <Label className="pb-2">Label</Label>
-                          <Input
-                            value={statFormData.label || ""}
-                            onChange={(e) => handleStatFormChange("label", e.target.value)}
+                          <LocaleInput
+                            label="Label"
+                            value={getLocaleValue(statFormData, 'label')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(statFormData!, 'label', value);
+                              setStatFormData(updated as HeroStat);
+                            }}
                             placeholder="Kinh nghiệm triển khai"
+                            defaultLocale={globalLocale}
                           />
                         </div>
                         <div>
@@ -1842,8 +2231,8 @@ export default function AdminIndustriesPage() {
                                 fontFeatureSettings: "'liga' off, 'clig' off"
                               }}
                             >
-                              <span className="font-bold">{heroData.titlePrefix} </span>
-                              <span className="font-normal">{heroData.titleSuffix}</span>
+                              <span className="font-bold">{getLocalizedText(heroData.titlePrefix, globalLocale)} </span>
+                              <span className="font-normal">{getLocalizedText(heroData.titleSuffix, globalLocale)}</span>
                             </h1>
                           )}
 
@@ -1861,7 +2250,7 @@ export default function AdminIndustriesPage() {
                                 lineHeight: '26px'
                               }}
                             >
-                              {heroData.description}
+                              {getLocalizedText(heroData.description, globalLocale)}
                             </p>
                           )}
 
@@ -1883,7 +2272,7 @@ export default function AdminIndustriesPage() {
                                       fontFeatureSettings: "'liga' off, 'clig' off"
                                     }}
                                   >
-                                    {stat.value}
+                                    {getLocalizedText(stat.value, globalLocale)}
                                   </div>
                                   <div
                                     style={{
@@ -1896,9 +2285,12 @@ export default function AdminIndustriesPage() {
                                       lineHeight: '35px'
                                     }}
                                   >
-                                    {stat.label === "Cơ quan Nhà nước & doanh nghiệp"
-                                      ? "Cơ quan Nhà nước & DN"
-                                      : stat.label}
+                                    {(() => {
+                                      const label = getLocalizedText(stat.label, globalLocale);
+                                      return label === "Cơ quan Nhà nước & doanh nghiệp"
+                                        ? "Cơ quan Nhà nước & DN"
+                                        : label;
+                                    })()}
                                   </div>
                                 </div>
                               ))}
@@ -1923,7 +2315,7 @@ export default function AdminIndustriesPage() {
                                 fontWeight: 700,
                               }}
                             >
-                              {heroData.buttonText}
+                              {getLocalizedText(heroData.buttonText, globalLocale)}
                               <ArrowRight size={20} />
                             </a>
                           )}
@@ -1948,16 +2340,68 @@ export default function AdminIndustriesPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Lộ trình đồng hành</h2>
-                  <p className="text-gray-600 mt-1">Cấu hình header và các bước trong process section</p>
-                </div>
-                <Button onClick={handleSaveProcess} disabled={loadingProcess}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {loadingProcess ? "Đang lưu..." : "Lưu thay đổi"}
-                </Button>
-              </div>
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('process')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Process Header */}
               <Card>
@@ -1974,97 +2418,102 @@ export default function AdminIndustriesPage() {
                       )}
                       Header
                     </CardTitle>
+                    <Button onClick={(e) => { e.stopPropagation(); handleSaveProcess(); }} disabled={loadingProcess} size="sm">
+                      <Save className="h-4 w-4 mr-2" />
+                      {loadingProcess ? "Đang lưu..." : "Lưu"}
+                    </Button>
                   </div>
                 </CardHeader>
                 {!collapsedBlocks.processHeader && (
                   <CardContent className="space-y-4 px-6 py-4">
                   <div>
-                    <Label className="pb-2">Subtitle</Label>
-                    <Input
-                      value={processData.header?.subtitle || ""}
-                      onChange={(e) =>
+                    <LocaleInput
+                      label="Subtitle"
+                      value={getLocaleValue(processData.header || {}, 'subtitle')}
+                      onChange={(value) => {
+                        const header = processData.header || {
+                          subtitle: '',
+                          titlePart1: '',
+                          titleHighlight: '',
+                          titlePart2: '',
+                          isActive: true
+                        };
+                        const updated = setLocaleValue(header, 'subtitle', value);
                         setProcessData({
                           ...processData,
-                          header: {
-                            ...(processData.header || {
-                              subtitle: "",
-                              titlePart1: "",
-                              titleHighlight: "",
-                              titlePart2: "",
-                              isActive: true,
-                            }),
-                            subtitle: e.target.value,
-                          },
-                        })
-                      }
+                          header: updated as ProcessData['header']
+                        });
+                      }}
                       placeholder="LỘ TRÌNH ĐỒNG HÀNH CÙNG SFB"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề Part 1</Label>
-                      <Input
-                        value={processData.header?.titlePart1 || ""}
-                        onChange={(e) =>
+                      <LocaleInput
+                        label="Tiêu đề Part 1"
+                        value={getLocaleValue(processData.header || {}, 'titlePart1')}
+                        onChange={(value) => {
+                          const header = processData.header || {
+                            subtitle: '',
+                            titlePart1: '',
+                            titleHighlight: '',
+                            titlePart2: '',
+                            isActive: true
+                          };
+                          const updated = setLocaleValue(header, 'titlePart1', value);
                           setProcessData({
                             ...processData,
-                            header: {
-                              ...(processData.header || {
-                                subtitle: "",
-                                titlePart1: "",
-                                titleHighlight: "",
-                                titlePart2: "",
-                                isActive: true,
-                              }),
-                              titlePart1: e.target.value,
-                            },
-                          })
-                        }
+                            header: updated as ProcessData['header']
+                          });
+                        }}
                         placeholder="Vì sao SFB phù hợp cho"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề Highlight</Label>
-                      <Input
-                        value={processData.header?.titleHighlight || ""}
-                        onChange={(e) =>
+                      <LocaleInput
+                        label="Tiêu đề Highlight"
+                        value={getLocaleValue(processData.header || {}, 'titleHighlight')}
+                        onChange={(value) => {
+                          const header = processData.header || {
+                            subtitle: '',
+                            titlePart1: '',
+                            titleHighlight: '',
+                            titlePart2: '',
+                            isActive: true
+                          };
+                          const updated = setLocaleValue(header, 'titleHighlight', value);
                           setProcessData({
                             ...processData,
-                            header: {
-                              ...(processData.header || {
-                                subtitle: "",
-                                titlePart1: "",
-                                titleHighlight: "",
-                                titlePart2: "",
-                                isActive: true,
-                              }),
-                              titleHighlight: e.target.value,
-                            },
-                          })
-                        }
+                            header: updated as ProcessData['header']
+                          });
+                        }}
                         placeholder="nhiều"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề Part 2</Label>
-                      <Input
-                        value={processData.header?.titlePart2 || ""}
-                        onChange={(e) =>
+                      <LocaleInput
+                        label="Tiêu đề Part 2"
+                        value={getLocaleValue(processData.header || {}, 'titlePart2')}
+                        onChange={(value) => {
+                          const header = processData.header || {
+                            subtitle: '',
+                            titlePart1: '',
+                            titleHighlight: '',
+                            titlePart2: '',
+                            isActive: true
+                          };
+                          const updated = setLocaleValue(header, 'titlePart2', value);
                           setProcessData({
                             ...processData,
-                            header: {
-                              ...(processData.header || {
-                                subtitle: "",
-                                titlePart1: "",
-                                titleHighlight: "",
-                                titlePart2: "",
-                                isActive: true,
-                              }),
-                              titlePart2: e.target.value,
-                            },
-                          })
-                        }
+                            header: updated as ProcessData['header']
+                          });
+                        }}
                         placeholder="lĩnh vực khác nhau"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                   </div>
@@ -2179,10 +2628,10 @@ export default function AdminIndustriesPage() {
                                   </div>
                                   <div>
                                     <h4 className="font-semibold">
-                                      Step {step.stepId}: {step.title || "Chưa có tiêu đề"}
+                                      Step {step.stepId}: {getLocalizedText(step.title, globalLocale) || "Chưa có tiêu đề"}
                                     </h4>
                                     <p className="text-sm text-gray-600 line-clamp-1">
-                                      {step.description || "Chưa có mô tả"}
+                                      {getLocalizedText(step.description, globalLocale) || "Chưa có mô tả"}
                                     </p>
                                   </div>
                                 </div>
@@ -2281,20 +2730,28 @@ export default function AdminIndustriesPage() {
                           </Select>
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Tiêu đề</Label>
-                          <Input
-                            value={stepFormData.title || ""}
-                            onChange={(e) => handleStepFormChange("title", e.target.value)}
+                          <LocaleInput
+                            label="Tiêu đề"
+                            value={getLocaleValue(stepFormData, 'title')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(stepFormData, 'title', value);
+                              setStepFormData(updated);
+                            }}
                             placeholder="Hiểu rõ đặc thù từng ngành"
+                            defaultLocale={globalLocale}
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Mô tả</Label>
-                          <Textarea
-                            value={stepFormData.description || ""}
-                            onChange={(e) => handleStepFormChange("description", e.target.value)}
+                          <LocaleInput
+                            label="Mô tả"
+                            value={getLocaleValue(stepFormData, 'description')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(stepFormData, 'description', value);
+                              setStepFormData(updated);
+                            }}
                             placeholder="Mô tả..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
                           />
                         </div>
                         <div className="md:col-span-2">
@@ -2307,17 +2764,26 @@ export default function AdminIndustriesPage() {
                         <div className="md:col-span-2">
                           <Label className="pb-2">Points</Label>
                           <div className="space-y-2">
-                            {(stepFormData.points || []).map((point: string, pointIndex: number) => (
+                            {(stepFormData.points || []).map((point: any, pointIndex: number) => (
                               <div key={pointIndex} className="flex gap-2">
-                                <Input
-                                  value={point}
-                                  onChange={(e) => handleStepPointChange(pointIndex, e.target.value)}
-                                  placeholder={`Điểm ${pointIndex + 1}...`}
-                                />
+                                <div className="flex-1">
+                                  <LocaleInput
+                                    label={`Điểm ${pointIndex + 1}`}
+                                    value={getLocaleValue(point, '')}
+                                    onChange={(value) => {
+                                      const newPoints = [...(stepFormData.points || [])];
+                                      newPoints[pointIndex] = value;
+                                      setStepFormData({ ...stepFormData, points: newPoints });
+                                    }}
+                                    placeholder={`Điểm ${pointIndex + 1}...`}
+                                    defaultLocale={globalLocale}
+                                  />
+                                </div>
                                 <Button
                                   type="button"
                                   variant="outline"
                                   size="icon"
+                                  className="mt-6"
                                   onClick={() => handleRemoveStepPoint(pointIndex)}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -2327,7 +2793,10 @@ export default function AdminIndustriesPage() {
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={handleAddStepPoint}
+                              onClick={() => {
+                                const newPoints = [...(stepFormData.points || []), { vi: '', en: '', ja: '' }];
+                                setStepFormData({ ...stepFormData, points: newPoints });
+                              }}
                             >
                               <Plus className="h-4 w-4 mr-2" />
                               Thêm điểm
@@ -2383,11 +2852,16 @@ export default function AdminIndustriesPage() {
                           />
                         </div>
                         <div>
-                          <Label className="pb-2">Button - Text</Label>
-                          <Input
-                            value={stepFormData.button?.text || ""}
-                            onChange={(e) => handleStepFormChange("button.text", e.target.value)}
+                          <LocaleInput
+                            label="Button Text"
+                            value={getLocaleValue(stepFormData.button || {}, 'text')}
+                            onChange={(value) => {
+                              const button = stepFormData.button || { text: '', link: '', iconName: 'ArrowRight', iconSize: 18 };
+                              const updated = setLocaleValue(button, 'text', value);
+                              setStepFormData({ ...stepFormData, button: updated as ProcessStep['button'] });
+                            }}
                             placeholder="Liên hệ với chúng tôi"
+                            defaultLocale={globalLocale}
                           />
                         </div>
                         <div>
@@ -2479,7 +2953,7 @@ export default function AdminIndustriesPage() {
                                   lineHeight: "normal",
                                 }}
                               >
-                                {processData.header.subtitle}
+                                {getLocalizedText(processData.header.subtitle, globalLocale)}
                               </span>
                             </div>
                           )}
@@ -2492,7 +2966,7 @@ export default function AdminIndustriesPage() {
                                 lineHeight: "normal",
                               }}
                             >
-                              {processData.header.titlePart1}{" "}
+                              {getLocalizedText(processData.header.titlePart1, globalLocale)}{" "}
                               <span
                                 className="font-bold"
                                 style={{
@@ -2501,9 +2975,9 @@ export default function AdminIndustriesPage() {
                                   lineHeight: "normal",
                                 }}
                               >
-                                {processData.header.titleHighlight}
+                                {getLocalizedText(processData.header.titleHighlight, globalLocale)}
                                 <br />
-                                {processData.header.titlePart2}
+                                {getLocalizedText(processData.header.titlePart2, globalLocale)}
                               </span>
                             </h2>
                           )}
@@ -2538,7 +3012,7 @@ export default function AdminIndustriesPage() {
                                           <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
                                             <img
                                               src={step.image}
-                                              alt={step.title}
+                                              alt={getLocalizedText(step.title, globalLocale) || 'Step image'}
                                               className="w-full h-full object-cover transform group-hover:scale-105 transition-duration-700"
                                               onError={(e) => {
                                                 e.currentTarget.style.display = 'none';
@@ -2559,7 +3033,7 @@ export default function AdminIndustriesPage() {
                                           fontFamily: '"Plus Jakarta Sans", sans-serif',
                                         }}
                                       >
-                                        {step.title}
+                                        {getLocalizedText(step.title, globalLocale)}
                                       </h3>
                                     )}
                                     {step.description && (
@@ -2570,7 +3044,7 @@ export default function AdminIndustriesPage() {
                                           lineHeight: '1.75',
                                         }}
                                       >
-                                        {step.description}
+                                        {getLocalizedText(step.description, globalLocale)}
                                       </p>
                                     )}
 
@@ -2579,14 +3053,14 @@ export default function AdminIndustriesPage() {
                                         {step.points.map((point, idx) => (
                                           <li key={idx} className="flex items-start gap-3">
                                             <div className="flex-shrink-0 mt-1">
-                                              <div
-                                                className="w-6 h-6 rounded-full flex items-center justify-center"
-                                                style={{
-                                                  background: step.colors?.check?.includes('blue')
-                                                    ? '#008CCB'
-                                                    : step.colors?.check || '#008CCB',
-                                                }}
-                                              >
+                                            <div
+                                              className="w-6 h-6 rounded-full flex items-center justify-center"
+                                              style={{
+                                                background: (typeof step.colors?.check === 'string' && step.colors.check.includes('blue'))
+                                                  ? '#008CCB'
+                                                  : (typeof step.colors?.check === 'string' ? step.colors.check : '#008CCB'),
+                                              }}
+                                            >
                                                 <CheckCircle2 size={14} className="text-white" />
                                               </div>
                                             </div>
@@ -2596,7 +3070,7 @@ export default function AdminIndustriesPage() {
                                                 fontFamily: '"Plus Jakarta Sans", sans-serif',
                                               }}
                                             >
-                                              {point}
+                                              {getLocalizedText(point, globalLocale)}
                                             </span>
                                           </li>
                                         ))}
@@ -2614,17 +3088,20 @@ export default function AdminIndustriesPage() {
                                             fontFamily: '"Plus Jakarta Sans", sans-serif',
                                           }}
                                         >
-                                          {step.button.text === "Liên hệ với chúng tôi" ? (
-                                            <>
-                                              {step.button.text}
-                                              <ButtonIcon size={step.button.iconSize || 18} />
-                                            </>
-                                          ) : (
-                                            <>
-                                              <ButtonIcon size={step.button.iconSize || 18} />
-                                              {step.button.text}
-                                            </>
-                                          )}
+                                          {(() => {
+                                            const buttonText = getLocalizedText(step.button.text, globalLocale);
+                                            return buttonText === "Liên hệ với chúng tôi" ? (
+                                              <>
+                                                {buttonText}
+                                                <ButtonIcon size={step.button.iconSize || 18} />
+                                              </>
+                                            ) : (
+                                              <>
+                                                <ButtonIcon size={step.button.iconSize || 18} />
+                                                {buttonText}
+                                              </>
+                                            );
+                                          })()}
                                         </a>
                                       </div>
                                     )}
@@ -2669,6 +3146,69 @@ export default function AdminIndustriesPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('cta')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="p-0">
                   <div
@@ -2696,55 +3236,65 @@ export default function AdminIndustriesPage() {
                   <CardContent className="space-y-4 px-6 py-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                      <Label htmlFor="cta-title">Tiêu đề *</Label>
-                      <Input
-                        id="cta-title"
-                        value={ctaData.title}
-                        onChange={(e) => setCtaData({ ...ctaData, title: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề"
+                        value={getLocaleValue(ctaData, 'title')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(ctaData, 'title', value);
+                          setCtaData(updated as CtaFormData);
+                        }}
                         placeholder="Ví dụ: Miễn phí tư vấn"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <Label htmlFor="cta-description">Mô tả *</Label>
-                      <Textarea
-                        id="cta-description"
-                        value={ctaData.description}
-                        onChange={(e) => setCtaData({ ...ctaData, description: e.target.value })}
+                      <LocaleInput
+                        label="Mô tả"
+                        value={getLocaleValue(ctaData, 'description')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(ctaData, 'description', value);
+                          setCtaData(updated as CtaFormData);
+                        }}
                         placeholder="Nhập mô tả..."
-                        rows={4}
+                        multiline={true}
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cta-primary-text">Nút chính - Text *</Label>
-                      <Input
-                        id="cta-primary-text"
-                        value={ctaData.primaryButtonText}
-                        onChange={(e) => setCtaData({ ...ctaData, primaryButtonText: e.target.value })}
+                      <LocaleInput
+                        label="Nút chính - Text"
+                        value={getLocaleValue(ctaData, 'primaryButtonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(ctaData, 'primaryButtonText', value);
+                          setCtaData(updated as CtaFormData);
+                        }}
                         placeholder="Ví dụ: Tư vấn miễn phí ngay"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cta-primary-link">Nút chính - Link *</Label>
+                      <Label className="pb-2">Nút chính - Link</Label>
                       <Input
-                        id="cta-primary-link"
                         value={ctaData.primaryButtonLink}
                         onChange={(e) => setCtaData({ ...ctaData, primaryButtonLink: e.target.value })}
                         placeholder="Ví dụ: /contact"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cta-secondary-text">Nút phụ - Text *</Label>
-                      <Input
-                        id="cta-secondary-text"
-                        value={ctaData.secondaryButtonText}
-                        onChange={(e) => setCtaData({ ...ctaData, secondaryButtonText: e.target.value })}
+                      <LocaleInput
+                        label="Nút phụ - Text"
+                        value={getLocaleValue(ctaData, 'secondaryButtonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(ctaData, 'secondaryButtonText', value);
+                          setCtaData(updated as CtaFormData);
+                        }}
                         placeholder="Ví dụ: Xem case studies"
+                        defaultLocale={globalLocale}
                       />
                     </div>
                     <div>
-                      <Label htmlFor="cta-secondary-link">Nút phụ - Link *</Label>
+                      <Label className="pb-2">Nút phụ - Link</Label>
                       <Input
-                        id="cta-secondary-link"
                         value={ctaData.secondaryButtonLink}
                         onChange={(e) => setCtaData({ ...ctaData, secondaryButtonLink: e.target.value })}
                         placeholder="Ví dụ: /solutions"
@@ -2801,23 +3351,23 @@ export default function AdminIndustriesPage() {
                       >
                         <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
                           <h2 className="text-white text-4xl md:text-5xl font-bold mb-6">
-                            {ctaData.title || "Tiêu đề"}
+                            {getLocalizedText(ctaData.title, globalLocale) || "Tiêu đề"}
                           </h2>
                           <p className="text-white/95 text-base md:text-lg leading-relaxed mb-10 max-w-2xl font-medium">
-                            {ctaData.description || "Mô tả"}
+                            {getLocalizedText(ctaData.description, globalLocale) || "Mô tả"}
                           </p>
                           <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
                             <a
                               href={ctaData.secondaryButtonLink || "#"}
                               className="flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:opacity-90 transition-colors duration-300 w-full sm:w-auto min-w-[180px]"
                             >
-                              {ctaData.secondaryButtonText || "Nút phụ"}
+                              {getLocalizedText(ctaData.secondaryButtonText, globalLocale) || "Nút phụ"}
                             </a>
                             <a
                               href={ctaData.primaryButtonLink || "#"}
                               className="group flex h-[48px] px-[29px] py-[7px] justify-center items-center gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:opacity-90 transition-colors duration-300 w-full sm:w-auto min-w-[200px]"
                             >
-                              <span>{ctaData.primaryButtonText || "Nút chính"}</span>
+                              <span>{getLocalizedText(ctaData.primaryButtonText, globalLocale) || "Nút chính"}</span>
                               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </a>
                           </div>

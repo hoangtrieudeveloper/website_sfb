@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Check, X, FolderTree } from "lucide-react";
+import { Plus, Edit, Trash2, Check, X, FolderTree, Languages, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,25 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface Category {
   code: string;
-  name: string;
-  description: string;
+  name: string | Record<Locale, string>;
+  description: string | Record<Locale, string>;
   isActive: boolean;
   parentCode?: string | null;
   createdAt?: string;
@@ -30,21 +44,39 @@ interface Category {
 }
 
 export default function AdminCategoriesPage() {
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData
+  } = useTranslationControls();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    code: string;
+    name: string | Record<Locale, string>;
+    description: string | Record<Locale, string>;
+    isActive: boolean;
+    parentCode: string;
+  }>({
     code: "",
-    name: "",
-    description: "",
+    name: { vi: '', en: '', ja: '' },
+    description: { vi: '', en: '', ja: '' },
     isActive: true,
     parentCode: "",
   });
 
   const resetForm = () =>
-    setFormData({ code: "", name: "", description: "", isActive: true, parentCode: "" });
+    setFormData({ code: "", name: { vi: '', en: '', ja: '' }, description: { vi: '', en: '', ja: '' }, isActive: true, parentCode: "" });
 
   const fetchCategories = async () => {
     try {
@@ -52,7 +84,18 @@ export default function AdminCategoriesPage() {
       const data = await adminApiCall<{ data: Category[] }>(
         AdminEndpoints.categories.list,
       );
-      setCategories(data?.data || []);
+      // Normalize dữ liệu để đảm bảo các field luôn là locale object
+      const normalizedCategories = (data?.data || []).map(category => {
+        const normalized = migrateObjectToLocale(category);
+        // Đảm bảo code, parentCode không bị convert thành locale object
+        return {
+          ...normalized,
+          code: category.code || '',
+          parentCode: category.parentCode || null,
+          isActive: category.isActive ?? true
+        };
+      });
+      setCategories(normalizedCategories);
     } catch (error: any) {
       toast.error(error?.message || "Tải danh mục thất bại");
       // Silently fail
@@ -68,17 +111,19 @@ export default function AdminCategoriesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
-        code: formData.code.trim(),
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        isActive: formData.isActive,
-        parentCode: formData.parentCode || null,
-      };
-      if (!payload.code || !payload.name) {
+      const nameValue = typeof formData.name === 'string' ? formData.name : (formData.name as any)?.vi || '';
+      if (!formData.code.trim() || !nameValue.trim()) {
         toast.error("Mã và tên danh mục là bắt buộc");
         return;
       }
+
+      const payload = {
+        code: formData.code.trim(),
+        name: formData.name,
+        description: formData.description,
+        isActive: formData.isActive,
+        parentCode: formData.parentCode || null,
+      };
 
       const endpoint = editingCategory
         ? AdminEndpoints.categories.detail(editingCategory.code)
@@ -102,10 +147,12 @@ export default function AdminCategoriesPage() {
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
+    // Normalize dữ liệu để đảm bảo các field luôn là locale object
+    const normalizedCategory = migrateObjectToLocale(category);
     setFormData({
       code: category.code,
-      name: category.name,
-      description: category.description || "",
+      name: normalizedCategory.name || { vi: '', en: '', ja: '' },
+      description: normalizedCategory.description || { vi: '', en: '', ja: '' },
       isActive: category.isActive,
       parentCode: category.parentCode || "",
     });
@@ -128,6 +175,30 @@ export default function AdminCategoriesPage() {
     editingCategory ? cat.code !== editingCategory.code : true,
   );
 
+  // Translation handler
+  const handleTranslateAll = async () => {
+    const dataToTranslate = categories.map((category: any) => {
+      const { code, parentCode, isActive, createdAt, updatedAt, ...categoryFields } = category;
+      return categoryFields;
+    });
+    
+    await translateData(
+      { categories: dataToTranslate },
+      (translated: any) => {
+        const updatedCategories = translated.categories.map((category: any, index: number) => ({
+          ...category,
+          code: categories[index]?.code || '',
+          parentCode: categories[index]?.parentCode || null,
+          isActive: categories[index]?.isActive ?? true,
+          createdAt: categories[index]?.createdAt,
+          updatedAt: categories[index]?.updatedAt
+        }));
+        setCategories(updatedCategories);
+      },
+      'Danh mục tin tức'
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,6 +206,79 @@ export default function AdminCategoriesPage() {
           <h1 className="text-3xl text-gray-900">Quản lý danh mục</h1>
           <p className="text-gray-500 mt-1">Tổ chức nội dung theo danh mục</p>
         </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector */}
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
+        </div>
+      </div>
+
+      {/* Translation Controls */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              {/* Locale Selector */}
+              <div className="flex items-center gap-2">
+                <Languages className="h-4 w-4 text-gray-500" />
+                <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                    <SelectItem value="en">🇬🇧 English</SelectItem>
+                    <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {/* Translate Controls */}
+            <div className="flex items-center gap-2">
+              {/* Source Language Selector */}
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                    <SelectItem value="en">🇬🇧 English</SelectItem>
+                    <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Translate Button */}
+              <Button
+                onClick={handleTranslateAll}
+                disabled={translatingAll}
+                variant="outline"
+                className="gap-2"
+              >
+                {translatingAll ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Đang dịch...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Dịch tất cả danh mục
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-between">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -169,13 +313,16 @@ export default function AdminCategoriesPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Tên danh mục</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  <LocaleInput
+                    label="Tên danh mục"
+                    value={getLocaleValue(formData, 'name')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'name', value);
+                      setFormData(updated);
+                    }}
                     placeholder="Nhập tên danh mục"
-                    required
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
               </div>
@@ -193,7 +340,7 @@ export default function AdminCategoriesPage() {
                   <option value="">-- Không có --</option>
                   {availableParentCategories.map((cat) => (
                     <option key={cat.code} value={cat.code}>
-                      {cat.name}
+                      {typeof cat.name === 'string' ? cat.name : getLocalizedText(cat.name, globalLocale)}
                     </option>
                   ))}
                 </select>
@@ -203,18 +350,17 @@ export default function AdminCategoriesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Mô tả</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      description: e.target.value,
-                    })
-                  }
+                <LocaleInput
+                  label="Mô tả"
+                  value={getLocaleValue(formData, 'description')}
+                  onChange={(value) => {
+                    const updated = setLocaleValue(formData, 'description', value);
+                    setFormData(updated);
+                  }}
                   placeholder="Mô tả về danh mục"
-                  rows={3}
+                  multiline={true}
+                  defaultLocale={globalLocale}
+                  aiProvider={aiProvider}
                 />
               </div>
 
@@ -268,7 +414,7 @@ export default function AdminCategoriesPage() {
                 <FolderTree className="w-6 h-6 text-white" />
               </div>
 
-              <h3 className="text-lg text-gray-900 mb-1">{category.name}</h3>
+              <h3 className="text-lg text-gray-900 mb-1">{typeof category.name === 'string' ? category.name : getLocalizedText(category.name, globalLocale)}</h3>
               <p className="text-xs text-gray-500 mb-2">Mã: {category.code}</p>
               {category.parentCode && (
                 <p className="text-xs text-gray-500 mb-1">
@@ -276,7 +422,7 @@ export default function AdminCategoriesPage() {
                 </p>
               )}
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                {category.description || "Chưa có mô tả"}
+                {typeof category.description === 'string' ? category.description : getLocalizedText(category.description, globalLocale) || "Chưa có mô tả"}
               </p>
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">

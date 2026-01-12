@@ -1,8 +1,12 @@
 const { pool } = require('../config/database');
+const { applyLocaleToData, validateLocale } = require('../utils/locale');
 
-// GET /api/public/homepage - Lấy tất cả các blocks đang active
+// GET /api/public/homepage?locale=vi - Lấy tất cả các blocks đang active
 exports.getPublicHomepageBlocks = async (req, res, next) => {
   try {
+    const { locale } = req.query;
+    const currentLocale = validateLocale(locale);
+    
     const { rows } = await pool.query(
       `
       SELECT id, section_type, data, is_active, created_at, updated_at
@@ -27,7 +31,7 @@ exports.getPublicHomepageBlocks = async (req, res, next) => {
       data: rows.map(row => ({
         id: row.id,
         sectionType: row.section_type,
-        data: row.data || {},
+        data: applyLocaleToData(row.data || {}, currentLocale),
         isActive: row.is_active !== undefined ? row.is_active : true,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
@@ -38,10 +42,12 @@ exports.getPublicHomepageBlocks = async (req, res, next) => {
   }
 };
 
-// GET /api/public/homepage/:sectionType - Lấy một block cụ thể (chỉ khi active)
+// GET /api/public/homepage/:sectionType?locale=vi - Lấy một block cụ thể (chỉ khi active)
 exports.getPublicHomepageBlock = async (req, res, next) => {
   try {
     const { sectionType } = req.params;
+    const { locale } = req.query;
+    const currentLocale = validateLocale(locale);
 
     const { rows } = await pool.query(
       'SELECT * FROM homepage_blocks WHERE section_type = $1 AND is_active = TRUE',
@@ -61,7 +67,7 @@ exports.getPublicHomepageBlock = async (req, res, next) => {
       data: {
         id: row.id,
         sectionType: row.section_type,
-        data: row.data || {},
+        data: applyLocaleToData(row.data || {}, currentLocale),
         isActive: row.is_active !== undefined ? row.is_active : true,
         createdAt: row.created_at,
         updatedAt: row.updated_at,

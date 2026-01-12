@@ -1,5 +1,48 @@
 const { pool } = require('../config/database');
 
+// Helper function xử lý locale: lưu JSON string khi là object, giữ nguyên string
+const processLocaleField = (value) => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') {
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return JSON.stringify(parsed);
+        }
+      } catch (e) {
+        // ignore, return original
+      }
+    }
+    return value;
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+      return JSON.stringify(value);
+    }
+  }
+  return String(value);
+};
+
+// Helper parse locale field từ DB
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return value;
+  }
+  return value;
+};
+
 // GET /api/admin/testimonials
 exports.getTestimonials = async (req, res, next) => {
   try {
@@ -9,9 +52,9 @@ exports.getTestimonials = async (req, res, next) => {
     // Map snake_case to camelCase for frontend
     const mappedData = result.rows.map(row => ({
       id: row.id,
-      quote: row.quote,
-      author: row.author,
-      company: row.company || null,
+      quote: parseLocaleField(row.quote),
+      author: parseLocaleField(row.author),
+      company: parseLocaleField(row.company) || null,
       rating: row.rating,
       sortOrder: row.sort_order,
       isActive: row.is_active !== undefined ? row.is_active : true,
@@ -47,9 +90,9 @@ exports.getTestimonialById = async (req, res, next) => {
       success: true,
       data: {
         id: row.id,
-        quote: row.quote,
-        author: row.author,
-        company: row.company || null,
+        quote: parseLocaleField(row.quote),
+        author: parseLocaleField(row.author),
+        company: parseLocaleField(row.company) || null,
         rating: row.rating,
         sortOrder: row.sort_order,
         isActive: row.is_active !== undefined ? row.is_active : true,
@@ -67,7 +110,10 @@ exports.createTestimonial = async (req, res, next) => {
   try {
     const { quote, author, company, rating, sortOrder, isActive } = req.body;
 
-    if (!quote || !author) {
+    const quoteStr = typeof quote === 'string' ? quote : (quote?.vi || quote?.en || quote?.ja || '');
+    const authorStr = typeof author === 'string' ? author : (author?.vi || author?.en || author?.ja || '');
+
+    if (!quoteStr || !quoteStr.trim() || !authorStr || !authorStr.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Quote và Author không được để trống',
@@ -79,9 +125,9 @@ exports.createTestimonial = async (req, res, next) => {
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *`,
       [
-        quote,
-        author,
-        company || null,
+        processLocaleField(quote),
+        processLocaleField(author),
+        company !== undefined ? processLocaleField(company) : null,
         rating || 5,
         sortOrder || 0,
         isActive !== undefined ? isActive : true,
@@ -94,9 +140,9 @@ exports.createTestimonial = async (req, res, next) => {
       success: true,
       data: {
         id: row.id,
-        quote: row.quote,
-        author: row.author,
-        company: row.company || null,
+        quote: parseLocaleField(row.quote),
+        author: parseLocaleField(row.author),
+        company: parseLocaleField(row.company) || null,
         rating: row.rating,
         sortOrder: row.sort_order,
         isActive: row.is_active !== undefined ? row.is_active : true,
@@ -116,7 +162,10 @@ exports.updateTestimonial = async (req, res, next) => {
     const { id } = req.params;
     const { quote, author, company, rating, sortOrder, isActive } = req.body;
 
-    if (!quote || !author) {
+    const quoteStr = typeof quote === 'string' ? quote : (quote?.vi || quote?.en || quote?.ja || '');
+    const authorStr = typeof author === 'string' ? author : (author?.vi || author?.en || author?.ja || '');
+
+    if (!quoteStr || !quoteStr.trim() || !authorStr || !authorStr.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Quote và Author không được để trống',
@@ -135,9 +184,9 @@ exports.updateTestimonial = async (req, res, next) => {
         WHERE id = $7
         RETURNING *`,
       [
-        quote,
-        author,
-        company || null,
+        processLocaleField(quote),
+        processLocaleField(author),
+        company !== undefined ? processLocaleField(company) : null,
         rating || 5,
         sortOrder || 0,
         isActive !== undefined ? isActive : true,
@@ -158,9 +207,9 @@ exports.updateTestimonial = async (req, res, next) => {
       success: true,
       data: {
         id: row.id,
-        quote: row.quote,
-        author: row.author,
-        company: row.company || null,
+        quote: parseLocaleField(row.quote),
+        author: parseLocaleField(row.author),
+        company: parseLocaleField(row.company) || null,
         rating: row.rating,
         sortOrder: row.sort_order,
         isActive: row.is_active !== undefined ? row.is_active : true,

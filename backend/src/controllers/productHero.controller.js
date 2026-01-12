@@ -81,21 +81,39 @@ exports.updateHero = async (req, res, next) => {
     // Get existing data to preserve fields that are not provided
     const existingData = existing?.data || {};
 
+    // Helper function to check if a value is not empty (handles both string and locale objects)
+    const isNotEmpty = (value) => {
+      if (value === undefined || value === null) return false;
+      if (typeof value === 'string') return value.trim() !== '';
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        // Check if it's a locale object
+        if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+          return (value.vi && value.vi.trim() !== '') || (value.en && value.en.trim() !== '') || (value.ja && value.ja.trim() !== '');
+        }
+      }
+      return false;
+    };
+
+    // Helper function for string fields (links, gradients)
+    const isStringNotEmpty = (value) => {
+      return value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+    };
+
     const data = {
-      title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
-      subtitle: (subtitle !== undefined && subtitle !== null && subtitle.trim() !== '') ? subtitle : (existingData.subtitle || ''),
-      description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
-      primaryCtaText: (primaryCtaText !== undefined && primaryCtaText !== null && primaryCtaText.trim() !== '') ? primaryCtaText : (existingData.primaryCtaText || ''),
-      primaryCtaLink: (primaryCtaLink !== undefined && primaryCtaLink !== null && primaryCtaLink.trim() !== '') ? primaryCtaLink : (existingData.primaryCtaLink || ''),
-      secondaryCtaText: (secondaryCtaText !== undefined && secondaryCtaText !== null && secondaryCtaText.trim() !== '') ? secondaryCtaText : (existingData.secondaryCtaText || ''),
-      secondaryCtaLink: (secondaryCtaLink !== undefined && secondaryCtaLink !== null && secondaryCtaLink.trim() !== '') ? secondaryCtaLink : (existingData.secondaryCtaLink || ''),
-      stat1Label: (stat1Label !== undefined && stat1Label !== null && stat1Label.trim() !== '') ? stat1Label : (existingData.stat1Label || ''),
-      stat1Value: (stat1Value !== undefined && stat1Value !== null && stat1Value.trim() !== '') ? stat1Value : (existingData.stat1Value || ''),
-      stat2Label: (stat2Label !== undefined && stat2Label !== null && stat2Label.trim() !== '') ? stat2Label : (existingData.stat2Label || ''),
-      stat2Value: (stat2Value !== undefined && stat2Value !== null && stat2Value.trim() !== '') ? stat2Value : (existingData.stat2Value || ''),
-      stat3Label: (stat3Label !== undefined && stat3Label !== null && stat3Label.trim() !== '') ? stat3Label : (existingData.stat3Label || ''),
-      stat3Value: (stat3Value !== undefined && stat3Value !== null && stat3Value.trim() !== '') ? stat3Value : (existingData.stat3Value || ''),
-      backgroundGradient: (backgroundGradient !== undefined && backgroundGradient !== null && backgroundGradient.trim() !== '') ? backgroundGradient : (existingData.backgroundGradient || ''),
+      title: isNotEmpty(title) ? title : (existingData.title || ''),
+      subtitle: isNotEmpty(subtitle) ? subtitle : (existingData.subtitle || ''),
+      description: isNotEmpty(description) ? description : (existingData.description || ''),
+      primaryCtaText: isNotEmpty(primaryCtaText) ? primaryCtaText : (existingData.primaryCtaText || ''),
+      primaryCtaLink: isStringNotEmpty(primaryCtaLink) ? primaryCtaLink : (existingData.primaryCtaLink || ''),
+      secondaryCtaText: isNotEmpty(secondaryCtaText) ? secondaryCtaText : (existingData.secondaryCtaText || ''),
+      secondaryCtaLink: isStringNotEmpty(secondaryCtaLink) ? secondaryCtaLink : (existingData.secondaryCtaLink || ''),
+      stat1Label: isNotEmpty(stat1Label) ? stat1Label : (existingData.stat1Label || ''),
+      stat1Value: isNotEmpty(stat1Value) ? stat1Value : (existingData.stat1Value || ''),
+      stat2Label: isNotEmpty(stat2Label) ? stat2Label : (existingData.stat2Label || ''),
+      stat2Value: isNotEmpty(stat2Value) ? stat2Value : (existingData.stat2Value || ''),
+      stat3Label: isNotEmpty(stat3Label) ? stat3Label : (existingData.stat3Label || ''),
+      stat3Value: isNotEmpty(stat3Value) ? stat3Value : (existingData.stat3Value || ''),
+      backgroundGradient: isStringNotEmpty(backgroundGradient) ? backgroundGradient : (existingData.backgroundGradient || ''),
     };
 
     let result;

@@ -1,12 +1,38 @@
 const { pool } = require('../config/database');
 
+// Helper function to parse locale field from JSON string
+const parseLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+        return parsed;
+      }
+    } catch (e) {
+      // Not JSON, return as string
+    }
+    return value;
+  }
+  return value;
+};
+
+// Helper function to process locale field for database storage
+const processLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object' && value !== null && ('vi' in value || 'en' in value || 'ja' in value)) {
+    return JSON.stringify(value);
+  }
+  return typeof value === 'string' ? value : String(value);
+};
+
 // Chuẩn hóa dữ liệu menu trả về cho frontend
 const mapMenu = (row) => ({
   id: row.id,
-  title: row.title,
+  title: parseLocaleField(row.title),
   url: row.url,
   parentId: row.parent_id,
-  parentTitle: row.parent_title || null,
+  parentTitle: row.parent_title ? parseLocaleField(row.parent_title) : null,
   sortOrder: row.sort_order || 0,
   icon: row.icon || '',
   isActive: row.is_active,
@@ -29,8 +55,9 @@ exports.getMenus = async (req, res, next) => {
 
     if (search) {
       params.push(`%${search.toLowerCase()}%`);
+      // Search in both JSON locale fields and plain text
       conditions.push(
-        `(LOWER(m.title) LIKE $${params.length} OR LOWER(m.url) LIKE $${params.length})`,
+        `(LOWER(m.title::text) LIKE $${params.length} OR LOWER(m.url) LIKE $${params.length})`,
       );
     }
 
@@ -120,7 +147,11 @@ exports.createMenu = async (req, res, next) => {
       isActive = true,
     } = req.body;
 
-    if (!title || !title.trim()) {
+    // Validate title - can be string or locale object
+    const titleValue = typeof title === 'object' && title !== null 
+      ? (title.vi || title.en || title.ja || '')
+      : (title || '');
+    if (!titleValue.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Tiêu đề menu không được để trống',
@@ -148,7 +179,7 @@ exports.createMenu = async (req, res, next) => {
     `;
 
     const params = [
-      title.trim(),
+      processLocaleField(title),
       url.trim(),
       parentId || null,
       Number.isFinite(Number(sortOrder)) ? Number(sortOrder) : 0,
@@ -188,7 +219,7 @@ exports.updateMenu = async (req, res, next) => {
       fields.push(`${column} = $${params.length}`);
     };
 
-    if (title !== undefined) addField('title', title);
+    if (title !== undefined) addField('title', processLocaleField(title));
     if (url !== undefined) addField('url', url);
     if (parentId !== undefined) addField('parent_id', parentId || null);
     if (sortOrder !== undefined)
@@ -287,7 +318,7 @@ exports.getPublicMenus = async (req, res, next) => {
     rows.forEach((row) => {
       menuMap.set(row.id, {
         id: row.id,
-        title: row.title,
+        title: parseLocaleField(row.title),
         url: row.url,
         parentId: row.parent_id,
         sortOrder: row.sort_order || 0,

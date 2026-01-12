@@ -1,5 +1,51 @@
 const { pool } = require('../config/database');
 
+// Helper function để xử lý locale object: convert thành JSON string nếu là object, giữ nguyên nếu là string
+const processLocaleField = (value) => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') {
+    // Nếu là JSON string (bắt đầu bằng {), parse và stringify lại để đảm bảo format đúng
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return JSON.stringify(parsed);
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // Kiểm tra xem có phải locale object không
+    if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+      return JSON.stringify(value);
+    }
+  }
+  return String(value);
+};
+
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
+};
+
 // GET /api/admin/products/categories
 exports.getCategories = async (req, res, next) => {
   try {
@@ -25,7 +71,7 @@ exports.getCategories = async (req, res, next) => {
       data: rows.map(row => ({
         id: row.id,
         slug: row.slug,
-        name: row.name,
+        name: parseLocaleField(row.name),
         iconName: row.icon_name || '',
         sortOrder: row.sort_order || 0,
         isActive: row.is_active !== undefined ? row.is_active : true,
@@ -61,7 +107,7 @@ exports.getCategoryById = async (req, res, next) => {
       data: {
         id: row.id,
         slug: row.slug,
-        name: row.name,
+        name: parseLocaleField(row.name),
         iconName: row.icon_name || '',
         sortOrder: row.sort_order || 0,
         isActive: row.is_active !== undefined ? row.is_active : true,
@@ -79,7 +125,9 @@ exports.createCategory = async (req, res, next) => {
   try {
     const { slug, name, iconName = '', sortOrder = 0, isActive = true } = req.body;
 
-    if (!slug || !name) {
+    // Kiểm tra name không rỗng (hỗ trợ cả string và locale object)
+    const nameStr = typeof name === 'string' ? name : (name?.vi || name?.en || name?.ja || '');
+    if (!slug || !nameStr.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Slug và name không được để trống',
@@ -92,7 +140,7 @@ exports.createCategory = async (req, res, next) => {
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
       `,
-      [slug, name, iconName, sortOrder, isActive],
+      [slug, processLocaleField(name), iconName, sortOrder, isActive],
     );
 
     return res.status(201).json({
@@ -100,7 +148,7 @@ exports.createCategory = async (req, res, next) => {
       data: {
         id: rows[0].id,
         slug: rows[0].slug,
-        name: rows[0].name,
+        name: parseLocaleField(rows[0].name),
         iconName: rows[0].icon_name || '',
         sortOrder: rows[0].sort_order || 0,
         isActive: rows[0].is_active !== undefined ? rows[0].is_active : true,
@@ -136,7 +184,9 @@ exports.updateCategory = async (req, res, next) => {
     };
 
     addField('slug', slug);
-    addField('name', name);
+    if (name !== undefined) {
+      addField('name', processLocaleField(name));
+    }
     addField('icon_name', iconName);
     addField('sort_order', sortOrder);
     addField('is_active', isActive);
@@ -172,7 +222,7 @@ exports.updateCategory = async (req, res, next) => {
       data: {
         id: rows[0].id,
         slug: rows[0].slug,
-        name: rows[0].name,
+        name: parseLocaleField(rows[0].name),
         iconName: rows[0].icon_name || '',
         sortOrder: rows[0].sort_order || 0,
         isActive: rows[0].is_active !== undefined ? rows[0].is_active : true,

@@ -1,9 +1,58 @@
 const { pool } = require('../config/database');
 
+// Helper function để xử lý locale object: convert thành JSON string nếu là object, giữ nguyên nếu là string
+const processLocaleField = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  if (typeof value === 'string') {
+    // Nếu là JSON string (bắt đầu bằng {), parse và stringify lại để đảm bảo format đúng
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return JSON.stringify(parsed);
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // Kiểm tra xem có phải locale object không
+    if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+      return JSON.stringify(value);
+    }
+  }
+  
+  return String(value);
+};
+
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
+};
+
 const mapCategory = (row) => ({
   code: row.code,
-  name: row.name,
-  description: row.description || '',
+  name: parseLocaleField(row.name),
+  description: parseLocaleField(row.description) || '',
   isActive: row.is_active,
   parentCode: row.parent_code || null,
   createdAt: row.created_at,
@@ -48,17 +97,22 @@ exports.getCategoryByCode = async (req, res, next) => {
 exports.createCategory = async (req, res, next) => {
   try {
     const { code, name, description = '', isActive = true, parentCode = null } = req.body;
-    if (!code || !name) {
+    
+    // Validate: kiểm tra name có giá trị không (có thể là string hoặc locale object)
+    const nameValue = typeof name === 'string' ? name : (name?.vi || name?.en || name?.ja || '');
+    if (!code || !nameValue.trim()) {
       return res.status(400).json({ success: false, message: 'code và name là bắt buộc' });
     }
 
     const normalizedParent = parentCode || null;
+    const processedName = processLocaleField(name);
+    const processedDescription = processLocaleField(description);
 
     const { rows } = await pool.query(
       `INSERT INTO news_categories (code, name, description, parent_code, is_active)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING code, name, description, parent_code, is_active, created_at, updated_at`,
-      [code, name, description, normalizedParent, isActive],
+      [code, processedName, processedDescription, normalizedParent, isActive],
     );
 
     return res.status(201).json({ success: true, data: mapCategory(rows[0]) });
@@ -84,8 +138,14 @@ exports.updateCategory = async (req, res, next) => {
       fields.push(`${column} = $${params.length}`);
     };
 
-    if (name !== undefined) addField('name', name);
-    if (description !== undefined) addField('description', description);
+    if (name !== undefined) {
+      const processedName = processLocaleField(name);
+      addField('name', processedName);
+    }
+    if (description !== undefined) {
+      const processedDescription = processLocaleField(description);
+      addField('description', processedDescription);
+    }
     if (isActive !== undefined) addField('is_active', isActive);
     if (parentCode !== undefined) addField('parent_code', parentCode || null);
 

@@ -1,5 +1,25 @@
 const { pool } = require('../config/database');
 
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
+};
+
 const mapNews = (row) => {
   // Format published_date để tránh timezone issues
   let publishedDate = row.published_date;
@@ -14,23 +34,23 @@ const mapNews = (row) => {
   
   return {
     id: row.id,
-    title: row.title,
+    title: parseLocaleField(row.title),
     slug: row.slug,
-    excerpt: row.excerpt,
-    content: row.content,
+    excerpt: parseLocaleField(row.excerpt),
+    content: parseLocaleField(row.content),
     category: row.category,
     categoryId: row.category_id,
     categoryName: row.category_name,
     status: row.status,
     imageUrl: row.image_url,
-    author: row.author,
-    readTime: row.read_time,
+    author: parseLocaleField(row.author),
+    readTime: parseLocaleField(row.read_time),
     gradient: row.gradient,
     isFeatured: row.is_featured,
-    seoTitle: row.seo_title,
-    seoDescription: row.seo_description,
-    seoKeywords: row.seo_keywords,
-    galleryTitle: row.gallery_title || '',
+    seoTitle: parseLocaleField(row.seo_title),
+    seoDescription: parseLocaleField(row.seo_description),
+    seoKeywords: parseLocaleField(row.seo_keywords),
+    galleryTitle: parseLocaleField(row.gallery_title),
     publishedDate: publishedDate || '',
     createdAt: row.created_at,
     updatedAt: row.updated_at,

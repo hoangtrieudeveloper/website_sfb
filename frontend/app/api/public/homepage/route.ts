@@ -3,7 +3,13 @@ import { API_BASE_URL } from "@/lib/api/base";
 
 export async function GET(request: Request) {
   try {
-    const url = `${API_BASE_URL}/api/public/homepage`;
+    // Extract locale from query params or default to 'vi'
+    const { searchParams } = new URL(request.url);
+    const locale = searchParams.get('locale') || 'vi';
+    const validLocales = ['vi', 'en', 'ja'];
+    const currentLocale = validLocales.includes(locale) ? locale : 'vi';
+    
+    const url = `${API_BASE_URL}/api/public/homepage?locale=${currentLocale}`;
     
 
     // Add timeout to fetch request

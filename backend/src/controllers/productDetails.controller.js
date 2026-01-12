@@ -2,12 +2,60 @@ const { pool } = require('../config/database');
 
 // Helper function để tạo slug từ name
 const slugify = (text) => {
-  return text
+  if (!text) return '';
+  const textStr = typeof text === 'string' ? text : (text.vi || text.en || text.ja || '');
+  return textStr
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+};
+
+// Helper function để xử lý locale object: convert thành JSON string nếu là object, giữ nguyên nếu là string
+const processLocaleField = (value) => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') {
+    // Nếu là JSON string (bắt đầu bằng {), parse và stringify lại để đảm bảo format đúng
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return JSON.stringify(parsed);
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // Kiểm tra xem có phải locale object không
+    if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+      return JSON.stringify(value);
+    }
+  }
+  return String(value);
+};
+
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
 };
 
 // GET /api/admin/products/:productId/detail
@@ -118,35 +166,43 @@ exports.getProductDetail = async (req, res, next) => {
         productId: detail.product_id,
         slug: detail.slug,
         contentMode: detail.content_mode || 'config',
-        contentHtml: detail.content_html || '',
-        metaTop: detail.meta_top || '',
-        heroDescription: detail.hero_description || '',
+        contentHtml: parseLocaleField(detail.content_html),
+        metaTop: parseLocaleField(detail.meta_top),
+        heroDescription: parseLocaleField(detail.hero_description),
         heroImage: detail.hero_image || '',
-        ctaContactText: detail.cta_contact_text || '',
+        ctaContactText: parseLocaleField(detail.cta_contact_text),
         ctaContactHref: detail.cta_contact_href || '',
-        ctaDemoText: detail.cta_demo_text || '',
+        ctaDemoText: parseLocaleField(detail.cta_demo_text),
         ctaDemoHref: detail.cta_demo_href || '',
-        overviewKicker: detail.overview_kicker || '',
-        overviewTitle: detail.overview_title || '',
-        overviewCards: overviewCards,
+        overviewKicker: parseLocaleField(detail.overview_kicker),
+        overviewTitle: parseLocaleField(detail.overview_title),
+        overviewCards: overviewCards.map(card => ({
+          ...card,
+          title: parseLocaleField(card.title),
+          description: parseLocaleField(card.description),
+        })),
         showcase: {
-          title: detail.showcase_title || '',
-          desc: detail.showcase_desc || '',
-          bullets: showcaseBullets.map(b => b.bullet_text),
-          ctaText: detail.showcase_cta_text || '',
+          title: parseLocaleField(detail.showcase_title),
+          desc: parseLocaleField(detail.showcase_desc),
+          bullets: showcaseBullets.map(b => parseLocaleField(b.bullet_text)),
+          ctaText: parseLocaleField(detail.showcase_cta_text),
           ctaHref: detail.showcase_cta_href || '',
           imageBack: detail.showcase_image_back || '',
           imageFront: detail.showcase_image_front || '',
         },
-        numberedSections: sectionsWithParagraphs,
+        numberedSections: sectionsWithParagraphs.map(section => ({
+          ...section,
+          title: parseLocaleField(section.title),
+          paragraphs: section.paragraphs.map(p => parseLocaleField(p)),
+        })),
         expand: {
-          title: detail.expand_title || '',
-          bullets: expandBulletsRows.map(b => b.data?.bullet_text || b.data?.text || ''),
-          ctaText: detail.expand_cta_text || '',
+          title: parseLocaleField(detail.expand_title),
+          bullets: expandBulletsRows.map(b => parseLocaleField(b.data?.bullet_text || b.data?.text || '')),
+          ctaText: parseLocaleField(detail.expand_cta_text),
           ctaHref: detail.expand_cta_href || '',
           image: detail.expand_image || '',
         },
-        galleryTitle: detail.gallery_title || '',
+        galleryTitle: parseLocaleField(detail.gallery_title),
         galleryImages: Array.isArray(detail.gallery_images) ? detail.gallery_images : (detail.gallery_images ? JSON.parse(detail.gallery_images) : []),
         galleryPosition: detail.gallery_position || 'top',
         showTableOfContents: detail.show_table_of_contents !== false,
@@ -259,27 +315,27 @@ exports.saveProductDetail = async (req, res, next) => {
           [
             finalSlug,
             contentMode || 'config',
-            contentHtml || '',
-            metaTop || '',
-            heroDescription || '',
+            processLocaleField(contentHtml),
+            processLocaleField(metaTop),
+            processLocaleField(heroDescription),
             heroImage || '',
-            ctaContactText || '',
+            processLocaleField(ctaContactText),
             ctaContactHref || '',
-            ctaDemoText || '',
+            processLocaleField(ctaDemoText),
             ctaDemoHref || '',
-            overviewKicker || '',
-            overviewTitle || '',
-            showcase.title || '',
-            showcase.desc || '',
-            showcase.ctaText || '',
-            showcase.ctaHref || '',
-            showcase.imageBack || '',
-            showcase.imageFront || '',
-            expand.title || '',
-            expand.ctaText || '',
-            expand.ctaHref || '',
-            expand.image || '',
-            galleryTitle || '',
+            processLocaleField(overviewKicker),
+            processLocaleField(overviewTitle),
+            processLocaleField(showcase?.title),
+            processLocaleField(showcase?.desc),
+            processLocaleField(showcase?.ctaText),
+            showcase?.ctaHref || '',
+            showcase?.imageBack || '',
+            showcase?.imageFront || '',
+            processLocaleField(expand?.title),
+            processLocaleField(expand?.ctaText),
+            expand?.ctaHref || '',
+            expand?.image || '',
+            processLocaleField(galleryTitle),
             JSON.stringify(galleryImages),
             galleryPosition || 'top',
             showTableOfContents !== false,
@@ -310,27 +366,27 @@ exports.saveProductDetail = async (req, res, next) => {
             productId,
             finalSlug,
             contentMode || 'config',
-            contentHtml || '',
-            metaTop || '',
-            heroDescription || '',
+            processLocaleField(contentHtml),
+            processLocaleField(metaTop),
+            processLocaleField(heroDescription),
             heroImage || '',
-            ctaContactText || '',
+            processLocaleField(ctaContactText),
             ctaContactHref || '',
-            ctaDemoText || '',
+            processLocaleField(ctaDemoText),
             ctaDemoHref || '',
-            overviewKicker || '',
-            overviewTitle || '',
-            showcase.title || '',
-            showcase.desc || '',
-            showcase.ctaText || '',
-            showcase.ctaHref || '',
-            showcase.imageBack || '',
-            showcase.imageFront || '',
-            expand.title || '',
-            expand.ctaText || '',
-            expand.ctaHref || '',
-            expand.image || '',
-            galleryTitle || '',
+            processLocaleField(overviewKicker),
+            processLocaleField(overviewTitle),
+            processLocaleField(showcase?.title),
+            processLocaleField(showcase?.desc),
+            processLocaleField(showcase?.ctaText),
+            showcase?.ctaHref || '',
+            showcase?.imageBack || '',
+            showcase?.imageFront || '',
+            processLocaleField(expand?.title),
+            processLocaleField(expand?.ctaText),
+            expand?.ctaHref || '',
+            expand?.image || '',
+            processLocaleField(galleryTitle),
             JSON.stringify(galleryImages),
             galleryPosition || 'top',
             showTableOfContents !== false,
@@ -354,8 +410,8 @@ exports.saveProductDetail = async (req, res, next) => {
               'overview-cards',
               JSON.stringify({
                 step: card.step || i + 1,
-                title: card.title || '',
-                description: card.description || '',
+                title: processLocaleField(card.title),
+                description: processLocaleField(card.description),
               }),
               i,
               true,
@@ -375,7 +431,7 @@ exports.saveProductDetail = async (req, res, next) => {
               detailId,
               'showcase-bullets',
               JSON.stringify({
-                bullet_text: showcase.bullets[i] || '',
+                bullet_text: processLocaleField(showcase.bullets[i]),
               }),
               i,
               true,
@@ -404,7 +460,7 @@ exports.saveProductDetail = async (req, res, next) => {
               'numbered-sections',
               JSON.stringify({
                 section_no: section.sectionNo,
-                title: section.title || '',
+                title: processLocaleField(section.title),
                 image: imageValue,
                 image_alt: section.imageAlt || '',
                 image_side: section.imageSide || 'left',
@@ -433,8 +489,8 @@ exports.saveProductDetail = async (req, res, next) => {
                   JSON.stringify({
                     parent_id: sectionId,
                     numbered_section_id: sectionId,
-                    paragraph_text: section.paragraphs[j] || '',
-                    text: section.paragraphs[j] || '',
+                    paragraph_text: processLocaleField(section.paragraphs[j]),
+                    text: processLocaleField(section.paragraphs[j]),
                   }),
                   j,
                   true,
@@ -456,7 +512,7 @@ exports.saveProductDetail = async (req, res, next) => {
               detailId,
               'expand-bullets',
               JSON.stringify({
-                bullet_text: expand.bullets[i] || '',
+                bullet_text: processLocaleField(expand.bullets[i]),
               }),
               i,
               true,

@@ -1,5 +1,54 @@
 const { pool } = require('../config/database');
 
+// Helper function để xử lý locale object: convert thành JSON string nếu là object, giữ nguyên nếu là string
+const processLocaleField = (value) => {
+  if (value === undefined || value === null) return '';
+  
+  if (typeof value === 'string') {
+    // Nếu là JSON string (bắt đầu bằng {), parse và stringify lại để đảm bảo format đúng
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return JSON.stringify(parsed);
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // Kiểm tra xem có phải locale object không
+    if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+      return JSON.stringify(value);
+    }
+  }
+  
+  return String(value);
+};
+
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
+};
+
 // Chuẩn hóa dữ liệu trả về cho frontend
 const mapNews = (row) => {
   // Format published_date để tránh timezone issues
@@ -19,25 +68,25 @@ const mapNews = (row) => {
   
   return {
     id: row.id,
-    title: row.title,
-    excerpt: row.excerpt || '',
+    title: parseLocaleField(row.title),
+    excerpt: parseLocaleField(row.excerpt),
     category: row.category || row.category_name || '',
     categoryId: row.category_id || row.category_code || '',
     categoryName: row.category_name || row.category || '',
     status: row.status,
     imageUrl: row.image_url || '',
-    author: row.author || '',
-    readTime: row.read_time || '',
+    author: parseLocaleField(row.author),
+    readTime: parseLocaleField(row.read_time),
     gradient: row.gradient || '',
     isFeatured: row.is_featured || false,
     link: row.slug || '',
     publishedDate: publishedDate || '',
-    seoTitle: row.seo_title || '',
-    seoDescription: row.seo_description || '',
-    seoKeywords: row.seo_keywords || '',
+    seoTitle: parseLocaleField(row.seo_title),
+    seoDescription: parseLocaleField(row.seo_description),
+    seoKeywords: parseLocaleField(row.seo_keywords),
     // Các cấu hình hiển thị chi tiết bài viết
-    galleryTitle: row.gallery_title || '',
-    content: row.content || '',
+    galleryTitle: parseLocaleField(row.gallery_title),
+    content: parseLocaleField(row.content),
     galleryImages: (() => {
       if (!row.gallery_images) return [];
       if (Array.isArray(row.gallery_images)) return row.gallery_images;
@@ -226,7 +275,9 @@ exports.createNews = async (req, res, next) => {
       highlightFirstParagraph = false,
     } = req.body;
 
-    if (!title || !title.trim()) {
+    // Validate title: có thể là string hoặc locale object
+    const titleText = typeof title === 'string' ? title : (title?.vi || title?.en || title?.ja || '');
+    if (!titleText.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Tiêu đề không được để trống',
@@ -264,23 +315,23 @@ exports.createNews = async (req, res, next) => {
     `;
 
     const params = [
-      title,
+      processLocaleField(title),
       link,
-      excerpt,
-      content,
+      processLocaleField(excerpt),
+      processLocaleField(content),
       category,
       categoryId,
       status,
       imageUrl,
-      author,
-      readTime,
+      processLocaleField(author),
+      processLocaleField(readTime),
       gradient,
       publishedDate,
-      seoTitle,
-      seoDescription,
-      seoKeywords,
+      processLocaleField(seoTitle),
+      processLocaleField(seoDescription),
+      processLocaleField(seoKeywords),
       isFeatured,
-      galleryTitle,
+      processLocaleField(galleryTitle),
       galleryImagesJson,
       galleryPositionNormalized,
       showTableOfContents,
@@ -339,20 +390,20 @@ exports.updateNews = async (req, res, next) => {
       fields.push(`${column} = $${params.length}`);
     };
 
-    if (title !== undefined) addField('title', title);
+    if (title !== undefined) addField('title', processLocaleField(title));
     if (link !== undefined) addField('slug', link);
-    if (excerpt !== undefined) addField('excerpt', excerpt);
-    if (content !== undefined) addField('content', content);
+    if (excerpt !== undefined) addField('excerpt', processLocaleField(excerpt));
+    if (content !== undefined) addField('content', processLocaleField(content));
     if (category !== undefined) addField('category', category);
     if (categoryId !== undefined) addField('category_id', categoryId);
     if (status !== undefined) addField('status', status);
     if (imageUrl !== undefined) addField('image_url', imageUrl);
-    if (author !== undefined) addField('author', author);
-    if (readTime !== undefined) addField('read_time', readTime);
+    if (author !== undefined) addField('author', processLocaleField(author));
+    if (readTime !== undefined) addField('read_time', processLocaleField(readTime));
     if (gradient !== undefined) addField('gradient', gradient);
-    if (seoTitle !== undefined) addField('seo_title', seoTitle);
-    if (seoDescription !== undefined) addField('seo_description', seoDescription);
-    if (seoKeywords !== undefined) addField('seo_keywords', seoKeywords);
+    if (seoTitle !== undefined) addField('seo_title', processLocaleField(seoTitle));
+    if (seoDescription !== undefined) addField('seo_description', processLocaleField(seoDescription));
+    if (seoKeywords !== undefined) addField('seo_keywords', processLocaleField(seoKeywords));
     if (publishedDate !== undefined) addField('published_date', publishedDate);
     if (isFeatured !== undefined) addField('is_featured', isFeatured);
     if (galleryImages !== undefined) {
@@ -365,7 +416,7 @@ exports.updateNews = async (req, res, next) => {
         galleryPosition === 'top' ? 'top' : galleryPosition === 'bottom' ? 'bottom' : 'top';
       addField('gallery_position', galleryPositionNormalized);
     }
-    if (galleryTitle !== undefined) addField('gallery_title', galleryTitle);
+    if (galleryTitle !== undefined) addField('gallery_title', processLocaleField(galleryTitle));
     if (showTableOfContents !== undefined) addField('show_table_of_contents', showTableOfContents);
     if (enableShareButtons !== undefined) addField('enable_share_buttons', enableShareButtons);
     if (showAuthorBox !== undefined) addField('show_author_box', showAuthorBox);
@@ -387,6 +438,8 @@ exports.updateNews = async (req, res, next) => {
       RETURNING 
         id, title, slug, excerpt, content, category, category_id,
         status, image_url, author, read_time, gradient, 
+        gallery_title, gallery_images, gallery_position, show_table_of_contents,
+        enable_share_buttons, show_author_box, highlight_first_paragraph,
         TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
         seo_title, seo_description, seo_keywords, is_featured,
         created_at, updated_at

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Home, Sparkles, Users, Briefcase, ShieldCheck, MessageSquare, CheckCircle2, ArrowRight, Play, CheckCircle, LineChart, Code, Database, Cloud, BarChart3, FileCheck, Plus, Edit, Trash2, ChevronUp, ChevronDown, Star, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
+import { Save, Home, Sparkles, Users, Briefcase, ShieldCheck, MessageSquare, CheckCircle2, ArrowRight, Play, CheckCircle, LineChart, Code, Database, Cloud, BarChart3, FileCheck, Plus, Edit, Trash2, ChevronUp, ChevronDown, Star, Link as LinkIcon, Image as ImageIcon, Languages, Bot, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 const BLOCK_TYPES = ['hero', 'aboutCompany', 'features', 'solutions', 'trusts', 'testimonials', 'consult'] as const;
 type BlockType = typeof BLOCK_TYPES[number];
@@ -78,6 +81,10 @@ export default function AdminHomepagePage() {
     consult: false,
   });
   const [activeTab, setActiveTab] = useState<BlockType>('hero');
+  const [globalLocale, setGlobalLocale] = useState<'vi' | 'en' | 'ja'>('vi');
+  const [aiProvider, setAiProvider] = useState<'openai' | 'gemini'>('openai');
+  const [translatingAll, setTranslatingAll] = useState(false);
+  const [translateSourceLang, setTranslateSourceLang] = useState<'vi' | 'en' | 'ja'>('vi'); // Ngôn ngữ nguồn để dịch
 
   // State for editing array items
   const [editingSlideIndex, setEditingSlideIndex] = useState<number | null>(null);
@@ -235,15 +242,55 @@ export default function AdminHomepagePage() {
 
   const getBlockData = (blockType: BlockType, path: string, defaultValue: any = '') => {
     const keys = path.split('.');
-    let current: any = blocks[blockType].data;
+    let current: any = blocks[blockType]?.data;
+    if (!current) return defaultValue;
     for (const key of keys) {
-      if (current && typeof current === 'object' && key in current) {
-        current = current[key];
+      if (current && typeof current === 'object') {
+        if (Array.isArray(current)) {
+          // Nếu current là array nhưng key là string (không phải index), return default
+          if (isNaN(Number(key))) {
+            return defaultValue;
+          }
+          const index = Number(key);
+          if (index >= 0 && index < current.length) {
+            current = current[index];
+          } else {
+            return defaultValue;
+          }
+        } else if (key in current) {
+          current = current[key];
+        } else {
+          return defaultValue;
+        }
       } else {
         return defaultValue;
       }
     }
+    
+    // Đảm bảo type matching với default value
+    if (Array.isArray(defaultValue) && !Array.isArray(current)) {
+      return defaultValue;
+    }
+    if (!Array.isArray(defaultValue) && Array.isArray(current)) {
+      return defaultValue;
+    }
+    
     return current ?? defaultValue;
+  };
+  
+  // Helper để update locale value
+  const updateLocaleValue = (blockType: BlockType, path: string, value: Record<'vi' | 'en' | 'ja', string>) => {
+    setBlocks(prev => {
+      const currentData = prev[blockType]?.data || {};
+      const newData = setLocaleValue(currentData, path, value);
+      return {
+        ...prev,
+        [blockType]: {
+          ...prev[blockType],
+          data: newData
+        }
+      };
+    });
   };
 
   const renderIcon = (iconName: string) => {
@@ -281,12 +328,512 @@ export default function AdminHomepagePage() {
     updateBlockData(blockType, arrayPath, newArray);
   };
 
+  // Hàm dịch toàn bộ các trường locale trong TẤT CẢ các blocks
+  // Gom tất cả thành 1 request duy nhất để dịch chuẩn theo từng khối
+  const handleTranslateAll = async () => {
+    setTranslatingAll(true);
+    try {
+      // Tạo object chứa các fields cần dịch, giữ nguyên cấu trúc
+      // Chỉ lấy các fields có locale object và còn thiếu ngôn ngữ
+      const fieldMap: Map<string, { blockType: BlockType; path: string; originalValue: Record<'vi' | 'en' | 'ja', string> }> = new Map();
+
+      // Hàm tạo object chỉ chứa các fields cần dịch, giữ nguyên cấu trúc
+      // Hàm này sẽ tìm tất cả locale objects và cả string values (để convert thành locale objects)
+      const buildTranslationObject = (obj: any, blockType: BlockType, path: string = '', targetObj: any = {}): any => {
+        if (!obj || typeof obj !== 'object') return targetObj;
+        
+        // Skip các fields không cần dịch
+        const skipFields = ['image', 'link', 'href', 'url', 'icon', 'gradient', 'color', 
+                           'partners', 'heroImage', 'backgroundImage', 'imageUrl', 'slug',
+                           'id', 'sortOrder', 'isActive', 'iconName', 'rating', 'type', 'imageSide',
+                           'buttonLink', 'imageSide'];
+        
+        for (const [key, value] of Object.entries(obj)) {
+          // Skip các fields không cần dịch
+          if (skipFields.includes(key)) continue;
+          
+          const currentPath = path ? `${path}.${key}` : key;
+          
+          // Nếu là string - tự động convert thành locale object
+          if (typeof value === 'string' && value.trim()) {
+            // Convert string thành locale object với source language = string hiện tại, các ngôn ngữ khác = rỗng
+            const localeValue: Record<'vi' | 'en' | 'ja', string> = {
+              vi: '',
+              en: '',
+              ja: ''
+            };
+            localeValue[translateSourceLang] = value.trim();
+            
+            // Tạo nested structure trong targetObj
+            const keys = currentPath.split('.');
+            let current: any = targetObj;
+            for (let i = 0; i < keys.length - 1; i++) {
+              if (!current[keys[i]]) current[keys[i]] = {};
+              current = current[keys[i]];
+            }
+            
+            // Lưu source text (chỉ lấy text từ source language đã chọn)
+            current[keys[keys.length - 1]] = localeValue[translateSourceLang];
+            
+            // Lưu mapping để sau này cập nhật
+            fieldMap.set(`${blockType}.${currentPath}`, {
+              blockType,
+              path: currentPath,
+              originalValue: localeValue
+            });
+            
+            continue;
+          }
+          
+          // Kiểm tra nếu là locale object (có vi, en, ja)
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            const hasVi = 'vi' in value;
+            const hasEn = 'en' in value;
+            const hasJa = 'ja' in value;
+            
+            if (hasVi || hasEn || hasJa) {
+              const localeValue = value as Record<'vi' | 'en' | 'ja', string>;
+              const viText = (localeValue.vi || '').trim();
+              const enText = (localeValue.en || '').trim();
+              const jaText = (localeValue.ja || '').trim();
+              
+              // Chỉ xử lý nếu ngôn ngữ nguồn đã chọn có nội dung
+              const sourceText = (localeValue[translateSourceLang] || '').trim();
+              if (!sourceText) {
+                // Bỏ qua field này nếu không có nội dung ở ngôn ngữ nguồn
+                continue;
+              }
+              
+              // Sử dụng source language đã chọn
+              const sourceLang = translateSourceLang;
+              
+              // Kiểm tra xem có ngôn ngữ nào còn thiếu không (dựa trên source language đã chọn)
+              const needsTranslation = (
+                (sourceLang === 'vi' && (!enText || !jaText)) ||
+                (sourceLang === 'en' && (!viText || !jaText)) ||
+                (sourceLang === 'ja' && (!viText || !enText))
+              );
+              
+              if (needsTranslation) {
+                // Tạo nested structure trong targetObj
+                const keys = currentPath.split('.');
+                let current: any = targetObj;
+                for (let i = 0; i < keys.length - 1; i++) {
+                  if (!current[keys[i]]) current[keys[i]] = {};
+                  current = current[keys[i]];
+                }
+                
+                // Lưu source text (chỉ lấy text từ source language)
+                current[keys[keys.length - 1]] = localeValue[sourceLang];
+                
+                // Lưu mapping để sau này cập nhật
+                fieldMap.set(`${blockType}.${currentPath}`, {
+                  blockType,
+                  path: currentPath,
+                  originalValue: localeValue
+                });
+              }
+            } else {
+              // Đệ quy tìm trong nested objects (không phải locale object)
+              buildTranslationObject(value, blockType, currentPath, targetObj);
+            }
+          } else if (Array.isArray(value)) {
+            // Xử lý arrays
+            value.forEach((item, index) => {
+              if (item && typeof item === 'object') {
+                buildTranslationObject(item, blockType, `${currentPath}.${index}`, targetObj);
+              } else if (typeof item === 'string' && item.trim()) {
+                // Xử lý string trong array (như title, description trong slides)
+                // Chỉ xử lý nếu string có giá trị (đã được kiểm tra ở trên)
+                const localeValue: Record<'vi' | 'en' | 'ja', string> = {
+                  vi: '',
+                  en: '',
+                  ja: ''
+                };
+                localeValue[translateSourceLang] = item.trim();
+                
+                // Tạo nested structure trong targetObj
+                const keys = `${currentPath}.${index}`.split('.');
+                let current: any = targetObj;
+                for (let i = 0; i < keys.length - 1; i++) {
+                  if (!current[keys[i]]) {
+                    // Nếu là index số, tạo array
+                    if (!isNaN(Number(keys[i]))) {
+                      if (!Array.isArray(current)) current = [];
+                      while (current.length <= Number(keys[i])) current.push(null);
+                      current[Number(keys[i])] = {};
+                    } else {
+                      current[keys[i]] = {};
+                    }
+                  }
+                  current = current[keys[i]];
+                }
+                
+                const lastKey = keys[keys.length - 1];
+                if (!isNaN(Number(lastKey))) {
+                  if (!Array.isArray(current)) current = [];
+                  while (current.length <= Number(lastKey)) current.push(null);
+                  current[Number(lastKey)] = localeValue[translateSourceLang];
+                } else {
+                  current[lastKey] = localeValue[translateSourceLang];
+                }
+                
+                fieldMap.set(`${blockType}.${currentPath}.${index}`, {
+                  blockType,
+                  path: `${currentPath}.${index}`,
+                  originalValue: localeValue
+                });
+              }
+            });
+          }
+        }
+        
+        return targetObj;
+      };
+
+      // Chỉ dịch block hiện tại (activeTab) thay vì tất cả blocks
+      const block = blocks[activeTab];
+      if (!block || !block.data) {
+        toast.info('Không có dữ liệu để dịch');
+        setTranslatingAll(false);
+        return;
+      }
+
+      // Kiểm tra xem ngôn ngữ nguồn đã chọn có nội dung trong block không
+      const hasSourceLanguageContent = (data: any, sourceLang: 'vi' | 'en' | 'ja'): boolean => {
+        if (!data || typeof data !== 'object') return false;
+        
+        for (const [key, value] of Object.entries(data)) {
+          // Skip các fields không cần dịch
+          const skipFields = ['image', 'link', 'href', 'url', 'icon', 'gradient', 'color', 
+                             'partners', 'heroImage', 'backgroundImage', 'imageUrl', 'slug',
+                             'id', 'sortOrder', 'isActive', 'iconName', 'rating', 'type', 'imageSide',
+                             'buttonLink'];
+          if (skipFields.includes(key)) continue;
+          
+          if (typeof value === 'string' && value.trim()) {
+            return true; // Có string value
+          }
+          
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            // Kiểm tra nếu là locale object
+            if (sourceLang in value && (value as any)[sourceLang]?.trim()) {
+              return true;
+            }
+            // Đệ quy kiểm tra nested objects
+            if (hasSourceLanguageContent(value, sourceLang)) {
+              return true;
+            }
+          } else if (Array.isArray(value)) {
+            // Kiểm tra trong arrays
+            for (const item of value) {
+              if (hasSourceLanguageContent(item, sourceLang)) {
+                return true;
+              }
+            }
+          }
+        }
+        
+        return false;
+      };
+      
+      if (!hasSourceLanguageContent(block.data, translateSourceLang)) {
+        const sourceLangName = translateSourceLang === 'vi' ? 'Tiếng Việt' : translateSourceLang === 'en' ? 'English' : '日本語';
+        toast.warning(`Không tìm thấy nội dung ${sourceLangName} trong khối "${tabsConfig.find(t => t.value === activeTab)?.label}". Vui lòng nhập nội dung ${sourceLangName} trước khi dịch.`);
+        setTranslatingAll(false);
+        return;
+      }
+
+      // Debug: Log block data structure
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Translate ${activeTab}] Block data:`, JSON.stringify(block.data, null, 2));
+        console.log(`[Translate ${activeTab}] Source language:`, translateSourceLang);
+      }
+
+      // Build translation object cho block hiện tại
+      const blockTranslationData = buildTranslationObject(block.data, activeTab);
+      
+      // Debug: Log results
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Translate ${activeTab}] Translation data keys:`, Object.keys(blockTranslationData));
+        console.log(`[Translate ${activeTab}] Field map size:`, fieldMap.size);
+        console.log(`[Translate ${activeTab}] Field map entries:`, Array.from(fieldMap.entries()));
+      }
+      
+      if (Object.keys(blockTranslationData).length === 0 || fieldMap.size === 0) {
+        // Kiểm tra xem block có dữ liệu không
+        const hasData = block.data && Object.keys(block.data).length > 0;
+        
+        // Thông báo chi tiết hơn để debug
+        let message = '';
+        if (!hasData) {
+          message = `Khối "${tabsConfig.find(t => t.value === activeTab)?.label}" chưa có dữ liệu. Vui lòng nhập dữ liệu trước khi dịch.`;
+        } else if (fieldMap.size === 0) {
+          const sourceLangName = translateSourceLang === 'vi' ? 'Tiếng Việt' : translateSourceLang === 'en' ? 'English' : '日本語';
+          message = `Không tìm thấy trường nào có nội dung ${sourceLangName} để dịch trong khối "${tabsConfig.find(t => t.value === activeTab)?.label}".\n- Vui lòng nhập nội dung ${sourceLangName} trước khi dịch\n- Hoặc chọn ngôn ngữ nguồn khác có nội dung`;
+        } else {
+          message = 'Không có trường nào cần dịch (tất cả đã có đầy đủ nội dung)';
+        }
+        
+        toast.info(message, {
+          duration: 5000,
+        });
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[Translate ${activeTab}] No translatable fields found. Block data:`, block.data);
+        }
+        
+        setTranslatingAll(false);
+        return;
+      }
+
+      // Debug log
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Translate ${activeTab}] Translation data:`, JSON.stringify(blockTranslationData, null, 2));
+        console.log(`[Translate ${activeTab}] Field map size:`, fieldMap.size);
+        console.log(`[Translate ${activeTab}] Field map keys:`, Array.from(fieldMap.keys()));
+      }
+
+      toast.info(`Đang dịch ${fieldMap.size} trường trong khối "${tabsConfig.find(t => t.value === activeTab)?.label}" (1 request duy nhất)...`);
+
+      // Thu thập tất cả target languages cần dịch (tất cả ngôn ngữ khác source)
+      const allTargetLangs = new Set<'vi' | 'en' | 'ja'>();
+      fieldMap.forEach((field) => {
+        const viText = (field.originalValue.vi || '').trim();
+        const enText = (field.originalValue.en || '').trim();
+        const jaText = (field.originalValue.ja || '').trim();
+        
+        // Sử dụng source language đã chọn
+        const sourceLang = translateSourceLang;
+        
+        // Thêm tất cả ngôn ngữ khác source vào target languages nếu chúng còn thiếu
+        if (sourceLang !== 'vi' && !viText) allTargetLangs.add('vi');
+        if (sourceLang !== 'en' && !enText) allTargetLangs.add('en');
+        if (sourceLang !== 'ja' && !jaText) allTargetLangs.add('ja');
+      });
+
+      const targetLangsArray = Array.from(allTargetLangs);
+      if (targetLangsArray.length === 0) {
+        toast.info('Không có ngôn ngữ nào cần dịch');
+        setTranslatingAll(false);
+        return;
+      }
+
+      // Sử dụng source language đã chọn
+      const mainSourceLang = translateSourceLang;
+
+      try {
+        // Gửi 1 request duy nhất với translation data của block hiện tại
+        // Gửi trực tiếp blockTranslationData (không wrap trong activeTab key)
+        // Vì backend sẽ trả về cùng cấu trúc
+        const response = await adminApiCall<{ success: boolean; data: any }>(
+          AdminEndpoints.translate,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              text: blockTranslationData,
+              sourceLang: mainSourceLang,
+              targetLangs: targetLangsArray,
+              provider: aiProvider
+            })
+          }
+        );
+
+        if (response.success && response.data) {
+          // Debug log response
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[Translate ${activeTab}] Response data:`, JSON.stringify(response.data, null, 2));
+          }
+
+          // Hàm để extract và cập nhật translations từ response
+          // Response.data có cấu trúc giống như translationData đã gửi (không wrap trong blockType key)
+          const extractAndUpdate = (translatedObj: any, blockType: BlockType, path: string = '', parentIsArray: boolean = false, arrayIndex: number = -1): number => {
+            let updatedCount = 0;
+            
+            if (!translatedObj || typeof translatedObj !== 'object') return updatedCount;
+            
+            if (Array.isArray(translatedObj)) {
+              translatedObj.forEach((item, index) => {
+                if (item && typeof item === 'object' && !Array.isArray(item)) {
+                  // Kiểm tra nếu item là locale object
+                  const hasVi = 'vi' in item;
+                  const hasEn = 'en' in item;
+                  const hasJa = 'ja' in item;
+                  
+                  if (hasVi || hasEn || hasJa) {
+                    // Đây là locale object trong array
+                    const currentPath = path ? `${path}.${index}` : `${index}`;
+                    const fieldKey = `${blockType}.${currentPath}`;
+                    const fieldInfo = fieldMap.get(fieldKey);
+                    
+                    if (fieldInfo) {
+                      const originalValue = fieldInfo.originalValue;
+                      const translatedValue = item as Record<'vi' | 'en' | 'ja', string>;
+                      
+                      const newLocaleValue: Record<'vi' | 'en' | 'ja', string> = {
+                        vi: (originalValue.vi || '').trim() || '',
+                        en: (originalValue.en || '').trim() || '',
+                        ja: (originalValue.ja || '').trim() || ''
+                      };
+                      
+                      if (translatedValue.vi && typeof translatedValue.vi === 'string' && !newLocaleValue.vi) {
+                        newLocaleValue.vi = translatedValue.vi.trim();
+                      }
+                      if (translatedValue.en && typeof translatedValue.en === 'string' && !newLocaleValue.en) {
+                        newLocaleValue.en = translatedValue.en.trim();
+                      }
+                      if (translatedValue.ja && typeof translatedValue.ja === 'string' && !newLocaleValue.ja) {
+                        newLocaleValue.ja = translatedValue.ja.trim();
+                      }
+                      
+                      if (newLocaleValue.vi !== originalValue.vi || 
+                          newLocaleValue.en !== originalValue.en || 
+                          newLocaleValue.ja !== originalValue.ja) {
+                        updateLocaleValue(blockType, currentPath, newLocaleValue);
+                        updatedCount++;
+                        
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log(`[Translate ${activeTab}] Updated ${fieldKey}:`, newLocaleValue);
+                        }
+                      }
+                    }
+                  } else {
+                    // Đệ quy tìm trong nested objects
+                    updatedCount += extractAndUpdate(item, blockType, path ? `${path}.${index}` : `${index}`, true, index);
+                  }
+                }
+              });
+              return updatedCount;
+            }
+            
+            for (const [key, value] of Object.entries(translatedObj)) {
+              const currentPath = path ? `${path}.${key}` : key;
+              
+              // Kiểm tra nếu value là locale object (có vi, en, ja)
+              if (value && typeof value === 'object' && !Array.isArray(value)) {
+                const hasVi = 'vi' in value;
+                const hasEn = 'en' in value;
+                const hasJa = 'ja' in value;
+                
+                if (hasVi || hasEn || hasJa) {
+                  // Đây là locale object - cần cập nhật
+                  const fieldKey = `${blockType}.${currentPath}`;
+                  const fieldInfo = fieldMap.get(fieldKey);
+                  
+                  if (fieldInfo) {
+                    // Tìm thấy field cần cập nhật
+                    const originalValue = fieldInfo.originalValue;
+                    const translatedValue = value as Record<'vi' | 'en' | 'ja', string>;
+                    
+                    // Tạo locale object mới, giữ nguyên các giá trị đã có
+                    const newLocaleValue: Record<'vi' | 'en' | 'ja', string> = {
+                      vi: (originalValue.vi || '').trim() || '',
+                      en: (originalValue.en || '').trim() || '',
+                      ja: (originalValue.ja || '').trim() || ''
+                    };
+                    
+                    // Cập nhật các ngôn ngữ còn thiếu từ translated value
+                    if (translatedValue.vi && typeof translatedValue.vi === 'string' && !newLocaleValue.vi) {
+                      newLocaleValue.vi = translatedValue.vi.trim();
+                    }
+                    if (translatedValue.en && typeof translatedValue.en === 'string' && !newLocaleValue.en) {
+                      newLocaleValue.en = translatedValue.en.trim();
+                    }
+                    if (translatedValue.ja && typeof translatedValue.ja === 'string' && !newLocaleValue.ja) {
+                      newLocaleValue.ja = translatedValue.ja.trim();
+                    }
+                    
+                    // Chỉ cập nhật nếu có thay đổi
+                    if (newLocaleValue.vi !== originalValue.vi || 
+                        newLocaleValue.en !== originalValue.en || 
+                        newLocaleValue.ja !== originalValue.ja) {
+                      // Debug: Log trước khi update
+                      if (process.env.NODE_ENV === 'development') {
+                        const beforeUpdate = getBlockData(blockType, currentPath.split('.').slice(0, -1).join('.'));
+                        console.log(`[Translate ${activeTab}] Before update ${fieldKey}:`, beforeUpdate);
+                      }
+                      
+                      updateLocaleValue(blockType, currentPath, newLocaleValue);
+                      updatedCount++;
+                      
+                      // Debug: Log sau khi update
+                      if (process.env.NODE_ENV === 'development') {
+                        const afterUpdate = getBlockData(blockType, currentPath.split('.').slice(0, -1).join('.'));
+                        console.log(`[Translate ${activeTab}] After update ${fieldKey}:`, afterUpdate);
+                        console.log(`[Translate ${activeTab}] Updated locale value:`, newLocaleValue);
+                      }
+                    }
+                  } else {
+                    // Không tìm thấy trong fieldMap - có thể là nested locale object
+                    if (process.env.NODE_ENV === 'development') {
+                      console.warn(`[Translate ${activeTab}] Field not found in map: ${fieldKey}`);
+                    }
+                  }
+                } else {
+                  // Không phải locale object - đệ quy tìm tiếp
+                  updatedCount += extractAndUpdate(value, blockType, currentPath, false, -1);
+                }
+              } else if (value && typeof value === 'object' && Array.isArray(value)) {
+                // Array - đệ quy
+                updatedCount += extractAndUpdate(value, blockType, currentPath, false, -1);
+              }
+            }
+            
+            return updatedCount;
+          };
+
+          // Áp dụng translations cho block hiện tại
+          // Response.data có cùng cấu trúc như translationData đã gửi (không wrap trong blockType key)
+          let totalUpdated = 0;
+          if (response.data && typeof response.data === 'object') {
+            totalUpdated = extractAndUpdate(response.data, activeTab);
+          }
+
+          if (totalUpdated > 0) {
+            toast.success(`Đã dịch thành công ${totalUpdated} trường trong khối "${tabsConfig.find(t => t.value === activeTab)?.label}" (1 request duy nhất)`);
+          } else {
+            if (process.env.NODE_ENV === 'development') {
+              console.warn(`[Translate ${activeTab}] No fields updated. Response:`, response.data);
+            }
+            toast.warning('Không có trường nào được cập nhật. Có thể tất cả đã có đầy đủ hoặc cấu trúc không khớp.');
+          }
+        } else {
+          toast.error('Không thể dịch: ' + (response as any)?.message || 'Unknown error');
+        }
+      } catch (error: any) {
+        toast.error('Lỗi khi dịch: ' + (error?.message || 'Unknown error'));
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Translation error:', error);
+        }
+      }
+    } catch (error: any) {
+      toast.error('Lỗi khi xử lý: ' + (error?.message || 'Unknown error'));
+    } finally {
+      setTranslatingAll(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Quản lý Trang chủ</h1>
           <p className="text-gray-600 mt-1">Quản lý đầy đủ các khối trên trang chủ</p>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector - Giữ ở header vì dùng chung cho tất cả tabs */}
+          <div className="flex items-center gap-2">
+            <Bot className="h-4 w-4 text-gray-500" />
+            <Select value={aiProvider} onValueChange={(value: 'openai' | 'gemini') => setAiProvider(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI (GPT-4o-mini)</SelectItem>
+                <SelectItem value="gemini">Google Gemini</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -352,6 +899,69 @@ export default function AdminHomepagePage() {
                 </TabsList>
 
                 <TabsContent value="config" className="space-y-4 mt-4">
+                  {/* Tab Controls - Locale Selector và Translate Button */}
+                  <Card className="mb-4">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-4">
+                          {/* Locale Selector cho tab này */}
+                          <div className="flex items-center gap-2">
+                            <Languages className="h-4 w-4 text-gray-500" />
+                            <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                            <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                              <SelectTrigger className="w-[150px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                                <SelectItem value="en">🇬🇧 English</SelectItem>
+                                <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        {/* Translate Controls - Source Language Selector và Button */}
+                        <div className="flex items-center gap-2">
+                          {/* Source Language Selector cho dịch */}
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                            <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                              <SelectTrigger className="w-[150px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                                <SelectItem value="en">🇬🇧 English</SelectItem>
+                                <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          {/* Translate Button cho tab này */}
+                          <Button
+                            onClick={handleTranslateAll}
+                            disabled={translatingAll}
+                            variant="outline"
+                            className="gap-2"
+                          >
+                            {translatingAll ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Đang dịch...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4" />
+                                <span>Dịch khối này</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <Card>
                     <CardHeader className="p-0">
                       <div
@@ -384,47 +994,47 @@ export default function AdminHomepagePage() {
                         {/* Render form based on block type */}
                         {blockType === 'hero' && (
                           <>
-                            <div>
-                              <Label className="mb-2">Tiêu đề dòng 1</Label>
-                              <Input
-                                value={getBlockData('hero', 'title.line1')}
-                                onChange={(e) => updateBlockData('hero', 'title.line1', e.target.value)}
-                                placeholder="Chuyển đổi số "
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Tiêu đề dòng 2</Label>
-                              <Input
-                                value={getBlockData('hero', 'title.line2')}
-                                onChange={(e) => updateBlockData('hero', 'title.line2', e.target.value)}
-                                placeholder="Thông minh "
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Tiêu đề dòng 3</Label>
-                              <Input
-                                value={getBlockData('hero', 'title.line3')}
-                                onChange={(e) => updateBlockData('hero', 'title.line3', e.target.value)}
-                                placeholder="Cho doanh nghiệp"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Mô tả</Label>
-                              <Textarea
-                                value={getBlockData('hero', 'description')}
-                                onChange={(e) => updateBlockData('hero', 'description', e.target.value)}
-                                placeholder="Mô tả..."
-                                rows={3}
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Nút chính - Text</Label>
-                              <Input
-                                value={getBlockData('hero', 'primaryButton.text')}
-                                onChange={(e) => updateBlockData('hero', 'primaryButton.text', e.target.value)}
-                                placeholder="Khám phá giải pháp"
-                              />
-                            </div>
+                            <LocaleInput
+                              value={getLocaleValue(blocks['hero']?.data, 'title.line1')}
+                              onChange={(value) => updateLocaleValue('hero', 'title.line1', value)}
+                              label="Tiêu đề dòng 1"
+                              placeholder="Chuyển đổi số "
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                            <LocaleInput
+                              value={getLocaleValue(blocks['hero']?.data, 'title.line2')}
+                              onChange={(value) => updateLocaleValue('hero', 'title.line2', value)}
+                              label="Tiêu đề dòng 2"
+                              placeholder="Thông minh "
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                            <LocaleInput
+                              value={getLocaleValue(blocks['hero']?.data, 'title.line3')}
+                              onChange={(value) => updateLocaleValue('hero', 'title.line3', value)}
+                              label="Tiêu đề dòng 3"
+                              placeholder="Cho doanh nghiệp"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                            <LocaleInput
+                              value={getLocaleValue(blocks['hero']?.data, 'description')}
+                              onChange={(value) => updateLocaleValue('hero', 'description', value)}
+                              label="Mô tả"
+                              placeholder="SFB Technology đồng hành..."
+                              multiline={true}
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                            <LocaleInput
+                              value={getLocaleValue(blocks['hero']?.data, 'primaryButton.text')}
+                              onChange={(value) => updateLocaleValue('hero', 'primaryButton.text', value)}
+                              label="Nút chính - Text"
+                              placeholder="Khám phá giải pháp"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
                             <div>
                               <Label className="mb-2">Nút chính - Link</Label>
                               <Input
@@ -433,14 +1043,14 @@ export default function AdminHomepagePage() {
                                 placeholder="/solutions"
                               />
                             </div>
-                            <div>
-                              <Label className="mb-2">Nút phụ - Text</Label>
-                              <Input
-                                value={getBlockData('hero', 'secondaryButton.text')}
-                                onChange={(e) => updateBlockData('hero', 'secondaryButton.text', e.target.value)}
-                                placeholder="Xem video"
-                              />
-                            </div>
+                            <LocaleInput
+                              value={getLocaleValue(blocks['hero']?.data, 'secondaryButton.text')}
+                              onChange={(value) => updateLocaleValue('hero', 'secondaryButton.text', value)}
+                              label="Nút phụ - Text"
+                              placeholder="Xem video"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
                             <div>
                               <Label className="mb-2">Nút phụ - Link</Label>
                               <div className="space-y-3">
@@ -525,7 +1135,7 @@ export default function AdminHomepagePage() {
                                   Thêm partner
                                 </Button>
                               </div>
-                              <div className="grid grid-cols-3 gap-4">
+                              <div className="grid grid-cols-6 gap-4">
                                 {(getBlockData('hero', 'partners', []) as string[]).map((partner, idx) => (
                                   <div key={idx} className="space-y-2">
                                     <div className="flex items-center justify-between">
@@ -569,31 +1179,31 @@ export default function AdminHomepagePage() {
 
                         {blockType === 'consult' && (
                           <>
-                            <div>
-                              <Label className="mb-2">Tiêu đề</Label>
-                              <Input
-                                value={getBlockData('consult', 'title')}
-                                onChange={(e) => updateBlockData('consult', 'title', e.target.value)}
-                                placeholder="Miễn phí tư vấn"
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Mô tả</Label>
-                              <Textarea
-                                value={getBlockData('consult', 'description')}
-                                onChange={(e) => updateBlockData('consult', 'description', e.target.value)}
-                                placeholder="Mô tả..."
-                                rows={3}
-                              />
-                            </div>
-                            <div>
-                              <Label className="mb-2">Nút chính - Text</Label>
-                              <Input
-                                value={getBlockData('consult', 'buttons.primary.text')}
-                                onChange={(e) => updateBlockData('consult', 'buttons.primary.text', e.target.value)}
-                                placeholder="Tư vấn miễn phí ngay"
-                              />
-                            </div>
+                            <LocaleInput
+                              value={getLocaleValue(blocks['consult']?.data, 'title')}
+                              onChange={(value) => updateLocaleValue('consult', 'title', value)}
+                              label="Tiêu đề"
+                              placeholder="Miễn phí tư vấn"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                            <LocaleInput
+                              value={getLocaleValue(blocks['consult']?.data, 'description')}
+                              onChange={(value) => updateLocaleValue('consult', 'description', value)}
+                              label="Mô tả"
+                              placeholder="Mô tả..."
+                              multiline={true}
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                            <LocaleInput
+                              value={getLocaleValue(blocks['consult']?.data, 'buttons.primary.text')}
+                              onChange={(value) => updateLocaleValue('consult', 'buttons.primary.text', value)}
+                              label="Nút chính - Text"
+                              placeholder="Tư vấn miễn phí ngay"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
                             <div>
                               <Label className="mb-2">Nút chính - Link</Label>
                               <Input
@@ -602,14 +1212,14 @@ export default function AdminHomepagePage() {
                                 placeholder="/contact"
                               />
                             </div>
-                            <div>
-                              <Label className="mb-2">Nút phụ - Text</Label>
-                              <Input
-                                value={getBlockData('consult', 'buttons.secondary.text')}
-                                onChange={(e) => updateBlockData('consult', 'buttons.secondary.text', e.target.value)}
-                                placeholder="Xem case studies"
-                              />
-                            </div>
+                            <LocaleInput
+                              value={getLocaleValue(blocks['consult']?.data, 'buttons.secondary.text')}
+                              onChange={(value) => updateLocaleValue('consult', 'buttons.secondary.text', value)}
+                              label="Nút phụ - Text"
+                              placeholder="Xem case studies"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
                             <div>
                               <Label className="mb-2">Nút phụ - Link</Label>
                               <Input
@@ -637,54 +1247,66 @@ export default function AdminHomepagePage() {
                               <h3 className="font-semibold text-lg">Tiêu đề</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="mb-2">Phần 1</Label>
-                                  <Input
-                                    value={getBlockData('aboutCompany', 'title.part1')}
-                                    onChange={(e) => updateBlockData('aboutCompany', 'title.part1', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['aboutCompany']?.data, 'title.part1')}
+                                    onChange={(value) => updateLocaleValue('aboutCompany', 'title.part1', value)}
+                                    label="Phần 1"
                                     placeholder="Chuyển đổi số "
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                                 <div>
-                                  <Label className="mb-2">Highlight 1</Label>
-                                  <Input
-                                    value={getBlockData('aboutCompany', 'title.highlight1')}
-                                    onChange={(e) => updateBlockData('aboutCompany', 'title.highlight1', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['aboutCompany']?.data, 'title.highlight1')}
+                                    onChange={(value) => updateLocaleValue('aboutCompany', 'title.highlight1', value)}
+                                    label="Highlight 1"
                                     placeholder="không bắt đầu từ phần mềm"
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                                 <div>
-                                  <Label className="mb-2">Phần 2</Label>
-                                  <Input
-                                    value={getBlockData('aboutCompany', 'title.part2')}
-                                    onChange={(e) => updateBlockData('aboutCompany', 'title.part2', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['aboutCompany']?.data, 'title.part2')}
+                                    onChange={(value) => updateLocaleValue('aboutCompany', 'title.part2', value)}
+                                    label="Phần 2"
                                     placeholder=" mà "
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                                 <div>
-                                  <Label className="mb-2">Highlight 2</Label>
-                                  <Input
-                                    value={getBlockData('aboutCompany', 'title.highlight2')}
-                                    onChange={(e) => updateBlockData('aboutCompany', 'title.highlight2', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['aboutCompany']?.data, 'title.highlight2')}
+                                    onChange={(value) => updateLocaleValue('aboutCompany', 'title.highlight2', value)}
+                                    label="Highlight 2"
                                     placeholder="từ hiệu quả thực tế"
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                                 <div className="md:col-span-2">
-                                  <Label className="mb-2">Phần 3</Label>
-                                  <Input
-                                    value={getBlockData('aboutCompany', 'title.part3')}
-                                    onChange={(e) => updateBlockData('aboutCompany', 'title.part3', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['aboutCompany']?.data, 'title.part3')}
+                                    onChange={(value) => updateLocaleValue('aboutCompany', 'title.part3', value)}
+                                    label="Phần 3"
                                     placeholder=" của doanh nghiệp."
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                               </div>
                             </div>
                             <div>
-                              <Label className="mb-2">Mô tả</Label>
-                              <Textarea
-                                value={getBlockData('aboutCompany', 'description')}
-                                onChange={(e) => updateBlockData('aboutCompany', 'description', e.target.value)}
+                              <LocaleInput
+                                value={getLocaleValue(blocks['aboutCompany']?.data, 'description')}
+                                onChange={(value) => updateLocaleValue('aboutCompany', 'description', value)}
+                                label="Mô tả"
                                 placeholder="Mô tả..."
-                                rows={3}
+                                multiline={true}
+                                defaultLocale={globalLocale}
+                                aiProvider={aiProvider}
                               />
                             </div>
                             <div className="space-y-4">
@@ -709,7 +1331,9 @@ export default function AdminHomepagePage() {
                                 </Button>
                               </div>
                               <div className="grid grid-cols-3 gap-4">
-                                {(getBlockData('aboutCompany', 'slides', []) as any[]).map((slide: any, idx: number) => (
+                                {(() => {
+                                  const slides = getBlockData('aboutCompany', 'slides', []);
+                                  return Array.isArray(slides) ? slides.map((slide: any, idx: number) => (
                                   <Card key={idx}>
                                     <CardHeader>
                                       <div className="flex items-center justify-between">
@@ -727,7 +1351,10 @@ export default function AdminHomepagePage() {
                                             variant="outline"
                                             size="icon"
                                             onClick={() => moveArrayItem('aboutCompany', 'slides', idx, 'down')}
-                                            disabled={idx === (getBlockData('aboutCompany', 'slides', []) as any[]).length - 1}
+                                            disabled={(() => {
+                                              const slides = getBlockData('aboutCompany', 'slides', []);
+                                              return !Array.isArray(slides) || idx === slides.length - 1;
+                                            })()}
                                           >
                                             <ChevronDown className="h-4 w-4" />
                                           </Button>
@@ -750,15 +1377,16 @@ export default function AdminHomepagePage() {
                                     </CardHeader>
                                     <CardContent>
                                       <div className="space-y-2">
-                                        <p className="font-medium text-sm">{slide.title || 'Chưa có tiêu đề'}</p>
-                                        <p className="text-xs text-gray-600 line-clamp-2">{slide.description || 'Chưa có mô tả'}</p>
+                                        <p className="font-medium text-sm">{getLocalizedText(slide.title, globalLocale) || 'Chưa có tiêu đề'}</p>
+                                        <p className="text-xs text-gray-600 line-clamp-2">{getLocalizedText(slide.description, globalLocale) || 'Chưa có mô tả'}</p>
                                         {slide.image && (
-                                          <img src={slide.image} alt={slide.title} className="w-full h-24 object-cover rounded" />
+                                          <img src={slide.image} alt={getLocalizedText(slide.title, globalLocale) || 'Slide'} className="w-full h-24 object-cover rounded" />
                                         )}
                                       </div>
                                     </CardContent>
                                   </Card>
-                                ))}
+                                )) : null;
+                                })()}
                               </div>
                             </div>
                             <div className="flex items-center justify-between">
@@ -779,28 +1407,34 @@ export default function AdminHomepagePage() {
                             <div className="space-y-4">
                               <h3 className="font-semibold text-lg">Header</h3>
                               <div>
-                                <Label className="mb-2">Sub Title</Label>
-                                <Input
-                                  value={getBlockData('features', 'header.sub')}
-                                  onChange={(e) => updateBlockData('features', 'header.sub', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['features']?.data, 'header.sub')}
+                                  onChange={(value) => updateLocaleValue('features', 'header.sub', value)}
+                                  label="Sub Title"
                                   placeholder="GIỚI THIỆU SFB"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                               <div>
-                                <Label className="mb-2">Tiêu đề</Label>
-                                <Input
-                                  value={getBlockData('features', 'header.title')}
-                                  onChange={(e) => updateBlockData('features', 'header.title', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['features']?.data, 'header.title')}
+                                  onChange={(value) => updateLocaleValue('features', 'header.title', value)}
+                                  label="Tiêu đề"
                                   placeholder="Chúng tôi là ai?"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                               <div>
-                                <Label className="mb-2">Mô tả</Label>
-                                <Textarea
-                                  value={getBlockData('features', 'header.description')}
-                                  onChange={(e) => updateBlockData('features', 'header.description', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['features']?.data, 'header.description')}
+                                  onChange={(value) => updateLocaleValue('features', 'header.description', value)}
+                                  label="Mô tả"
                                   placeholder="Mô tả..."
-                                  rows={3}
+                                  multiline={true}
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                             </div>
@@ -880,7 +1514,9 @@ export default function AdminHomepagePage() {
                                           </div>
                                         )}
                                         {featureBlock.text && (
-                                          <p className="text-xs text-gray-600 line-clamp-2">{featureBlock.text}</p>
+                                          <p className="text-xs text-gray-600 line-clamp-2">
+                                            {getLocalizedText(featureBlock.text, globalLocale) || 'Chưa có nội dung'}
+                                          </p>
                                         )}
                                         {featureBlock.items && featureBlock.items.length > 0 && (
                                           <p className="text-xs text-gray-600">{featureBlock.items.length} items</p>
@@ -912,28 +1548,34 @@ export default function AdminHomepagePage() {
                             <div className="space-y-4">
                               <h3 className="font-semibold text-lg">Header</h3>
                               <div>
-                                <Label className="mb-2">Sub Header</Label>
-                                <Input
-                                  value={getBlockData('solutions', 'subHeader')}
-                                  onChange={(e) => updateBlockData('solutions', 'subHeader', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['solutions']?.data, 'subHeader')}
+                                  onChange={(value) => updateLocaleValue('solutions', 'subHeader', value)}
+                                  label="Sub Header"
                                   placeholder="GIẢI PHÁP CHUYÊN NGHIỆP"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="mb-2">Tiêu đề phần 1</Label>
-                                  <Input
-                                    value={getBlockData('solutions', 'title.part1')}
-                                    onChange={(e) => updateBlockData('solutions', 'title.part1', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['solutions']?.data, 'title.part1')}
+                                    onChange={(value) => updateLocaleValue('solutions', 'title.part1', value)}
+                                    label="Tiêu đề phần 1"
                                     placeholder="Giải pháp phần mềm"
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                                 <div>
-                                  <Label className="mb-2">Tiêu đề phần 2</Label>
-                                  <Input
-                                    value={getBlockData('solutions', 'title.part2')}
-                                    onChange={(e) => updateBlockData('solutions', 'title.part2', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['solutions']?.data, 'title.part2')}
+                                    onChange={(value) => updateLocaleValue('solutions', 'title.part2', value)}
+                                    label="Tiêu đề phần 2"
                                     placeholder="đóng gói cho nhiều lĩnh vực"
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                               </div>
@@ -943,31 +1585,37 @@ export default function AdminHomepagePage() {
                                   <Button
                                     size="sm"
                                     onClick={() => {
-                                      const domains = getBlockData('solutions', 'domains', []) as string[];
-                                      updateBlockData('solutions', 'domains', [...domains, '']);
+                                      const domains = getBlockData('solutions', 'domains', []) as any[];
+                                      updateBlockData('solutions', 'domains', [...domains, { vi: '', en: '', ja: '' }]);
                                     }}
                                   >
                                     <Plus className="h-4 w-4 mr-2" />
                                     Thêm
                                   </Button>
                                 </div>
-                                {(getBlockData('solutions', 'domains', []) as string[]).map((domain, idx) => (
+                                {(getBlockData('solutions', 'domains', []) as any[]).map((domain, idx) => (
                                   <div key={idx} className="flex gap-2">
-                                    <Input
-                                      value={domain}
-                                      onChange={(e) => {
-                                        const domains = getBlockData('solutions', 'domains', []) as string[];
-                                        const newDomains = [...domains];
-                                        newDomains[idx] = e.target.value;
-                                        updateBlockData('solutions', 'domains', newDomains);
-                                      }}
-                                      placeholder="Lĩnh vực..."
+                                    <div className="flex-1">
+                                      <LocaleInput
+                                        value={getLocaleValue(domain, '')}
+                                        onChange={(value) => {
+                                          const domains = getBlockData('solutions', 'domains', []) as any[];
+                                          const newDomains = [...domains];
+                                          newDomains[idx] = value;
+                                          updateBlockData('solutions', 'domains', newDomains);
+                                        }}
+                                        label={`Lĩnh vực ${idx + 1}`}
+                                        placeholder="Lĩnh vực..."
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
                                     />
+                                    </div>
                                     <Button
                                       variant="outline"
                                       size="icon"
+                                      className="mt-6"
                                       onClick={() => {
-                                        const domains = getBlockData('solutions', 'domains', []) as string[];
+                                        const domains = getBlockData('solutions', 'domains', []) as any[];
                                         updateBlockData('solutions', 'domains', domains.filter((_, i) => i !== idx));
                                       }}
                                     >
@@ -1042,11 +1690,13 @@ export default function AdminHomepagePage() {
                                   </CardHeader>
                                   <CardContent>
                                     <div className="space-y-2">
-                                      <p className="font-medium">{item.title || 'Chưa có tiêu đề'}</p>
-                                      <p className="text-sm text-gray-600 line-clamp-2">{item.description || 'Chưa có mô tả'}</p>
+                                      <p className="font-medium">{getLocalizedText(item.title, globalLocale) || 'Chưa có tiêu đề'}</p>
+                                      <p className="text-sm text-gray-600 line-clamp-2">{getLocalizedText(item.description, globalLocale) || 'Chưa có mô tả'}</p>
                                       <div className="flex flex-wrap gap-1">
-                                        {(item.benefits || []).slice(0, 3).map((b: string, bidx: number) => (
-                                          <Badge key={bidx} variant="secondary">{b}</Badge>
+                                        {(item.benefits || []).slice(0, 3).map((b: any, bidx: number) => (
+                                          <Badge key={bidx} variant="secondary">
+                                            {getLocalizedText(b, globalLocale)}
+                                          </Badge>
                                         ))}
                                       </div>
                                     </div>
@@ -1072,28 +1722,34 @@ export default function AdminHomepagePage() {
                             <div className="space-y-4">
                               <h3 className="font-semibold text-lg">Header</h3>
                               <div>
-                                <Label className="mb-2">Sub Header</Label>
-                                <Input
-                                  value={getBlockData('trusts', 'subHeader')}
-                                  onChange={(e) => updateBlockData('trusts', 'subHeader', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['trusts']?.data, 'subHeader')}
+                                  onChange={(value) => updateLocaleValue('trusts', 'subHeader', value)}
+                                  label="Sub Header"
                                   placeholder="SFB TECHNOLOGY"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                               <div>
-                                <Label className="mb-2">Tiêu đề</Label>
-                                <Input
-                                  value={getBlockData('trusts', 'title')}
-                                  onChange={(e) => updateBlockData('trusts', 'title', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['trusts']?.data, 'title')}
+                                  onChange={(value) => updateLocaleValue('trusts', 'title', value)}
+                                  label="Tiêu đề"
                                   placeholder="Độ tin cậy của SFB Technology"
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                               <div>
-                                <Label className="mb-2">Mô tả</Label>
-                                <Textarea
-                                  value={getBlockData('trusts', 'description')}
-                                  onChange={(e) => updateBlockData('trusts', 'description', e.target.value)}
+                                <LocaleInput
+                                  value={getLocaleValue(blocks['trusts']?.data, 'description')}
+                                  onChange={(value) => updateLocaleValue('trusts', 'description', value)}
+                                  label="Mô tả"
                                   placeholder="Mô tả..."
-                                  rows={3}
+                                  multiline={true}
+                                  defaultLocale={globalLocale}
+                                  aiProvider={aiProvider}
                                 />
                               </div>
                               <div>
@@ -1105,11 +1761,13 @@ export default function AdminHomepagePage() {
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                  <Label className="mb-2">Nút - Text</Label>
-                                  <Input
-                                    value={getBlockData('trusts', 'button.text')}
-                                    onChange={(e) => updateBlockData('trusts', 'button.text', e.target.value)}
+                                  <LocaleInput
+                                    value={getLocaleValue(blocks['trusts']?.data, 'button.text')}
+                                    onChange={(value) => updateLocaleValue('trusts', 'button.text', value)}
+                                    label="Nút - Text"
                                     placeholder="Tìm hiểu thêm"
+                                    defaultLocale={globalLocale}
+                                    aiProvider={aiProvider}
                                   />
                                 </div>
                                 <div>
@@ -1182,8 +1840,8 @@ export default function AdminHomepagePage() {
                                   </CardHeader>
                                   <CardContent>
                                     <div className="space-y-2">
-                                      <p className="font-medium">{feature.title || 'Chưa có tiêu đề'}</p>
-                                      <p className="text-sm text-gray-600 line-clamp-2">{feature.description || 'Chưa có mô tả'}</p>
+                                      <p className="font-medium">{getLocalizedText(feature.title, globalLocale) || 'Chưa có tiêu đề'}</p>
+                                      <p className="text-sm text-gray-600 line-clamp-2">{getLocalizedText(feature.description, globalLocale) || 'Chưa có mô tả'}</p>
                                     </div>
                                   </CardContent>
                                 </Card>
@@ -1205,11 +1863,13 @@ export default function AdminHomepagePage() {
                         {blockType === 'testimonials' && (
                           <>
                             <div>
-                              <Label className="mb-2">Tiêu đề</Label>
-                              <Input
-                                value={getBlockData('testimonials', 'title')}
-                                onChange={(e) => updateBlockData('testimonials', 'title', e.target.value)}
+                              <LocaleInput
+                                value={getLocaleValue(blocks['testimonials']?.data, 'title')}
+                                onChange={(value) => updateLocaleValue('testimonials', 'title', value)}
+                                label="Tiêu đề"
                                 placeholder="Khách hàng nói về SFB?"
+                                defaultLocale={globalLocale}
+                                aiProvider={aiProvider}
                               />
                             </div>
                             <div className="space-y-4">
@@ -1275,7 +1935,7 @@ export default function AdminHomepagePage() {
                                     <CardContent>
                                       <div className="space-y-2">
                                         <p className="font-medium text-sm">{review.author || 'Chưa có tác giả'}</p>
-                                        <p className="text-xs text-gray-600 line-clamp-2">{review.quote || 'Chưa có nội dung'}</p>
+                                        <p className="text-xs text-gray-600 line-clamp-2">{getLocalizedText(review.quote, globalLocale) || 'Chưa có nội dung'}</p>
                                         <div className="flex gap-1">
                                           {[...Array(review.rating || 5)].map((_, i) => (
                                             <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
@@ -1404,15 +2064,17 @@ export default function AdminHomepagePage() {
                             </p>
                           </div>
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {(getBlockData('aboutCompany', 'slides', []) as any[]).slice(0, 3).map((slide: any, idx: number) => (
+                            {(() => {
+                              const slides = getBlockData('aboutCompany', 'slides', []);
+                              return Array.isArray(slides) ? slides.slice(0, 3).map((slide: any, idx: number) => (
                               <div key={idx} className="bg-white rounded-3xl p-6 border-2 border-gray-100 shadow-lg">
                                 {slide.image && (
                                   <div className="mb-4 rounded-lg overflow-hidden" style={{ height: '200px' }}>
                                     <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
                                   </div>
                                 )}
-                                <h3 className="font-semibold text-lg mb-2">{slide.title || 'Tiêu đề'}</h3>
-                                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{slide.description || 'Mô tả...'}</p>
+                                <h3 className="font-semibold text-lg mb-2">{getLocalizedText(slide.title, globalLocale) || 'Tiêu đề'}</h3>
+                                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{getLocalizedText(slide.description, globalLocale) || 'Mô tả...'}</p>
                                 <a
                                   href={slide.buttonLink || '#'}
                                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold"
@@ -1423,7 +2085,8 @@ export default function AdminHomepagePage() {
                                   {slide.buttonText || 'Xem thêm'}
                                 </a>
                               </div>
-                            ))}
+                            )) : null;
+                            })()}
                           </div>
                         </div>
                       )}
@@ -1465,10 +2128,10 @@ export default function AdminHomepagePage() {
                                           <p className="text-slate-700 mb-4">{featureBlock.text}</p>
                                         )}
                                         <div className="space-y-2 mb-4">
-                                          {((featureBlock.list || []) as string[]).map((item, idx) => (
+                                          {((featureBlock.list || []) as any[]).map((item, idx) => (
                                             <div key={idx} className="flex items-center gap-2">
                                               <CheckCircle className="h-5 w-5 text-sky-500 flex-shrink-0" />
-                                              <span className="font-medium">{item}</span>
+                                              <span className="font-medium">{getLocalizedText(item, globalLocale)}</span>
                                             </div>
                                           ))}
                                         </div>
@@ -1500,8 +2163,8 @@ export default function AdminHomepagePage() {
                                             <div key={idx} className="flex items-start gap-3">
                                               <CheckCircle className="h-5 w-5 text-sky-500 flex-shrink-0 mt-0.5" />
                                               <div>
-                                                <h3 className="font-semibold text-base mb-1">{item.title || 'Tiêu đề'}</h3>
-                                                <p className="text-slate-600 text-sm">{item.text || 'Nội dung...'}</p>
+                                                <h3 className="font-semibold text-base mb-1">{getLocalizedText(item.title, globalLocale) || 'Tiêu đề'}</h3>
+                                                <p className="text-slate-600 text-sm">{getLocalizedText(item.text, globalLocale) || 'Nội dung...'}</p>
                                               </div>
                                             </div>
                                           ))}
@@ -1541,10 +2204,10 @@ export default function AdminHomepagePage() {
                                     <div>
                                       <p className="text-slate-700 mb-4">{getBlockData('features', 'block1.text', 'Nội dung...')}</p>
                                       <div className="space-y-2 mb-4">
-                                        {(getBlockData('features', 'block1.list', []) as string[]).map((item, idx) => (
+                                        {(getBlockData('features', 'block1.list', []) as any[]).map((item, idx) => (
                                           <div key={idx} className="flex items-center gap-2">
                                             <CheckCircle className="h-5 w-5 text-sky-500" />
-                                            <span className="font-medium">{item}</span>
+                                            <span className="font-medium">{getLocalizedText(item, globalLocale)}</span>
                                           </div>
                                         ))}
                                       </div>
@@ -1584,12 +2247,12 @@ export default function AdminHomepagePage() {
                               <span className="font-medium">{getBlockData('solutions', 'title.part2', 'đóng gói cho nhiều lĩnh vực')}</span>
                             </h2>
                             <div className="flex flex-wrap justify-center gap-2 mt-6">
-                              {(getBlockData('solutions', 'domains', []) as string[]).map((domain, idx) => (
+                              {(getBlockData('solutions', 'domains', []) as any[]).map((domain, idx) => (
                                 <span
                                   key={idx}
                                   className="px-4 py-2 rounded-full text-sm text-white/90 border border-white/35 bg-white/10"
                                 >
-                                  {domain}
+                                  {getLocalizedText(domain, globalLocale)}
                                 </span>
                               ))}
                             </div>
@@ -1606,13 +2269,13 @@ export default function AdminHomepagePage() {
                                     <div className={`w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-br ${item.iconGradient || 'from-blue-500 to-cyan-500'}`}>
                                       <IconComponent className="text-white" size={24} />
                                     </div>
-                                    <h3 className="text-gray-900 font-extrabold text-lg">{item.title || 'Tiêu đề'}</h3>
-                                    <p className="text-gray-600 text-sm leading-relaxed">{item.description || 'Mô tả...'}</p>
+                                    <h3 className="text-gray-900 font-extrabold text-lg">{getLocalizedText(item.title, globalLocale) || 'Tiêu đề'}</h3>
+                                    <p className="text-gray-600 text-sm leading-relaxed">{getLocalizedText(item.description, globalLocale) || 'Mô tả...'}</p>
                                     <ul className="space-y-1.5">
-                                      {(item.benefits || []).map((benefit: string, bidx: number) => (
+                                      {(item.benefits || []).map((benefit: any, bidx: number) => (
                                         <li key={bidx} className="flex items-start gap-2">
                                           <span className="text-[#1D8FCF] mt-1 text-xs">•</span>
-                                          <span className="text-gray-600 text-xs">{benefit}</span>
+                                          <span className="text-gray-600 text-xs">{getLocalizedText(benefit, globalLocale)}</span>
                                         </li>
                                       ))}
                                     </ul>
@@ -1667,8 +2330,8 @@ export default function AdminHomepagePage() {
                                     {renderIcon(feature.iconName || 'BarChart3')}
                                   </div>
                                   <div>
-                                    <h3 className="font-semibold text-lg mb-2">{feature.title || 'Tiêu đề'}</h3>
-                                    <p className="text-gray-600 text-sm">{feature.description || 'Mô tả...'}</p>
+                                    <h3 className="font-semibold text-lg mb-2">{getLocalizedText(feature.title, globalLocale) || 'Tiêu đề'}</h3>
+                                    <p className="text-gray-600 text-sm">{getLocalizedText(feature.description, globalLocale) || 'Mô tả...'}</p>
                                   </div>
                                 </div>
                               ))}
@@ -1703,7 +2366,7 @@ export default function AdminHomepagePage() {
                                   ))}
                                 </div>
                                 <p className="text-[#334155] text-sm leading-relaxed line-clamp-4">
-                                  "{review.quote || 'Nội dung đánh giá...'}"
+                                  "{getLocalizedText(review.quote, globalLocale) || 'Nội dung đánh giá...'}"
                                 </p>
                                 <div className="font-bold text-[#0F172A] text-sm mt-auto">
                                   {review.author || 'Tác giả'}
@@ -1757,10 +2420,13 @@ export default function AdminHomepagePage() {
       <Dialog open={editingSlideIndex !== null} onOpenChange={(open) => {
         if (!open) setEditingSlideIndex(null);
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{ maxWidth: '60rem' }}>
           <DialogHeader>
             <DialogTitle>
-              {editingSlideIndex !== null && editingSlideIndex >= (getBlockData('aboutCompany', 'slides', []) as any[]).length
+              {editingSlideIndex !== null && (() => {
+                const slides = getBlockData('aboutCompany', 'slides', []);
+                return Array.isArray(slides) && editingSlideIndex >= slides.length;
+              })()
                 ? "Thêm slide mới"
                 : "Chỉnh sửa slide"}
             </DialogTitle>
@@ -1770,33 +2436,35 @@ export default function AdminHomepagePage() {
             const slide = slides[editingSlideIndex] || { title: '', description: '', buttonText: '', buttonLink: '', image: '' };
             return (
               <div className="space-y-4 py-4">
-                <div>
-                  <Label className="mb-2">Tiêu đề</Label>
-                  <Input
-                    value={slide.title || ''}
-                    onChange={(e) => {
-                      const newSlides = [...slides];
-                      if (!newSlides[editingSlideIndex]) newSlides[editingSlideIndex] = {};
-                      newSlides[editingSlideIndex].title = e.target.value;
-                      updateBlockData('aboutCompany', 'slides', newSlides);
-                    }}
-                    placeholder="Tiêu đề slide"
-                  />
-                </div>
-                <div>
-                  <Label className="mb-2">Mô tả</Label>
-                  <Textarea
-                    value={slide.description || ''}
-                    onChange={(e) => {
-                      const newSlides = [...slides];
-                      if (!newSlides[editingSlideIndex]) newSlides[editingSlideIndex] = {};
-                      newSlides[editingSlideIndex].description = e.target.value;
-                      updateBlockData('aboutCompany', 'slides', newSlides);
-                    }}
-                    placeholder="Mô tả..."
-                    rows={4}
-                  />
-                </div>
+                <LocaleInput
+                  value={getLocaleValue(slide, 'title')}
+                  onChange={(value) => {
+                    const newSlides = [...slides];
+                    if (!newSlides[editingSlideIndex]) newSlides[editingSlideIndex] = {};
+                    const updatedSlide = setLocaleValue(newSlides[editingSlideIndex], 'title', value);
+                    newSlides[editingSlideIndex] = updatedSlide;
+                    updateBlockData('aboutCompany', 'slides', newSlides);
+                  }}
+                  label="Tiêu đề"
+                  placeholder="Tiêu đề slide"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
+                <LocaleInput
+                  value={getLocaleValue(slide, 'description')}
+                  onChange={(value) => {
+                    const newSlides = [...slides];
+                    if (!newSlides[editingSlideIndex]) newSlides[editingSlideIndex] = {};
+                    const updatedSlide = setLocaleValue(newSlides[editingSlideIndex], 'description', value);
+                    newSlides[editingSlideIndex] = updatedSlide;
+                    updateBlockData('aboutCompany', 'slides', newSlides);
+                  }}
+                  label="Mô tả"
+                  placeholder="Mô tả..."
+                  multiline={true}
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
                 <div>
                   <Label className="mb-2">Hình ảnh</Label>
                   <ImageUpload
@@ -1811,15 +2479,16 @@ export default function AdminHomepagePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="mb-2">Nút - Text</Label>
-                    <Input
-                      value={slide.buttonText || ''}
-                      onChange={(e) => {
+                    <LocaleInput
+                      value={getLocaleValue(slide, 'buttonText')}
+                      onChange={(value) => {
                         const newSlides = [...slides];
                         if (!newSlides[editingSlideIndex]) newSlides[editingSlideIndex] = {};
-                        newSlides[editingSlideIndex].buttonText = e.target.value;
+                        const updatedSlide = setLocaleValue(newSlides[editingSlideIndex], 'buttonText', value);
+                        newSlides[editingSlideIndex] = updatedSlide;
                         updateBlockData('aboutCompany', 'slides', newSlides);
                       }}
+                      label="Nút - Text"
                       placeholder="Nhận tư vấn ngay"
                     />
                   </div>
@@ -1852,7 +2521,7 @@ export default function AdminHomepagePage() {
       <Dialog open={editingSolutionIndex !== null} onOpenChange={(open) => {
         if (!open) setEditingSolutionIndex(null);
       }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent style={{ maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
           <DialogHeader>
             <DialogTitle>
               {editingSolutionIndex !== null && editingSolutionIndex >= (getBlockData('solutions', 'items', []) as any[]).length
@@ -1922,33 +2591,35 @@ export default function AdminHomepagePage() {
                     </Select>
                   </div>
                 </div>
-                <div>
-                  <Label className="mb-2">Tiêu đề</Label>
-                  <Input
-                    value={item.title || ''}
-                    onChange={(e) => {
-                      const newItems = [...items];
-                      if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
-                      newItems[editingSolutionIndex].title = e.target.value;
-                      updateBlockData('solutions', 'items', newItems);
-                    }}
-                    placeholder="Quy trình được chuẩn hóa"
-                  />
-                </div>
-                <div>
-                  <Label className="mb-2">Mô tả</Label>
-                  <Textarea
-                    value={item.description || ''}
-                    onChange={(e) => {
-                      const newItems = [...items];
-                      if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
-                      newItems[editingSolutionIndex].description = e.target.value;
-                      updateBlockData('solutions', 'items', newItems);
-                    }}
-                    placeholder="Mô tả..."
-                    rows={4}
-                  />
-                </div>
+                <LocaleInput
+                  value={getLocaleValue(item, 'title')}
+                  onChange={(value) => {
+                    const newItems = [...items];
+                    if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
+                    const updatedItem = setLocaleValue(newItems[editingSolutionIndex], 'title', value);
+                    newItems[editingSolutionIndex] = updatedItem;
+                    updateBlockData('solutions', 'items', newItems);
+                  }}
+                  label="Tiêu đề"
+                  placeholder="Quy trình được chuẩn hóa"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
+                <LocaleInput
+                  value={getLocaleValue(item, 'description')}
+                  onChange={(value) => {
+                    const newItems = [...items];
+                    if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
+                    const updatedItem = setLocaleValue(newItems[editingSolutionIndex], 'description', value);
+                    newItems[editingSolutionIndex] = updatedItem;
+                    updateBlockData('solutions', 'items', newItems);
+                  }}
+                  label="Mô tả"
+                  placeholder="Mô tả..."
+                  multiline={true}
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="mb-2">Benefits</Label>
@@ -1958,7 +2629,7 @@ export default function AdminHomepagePage() {
                         const newItems = [...items];
                         if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
                         if (!newItems[editingSolutionIndex].benefits) newItems[editingSolutionIndex].benefits = [];
-                        newItems[editingSolutionIndex].benefits.push('');
+                        newItems[editingSolutionIndex].benefits.push({ vi: '', en: '', ja: '' });
                         updateBlockData('solutions', 'items', newItems);
                       }}
                     >
@@ -1966,22 +2637,28 @@ export default function AdminHomepagePage() {
                       Thêm
                     </Button>
                   </div>
-                  {((item.benefits || []) as string[]).map((benefit, bidx) => (
+                  {((item.benefits || []) as any[]).map((benefit, bidx) => (
                     <div key={bidx} className="flex gap-2">
-                      <Input
-                        value={benefit}
-                        onChange={(e) => {
-                          const newItems = [...items];
-                          if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
-                          if (!newItems[editingSolutionIndex].benefits) newItems[editingSolutionIndex].benefits = [];
-                          newItems[editingSolutionIndex].benefits[bidx] = e.target.value;
-                          updateBlockData('solutions', 'items', newItems);
-                        }}
-                        placeholder="Benefit..."
-                      />
+                      <div className="flex-1">
+                        <LocaleInput
+                          value={getLocaleValue(benefit, '')}
+                          onChange={(value) => {
+                            const newItems = [...items];
+                            if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
+                            if (!newItems[editingSolutionIndex].benefits) newItems[editingSolutionIndex].benefits = [];
+                            newItems[editingSolutionIndex].benefits[bidx] = value;
+                            updateBlockData('solutions', 'items', newItems);
+                          }}
+                          label={`Benefit ${bidx + 1}`}
+                          placeholder="Benefit..."
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
+                      </div>
                       <Button
                         variant="outline"
                         size="icon"
+                        className="mt-6"
                         onClick={() => {
                           const newItems = [...items];
                           if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
@@ -1997,17 +2674,20 @@ export default function AdminHomepagePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="mb-2">Nút - Text</Label>
-                    <Input
-                      value={item.buttonText || ''}
-                      onChange={(e) => {
+                    <LocaleInput
+                      value={getLocaleValue(item, 'buttonText')}
+                      onChange={(value) => {
                         const newItems = [...items];
                         if (!newItems[editingSolutionIndex]) newItems[editingSolutionIndex] = {};
-                        newItems[editingSolutionIndex].buttonText = e.target.value;
+                        const updatedItem = setLocaleValue(newItems[editingSolutionIndex], 'buttonText', value);
+                        newItems[editingSolutionIndex] = updatedItem;
                         updateBlockData('solutions', 'items', newItems);
                       }}
+                      label="Nút - Text"
                       placeholder="Tìm hiểu cách SFB triển khai"
-                    />
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
                   </div>
                   <div>
                     <Label className="mb-2">Nút - Link</Label>
@@ -2038,7 +2718,7 @@ export default function AdminHomepagePage() {
       <Dialog open={editingTrustFeatureIndex !== null} onOpenChange={(open) => {
         if (!open) setEditingTrustFeatureIndex(null);
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{ maxWidth: '42rem' }}>
           <DialogHeader>
             <DialogTitle>
               {editingTrustFeatureIndex !== null && editingTrustFeatureIndex >= (getBlockData('trusts', 'features', []) as any[]).length
@@ -2074,33 +2754,35 @@ export default function AdminHomepagePage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label className="mb-2">Tiêu đề</Label>
-                  <Input
-                    value={feature.title || ''}
-                    onChange={(e) => {
-                      const newFeatures = [...features];
-                      if (!newFeatures[editingTrustFeatureIndex]) newFeatures[editingTrustFeatureIndex] = {};
-                      newFeatures[editingTrustFeatureIndex].title = e.target.value;
-                      updateBlockData('trusts', 'features', newFeatures);
-                    }}
-                    placeholder="Năng lực được chứng minh"
-                  />
-                </div>
-                <div>
-                  <Label className="mb-2">Mô tả</Label>
-                  <Textarea
-                    value={feature.description || ''}
-                    onChange={(e) => {
-                      const newFeatures = [...features];
-                      if (!newFeatures[editingTrustFeatureIndex]) newFeatures[editingTrustFeatureIndex] = {};
-                      newFeatures[editingTrustFeatureIndex].description = e.target.value;
-                      updateBlockData('trusts', 'features', newFeatures);
-                    }}
-                    placeholder="Mô tả..."
-                    rows={4}
-                  />
-                </div>
+                <LocaleInput
+                  value={getLocaleValue(feature, 'title')}
+                  onChange={(value) => {
+                    const newFeatures = [...features];
+                    if (!newFeatures[editingTrustFeatureIndex]) newFeatures[editingTrustFeatureIndex] = {};
+                    const updatedFeature = setLocaleValue(newFeatures[editingTrustFeatureIndex], 'title', value);
+                    newFeatures[editingTrustFeatureIndex] = updatedFeature;
+                    updateBlockData('trusts', 'features', newFeatures);
+                  }}
+                  label="Tiêu đề"
+                  placeholder="Năng lực được chứng minh"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
+                <LocaleInput
+                  value={getLocaleValue(feature, 'description')}
+                  onChange={(value) => {
+                    const newFeatures = [...features];
+                    if (!newFeatures[editingTrustFeatureIndex]) newFeatures[editingTrustFeatureIndex] = {};
+                    const updatedFeature = setLocaleValue(newFeatures[editingTrustFeatureIndex], 'description', value);
+                    newFeatures[editingTrustFeatureIndex] = updatedFeature;
+                    updateBlockData('trusts', 'features', newFeatures);
+                  }}
+                  label="Mô tả"
+                  placeholder="Mô tả..."
+                  multiline={true}
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
               </div>
             );
           })()}
@@ -2116,7 +2798,7 @@ export default function AdminHomepagePage() {
       <Dialog open={editingFeatureBlockIndex !== null} onOpenChange={(open) => {
         if (!open) setEditingFeatureBlockIndex(null);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent style={{ maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
           <DialogHeader>
             <DialogTitle>
               {editingFeatureBlockIndex !== null && editingFeatureBlockIndex >= (getBlockData('features', 'blocks', []) as any[]).length
@@ -2191,20 +2873,21 @@ export default function AdminHomepagePage() {
                 </div>
                 {featureBlock.type === 'type1' && (
                   <>
-                    <div>
-                      <Label className="mb-2">Nội dung</Label>
-                      <Textarea
-                        value={featureBlock.text || ''}
-                        onChange={(e) => {
-                          const newBlocks = [...blocks];
-                          if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
-                          newBlocks[editingFeatureBlockIndex].text = e.target.value;
-                          updateBlockData('features', 'blocks', newBlocks);
-                        }}
-                        placeholder="Nội dung..."
-                        rows={4}
-                      />
-                    </div>
+                    <LocaleInput
+                      value={getLocaleValue(featureBlock, 'text')}
+                      onChange={(value) => {
+                        const newBlocks = [...blocks];
+                        if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
+                        const updatedBlock = setLocaleValue(newBlocks[editingFeatureBlockIndex], 'text', value);
+                        newBlocks[editingFeatureBlockIndex] = updatedBlock;
+                        updateBlockData('features', 'blocks', newBlocks);
+                      }}
+                      label="Nội dung"
+                      placeholder="Nội dung..."
+                      multiline={true}
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <Label className="mb-2">Danh sách điểm nổi bật</Label>
@@ -2214,7 +2897,7 @@ export default function AdminHomepagePage() {
                             const newBlocks = [...blocks];
                             if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
                             if (!newBlocks[editingFeatureBlockIndex].list) newBlocks[editingFeatureBlockIndex].list = [];
-                            newBlocks[editingFeatureBlockIndex].list.push('');
+                            newBlocks[editingFeatureBlockIndex].list.push({ vi: '', en: '', ja: '' });
                             updateBlockData('features', 'blocks', newBlocks);
                           }}
                         >
@@ -2222,22 +2905,28 @@ export default function AdminHomepagePage() {
                           Thêm
                         </Button>
                       </div>
-                      {((featureBlock.list || []) as string[]).map((item, idx) => (
+                      {((featureBlock.list || []) as any[]).map((item, idx) => (
                         <div key={idx} className="flex gap-2">
-                          <Input
-                            value={item}
-                            onChange={(e) => {
-                              const newBlocks = [...blocks];
-                              if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
-                              if (!newBlocks[editingFeatureBlockIndex].list) newBlocks[editingFeatureBlockIndex].list = [];
-                              newBlocks[editingFeatureBlockIndex].list[idx] = e.target.value;
-                              updateBlockData('features', 'blocks', newBlocks);
-                            }}
-                            placeholder="Điểm nổi bật..."
-                          />
+                          <div className="flex-1">
+                            <LocaleInput
+                              value={getLocaleValue(item, '')}
+                              onChange={(value) => {
+                                const newBlocks = [...blocks];
+                                if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
+                                if (!newBlocks[editingFeatureBlockIndex].list) newBlocks[editingFeatureBlockIndex].list = [];
+                                newBlocks[editingFeatureBlockIndex].list[idx] = value;
+                                updateBlockData('features', 'blocks', newBlocks);
+                              }}
+                              label={`Điểm ${idx + 1}`}
+                              placeholder="Điểm nổi bật..."
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                          </div>
                           <Button
                             variant="outline"
                             size="icon"
+                            className="mt-6"
                             onClick={() => {
                               const newBlocks = [...blocks];
                               if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
@@ -2276,30 +2965,38 @@ export default function AdminHomepagePage() {
                         <CardContent className="p-4">
                           <div className="flex items-start gap-2 mb-2">
                             <div className="space-y-2 flex-1">
-                              <Input
-                                value={item.title || ''}
-                                onChange={(e) => {
+                              <LocaleInput
+                                value={getLocaleValue(item, 'title')}
+                                onChange={(value) => {
                                   const newBlocks = [...blocks];
                                   if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
                                   if (!newBlocks[editingFeatureBlockIndex].items) newBlocks[editingFeatureBlockIndex].items = [];
-                                  newBlocks[editingFeatureBlockIndex].items[idx].title = e.target.value;
+                                  const updatedItem = setLocaleValue(newBlocks[editingFeatureBlockIndex].items[idx], 'title', value);
+                                  newBlocks[editingFeatureBlockIndex].items[idx] = updatedItem;
                                   updateBlockData('features', 'blocks', newBlocks);
                                 }}
+                                label="Tiêu đề"
                                 placeholder="Tiêu đề..."
                                 className="text-sm"
+                                defaultLocale={globalLocale}
+                                aiProvider={aiProvider}
                               />
-                              <Textarea
-                                value={item.text || ''}
-                                onChange={(e) => {
+                              <LocaleInput
+                                value={getLocaleValue(item, 'text')}
+                                onChange={(value) => {
                                   const newBlocks = [...blocks];
                                   if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
                                   if (!newBlocks[editingFeatureBlockIndex].items) newBlocks[editingFeatureBlockIndex].items = [];
-                                  newBlocks[editingFeatureBlockIndex].items[idx].text = e.target.value;
+                                  const updatedItem = setLocaleValue(newBlocks[editingFeatureBlockIndex].items[idx], 'text', value);
+                                  newBlocks[editingFeatureBlockIndex].items[idx] = updatedItem;
                                   updateBlockData('features', 'blocks', newBlocks);
                                 }}
+                                label="Nội dung"
                                 placeholder="Nội dung..."
-                                rows={2}
+                                multiline={true}
                                 className="text-sm"
+                                defaultLocale={globalLocale}
+                                aiProvider={aiProvider}
                               />
                             </div>
                             <Button
@@ -2323,18 +3020,21 @@ export default function AdminHomepagePage() {
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="mb-2">Nút - Text</Label>
-                    <Input
-                      value={featureBlock.button?.text || ''}
-                      onChange={(e) => {
+                    <LocaleInput
+                      value={getLocaleValue(featureBlock.button, 'text')}
+                      onChange={(value) => {
                         const newBlocks = [...blocks];
                         if (!newBlocks[editingFeatureBlockIndex]) newBlocks[editingFeatureBlockIndex] = {};
                         if (!newBlocks[editingFeatureBlockIndex].button) newBlocks[editingFeatureBlockIndex].button = {};
-                        newBlocks[editingFeatureBlockIndex].button.text = e.target.value;
+                        const updatedButton = setLocaleValue(newBlocks[editingFeatureBlockIndex].button, 'text', value);
+                        newBlocks[editingFeatureBlockIndex].button = updatedButton;
                         updateBlockData('features', 'blocks', newBlocks);
                       }}
+                      label="Nút - Text"
                       placeholder="Nút text..."
-                    />
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
                   </div>
                   <div>
                     <Label className="mb-2">Nút - Link</Label>
@@ -2373,7 +3073,7 @@ export default function AdminHomepagePage() {
       <Dialog open={editingTestimonialIndex !== null} onOpenChange={(open) => {
         if (!open) setEditingTestimonialIndex(null);
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{ maxWidth: '42rem' }}>
           <DialogHeader>
             <DialogTitle>
               {editingTestimonialIndex !== null && editingTestimonialIndex >= (getBlockData('testimonials', 'reviews', []) as any[]).length
@@ -2399,20 +3099,21 @@ export default function AdminHomepagePage() {
                     placeholder="Ông Nguyễn Văn A"
                   />
                 </div>
-                <div>
-                  <Label className="mb-2">Nội dung đánh giá</Label>
-                  <Textarea
-                    value={review.quote || ''}
-                    onChange={(e) => {
-                      const newReviews = [...reviews];
-                      if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
-                      newReviews[editingTestimonialIndex].quote = e.target.value;
-                      updateBlockData('testimonials', 'reviews', newReviews);
-                    }}
-                    placeholder="Nội dung đánh giá..."
-                    rows={5}
-                  />
-                </div>
+                <LocaleInput
+                  value={getLocaleValue(review, 'quote')}
+                  onChange={(value) => {
+                    const newReviews = [...reviews];
+                    if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
+                    const updatedReview = setLocaleValue(newReviews[editingTestimonialIndex], 'quote', value);
+                    newReviews[editingTestimonialIndex] = updatedReview;
+                    updateBlockData('testimonials', 'reviews', newReviews);
+                  }}
+                  label="Nội dung đánh giá"
+                  placeholder="Nội dung đánh giá..."
+                  multiline={true}
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
                 <div>
                   <Label className="mb-2">Đánh giá (1-5 sao)</Label>
                   <Select
@@ -2451,7 +3152,7 @@ export default function AdminHomepagePage() {
       <Dialog open={editingFeatureItemIndex !== null} onOpenChange={(open) => {
         if (!open) setEditingFeatureItemIndex(null);
       }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{ maxWidth: '42rem' }}>
           <DialogHeader>
             <DialogTitle>
               {editingFeatureItemIndex && editingFeatureItemIndex.index >= (getBlockData('features', `block${editingFeatureItemIndex.block === 'block2' ? '2' : '3'}.items`, []) as any[]).length

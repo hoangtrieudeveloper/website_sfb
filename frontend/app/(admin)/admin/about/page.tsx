@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, Mail, Phone, CheckCircle2, Target, Briefcase, Users, Award, Sparkles } from "lucide-react";
+import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, Mail, Phone, CheckCircle2, Target, Briefcase, Users, Award, Sparkles, Languages, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+
+type Locale = 'vi' | 'en' | 'ja';
 import {
   Select,
   SelectContent,
@@ -80,36 +87,56 @@ const HERO_GRADIENT_OPTIONS = [
 ];
 
 export default function AdminAboutPage() {
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData
+  } = useTranslationControls();
+
   // Tab State - Main tab
-  const [activeMainTab, setActiveMainTab] = useState<string>(() => {
+  const [activeMainTab, setActiveMainTab] = useState<string>('hero');
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Load from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('about-main-tab') || 'hero';
+      const saved = localStorage.getItem('about-main-tab');
+      if (saved) {
+        setActiveMainTab(saved);
+      }
     }
-    return 'hero';
-  });
+  }, []);
 
   // Tab State - Sub tabs (config/preview) for each section
-  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => {
+  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>({
+    hero: 'config',
+    company: 'config',
+    'vision-mission': 'config',
+    'core-values': 'config',
+    milestones: 'config',
+    leadership: 'config',
+  });
+  
+  // Load from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('about-sub-tabs');
-      return saved ? JSON.parse(saved) : {
-        hero: 'config',
-        company: 'config',
-        'vision-mission': 'config',
-        'core-values': 'config',
-        milestones: 'config',
-        leadership: 'config',
-      };
+      if (saved) {
+        try {
+          setActiveSubTabs(JSON.parse(saved));
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
     }
-    return {
-      hero: 'config',
-      company: 'config',
-      'vision-mission': 'config',
-      'core-values': 'config',
-      milestones: 'config',
-      leadership: 'config',
-    };
-  });
+  }, []);
 
   // Save main tab to localStorage
   useEffect(() => {
@@ -194,7 +221,17 @@ export default function AdminAboutPage() {
   };
 
   // Hero State
-  const [heroData, setHeroData] = useState({
+  const [heroData, setHeroData] = useState<{
+    titleLine1: string | Record<Locale, string>;
+    titleLine2: string | Record<Locale, string>;
+    titleLine3: string | Record<Locale, string>;
+    description: string | Record<Locale, string>;
+    buttonText: string | Record<Locale, string>;
+    buttonLink: string;
+    image: string;
+    backgroundGradient: string;
+    isActive: boolean;
+  }>({
     titleLine1: "",
     titleLine2: "",
     titleLine3: "",
@@ -208,7 +245,28 @@ export default function AdminAboutPage() {
   const [loadingHero, setLoadingHero] = useState(false);
 
   // Company State
-  const [companyData, setCompanyData] = useState({
+  const [companyData, setCompanyData] = useState<{
+    headerSub: string | Record<Locale, string>;
+    headerTitleLine1: string | Record<Locale, string>;
+    headerTitleLine2: string | Record<Locale, string>;
+    contentImage1: string;
+    contentTitle: string | Record<Locale, string>;
+    contentDescription: string | Record<Locale, string>;
+    contentButtonText: string | Record<Locale, string>;
+    contentButtonLink: string;
+    contactImage2: string;
+    contactButtonText: string | Record<Locale, string>;
+    contactButtonLink: string;
+    contacts: Array<{
+      id?: number;
+      iconName: string;
+      title: string | Record<Locale, string>;
+      text: string | Record<Locale, string>;
+      isHighlight: boolean;
+      sortOrder: number;
+    }>;
+    isActive: boolean;
+  }>({
     headerSub: "",
     headerTitleLine1: "",
     headerTitleLine2: "",
@@ -220,14 +278,7 @@ export default function AdminAboutPage() {
     contactImage2: "",
     contactButtonText: "",
     contactButtonLink: "",
-    contacts: [] as Array<{
-      id?: number;
-      iconName: string;
-      title: string;
-      text: string;
-      isHighlight: boolean;
-      sortOrder: number;
-    }>,
+    contacts: [],
     isActive: true,
   });
   const [loadingCompany, setLoadingCompany] = useState(false);
@@ -235,27 +286,41 @@ export default function AdminAboutPage() {
   const [contactFormData, setContactFormData] = useState<any>(null);
 
   // Vision & Mission State
-  const [visionMissionData, setVisionMissionData] = useState({
+  const [visionMissionData, setVisionMissionData] = useState<{
+    headerTitle: string | Record<Locale, string>;
+    headerDescription: string | Record<Locale, string>;
+    items: Array<{ id?: number; text: string | Record<Locale, string>; sortOrder: number }>;
+    isActive: boolean;
+  }>({
     headerTitle: "",
     headerDescription: "",
-    items: [] as Array<{ id?: number; text: string; sortOrder: number }>,
+    items: [],
     isActive: true,
   });
   const [loadingVisionMission, setLoadingVisionMission] = useState(false);
+  
+  // Edit Vision Mission Item Dialog State
+  const [editingVisionMissionItemIndex, setEditingVisionMissionItemIndex] = useState<number | null>(null);
+  const [editingVisionMissionItemText, setEditingVisionMissionItemText] = useState<Record<Locale, string>>({ vi: '', en: '', ja: '' });
 
   // Core Values State
-  const [coreValuesData, setCoreValuesData] = useState({
-    headerTitle: "",
-    headerDescription: "",
-    items: [] as Array<{
+  const [coreValuesData, setCoreValuesData] = useState<{
+    headerTitle: string | Record<Locale, string>;
+    headerDescription: string | Record<Locale, string>;
+    items: Array<{
       id?: number;
       iconName: string;
-      title: string;
-      description: string;
+      title: string | Record<Locale, string>;
+      description: string | Record<Locale, string>;
       gradient: string;
       sortOrder: number;
       isActive: boolean;
-    }>,
+    }>;
+    isActive: boolean;
+  }>({
+    headerTitle: "",
+    headerDescription: "",
+    items: [],
     isActive: true,
   });
   const [loadingCoreValues, setLoadingCoreValues] = useState(false);
@@ -263,18 +328,23 @@ export default function AdminAboutPage() {
   const [coreValueFormData, setCoreValueFormData] = useState<any>(null);
 
   // Milestones State
-  const [milestonesData, setMilestonesData] = useState({
-    headerTitle: "",
-    headerDescription: "",
-    items: [] as Array<{
+  const [milestonesData, setMilestonesData] = useState<{
+    headerTitle: string | Record<Locale, string>;
+    headerDescription: string | Record<Locale, string>;
+    items: Array<{
       id?: number;
       year: string;
-      title: string;
-      description: string;
+      title: string | Record<Locale, string>;
+      description: string | Record<Locale, string>;
       icon: string;
       sortOrder: number;
       isActive: boolean;
-    }>,
+    }>;
+    isActive: boolean;
+  }>({
+    headerTitle: "",
+    headerDescription: "",
+    items: [],
     isActive: true,
   });
   const [loadingMilestones, setLoadingMilestones] = useState(false);
@@ -282,20 +352,25 @@ export default function AdminAboutPage() {
   const [milestoneFormData, setMilestoneFormData] = useState<any>(null);
 
   // Leadership State
-  const [leadershipData, setLeadershipData] = useState({
-    headerTitle: "",
-    headerDescription: "",
-    items: [] as Array<{
+  const [leadershipData, setLeadershipData] = useState<{
+    headerTitle: string | Record<Locale, string>;
+    headerDescription: string | Record<Locale, string>;
+    items: Array<{
       id?: number;
-      name: string;
-      position: string;
+      name: string | Record<Locale, string>;
+      position: string | Record<Locale, string>;
       email: string;
       phone: string;
-      description: string;
+      description: string | Record<Locale, string>;
       image: string;
       sortOrder: number;
       isActive: boolean;
-    }>,
+    }>;
+    isActive: boolean;
+  }>({
+    headerTitle: "",
+    headerDescription: "",
+    items: [],
     isActive: true,
   });
   const [loadingLeadership, setLoadingLeadership] = useState(false);
@@ -310,7 +385,15 @@ export default function AdminAboutPage() {
         AdminEndpoints.about.hero.get,
       );
       if (data?.data) {
-        setHeroData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedHero = migrateObjectToLocale(data.data);
+        // Đảm bảo backgroundGradient là string, không phải locale object
+        if (normalizedHero.backgroundGradient && typeof normalizedHero.backgroundGradient === 'object' && !Array.isArray(normalizedHero.backgroundGradient)) {
+          if ('vi' in normalizedHero.backgroundGradient || 'en' in normalizedHero.backgroundGradient || 'ja' in normalizedHero.backgroundGradient) {
+            normalizedHero.backgroundGradient = (normalizedHero.backgroundGradient as any).vi || (normalizedHero.backgroundGradient as any).en || HERO_GRADIENT_OPTIONS[0].value;
+          }
+        }
+        setHeroData(normalizedHero);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải hero");
@@ -326,7 +409,24 @@ export default function AdminAboutPage() {
         AdminEndpoints.about.company.get,
       );
       if (data?.data) {
-        setCompanyData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedCompany = migrateObjectToLocale(data.data);
+        // Normalize contacts
+        if (normalizedCompany.contacts && Array.isArray(normalizedCompany.contacts)) {
+          normalizedCompany.contacts = normalizedCompany.contacts.map((contact: any) => migrateObjectToLocale(contact));
+        }
+        // Xử lý các field link: nếu là locale object, lấy giá trị vi
+        if (normalizedCompany.contentButtonLink && typeof normalizedCompany.contentButtonLink === 'object' && !Array.isArray(normalizedCompany.contentButtonLink)) {
+          if ('vi' in normalizedCompany.contentButtonLink || 'en' in normalizedCompany.contentButtonLink || 'ja' in normalizedCompany.contentButtonLink) {
+            normalizedCompany.contentButtonLink = (normalizedCompany.contentButtonLink as any).vi || (normalizedCompany.contentButtonLink as any).en || '';
+          }
+        }
+        if (normalizedCompany.contactButtonLink && typeof normalizedCompany.contactButtonLink === 'object' && !Array.isArray(normalizedCompany.contactButtonLink)) {
+          if ('vi' in normalizedCompany.contactButtonLink || 'en' in normalizedCompany.contactButtonLink || 'ja' in normalizedCompany.contactButtonLink) {
+            normalizedCompany.contactButtonLink = (normalizedCompany.contactButtonLink as any).vi || (normalizedCompany.contactButtonLink as any).en || '';
+          }
+        }
+        setCompanyData(normalizedCompany);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải company");
@@ -342,7 +442,13 @@ export default function AdminAboutPage() {
         AdminEndpoints.about.visionMission.get,
       );
       if (data?.data) {
-        setVisionMissionData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedVisionMission = migrateObjectToLocale(data.data);
+        // Normalize items
+        if (normalizedVisionMission.items && Array.isArray(normalizedVisionMission.items)) {
+          normalizedVisionMission.items = normalizedVisionMission.items.map((item: any) => migrateObjectToLocale(item));
+        }
+        setVisionMissionData(normalizedVisionMission);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải vision & mission");
@@ -358,7 +464,23 @@ export default function AdminAboutPage() {
         AdminEndpoints.about.coreValues.get,
       );
       if (data?.data) {
-        setCoreValuesData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedCoreValues = migrateObjectToLocale(data.data);
+        // Normalize items
+        if (normalizedCoreValues.items && Array.isArray(normalizedCoreValues.items)) {
+          normalizedCoreValues.items = normalizedCoreValues.items.map((item: any) => {
+            const normalizedItem = migrateObjectToLocale(item);
+            // Giữ nguyên iconName, gradient, sortOrder, isActive
+            return {
+              ...normalizedItem,
+              iconName: item.iconName || 'Award',
+              gradient: item.gradient || GRADIENT_OPTIONS[0].value,
+              sortOrder: item.sortOrder ?? 0,
+              isActive: item.isActive ?? true
+            };
+          });
+        }
+        setCoreValuesData(normalizedCoreValues);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải core values");
@@ -374,7 +496,33 @@ export default function AdminAboutPage() {
         AdminEndpoints.about.milestones.get,
       );
       if (data?.data) {
-        setMilestonesData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedMilestones = migrateObjectToLocale(data.data);
+        // Normalize items
+        if (normalizedMilestones.items && Array.isArray(normalizedMilestones.items)) {
+          normalizedMilestones.items = normalizedMilestones.items.map((item: any) => {
+            const normalizedItem = migrateObjectToLocale(item);
+            // Đảm bảo year, icon là string, không phải locale object
+            const getStringValue = (value: any): string => {
+              if (typeof value === 'string') return value;
+              if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                if ('vi' in value || 'en' in value || 'ja' in value) {
+                  return (value as any).vi || (value as any).en || (value as any).ja || '';
+                }
+              }
+              return '';
+            };
+            // Giữ nguyên year, icon, sortOrder, isActive
+            return {
+              ...normalizedItem,
+              year: getStringValue(item.year || normalizedItem.year || ''),
+              icon: getStringValue(item.icon || normalizedItem.icon || '🚀'),
+              sortOrder: item.sortOrder ?? normalizedItem.sortOrder ?? 0,
+              isActive: item.isActive ?? normalizedItem.isActive ?? true
+            };
+          });
+        }
+        setMilestonesData(normalizedMilestones);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải milestones");
@@ -390,7 +538,33 @@ export default function AdminAboutPage() {
         AdminEndpoints.about.leadership.get,
       );
       if (data?.data) {
-        setLeadershipData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedLeadership = migrateObjectToLocale(data.data);
+        // Normalize items
+        if (normalizedLeadership.items && Array.isArray(normalizedLeadership.items)) {
+          const getStringValue = (value: any): string => {
+            if (typeof value === 'string') return value;
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+              if ('vi' in value || 'en' in value || 'ja' in value) {
+                return (value as any).vi || (value as any).en || (value as any).ja || '';
+              }
+            }
+            return '';
+          };
+          normalizedLeadership.items = normalizedLeadership.items.map((item: any) => {
+            const normalizedItem = migrateObjectToLocale(item);
+            // Đảm bảo email, phone, image là string, không phải locale object
+            return {
+              ...normalizedItem,
+              email: getStringValue(item.email || normalizedItem.email || ''),
+              phone: getStringValue(item.phone || normalizedItem.phone || ''),
+              image: getStringValue(item.image || normalizedItem.image || ''),
+              sortOrder: item.sortOrder ?? normalizedItem.sortOrder ?? 0,
+              isActive: item.isActive ?? normalizedItem.isActive ?? true
+            };
+          });
+        }
+        setLeadershipData(normalizedLeadership);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải leadership");
@@ -609,10 +783,164 @@ export default function AdminAboutPage() {
     }
   };
 
+  // Translation handlers for sections
+  const handleTranslateSection = async (section: 'hero' | 'company' | 'vision-mission' | 'core-values' | 'milestones' | 'leadership') => {
+    let dataToTranslate: any;
+    let updateCallback: (translatedData: any) => void;
+    let sectionName: string;
+
+    // Prepare data and update callback based on section
+    if (section === 'hero') {
+      // Loại bỏ các trường không cần dịch: image, buttonLink, backgroundGradient, isActive
+      const { image, buttonLink, backgroundGradient, isActive, ...dataToTranslateFields } = heroData;
+      dataToTranslate = dataToTranslateFields;
+      updateCallback = (translated: any) => {
+        setHeroData({
+          ...translated,
+          image,
+          buttonLink,
+          backgroundGradient,
+          isActive,
+        });
+      };
+      sectionName = 'Hero Banner';
+    } else if (section === 'company') {
+      // Loại bỏ các trường không cần dịch: contentImage1, contentButtonLink, contactImage2, contactButtonLink, isActive, contacts (contacts có iconName)
+      const { contentImage1, contentButtonLink, contactImage2, contactButtonLink, isActive, contacts, ...dataToTranslateFields } = companyData;
+      const translatedContacts = contacts.map((contact: any) => {
+        const { iconName, isHighlight, sortOrder, ...contactFields } = contact;
+        return contactFields;
+      });
+      dataToTranslate = {
+        ...dataToTranslateFields,
+        contacts: translatedContacts
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên iconName, isHighlight, sortOrder của contacts
+        const updatedContacts = translated.contacts.map((contact: any, index: number) => ({
+          ...contact,
+          iconName: contacts[index]?.iconName || 'Phone',
+          isHighlight: contacts[index]?.isHighlight ?? false,
+          sortOrder: contacts[index]?.sortOrder ?? index
+        }));
+        setCompanyData({
+          ...translated,
+          contentImage1,
+          contentButtonLink,
+          contactImage2,
+          contactButtonLink,
+          isActive,
+          contacts: updatedContacts
+        });
+      };
+      sectionName = 'Giới thiệu công ty';
+    } else if (section === 'vision-mission') {
+      dataToTranslate = visionMissionData;
+      updateCallback = (translated: any) => {
+        setVisionMissionData(translated);
+      };
+      sectionName = 'Tầm nhìn & sứ mệnh';
+    } else if (section === 'core-values') {
+      // Loại bỏ các trường không cần dịch: iconName, gradient, sortOrder, isActive từ items
+      const { items, ...dataToTranslateFields } = coreValuesData;
+      const translatedItems = items.map((item: any) => {
+        const { iconName, gradient, sortOrder, isActive, ...itemFields } = item;
+        return itemFields;
+      });
+      dataToTranslate = {
+        ...dataToTranslateFields,
+        items: translatedItems
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên iconName, gradient, sortOrder, isActive của items
+        const updatedItems = translated.items.map((item: any, index: number) => ({
+          ...item,
+          iconName: items[index]?.iconName || 'Award',
+          gradient: items[index]?.gradient || GRADIENT_OPTIONS[0].value,
+          sortOrder: items[index]?.sortOrder ?? index,
+          isActive: items[index]?.isActive ?? true
+        }));
+        setCoreValuesData({
+          ...translated,
+          items: updatedItems
+        });
+      };
+      sectionName = 'Giá trị cốt lõi';
+    } else if (section === 'milestones') {
+      // Loại bỏ các trường không cần dịch: year, icon, sortOrder, isActive từ items
+      const { items, ...dataToTranslateFields } = milestonesData;
+      const translatedItems = items.map((item: any) => {
+        const { year, icon, sortOrder, isActive, ...itemFields } = item;
+        return itemFields;
+      });
+      dataToTranslate = {
+        ...dataToTranslateFields,
+        items: translatedItems
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên year, icon, sortOrder, isActive của items
+        const updatedItems = translated.items.map((item: any, index: number) => ({
+          ...item,
+          year: items[index]?.year || '',
+          icon: items[index]?.icon || '',
+          sortOrder: items[index]?.sortOrder ?? index,
+          isActive: items[index]?.isActive ?? true
+        }));
+        setMilestonesData({
+          ...translated,
+          items: updatedItems
+        });
+      };
+      sectionName = 'Hành trình & phát triển';
+    } else if (section === 'leadership') {
+      // Loại bỏ các trường không cần dịch: email, phone, image, sortOrder, isActive từ items
+      const { items, ...dataToTranslateFields } = leadershipData;
+      const translatedItems = items.map((item: any) => {
+        const { email, phone, image, sortOrder, isActive, ...itemFields } = item;
+        return itemFields;
+      });
+      dataToTranslate = {
+        ...dataToTranslateFields,
+        items: translatedItems
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên email, phone, image, sortOrder, isActive của items
+        const updatedItems = translated.items.map((item: any, index: number) => ({
+          ...item,
+          email: items[index]?.email || '',
+          phone: items[index]?.phone || '',
+          image: items[index]?.image || '',
+          sortOrder: items[index]?.sortOrder ?? index,
+          isActive: items[index]?.isActive ?? true
+        }));
+        setLeadershipData({
+          ...translated,
+          items: updatedItems
+        });
+      };
+      sectionName = 'Ban lãnh đạo';
+    } else {
+      return;
+    }
+
+    // Use translateData from hook
+    await translateData(dataToTranslate, updateCallback, sectionName);
+  };
+
   // Render icon
   const renderIcon = (iconName: string) => {
     const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Code2;
     return <IconComponent className="w-6 h-6" />;
+  };
+
+  // Helper function to get string value from year (can be string or locale object)
+  const getYearString = (year: any): string => {
+    if (typeof year === 'string') return year;
+    if (typeof year === 'object' && year !== null && !Array.isArray(year)) {
+      const yearObj = year as Record<Locale, string>;
+      return yearObj.vi || yearObj.en || yearObj.ja || '';
+    }
+    return '';
   };
 
   // Company Contact Handlers
@@ -680,7 +1008,7 @@ export default function AdminAboutPage() {
   const handleAddVisionMissionItem = () => {
     setVisionMissionData({
       ...visionMissionData,
-      items: [...visionMissionData.items, { text: "", sortOrder: visionMissionData.items.length }],
+      items: [...visionMissionData.items, { text: { vi: '', en: '', ja: '' }, sortOrder: visionMissionData.items.length }],
     });
   };
 
@@ -708,12 +1036,39 @@ export default function AdminAboutPage() {
     setVisionMissionData({ ...visionMissionData, items: newItems });
   };
 
+  const handleEditVisionMissionItem = (index: number) => {
+    const item = visionMissionData.items[index];
+    const textValue = typeof item.text === 'string' 
+      ? { vi: item.text, en: '', ja: '' }
+      : (item.text || { vi: '', en: '', ja: '' });
+    setEditingVisionMissionItemText(textValue);
+    setEditingVisionMissionItemIndex(index);
+  };
+
+  const handleSaveVisionMissionItem = () => {
+    if (editingVisionMissionItemIndex === null) return;
+    const newItems = [...visionMissionData.items];
+    newItems[editingVisionMissionItemIndex] = {
+      ...newItems[editingVisionMissionItemIndex],
+      text: editingVisionMissionItemText,
+    };
+    setVisionMissionData({ ...visionMissionData, items: newItems });
+    setEditingVisionMissionItemIndex(null);
+    setEditingVisionMissionItemText({ vi: '', en: '', ja: '' });
+    toast.success("Đã cập nhật item");
+  };
+
+  const handleCancelEditVisionMissionItem = () => {
+    setEditingVisionMissionItemIndex(null);
+    setEditingVisionMissionItemText({ vi: '', en: '', ja: '' });
+  };
+
   // Core Values Handlers
   const handleAddCoreValue = () => {
     setCoreValueFormData({
       iconName: "Lightbulb",
-      title: "",
-      description: "",
+      title: { vi: '', en: '', ja: '' },
+      description: { vi: '', en: '', ja: '' },
       gradient: GRADIENT_OPTIONS[0].value,
       sortOrder: coreValuesData.items.length,
       isActive: true,
@@ -774,8 +1129,8 @@ export default function AdminAboutPage() {
   const handleAddMilestone = () => {
     setMilestoneFormData({
       year: "",
-      title: "",
-      description: "",
+      title: { vi: '', en: '', ja: '' },
+      description: { vi: '', en: '', ja: '' },
       icon: "🚀",
       sortOrder: milestonesData.items.length,
       isActive: true,
@@ -835,11 +1190,11 @@ export default function AdminAboutPage() {
   // Leadership Handlers
   const handleAddLeader = () => {
     setLeaderFormData({
-      name: "",
-      position: "",
+      name: { vi: '', en: '', ja: '' },
+      position: { vi: '', en: '', ja: '' },
       email: "",
       phone: "",
-      description: "",
+      description: { vi: '', en: '', ja: '' },
       image: "",
       sortOrder: leadershipData.items.length,
       isActive: true,
@@ -903,6 +1258,13 @@ export default function AdminAboutPage() {
           <h1 className="text-3xl font-bold text-gray-900">Quản lý trang Giới thiệu</h1>
           <p className="text-gray-600 mt-1">Quản lý đầy đủ các phần của trang Giới thiệu</p>
         </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector */}
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
+        </div>
       </div>
 
       {/* Progress Stepper */}
@@ -911,11 +1273,12 @@ export default function AdminAboutPage() {
           <div className="flex items-center justify-between">
             {tabsConfig.map((tab, index) => {
               const Icon = tab.icon;
-              const isActive = activeMainTab === tab.value;
-              const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
+              // Only calculate isCompleted after mount to avoid hydration mismatch
+              const isActive = isMounted && activeMainTab === tab.value;
+              const isCompleted = isMounted && tabsConfig.findIndex(t => t.value === activeMainTab) > index;
               
               return (
-                <div key={tab.value} className="flex items-center flex-1">
+                <div key={tab.value} className="flex items-center flex-1" suppressHydrationWarning>
                   <button
                     onClick={() => handleTabChange(tab.value)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
@@ -925,6 +1288,7 @@ export default function AdminAboutPage() {
                         ? "bg-green-50 text-green-700 border-2 border-green-300"
                         : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
                     }`}
+                    suppressHydrationWarning
                   >
                     <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
                       isActive
@@ -932,7 +1296,7 @@ export default function AdminAboutPage() {
                         : isCompleted
                         ? "bg-green-500 text-white"
                         : "bg-gray-300 text-gray-600"
-                    }`}>
+                    }`} suppressHydrationWarning>
                       {isCompleted ? (
                         <CheckCircle2 className="w-5 h-5" />
                       ) : (
@@ -947,7 +1311,7 @@ export default function AdminAboutPage() {
                   {index < tabsConfig.length - 1 && (
                     <div className={`flex-1 h-0.5 mx-2 ${
                       isCompleted ? "bg-green-500" : "bg-gray-300"
-                    }`} />
+                    }`} suppressHydrationWarning />
                   )}
                 </div>
               );
@@ -982,6 +1346,69 @@ export default function AdminAboutPage() {
                 </Button>
               </div>
 
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('hero')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="p-0">
                   <div
@@ -1002,46 +1429,71 @@ export default function AdminAboutPage() {
                   <CardContent className="space-y-4 px-6 py-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề dòng 1 *</Label>
-                      <Input
-                        value={heroData.titleLine1}
-                        onChange={(e) => setHeroData({ ...heroData, titleLine1: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề dòng 1 *"
+                        value={getLocaleValue(heroData, 'titleLine1')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titleLine1', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="SFB Technology"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề dòng 2 *</Label>
-                      <Input
-                        value={heroData.titleLine2}
-                        onChange={(e) => setHeroData({ ...heroData, titleLine2: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề dòng 2 *"
+                        value={getLocaleValue(heroData, 'titleLine2')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titleLine2', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="Công ty cổ phần"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề dòng 3 *</Label>
-                      <Input
-                        value={heroData.titleLine3}
-                        onChange={(e) => setHeroData({ ...heroData, titleLine3: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề dòng 3 *"
+                        value={getLocaleValue(heroData, 'titleLine3')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titleLine3', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="công nghệ SFB"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={heroData.description}
-                      onChange={(e) => setHeroData({ ...heroData, description: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(heroData, 'description')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(heroData, 'description', value);
+                        setHeroData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={4}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="pb-2">Văn bản nút</Label>
-                      <Input
-                        value={heroData.buttonText}
-                        onChange={(e) => setHeroData({ ...heroData, buttonText: e.target.value })}
+                      <LocaleInput
+                        label="Văn bản nút"
+                        value={getLocaleValue(heroData, 'buttonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'buttonText', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="KHÁM PHÁ GIẢI PHÁP"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
@@ -1130,24 +1582,24 @@ export default function AdminAboutPage() {
                       <div className="about-hero-container">
                         <div className="text-white about-hero-text">
                           <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                            {heroData.titleLine1}
+                            {getLocalizedText(heroData.titleLine1, globalLocale)}
                             <span className="block mt-2">
-                              {heroData.titleLine2}
+                              {getLocalizedText(heroData.titleLine2, globalLocale)}
                               <br />
-                              {heroData.titleLine3}
+                              {getLocalizedText(heroData.titleLine3, globalLocale)}
                             </span>
                           </h1>
-                          {heroData.description && (
+                          {getLocalizedText(heroData.description, globalLocale) && (
                             <p className="text-base md:text-lg text-white/90 mb-10 leading-relaxed">
-                              {heroData.description}
+                              {getLocalizedText(heroData.description, globalLocale)}
                             </p>
                           )}
-                          {heroData.buttonText && (
+                          {getLocalizedText(heroData.buttonText, globalLocale) && (
                             <a
                               href={heroData.buttonLink || '#'}
                               className="inline-flex items-center gap-3 px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm"
                             >
-                              {heroData.buttonText}
+                              {getLocalizedText(heroData.buttonText, globalLocale)}
                             </a>
                           )}
                         </div>
@@ -1193,6 +1645,69 @@ export default function AdminAboutPage() {
                 </Button>
               </div>
 
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('company')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Header */}
               <Card>
                 <CardHeader className="p-0">
@@ -1213,28 +1728,43 @@ export default function AdminAboutPage() {
                 {!collapsedBlocks.companyHeader && (
                   <CardContent className="space-y-4 px-6 py-4">
                     <div>
-                      <Label className="pb-2">Sub Tiêu đề</Label>
-                      <Input
-                        value={companyData.headerSub}
-                        onChange={(e) => setCompanyData({ ...companyData, headerSub: e.target.value })}
+                      <LocaleInput
+                        label="Sub Tiêu đề"
+                        value={getLocaleValue(companyData, 'headerSub')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(companyData, 'headerSub', value);
+                          setCompanyData(updated);
+                        }}
                         placeholder="GIỚI THIỆU SFB"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="pb-2">Tiêu đề dòng 1</Label>
-                        <Input
-                          value={companyData.headerTitleLine1}
-                          onChange={(e) => setCompanyData({ ...companyData, headerTitleLine1: e.target.value })}
+                        <LocaleInput
+                          label="Tiêu đề dòng 1"
+                          value={getLocaleValue(companyData, 'headerTitleLine1')}
+                          onChange={(value) => {
+                            const updated = setLocaleValue(companyData, 'headerTitleLine1', value);
+                            setCompanyData(updated);
+                          }}
                           placeholder="Đối tác công nghệ chiến lược"
+                          defaultLocale={globalLocale}
+                          aiProvider={aiProvider}
                         />
                       </div>
                       <div>
-                        <Label className="pb-2">Tiêu đề dòng 2</Label>
-                        <Input
-                          value={companyData.headerTitleLine2}
-                          onChange={(e) => setCompanyData({ ...companyData, headerTitleLine2: e.target.value })}
+                        <LocaleInput
+                          label="Tiêu đề dòng 2"
+                          value={getLocaleValue(companyData, 'headerTitleLine2')}
+                          onChange={(value) => {
+                            const updated = setLocaleValue(companyData, 'headerTitleLine2', value);
+                            setCompanyData(updated);
+                          }}
                           placeholder="cho doanh nghiệp Việt"
+                          defaultLocale={globalLocale}
+                          aiProvider={aiProvider}
                         />
                       </div>
                     </div>
@@ -1269,29 +1799,44 @@ export default function AdminAboutPage() {
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề</Label>
-                      <Input
-                        value={companyData.contentTitle}
-                        onChange={(e) => setCompanyData({ ...companyData, contentTitle: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề"
+                        value={getLocaleValue(companyData, 'contentTitle')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(companyData, 'contentTitle', value);
+                          setCompanyData(updated);
+                        }}
                         placeholder="CÔNG TY CỔ PHẦN CÔNG NGHỆ SFB..."
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Mô tả</Label>
-                      <Textarea
-                        value={companyData.contentDescription}
-                        onChange={(e) => setCompanyData({ ...companyData, contentDescription: e.target.value })}
+                      <LocaleInput
+                        label="Mô tả"
+                        value={getLocaleValue(companyData, 'contentDescription')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(companyData, 'contentDescription', value);
+                          setCompanyData(updated);
+                        }}
                         placeholder="Mô tả..."
-                        rows={4}
+                        multiline={true}
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="pb-2">Văn bản nút</Label>
-                        <Input
-                          value={companyData.contentButtonText}
-                          onChange={(e) => setCompanyData({ ...companyData, contentButtonText: e.target.value })}
+                        <LocaleInput
+                          label="Văn bản nút"
+                          value={getLocaleValue(companyData, 'contentButtonText')}
+                          onChange={(value) => {
+                            const updated = setLocaleValue(companyData, 'contentButtonText', value);
+                            setCompanyData(updated);
+                          }}
                           placeholder="Liên hệ với chúng tôi"
+                          defaultLocale={globalLocale}
+                          aiProvider={aiProvider}
                         />
                       </div>
                       <div>
@@ -1353,8 +1898,8 @@ export default function AdminAboutPage() {
                                         {renderIcon(contact.iconName)}
                                       </div>
                                       <div>
-                                        <h4 className="font-semibold">{contact.title}</h4>
-                                        <p className="text-sm text-gray-600">{contact.text}</p>
+                                        <h4 className="font-semibold">{getLocalizedText(contact.title, globalLocale)}</h4>
+                                        <p className="text-sm text-gray-600">{getLocalizedText(contact.text, globalLocale)}</p>
                                         {contact.isHighlight && (
                                           <span className="text-xs text-blue-600">Nổi bật</span>
                                         )}
@@ -1421,11 +1966,16 @@ export default function AdminAboutPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="pb-2">Văn bản nút</Label>
-                          <Input
-                            value={companyData.contactButtonText}
-                            onChange={(e) => setCompanyData({ ...companyData, contactButtonText: e.target.value })}
+                          <LocaleInput
+                            label="Văn bản nút"
+                            value={getLocaleValue(companyData, 'contactButtonText')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(companyData, 'contactButtonText', value);
+                              setCompanyData(updated);
+                            }}
                             placeholder="Liên hệ ngay"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div>
@@ -1478,7 +2028,7 @@ export default function AdminAboutPage() {
                   handleCancelContact();
                 }
               }}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent style={{ maxWidth: '60vw' }}>
                   <DialogHeader>
                     <DialogTitle>
                       {editingContactIndex === -1 ? "Thêm Contact mới" : "Chỉnh sửa Contact"}
@@ -1511,20 +2061,30 @@ export default function AdminAboutPage() {
                           </Select>
                         </div>
                         <div>
-                          <Label className="pb-2">Tiêu đề</Label>
-                          <Input
-                            value={contactFormData.title || ""}
-                            onChange={(e) => setContactFormData({ ...contactFormData, title: e.target.value })}
+                          <LocaleInput
+                            label="Tiêu đề"
+                            value={getLocaleValue(contactFormData, 'title')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(contactFormData, 'title', value);
+                              setContactFormData(updated);
+                            }}
                             placeholder="Trụ sở"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Nội dung</Label>
-                          <Textarea
-                            value={contactFormData.text || ""}
-                            onChange={(e) => setContactFormData({ ...contactFormData, text: e.target.value })}
+                          <LocaleInput
+                            label="Nội dung"
+                            value={getLocaleValue(contactFormData, 'text')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(contactFormData, 'text', value);
+                              setContactFormData(updated);
+                            }}
                             placeholder="Địa chỉ..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1564,16 +2124,16 @@ export default function AdminAboutPage() {
                     <div className="max-w-[1340px] mx-auto px-6 relative z-10">
                       {/* Header */}
                       <div className="text-center mb-16">
-                        {companyData.headerSub && (
+                        {getLocalizedText(companyData.headerSub, globalLocale) && (
                           <span className="text-[#2CA4E0] font-semibold text-sm tracking-wider uppercase mb-3 block">
-                            {companyData.headerSub}
+                            {getLocalizedText(companyData.headerSub, globalLocale)}
                           </span>
                         )}
-                        {(companyData.headerTitleLine1 || companyData.headerTitleLine2) && (
+                        {(getLocalizedText(companyData.headerTitleLine1, globalLocale) || getLocalizedText(companyData.headerTitleLine2, globalLocale)) && (
                           <h2 className="text-[#1A202C] text-3xl md:text-4xl font-bold leading-tight">
-                            {companyData.headerTitleLine1}
+                            {getLocalizedText(companyData.headerTitleLine1, globalLocale)}
                             <br />
-                            {companyData.headerTitleLine2}
+                            {getLocalizedText(companyData.headerTitleLine2, globalLocale)}
                           </h2>
                         )}
                       </div>
@@ -1592,22 +2152,22 @@ export default function AdminAboutPage() {
                           </div>
                         )}
                         <div className="space-y-6 about-company-content-wrapper">
-                          {companyData.contentTitle && (
+                          {getLocalizedText(companyData.contentTitle, globalLocale) && (
                             <h3 className="text-[#1A202C] text-lg font-bold leading-relaxed">
-                              {companyData.contentTitle}
+                              {getLocalizedText(companyData.contentTitle, globalLocale)}
                             </h3>
                           )}
-                          {companyData.contentDescription && (
+                          {getLocalizedText(companyData.contentDescription, globalLocale) && (
                             <p className="text-gray-600 leading-relaxed">
-                              {companyData.contentDescription}
+                              {getLocalizedText(companyData.contentDescription, globalLocale)}
                             </p>
                           )}
-                          {companyData.contentButtonText && (
+                          {getLocalizedText(companyData.contentButtonText, globalLocale) && (
                             <a
                               href={companyData.contentButtonLink || '#'}
                               className="inline-flex items-center gap-2 px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm hover:opacity-90 transition-opacity"
                             >
-                              {companyData.contentButtonText}
+                              {getLocalizedText(companyData.contentButtonText, globalLocale)}
                               <ArrowRight size={16} />
                             </a>
                           )}
@@ -1630,12 +2190,12 @@ export default function AdminAboutPage() {
                                     <div className="flex-1">
                                       {contact.isHighlight ? (
                                         <h4 className="font-bold text-gray-900 mb-1">
-                                          {contact.title}: <span className="font-normal text-gray-600">{contact.text}</span>
+                                          {getLocalizedText(contact.title, globalLocale)}: <span className="font-normal text-gray-600">{getLocalizedText(contact.text, globalLocale)}</span>
                                         </h4>
                                       ) : (
                                         <>
-                                          <h4 className="font-bold text-gray-900 mb-1">{contact.title}</h4>
-                                          <p className="text-gray-600 text-sm leading-relaxed">{contact.text}</p>
+                                          <h4 className="font-bold text-gray-900 mb-1">{getLocalizedText(contact.title, globalLocale)}</h4>
+                                          <p className="text-gray-600 text-sm leading-relaxed">{getLocalizedText(contact.text, globalLocale)}</p>
                                         </>
                                       )}
                                     </div>
@@ -1643,12 +2203,12 @@ export default function AdminAboutPage() {
                                 );
                               })}
                           </div>
-                          {companyData.contactButtonText && (
+                          {getLocalizedText(companyData.contactButtonText, globalLocale) && (
                             <a
                               href={companyData.contactButtonLink || '#'}
                               className="inline-flex items-center gap-2 px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm hover:opacity-90 transition-opacity"
                             >
-                              {companyData.contactButtonText}
+                              {getLocalizedText(companyData.contactButtonText, globalLocale)}
                               <ArrowRight size={16} />
                             </a>
                           )}
@@ -1697,6 +2257,69 @@ export default function AdminAboutPage() {
                 </Button>
               </div>
 
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('vision-mission')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Header */}
               <Card>
                 <CardHeader className="p-0">
@@ -1717,20 +2340,30 @@ export default function AdminAboutPage() {
                 {!collapsedBlocks.visionMissionHeader && (
                   <CardContent className="space-y-4 px-6 py-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề</Label>
-                      <Input
-                        value={visionMissionData.headerTitle}
-                        onChange={(e) => setVisionMissionData({ ...visionMissionData, headerTitle: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề"
+                        value={getLocaleValue(visionMissionData, 'headerTitle')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(visionMissionData, 'headerTitle', value);
+                          setVisionMissionData(updated);
+                        }}
                         placeholder="Tầm nhìn & Sứ mệnh"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Mô tả</Label>
-                      <Textarea
-                        value={visionMissionData.headerDescription}
-                        onChange={(e) => setVisionMissionData({ ...visionMissionData, headerDescription: e.target.value })}
+                      <LocaleInput
+                        label="Mô tả"
+                        value={getLocaleValue(visionMissionData, 'headerDescription')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(visionMissionData, 'headerDescription', value);
+                          setVisionMissionData(updated);
+                        }}
                         placeholder="Mô tả..."
-                        rows={3}
+                        multiline={true}
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -1794,73 +2427,128 @@ export default function AdminAboutPage() {
                       Chưa có item nào. Nhấn "Thêm Item" để thêm.
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 gap-3">
                       {visionMissionData.items
                         .sort((a, b) => a.sortOrder - b.sortOrder)
-                        .map((item, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-[#2CA4E0] flex items-center justify-center bg-white">
-                                      <span className="text-[#2CA4E0] font-bold">{index + 1}</span>
+                        .map((item, index) => {
+                          const itemText = typeof item.text === 'string' 
+                            ? { vi: item.text, en: '', ja: '' }
+                            : (item.text || { vi: '', en: '', ja: '' });
+                          const viText = itemText.vi?.trim() || '';
+                          const enText = itemText.en?.trim() || '';
+                          const jaText = itemText.ja?.trim() || '';
+                          
+                          return (
+                            <Card key={index} className="relative hover:shadow-md transition-shadow">
+                              <CardContent className="p-4">
+                                <div className="flex items-start gap-4">
+                                  <div className="flex-shrink-0 w-10 h-10 rounded-full border-2 border-[#2CA4E0] flex items-center justify-center bg-white">
+                                    <span className="text-[#2CA4E0] font-bold text-sm">{index + 1}</span>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="space-y-2">
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-xs font-medium text-gray-500 w-6 flex-shrink-0 mt-0.5">🇻🇳</span>
+                                        <p className="text-sm text-gray-900 flex-1 break-words">
+                                          {viText || <span className="text-gray-400 italic">(Chưa có)</span>}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-xs font-medium text-gray-500 w-6 flex-shrink-0 mt-0.5">🇬🇧</span>
+                                        <p className="text-sm text-gray-900 flex-1 break-words">
+                                          {enText || <span className="text-gray-400 italic">(Chưa có)</span>}
+                                        </p>
+                                      </div>
+                                      <div className="flex items-start gap-2">
+                                        <span className="text-xs font-medium text-gray-500 w-6 flex-shrink-0 mt-0.5">🇯🇵</span>
+                                        <p className="text-sm text-gray-900 flex-1 break-words">
+                                          {jaText || <span className="text-gray-400 italic">(Chưa có)</span>}
+                                        </p>
+                                      </div>
                                     </div>
-                                    <p className="text-gray-700">{item.text || "Chưa có nội dung"}</p>
+                                  </div>
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleMoveVisionMissionItemUp(index)}
+                                      disabled={index === 0}
+                                      title="Di chuyển lên"
+                                      className="h-8 w-8"
+                                    >
+                                      <ChevronUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleMoveVisionMissionItemDown(index)}
+                                      disabled={index === visionMissionData.items.length - 1}
+                                      title="Di chuyển xuống"
+                                      className="h-8 w-8"
+                                    >
+                                      <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEditVisionMissionItem(index)}
+                                      title="Chỉnh sửa"
+                                      className="h-8 w-8"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleRemoveVisionMissionItem(index)}
+                                      title="Xóa"
+                                      className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleMoveVisionMissionItemUp(index)}
-                                    disabled={index === 0}
-                                    title="Di chuyển lên"
-                                  >
-                                    <ChevronUp className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleMoveVisionMissionItemDown(index)}
-                                    disabled={index === visionMissionData.items.length - 1}
-                                    title="Di chuyển xuống"
-                                  >
-                                    <ChevronDown className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => {
-                                      const newText = prompt("Nhập nội dung:", item.text);
-                                      if (newText !== null) {
-                                        const newItems = [...visionMissionData.items];
-                                        newItems[index] = { ...item, text: newText };
-                                        setVisionMissionData({ ...visionMissionData, items: newItems });
-                                      }
-                                    }}
-                                    title="Chỉnh sửa"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleRemoveVisionMissionItem(index)}
-                                    title="Xóa"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                     </div>
                   )}
                   </CardContent>
                 )}
               </Card>
+
+              {/* Edit Vision Mission Item Dialog */}
+              <Dialog open={editingVisionMissionItemIndex !== null} onOpenChange={(open) => {
+                if (!open) handleCancelEditVisionMissionItem();
+              }}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Chỉnh sửa Item</DialogTitle>
+                    <DialogDescription>
+                      Nhập nội dung cho item này bằng các ngôn ngữ khác nhau
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <LocaleInput
+                      label="Nội dung"
+                      value={editingVisionMissionItemText}
+                      onChange={(value) => setEditingVisionMissionItemText(value)}
+                      placeholder="Nhập nội dung..."
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCancelEditVisionMissionItem}>
+                      Hủy
+                    </Button>
+                    <Button onClick={handleSaveVisionMissionItem}>
+                      Lưu
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             <TabsContent value="preview" className="mt-4">
@@ -1873,14 +2561,14 @@ export default function AdminAboutPage() {
                     <div className="max-w-[1340px] mx-auto px-6 relative z-10">
                       {/* Header */}
                       <div className="max-w-4xl mx-auto text-center mb-16">
-                        {visionMissionData.headerTitle && (
+                        {getLocalizedText(visionMissionData.headerTitle, globalLocale) && (
                           <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
-                            {visionMissionData.headerTitle}
+                            {getLocalizedText(visionMissionData.headerTitle, globalLocale)}
                           </h2>
                         )}
-                        {visionMissionData.headerDescription && (
+                        {getLocalizedText(visionMissionData.headerDescription, globalLocale) && (
                           <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
-                            {visionMissionData.headerDescription}
+                            {getLocalizedText(visionMissionData.headerDescription, globalLocale)}
                           </p>
                         )}
                       </div>
@@ -1897,7 +2585,7 @@ export default function AdminAboutPage() {
                               <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-[#2CA4E0] flex items-center justify-center bg-white/50">
                                 <span className="text-[#2CA4E0] font-bold text-lg">{idx + 1}</span>
                               </div>
-                              <p className="text-[#334155] font-medium leading-relaxed">{item.text}</p>
+                              <p className="text-[#334155] font-medium leading-relaxed">{getLocalizedText(item.text, globalLocale)}</p>
                             </div>
                           ))}
                       </div>
@@ -1933,6 +2621,69 @@ export default function AdminAboutPage() {
                 </Button>
               </div>
 
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('core-values')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Header */}
               <Card>
                 <CardHeader>
@@ -1940,20 +2691,30 @@ export default function AdminAboutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={coreValuesData.headerTitle}
-                      onChange={(e) => setCoreValuesData({ ...coreValuesData, headerTitle: e.target.value })}
+                    <LocaleInput
+                      label="Tiêu đề"
+                      value={getLocaleValue(coreValuesData, 'headerTitle')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(coreValuesData, 'headerTitle', value);
+                        setCoreValuesData(updated);
+                      }}
                       placeholder="Giá trị cốt lõi"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={coreValuesData.headerDescription}
-                      onChange={(e) => setCoreValuesData({ ...coreValuesData, headerDescription: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(coreValuesData, 'headerDescription')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(coreValuesData, 'headerDescription', value);
+                        setCoreValuesData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={3}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -2018,9 +2779,9 @@ export default function AdminAboutPage() {
                                       {renderIcon(item.iconName)}
                                     </div>
                                     <div>
-                                      <h4 className="font-semibold">{item.title || "Chưa có tiêu đề"}</h4>
+                                      <h4 className="font-semibold">{getLocalizedText(item.title, globalLocale) || "Chưa có tiêu đề"}</h4>
                                       <p className="text-sm text-gray-600 line-clamp-1">
-                                        {item.description || "Chưa có mô tả"}
+                                        {getLocalizedText(item.description, globalLocale) || "Chưa có mô tả"}
                                       </p>
                                     </div>
                                   </div>
@@ -2127,20 +2888,30 @@ export default function AdminAboutPage() {
                           </Select>
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Tiêu đề</Label>
-                          <Input
-                            value={coreValueFormData.title || ""}
-                            onChange={(e) => setCoreValueFormData({ ...coreValueFormData, title: e.target.value })}
+                          <LocaleInput
+                            label="Tiêu đề"
+                            value={getLocaleValue(coreValueFormData, 'title')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(coreValueFormData, 'title', value);
+                              setCoreValueFormData(updated);
+                            }}
                             placeholder="Đổi mới sáng tạo"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Mô tả</Label>
-                          <Textarea
-                            value={coreValueFormData.description || ""}
-                            onChange={(e) => setCoreValueFormData({ ...coreValueFormData, description: e.target.value })}
+                          <LocaleInput
+                            label="Mô tả"
+                            value={getLocaleValue(coreValueFormData, 'description')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(coreValueFormData, 'description', value);
+                              setCoreValueFormData(updated);
+                            }}
                             placeholder="Mô tả..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="flex items-center space-x-2">
@@ -2175,14 +2946,14 @@ export default function AdminAboutPage() {
                     <div className="max-w-[1340px] mx-auto px-6">
                       {/* Header */}
                       <div className="text-center mb-16">
-                        {coreValuesData.headerTitle && (
+                        {getLocalizedText(coreValuesData.headerTitle, globalLocale) && (
                           <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
-                            {coreValuesData.headerTitle}
+                            {getLocalizedText(coreValuesData.headerTitle, globalLocale)}
                           </h2>
                         )}
-                        {coreValuesData.headerDescription && (
+                        {getLocalizedText(coreValuesData.headerDescription, globalLocale) && (
                           <p className="text-gray-600 md:text-lg max-w-2xl mx-auto leading-relaxed">
-                            {coreValuesData.headerDescription}
+                            {getLocalizedText(coreValuesData.headerDescription, globalLocale)}
                           </p>
                         )}
                       </div>
@@ -2202,8 +2973,8 @@ export default function AdminAboutPage() {
                                 <div className="mb-6 text-[#2CA4E0] p-4 bg-blue-50/50 rounded-full">
                                   <Icon size={48} strokeWidth={1.5} />
                                 </div>
-                                <h3 className="text-[#0F172A] text-xl font-bold mb-3">{item.title}</h3>
-                                <p className="text-gray-600 leading-relaxed text-sm lg:text-base">{item.description}</p>
+                                <h3 className="text-[#0F172A] text-xl font-bold mb-3">{getLocalizedText(item.title, globalLocale)}</h3>
+                                <p className="text-gray-600 leading-relaxed text-sm lg:text-base">{getLocalizedText(item.description, globalLocale)}</p>
                               </div>
                             );
                           })}
@@ -2240,6 +3011,69 @@ export default function AdminAboutPage() {
                 </Button>
               </div>
 
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('milestones')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Header */}
               <Card>
                 <CardHeader>
@@ -2247,20 +3081,30 @@ export default function AdminAboutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={milestonesData.headerTitle}
-                      onChange={(e) => setMilestonesData({ ...milestonesData, headerTitle: e.target.value })}
+                    <LocaleInput
+                      label="Tiêu đề"
+                      value={getLocaleValue(milestonesData, 'headerTitle')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(milestonesData, 'headerTitle', value);
+                        setMilestonesData(updated);
+                      }}
                       placeholder="Hành trình phát triển"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={milestonesData.headerDescription}
-                      onChange={(e) => setMilestonesData({ ...milestonesData, headerDescription: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(milestonesData, 'headerDescription')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(milestonesData, 'headerDescription', value);
+                        setMilestonesData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={3}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -2269,14 +3113,48 @@ export default function AdminAboutPage() {
                       checked={milestonesData.isActive}
                       onCheckedChange={async (checked) => {
                         // If milestonesData is empty, fetch existing data first to preserve it
-                        if (!milestonesData.headerTitle && !milestonesData.headerDescription && milestonesData.items.length === 0) {
+                        const hasHeaderTitle = milestonesData.headerTitle && (
+                          typeof milestonesData.headerTitle === 'string' 
+                            ? milestonesData.headerTitle.trim() !== '' 
+                            : Object.values(milestonesData.headerTitle as Record<Locale, string>).some(v => v && v.trim() !== '')
+                        );
+                        const hasHeaderDescription = milestonesData.headerDescription && (
+                          typeof milestonesData.headerDescription === 'string' 
+                            ? milestonesData.headerDescription.trim() !== '' 
+                            : Object.values(milestonesData.headerDescription as Record<Locale, string>).some(v => v && v.trim() !== '')
+                        );
+                        if (!hasHeaderTitle && !hasHeaderDescription && milestonesData.items.length === 0) {
                           try {
                             const data = await adminApiCall<{ success: boolean; data?: any }>(
                               AdminEndpoints.about.milestones.get,
                             );
                             if (data?.data) {
+                              // Normalize dữ liệu để đảm bảo các field luôn là locale object
+                              const normalizedMilestones = migrateObjectToLocale(data.data);
+                              // Normalize items
+                              if (normalizedMilestones.items && Array.isArray(normalizedMilestones.items)) {
+                                const getStringValue = (value: any): string => {
+                                  if (typeof value === 'string') return value;
+                                  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                    if ('vi' in value || 'en' in value || 'ja' in value) {
+                                      return (value as any).vi || (value as any).en || (value as any).ja || '';
+                                    }
+                                  }
+                                  return '';
+                                };
+                                normalizedMilestones.items = normalizedMilestones.items.map((item: any) => {
+                                  const normalizedItem = migrateObjectToLocale(item);
+                                  return {
+                                    ...normalizedItem,
+                                    year: getStringValue(item.year || normalizedItem.year || ''),
+                                    icon: getStringValue(item.icon || normalizedItem.icon || '🚀'),
+                                    sortOrder: item.sortOrder ?? normalizedItem.sortOrder ?? 0,
+                                    isActive: item.isActive ?? normalizedItem.isActive ?? true
+                                  };
+                                });
+                              }
                               setMilestonesData({
-                                ...data.data,
+                                ...normalizedMilestones,
                                 isActive: checked,
                               });
                             } else {
@@ -2326,11 +3204,11 @@ export default function AdminAboutPage() {
                                     </div>
                                     <div>
                                       <div className="flex items-center gap-2">
-                                        <span className="font-bold text-[#2CA4E0]">{item.year}</span>
-                                        <h4 className="font-semibold">{item.title || "Chưa có tiêu đề"}</h4>
+                                        <span className="font-bold text-[#2CA4E0]">{getYearString(item.year)}</span>
+                                        <h4 className="font-semibold">{getLocalizedText(item.title, globalLocale) || "Chưa có tiêu đề"}</h4>
                                       </div>
                                       <p className="text-sm text-gray-600 line-clamp-1">
-                                        {item.description || "Chưa có mô tả"}
+                                        {getLocalizedText(item.description, globalLocale) || "Chưa có mô tả"}
                                       </p>
                                     </div>
                                   </div>
@@ -2417,20 +3295,30 @@ export default function AdminAboutPage() {
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Tiêu đề</Label>
-                          <Input
-                            value={milestoneFormData.title || ""}
-                            onChange={(e) => setMilestoneFormData({ ...milestoneFormData, title: e.target.value })}
+                          <LocaleInput
+                            label="Tiêu đề"
+                            value={getLocaleValue(milestoneFormData, 'title')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(milestoneFormData, 'title', value);
+                              setMilestoneFormData(updated);
+                            }}
                             placeholder="Thành lập SFBTECH.,JSC"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Mô tả</Label>
-                          <Textarea
-                            value={milestoneFormData.description || ""}
-                            onChange={(e) => setMilestoneFormData({ ...milestoneFormData, description: e.target.value })}
+                          <LocaleInput
+                            label="Mô tả"
+                            value={getLocaleValue(milestoneFormData, 'description')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(milestoneFormData, 'description', value);
+                              setMilestoneFormData(updated);
+                            }}
                             placeholder="Mô tả..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="flex items-center space-x-2">
@@ -2465,14 +3353,14 @@ export default function AdminAboutPage() {
                     <div className="max-w-[1340px] mx-auto px-6">
                       {/* Header */}
                       <div className="text-center mb-24 max-w-4xl mx-auto">
-                        {milestonesData.headerTitle && (
+                        {getLocalizedText(milestonesData.headerTitle, globalLocale) && (
                           <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
-                            {milestonesData.headerTitle}
+                            {getLocalizedText(milestonesData.headerTitle, globalLocale)}
                           </h2>
                         )}
-                        {milestonesData.headerDescription && (
+                        {getLocalizedText(milestonesData.headerDescription, globalLocale) && (
                           <p className="text-gray-600 md:text-lg leading-relaxed max-w-2xl mx-auto">
-                            {milestonesData.headerDescription}
+                            {getLocalizedText(milestonesData.headerDescription, globalLocale)}
                           </p>
                         )}
                       </div>
@@ -2489,7 +3377,7 @@ export default function AdminAboutPage() {
                                 <div key={index} className="relative flex flex-col lg:flex-row items-center justify-center">
                                   {/* Mobile Year Badge */}
                                   <div className="lg:hidden mb-6 bg-[#2CA4E0] text-white px-6 py-2 rounded-full text-xl font-bold shadow-lg">
-                                    {item.year}
+                                    {getYearString(item.year)}
                                   </div>
 
                                   {/* Content Card */}
@@ -2500,18 +3388,18 @@ export default function AdminAboutPage() {
                                       </div>
                                       {item.year && (
                                         <div className="mb-2">
-                                          <span className="text-[#2CA4E0] font-bold text-lg">{item.year}</span>
+                                          <span className="text-[#2CA4E0] font-bold text-lg">{getYearString(item.year)}</span>
                                         </div>
                                       )}
-                                      <h3 className="text-[#0F172A] font-bold text-lg mb-3">{item.title}</h3>
-                                      <p className="text-gray-500 text-sm leading-relaxed">{item.description}</p>
+                                      <h3 className="text-[#0F172A] font-bold text-lg mb-3">{getLocalizedText(item.title, globalLocale)}</h3>
+                                      <p className="text-gray-500 text-sm leading-relaxed">{getLocalizedText(item.description, globalLocale)}</p>
                                     </div>
                                   </div>
 
                                   {/* Center Year Badge (Desktop) */}
                                   <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center justify-center z-20 flex-col">
                                     <div className="bg-[#2CA4E0] text-white px-8 py-3 rounded-full text-2xl font-normal shadow-md whitespace-nowrap border-[4px] border-[#F8FBFE]">
-                                      {item.year}
+                                      {getYearString(item.year)}
                                     </div>
                                     {index < milestonesData.items.filter(i => i.isActive).length - 1 && (
                                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-[220px] z-10 bg-[#E2E8F0]" />
@@ -2557,6 +3445,69 @@ export default function AdminAboutPage() {
                 </Button>
               </div>
 
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]" suppressHydrationWarning>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('leadership')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Header */}
               <Card>
                 <CardHeader>
@@ -2564,20 +3515,30 @@ export default function AdminAboutPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={leadershipData.headerTitle}
-                      onChange={(e) => setLeadershipData({ ...leadershipData, headerTitle: e.target.value })}
+                    <LocaleInput
+                      label="Tiêu đề"
+                      value={getLocaleValue(leadershipData, 'headerTitle')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(leadershipData, 'headerTitle', value);
+                        setLeadershipData(updated);
+                      }}
                       placeholder="Ban lãnh đạo"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={leadershipData.headerDescription}
-                      onChange={(e) => setLeadershipData({ ...leadershipData, headerDescription: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(leadershipData, 'headerDescription')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(leadershipData, 'headerDescription', value);
+                        setLeadershipData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={3}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -2586,14 +3547,51 @@ export default function AdminAboutPage() {
                       checked={leadershipData.isActive}
                       onCheckedChange={async (checked) => {
                         // If leadershipData is empty, fetch existing data first to preserve it
-                        if (!leadershipData.headerTitle && !leadershipData.headerDescription && leadershipData.items.length === 0) {
+                        const hasHeaderTitle = leadershipData.headerTitle && (
+                          typeof leadershipData.headerTitle === 'string' 
+                            ? leadershipData.headerTitle.trim() !== '' 
+                            : Object.values(leadershipData.headerTitle as Record<Locale, string>).some(v => v && v.trim() !== '')
+                        );
+                        const hasHeaderDescription = leadershipData.headerDescription && (
+                          typeof leadershipData.headerDescription === 'string' 
+                            ? leadershipData.headerDescription.trim() !== '' 
+                            : Object.values(leadershipData.headerDescription as Record<Locale, string>).some(v => v && v.trim() !== '')
+                        );
+                        if (!hasHeaderTitle && !hasHeaderDescription && leadershipData.items.length === 0) {
                           try {
                             const data = await adminApiCall<{ success: boolean; data?: any }>(
                               AdminEndpoints.about.leadership.get,
                             );
                             if (data?.data) {
+                              // Normalize dữ liệu để đảm bảo các field luôn là locale object
+                              const normalizedLeadership = migrateObjectToLocale(data.data);
+                              // Normalize items
+                              if (normalizedLeadership.items && Array.isArray(normalizedLeadership.items)) {
+                                normalizedLeadership.items = normalizedLeadership.items.map((item: any) => {
+                                  const normalizedItem = migrateObjectToLocale(item);
+                                  // Đảm bảo email, phone, image là string, không phải locale object
+                                  const getStringValue = (value: any): string => {
+                                    if (typeof value === 'string') return value;
+                                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                      if ('vi' in value || 'en' in value || 'ja' in value) {
+                                        return (value as any).vi || (value as any).en || (value as any).ja || '';
+                                      }
+                                    }
+                                    return '';
+                                  };
+                                  // Giữ nguyên email, phone, image, sortOrder, isActive
+                                  return {
+                                    ...normalizedItem,
+                                    email: getStringValue(item.email || normalizedItem.email || ''),
+                                    phone: getStringValue(item.phone || normalizedItem.phone || ''),
+                                    image: getStringValue(item.image || normalizedItem.image || ''),
+                                    sortOrder: item.sortOrder ?? normalizedItem.sortOrder ?? 0,
+                                    isActive: item.isActive ?? normalizedItem.isActive ?? true
+                                  };
+                                });
+                              }
                               setLeadershipData({
-                                ...data.data,
+                                ...normalizedLeadership,
                                 isActive: checked,
                               });
                             } else {
@@ -2642,14 +3640,14 @@ export default function AdminAboutPage() {
                                       <div className="flex-shrink-0 w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200">
                                         <img
                                           src={item.image}
-                                          alt={item.name}
+                                          alt={getLocalizedText(item.name, globalLocale) || "Leader"}
                                           className="w-full h-full object-cover"
                                         />
                                       </div>
                                     )}
                                     <div>
-                                      <h4 className="font-semibold">{item.name || "Chưa có tên"}</h4>
-                                      <p className="text-sm text-gray-600">{item.position || "Chưa có chức vụ"}</p>
+                                      <h4 className="font-semibold">{getLocalizedText(item.name, globalLocale) || "Chưa có tên"}</h4>
+                                      <p className="text-sm text-gray-600">{getLocalizedText(item.position, globalLocale) || "Chưa có chức vụ"}</p>
                                       <p className="text-xs text-gray-500">{item.email || ""}</p>
                                     </div>
                                   </div>
@@ -2705,7 +3703,7 @@ export default function AdminAboutPage() {
                   handleCancelLeader();
                 }
               }}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent style={{ maxWidth: '1200px', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
                   <DialogHeader>
                     <DialogTitle>
                       {editingLeaderIndex === -1 ? "Thêm Leader mới" : "Chỉnh sửa Leader"}
@@ -2720,19 +3718,29 @@ export default function AdminAboutPage() {
                     <div className="space-y-4 py-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="pb-2">Tên *</Label>
-                          <Input
-                            value={leaderFormData.name || ""}
-                            onChange={(e) => setLeaderFormData({ ...leaderFormData, name: e.target.value })}
+                          <LocaleInput
+                            label="Tên *"
+                            value={getLocaleValue(leaderFormData, 'name')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(leaderFormData, 'name', value);
+                              setLeaderFormData(updated);
+                            }}
                             placeholder="Nguyễn Văn A"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div>
-                          <Label className="pb-2">Chức vụ *</Label>
-                          <Input
-                            value={leaderFormData.position || ""}
-                            onChange={(e) => setLeaderFormData({ ...leaderFormData, position: e.target.value })}
+                          <LocaleInput
+                            label="Chức vụ *"
+                            value={getLocaleValue(leaderFormData, 'position')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(leaderFormData, 'position', value);
+                              setLeaderFormData(updated);
+                            }}
                             placeholder="GIÁM ĐỐC CÔNG NGHỆ"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div>
@@ -2752,12 +3760,17 @@ export default function AdminAboutPage() {
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Mô tả</Label>
-                          <Textarea
-                            value={leaderFormData.description || ""}
-                            onChange={(e) => setLeaderFormData({ ...leaderFormData, description: e.target.value })}
+                          <LocaleInput
+                            label="Mô tả"
+                            value={getLocaleValue(leaderFormData, 'description')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(leaderFormData, 'description', value);
+                              setLeaderFormData(updated);
+                            }}
                             placeholder="Mô tả..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="md:col-span-2">
@@ -2799,14 +3812,14 @@ export default function AdminAboutPage() {
                     <div className="max-w-[1340px] mx-auto px-6">
                       {/* Header */}
                       <div className="text-center mb-16 max-w-4xl mx-auto">
-                        {leadershipData.headerTitle && (
+                        {getLocalizedText(leadershipData.headerTitle, globalLocale) && (
                           <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
-                            {leadershipData.headerTitle}
+                            {getLocalizedText(leadershipData.headerTitle, globalLocale)}
                           </h2>
                         )}
-                        {leadershipData.headerDescription && (
+                        {getLocalizedText(leadershipData.headerDescription, globalLocale) && (
                           <p className="text-gray-600 md:text-lg leading-relaxed max-w-3xl mx-auto">
-                            {leadershipData.headerDescription}
+                            {getLocalizedText(leadershipData.headerDescription, globalLocale)}
                           </p>
                         )}
                       </div>
@@ -2826,19 +3839,19 @@ export default function AdminAboutPage() {
                                   <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md group-hover:border-blue-100 transition-colors">
                                     <img
                                       src={leader.image}
-                                      alt={leader.name}
+                                      alt={getLocalizedText(leader.name, globalLocale) || "Leader"}
                                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
                                   </div>
                                 </div>
                               )}
-                              <h3 className="text-[#0F172A] text-xl font-bold mb-1">{leader.name}</h3>
+                              <h3 className="text-[#0F172A] text-xl font-bold mb-1">{getLocalizedText(leader.name, globalLocale)}</h3>
                               <div className="text-[#2CA4E0] font-semibold text-sm uppercase mb-4 tracking-wider">
-                                {leader.position}
+                                {getLocalizedText(leader.position, globalLocale)}
                               </div>
-                              {leader.description && (
+                              {getLocalizedText(leader.description, globalLocale) && (
                                 <p className="text-gray-500 text-xs leading-relaxed mb-6 max-w-xs mx-auto flex-grow">
-                                  {leader.description}
+                                  {getLocalizedText(leader.description, globalLocale)}
                                 </p>
                               )}
                               <div className="mt-auto flex items-center justify-center gap-6 w-full pt-4 border-t border-gray-100 group-hover:border-blue-100">

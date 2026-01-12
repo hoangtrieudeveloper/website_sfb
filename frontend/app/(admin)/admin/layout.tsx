@@ -402,12 +402,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         return next;
                       });
                     }}
+                    suppressHydrationWarning
                   >
                     <CollapsibleTrigger
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all text-sm ${isActive
                         ? "bg-white/10 text-white shadow-lg shadow-blue-500/20 border border-white/10"
                         : "text-slate-200 hover:bg-white/5"
                         }`}
+                      suppressHydrationWarning
                     >
                       <div className="flex items-center">
                         <Icon className="w-5 h-5" />
@@ -419,7 +421,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         <ChevronRight className="w-4 h-4" />
                       )}
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-1 space-y-1">
+                    <CollapsibleContent className="mt-1 space-y-1" suppressHydrationWarning>
                       {item.children?.map((child) => {
                         const ChildIcon = child.icon;
                         const isChildActive =

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, ArrowRight, Briefcase, MapPin, DollarSign, Clock, Award, CheckCircle2, Target, Phone } from "lucide-react";
+import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, ArrowRight, Briefcase, MapPin, DollarSign, Clock, Award, CheckCircle2, Target, Phone, Languages, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+
+type Locale = 'vi' | 'en' | 'ja';
 import {
   Select,
   SelectContent,
@@ -83,32 +90,54 @@ const HERO_GRADIENT_OPTIONS = [
 ];
 
 export default function AdminCareersPage() {
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData
+  } = useTranslationControls();
+
   // Tab State - Main tab
-  const [activeMainTab, setActiveMainTab] = useState<string>(() => {
+  const [activeMainTab, setActiveMainTab] = useState<string>('hero');
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Load from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('careers-main-tab') || 'hero';
+      const saved = localStorage.getItem('careers-main-tab');
+      if (saved) {
+        setActiveMainTab(saved);
+      }
     }
-    return 'hero';
-  });
+  }, []);
 
   // Tab State - Sub tabs (config/preview) for each section
-  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => {
+  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>({
+    hero: 'config',
+    benefits: 'config',
+    positions: 'config',
+    cta: 'config',
+  });
+
+  // Load from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('careers-sub-tabs');
-      return saved ? JSON.parse(saved) : {
-        hero: 'config',
-        benefits: 'config',
-        positions: 'config',
-        cta: 'config',
-      };
+      if (saved) {
+        try {
+          setActiveSubTabs(JSON.parse(saved));
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
     }
-    return {
-      hero: 'config',
-      benefits: 'config',
-      positions: 'config',
-      cta: 'config',
-    };
-  });
+  }, []);
 
   // Save main tab to localStorage
   useEffect(() => {
@@ -174,7 +203,16 @@ export default function AdminCareersPage() {
   };
 
   // Hero State
-  const [heroData, setHeroData] = useState({
+  const [heroData, setHeroData] = useState<{
+    titleLine1: string | Record<Locale, string>;
+    titleLine2: string | Record<Locale, string>;
+    description: string | Record<Locale, string>;
+    buttonText: string | Record<Locale, string>;
+    buttonLink: string;
+    image: string;
+    backgroundGradient: string;
+    isActive: boolean;
+  }>({
     titleLine1: "",
     titleLine2: "",
     description: "",
@@ -187,18 +225,23 @@ export default function AdminCareersPage() {
   const [loadingHero, setLoadingHero] = useState(false);
 
   // Benefits State
-  const [benefitsData, setBenefitsData] = useState({
-    headerTitle: "",
-    headerDescription: "",
-    items: [] as Array<{
+  const [benefitsData, setBenefitsData] = useState<{
+    headerTitle: string | Record<Locale, string>;
+    headerDescription: string | Record<Locale, string>;
+    items: Array<{
       id?: number;
       iconName: string;
-      title: string;
-      description: string;
+      title: string | Record<Locale, string>;
+      description: string | Record<Locale, string>;
       gradient: string;
       sortOrder: number;
       isActive: boolean;
-    }>,
+    }>;
+    isActive: boolean;
+  }>({
+    headerTitle: "",
+    headerDescription: "",
+    items: [],
     isActive: true,
   });
   const [loadingBenefits, setLoadingBenefits] = useState(false);
@@ -206,23 +249,28 @@ export default function AdminCareersPage() {
   const [benefitFormData, setBenefitFormData] = useState<any>(null);
 
   // Positions State
-  const [positionsData, setPositionsData] = useState({
-    headerTitle: "",
-    headerDescription: "",
-    items: [] as Array<{
+  const [positionsData, setPositionsData] = useState<{
+    headerTitle: string | Record<Locale, string>;
+    headerDescription: string | Record<Locale, string>;
+    items: Array<{
       id?: number;
-      title: string;
-      department: string;
+      title: string | Record<Locale, string>;
+      department: string | Record<Locale, string>;
       type: string;
-      location: string;
-      salary: string;
-      experience: string;
-      description: string;
+      location: string | Record<Locale, string>;
+      salary: string | Record<Locale, string>;
+      experience: string | Record<Locale, string>;
+      description: string | Record<Locale, string>;
       skills: string[];
       gradient: string;
       sortOrder: number;
       isActive: boolean;
-    }>,
+    }>;
+    isActive: boolean;
+  }>({
+    headerTitle: "",
+    headerDescription: "",
+    items: [],
     isActive: true,
   });
   const [loadingPositions, setLoadingPositions] = useState(false);
@@ -230,7 +278,16 @@ export default function AdminCareersPage() {
   const [positionFormData, setPositionFormData] = useState<any>(null);
 
   // CTA State
-  const [ctaData, setCtaData] = useState({
+  const [ctaData, setCtaData] = useState<{
+    title: string | Record<Locale, string>;
+    description: string | Record<Locale, string>;
+    primaryButtonText: string | Record<Locale, string>;
+    primaryButtonLink: string;
+    secondaryButtonText: string | Record<Locale, string>;
+    secondaryButtonLink: string;
+    backgroundGradient: string;
+    isActive: boolean;
+  }>({
     title: "",
     description: "",
     primaryButtonText: "",
@@ -250,7 +307,15 @@ export default function AdminCareersPage() {
         AdminEndpoints.careers.hero.get,
       );
       if (data?.data) {
-        setHeroData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedHero = migrateObjectToLocale(data.data);
+        // Đảm bảo backgroundGradient là string, không phải locale object
+        if (normalizedHero.backgroundGradient && typeof normalizedHero.backgroundGradient === 'object' && !Array.isArray(normalizedHero.backgroundGradient)) {
+          if ('vi' in normalizedHero.backgroundGradient || 'en' in normalizedHero.backgroundGradient || 'ja' in normalizedHero.backgroundGradient) {
+            normalizedHero.backgroundGradient = (normalizedHero.backgroundGradient as any).vi || (normalizedHero.backgroundGradient as any).en || HERO_GRADIENT_OPTIONS[0].value;
+          }
+        }
+        setHeroData(normalizedHero);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải hero");
@@ -266,7 +331,13 @@ export default function AdminCareersPage() {
         AdminEndpoints.careers.benefits.get,
       );
       if (data?.data) {
-        setBenefitsData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedBenefits = migrateObjectToLocale(data.data);
+        // Normalize items
+        if (normalizedBenefits.items && Array.isArray(normalizedBenefits.items)) {
+          normalizedBenefits.items = normalizedBenefits.items.map((item: any) => migrateObjectToLocale(item));
+        }
+        setBenefitsData(normalizedBenefits);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải benefits");
@@ -282,13 +353,33 @@ export default function AdminCareersPage() {
         AdminEndpoints.careers.positions.get,
       );
       if (data?.data) {
-        setPositionsData({
-          ...data.data,
-          items: data.data.items.map((item: any) => ({
-            ...item,
-            skills: Array.isArray(item.skills) ? item.skills : [],
-          })),
-        });
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedPositions = migrateObjectToLocale(data.data);
+        // Normalize items
+        if (normalizedPositions.items && Array.isArray(normalizedPositions.items)) {
+          const getStringValue = (value: any): string => {
+            if (typeof value === 'string') return value;
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+              if ('vi' in value || 'en' in value || 'ja' in value) {
+                return (value as any).vi || (value as any).en || (value as any).ja || '';
+              }
+            }
+            return '';
+          };
+          normalizedPositions.items = normalizedPositions.items.map((item: any) => {
+            const normalizedItem = migrateObjectToLocale(item);
+            // Đảm bảo type, gradient là string, không phải locale object
+            return {
+              ...normalizedItem,
+              type: getStringValue(item.type || normalizedItem.type || 'Full-time'),
+              gradient: getStringValue(item.gradient || normalizedItem.gradient || GRADIENT_OPTIONS[0].value),
+              skills: Array.isArray(item.skills) ? item.skills : [],
+              sortOrder: item.sortOrder ?? normalizedItem.sortOrder ?? 0,
+              isActive: item.isActive ?? normalizedItem.isActive ?? true
+            };
+          });
+        }
+        setPositionsData(normalizedPositions);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải positions");
@@ -304,7 +395,26 @@ export default function AdminCareersPage() {
         AdminEndpoints.careers.cta.get,
       );
       if (data?.data) {
-        setCtaData(data.data);
+        // Normalize dữ liệu để đảm bảo các field luôn là locale object
+        const normalizedCta = migrateObjectToLocale(data.data);
+        // Xử lý các field link: nếu là locale object, lấy giá trị vi
+        if (normalizedCta.primaryButtonLink && typeof normalizedCta.primaryButtonLink === 'object' && !Array.isArray(normalizedCta.primaryButtonLink)) {
+          if ('vi' in normalizedCta.primaryButtonLink || 'en' in normalizedCta.primaryButtonLink || 'ja' in normalizedCta.primaryButtonLink) {
+            normalizedCta.primaryButtonLink = (normalizedCta.primaryButtonLink as any).vi || (normalizedCta.primaryButtonLink as any).en || '';
+          }
+        }
+        if (normalizedCta.secondaryButtonLink && typeof normalizedCta.secondaryButtonLink === 'object' && !Array.isArray(normalizedCta.secondaryButtonLink)) {
+          if ('vi' in normalizedCta.secondaryButtonLink || 'en' in normalizedCta.secondaryButtonLink || 'ja' in normalizedCta.secondaryButtonLink) {
+            normalizedCta.secondaryButtonLink = (normalizedCta.secondaryButtonLink as any).vi || (normalizedCta.secondaryButtonLink as any).en || '';
+          }
+        }
+        // Đảm bảo backgroundGradient là string, không phải locale object
+        if (normalizedCta.backgroundGradient && typeof normalizedCta.backgroundGradient === 'object' && !Array.isArray(normalizedCta.backgroundGradient)) {
+          if ('vi' in normalizedCta.backgroundGradient || 'en' in normalizedCta.backgroundGradient || 'ja' in normalizedCta.backgroundGradient) {
+            normalizedCta.backgroundGradient = (normalizedCta.backgroundGradient as any).vi || (normalizedCta.backgroundGradient as any).en || HERO_GRADIENT_OPTIONS[0].value;
+          }
+        }
+        setCtaData(normalizedCta);
       }
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải CTA");
@@ -453,6 +563,105 @@ export default function AdminCareersPage() {
     }
   };
 
+  // Translation handlers for sections
+  const handleTranslateSection = async (section: 'hero' | 'benefits' | 'positions' | 'cta') => {
+    let dataToTranslate: any;
+    let updateCallback: (translatedData: any) => void;
+    let sectionName: string;
+
+    // Prepare data and update callback based on section
+    if (section === 'hero') {
+      // Loại bỏ các trường không cần dịch: image, buttonLink, backgroundGradient
+      const { image, buttonLink, backgroundGradient, isActive, ...dataToTranslateFields } = heroData;
+      dataToTranslate = dataToTranslateFields;
+      updateCallback = (translated: any) => {
+        setHeroData({
+          ...translated,
+          image,
+          buttonLink,
+          backgroundGradient,
+          isActive
+        });
+      };
+      sectionName = 'Hero Banner';
+    } else if (section === 'benefits') {
+      // Loại bỏ các trường không cần dịch: isActive, và iconName, gradient trong items
+      const { isActive, items, ...headerData } = benefitsData;
+      const translatedItems = items.map((item: any) => {
+        const { iconName, gradient, sortOrder, isActive: itemActive, ...itemFields } = item;
+        return itemFields;
+      });
+      dataToTranslate = {
+        ...headerData,
+        items: translatedItems
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên iconName, gradient, sortOrder, isActive của items
+        const updatedItems = translated.items.map((item: any, index: number) => ({
+          ...item,
+          iconName: items[index]?.iconName || 'DollarSign',
+          gradient: items[index]?.gradient || GRADIENT_OPTIONS[0].value,
+          sortOrder: items[index]?.sortOrder ?? index,
+          isActive: items[index]?.isActive ?? true
+        }));
+        setBenefitsData({
+          ...translated,
+          items: updatedItems,
+          isActive
+        });
+      };
+      sectionName = 'Phúc lợi & Đãi ngộ';
+    } else if (section === 'positions') {
+      // Loại bỏ các trường không cần dịch: isActive, type, gradient, skills trong items
+      const { isActive, items, ...headerData } = positionsData;
+      const translatedItems = items.map((item: any) => {
+        const { type, gradient, skills, sortOrder, isActive: itemActive, ...itemFields } = item;
+        return itemFields;
+      });
+      dataToTranslate = {
+        ...headerData,
+        items: translatedItems
+      };
+      updateCallback = (translated: any) => {
+        // Giữ nguyên type, gradient, skills, sortOrder, isActive của items
+        const updatedItems = translated.items.map((item: any, index: number) => ({
+          ...item,
+          type: items[index]?.type || 'Full-time',
+          gradient: items[index]?.gradient || GRADIENT_OPTIONS[0].value,
+          skills: items[index]?.skills || [],
+          sortOrder: items[index]?.sortOrder ?? index,
+          isActive: items[index]?.isActive ?? true
+        }));
+        setPositionsData({
+          ...translated,
+          items: updatedItems,
+          isActive
+        });
+      };
+      sectionName = 'Vị trí đang tuyển';
+    } else if (section === 'cta') {
+      // Loại bỏ các trường không cần dịch: primaryButtonLink, secondaryButtonLink, backgroundGradient, isActive
+      const { primaryButtonLink, secondaryButtonLink, backgroundGradient, isActive, ...dataWithoutLinks } = ctaData;
+      dataToTranslate = dataWithoutLinks;
+      updateCallback = (translated: any) => {
+        // Giữ nguyên các giá trị link, gradient, isActive khi cập nhật dữ liệu đã dịch
+        setCtaData({
+          ...translated,
+          primaryButtonLink,
+          secondaryButtonLink,
+          backgroundGradient,
+          isActive
+        });
+      };
+      sectionName = 'CTA';
+    } else {
+      return;
+    }
+
+    // Use translateData from hook
+    await translateData(dataToTranslate, updateCallback, sectionName);
+  };
+
   // Render icon
   const renderIcon = (iconName: string) => {
     const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.Code2;
@@ -463,8 +672,8 @@ export default function AdminCareersPage() {
   const handleAddBenefit = () => {
     setBenefitFormData({
       iconName: "DollarSign",
-      title: "",
-      description: "",
+      title: { vi: '', en: '', ja: '' },
+      description: { vi: '', en: '', ja: '' },
       gradient: GRADIENT_OPTIONS[0].value,
       sortOrder: benefitsData.items.length,
       isActive: true,
@@ -524,13 +733,13 @@ export default function AdminCareersPage() {
   // Positions Handlers
   const handleAddPosition = () => {
     setPositionFormData({
-      title: "",
-      department: "",
+      title: { vi: '', en: '', ja: '' },
+      department: { vi: '', en: '', ja: '' },
       type: "Full-time",
-      location: "",
-      salary: "",
-      experience: "",
-      description: "",
+      location: { vi: '', en: '', ja: '' },
+      salary: { vi: '', en: '', ja: '' },
+      experience: { vi: '', en: '', ja: '' },
+      description: { vi: '', en: '', ja: '' },
       skills: [] as string[],
       gradient: GRADIENT_OPTIONS[0].value,
       sortOrder: positionsData.items.length,
@@ -595,6 +804,13 @@ export default function AdminCareersPage() {
           <h1 className="text-3xl font-bold text-gray-900">Quản lý trang Tuyển dụng</h1>
           <p className="text-gray-600 mt-1">Quản lý đầy đủ các phần của trang Tuyển dụng</p>
         </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector */}
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
+        </div>
       </div>
 
       {/* Progress Stepper */}
@@ -603,28 +819,28 @@ export default function AdminCareersPage() {
           <div className="flex items-center justify-between">
             {tabsConfig.map((tab, index) => {
               const Icon = tab.icon;
-              const isActive = activeMainTab === tab.value;
-              const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
-              
+              // Only calculate isCompleted after mount to avoid hydration mismatch
+              const isActive = isMounted && activeMainTab === tab.value;
+              const isCompleted = isMounted && tabsConfig.findIndex(t => t.value === activeMainTab) > index;
+
               return (
-                <div key={tab.value} className="flex items-center flex-1">
+                <div key={tab.value} className="flex items-center flex-1" suppressHydrationWarning>
                   <button
                     onClick={() => handleTabChange(tab.value)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive
-                        ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
-                        : isCompleted
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
+                      ? "bg-blue-50 text-blue-700 border-2 border-blue-500"
+                      : isCompleted
                         ? "bg-green-50 text-green-700 border-2 border-green-300"
                         : "bg-gray-50 text-gray-600 border-2 border-gray-200 hover:bg-gray-100"
-                    }`}
+                      }`}
+                    suppressHydrationWarning
                   >
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                      isActive
-                        ? "bg-blue-500 text-white"
-                        : isCompleted
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${isActive
+                      ? "bg-blue-500 text-white"
+                      : isCompleted
                         ? "bg-green-500 text-white"
                         : "bg-gray-300 text-gray-600"
-                    }`}>
+                      }`} suppressHydrationWarning>
                       {isCompleted ? (
                         <CheckCircle2 className="w-5 h-5" />
                       ) : (
@@ -637,9 +853,8 @@ export default function AdminCareersPage() {
                     </div>
                   </button>
                   {index < tabsConfig.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-2 ${
-                      isCompleted ? "bg-green-500" : "bg-gray-300"
-                    }`} />
+                    <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-green-500" : "bg-gray-300"
+                      }`} suppressHydrationWarning />
                   )}
                 </div>
               );
@@ -652,8 +867,8 @@ export default function AdminCareersPage() {
 
         {/* Hero Tab */}
         <TabsContent value="hero" className="space-y-0">
-          <Tabs 
-            value={activeSubTabs.hero} 
+          <Tabs
+            value={activeSubTabs.hero}
             onValueChange={(value) => setActiveSubTabs({ ...activeSubTabs, hero: value })}
             className="w-full"
           >
@@ -663,6 +878,69 @@ export default function AdminCareersPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('hero')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Phần Hero</h2>
@@ -681,38 +959,58 @@ export default function AdminCareersPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề dòng 1 *</Label>
-                      <Input
-                        value={heroData.titleLine1}
-                        onChange={(e) => setHeroData({ ...heroData, titleLine1: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề dòng 1 *"
+                        value={getLocaleValue(heroData, 'titleLine1')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titleLine1', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="Cùng xây dựng"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Tiêu đề dòng 2 *</Label>
-                      <Input
-                        value={heroData.titleLine2}
-                        onChange={(e) => setHeroData({ ...heroData, titleLine2: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề dòng 2 *"
+                        value={getLocaleValue(heroData, 'titleLine2')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'titleLine2', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="tương lai công nghệ"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={heroData.description}
-                      onChange={(e) => setHeroData({ ...heroData, description: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(heroData, 'description')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(heroData, 'description', value);
+                        setHeroData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={4}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="pb-2">Văn bản nút</Label>
-                      <Input
-                        value={heroData.buttonText}
-                        onChange={(e) => setHeroData({ ...heroData, buttonText: e.target.value })}
+                      <LocaleInput
+                        label="Văn bản nút"
+                        value={getLocaleValue(heroData, 'buttonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(heroData, 'buttonText', value);
+                          setHeroData(updated);
+                        }}
                         placeholder="Xem vị trí tuyển dụng"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
@@ -734,11 +1032,13 @@ export default function AdminCareersPage() {
                   <div>
                     <Label className="pb-2">Màu nền gradient</Label>
                     <Select
-                      value={heroData.backgroundGradient}
+                      value={heroData.backgroundGradient || HERO_GRADIENT_OPTIONS[0].value}
                       onValueChange={(value) => setHeroData({ ...heroData, backgroundGradient: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue>
+                          {HERO_GRADIENT_OPTIONS.find(opt => opt.value === (heroData.backgroundGradient || HERO_GRADIENT_OPTIONS[0].value))?.label || "Chọn màu nền"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {HERO_GRADIENT_OPTIONS.map((opt) => (
@@ -800,22 +1100,22 @@ export default function AdminCareersPage() {
                       <div className="about-hero-container">
                         <div className="text-white about-hero-text">
                           <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-                            {heroData.titleLine1}
+                            {getLocalizedText(heroData.titleLine1, globalLocale)}
                             <span className="block mt-2">
-                              {heroData.titleLine2}
+                              {getLocalizedText(heroData.titleLine2, globalLocale)}
                             </span>
                           </h1>
-                          {heroData.description && (
+                          {getLocalizedText(heroData.description, globalLocale) && (
                             <p className="text-base md:text-lg text-white/90 mb-10 leading-relaxed">
-                              {heroData.description}
+                              {getLocalizedText(heroData.description, globalLocale)}
                             </p>
                           )}
-                          {heroData.buttonText && (
+                          {getLocalizedText(heroData.buttonText, globalLocale) && (
                             <a
                               href={heroData.buttonLink || '#'}
                               className="inline-flex items-center gap-3 px-[30px] py-[7px] h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-sm"
                             >
-                              {heroData.buttonText}
+                              {getLocalizedText(heroData.buttonText, globalLocale)}
                               <ArrowRight size={18} />
                             </a>
                           )}
@@ -840,8 +1140,8 @@ export default function AdminCareersPage() {
 
         {/* Benefits Tab */}
         <TabsContent value="benefits" className="space-y-0">
-          <Tabs 
-            value={activeSubTabs.benefits} 
+          <Tabs
+            value={activeSubTabs.benefits}
             onValueChange={(value) => setActiveSubTabs({ ...activeSubTabs, benefits: value })}
             className="w-full"
           >
@@ -851,6 +1151,69 @@ export default function AdminCareersPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('benefits')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Phúc lợi & Đãi ngộ</h2>
@@ -869,20 +1232,30 @@ export default function AdminCareersPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={benefitsData.headerTitle}
-                      onChange={(e) => setBenefitsData({ ...benefitsData, headerTitle: e.target.value })}
+                    <LocaleInput
+                      label="Tiêu đề"
+                      value={getLocaleValue(benefitsData, 'headerTitle')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(benefitsData, 'headerTitle', value);
+                        setBenefitsData(updated);
+                      }}
                       placeholder="Phúc lợi & Đãi ngộ"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={benefitsData.headerDescription}
-                      onChange={(e) => setBenefitsData({ ...benefitsData, headerDescription: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(benefitsData, 'headerDescription')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(benefitsData, 'headerDescription', value);
+                        setBenefitsData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={3}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -947,9 +1320,9 @@ export default function AdminCareersPage() {
                                       {renderIcon(item.iconName)}
                                     </div>
                                     <div>
-                                      <h4 className="font-semibold">{item.title || "Chưa có tiêu đề"}</h4>
+                                      <h4 className="font-semibold">{getLocalizedText(item.title, globalLocale) || "Chưa có tiêu đề"}</h4>
                                       <p className="text-sm text-gray-600 line-clamp-1">
-                                        {item.description || "Chưa có mô tả"}
+                                        {getLocalizedText(item.description, globalLocale) || "Chưa có mô tả"}
                                       </p>
                                     </div>
                                   </div>
@@ -1056,20 +1429,30 @@ export default function AdminCareersPage() {
                           </Select>
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Tiêu đề</Label>
-                          <Input
-                            value={benefitFormData.title || ""}
-                            onChange={(e) => setBenefitFormData({ ...benefitFormData, title: e.target.value })}
+                          <LocaleInput
+                            label="Tiêu đề"
+                            value={getLocaleValue(benefitFormData, 'title')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(benefitFormData, 'title', value);
+                              setBenefitFormData(updated);
+                            }}
                             placeholder="Lương thưởng hấp dẫn"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Mô tả</Label>
-                          <Textarea
-                            value={benefitFormData.description || ""}
-                            onChange={(e) => setBenefitFormData({ ...benefitFormData, description: e.target.value })}
+                          <LocaleInput
+                            label="Mô tả"
+                            value={getLocaleValue(benefitFormData, 'description')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(benefitFormData, 'description', value);
+                              setBenefitFormData(updated);
+                            }}
                             placeholder="Mô tả..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1104,14 +1487,14 @@ export default function AdminCareersPage() {
                     <div className="max-w-[1340px] mx-auto px-6">
                       {/* Header */}
                       <div className="text-center mb-16">
-                        {benefitsData.headerTitle && (
+                        {getLocalizedText(benefitsData.headerTitle, globalLocale) && (
                           <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-4">
-                            {benefitsData.headerTitle}
+                            {getLocalizedText(benefitsData.headerTitle, globalLocale)}
                           </h2>
                         )}
-                        {benefitsData.headerDescription && (
+                        {getLocalizedText(benefitsData.headerDescription, globalLocale) && (
                           <p className="text-gray-600 md:text-lg max-w-2xl mx-auto leading-relaxed">
-                            {benefitsData.headerDescription}
+                            {getLocalizedText(benefitsData.headerDescription, globalLocale)}
                           </p>
                         )}
                       </div>
@@ -1131,8 +1514,8 @@ export default function AdminCareersPage() {
                                 <div className="mb-6 text-[#2CA4E0] p-4 bg-blue-50/50 rounded-2xl">
                                   <Icon size={32} strokeWidth={1.5} />
                                 </div>
-                                <h3 className="text-[#0F172A] text-xl font-bold mb-3">{item.title}</h3>
-                                <p className="text-gray-600 leading-relaxed text-sm lg:text-base">{item.description}</p>
+                                <h3 className="text-[#0F172A] text-xl font-bold mb-3">{getLocalizedText(item.title, globalLocale)}</h3>
+                                <p className="text-gray-600 leading-relaxed text-sm lg:text-base">{getLocalizedText(item.description, globalLocale)}</p>
                               </div>
                             );
                           })}
@@ -1147,8 +1530,8 @@ export default function AdminCareersPage() {
 
         {/* Positions Tab */}
         <TabsContent value="positions" className="space-y-0">
-          <Tabs 
-            value={activeSubTabs.positions} 
+          <Tabs
+            value={activeSubTabs.positions}
             onValueChange={(value) => setActiveSubTabs({ ...activeSubTabs, positions: value })}
             className="w-full"
           >
@@ -1158,6 +1541,69 @@ export default function AdminCareersPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('positions')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Vị trí đang tuyển</h2>
@@ -1189,20 +1635,30 @@ export default function AdminCareersPage() {
                 {!collapsedBlocks.positionsHeader && (
                   <CardContent className="space-y-4 px-6 py-4">
                     <div>
-                      <Label className="pb-2">Tiêu đề</Label>
-                      <Input
-                        value={positionsData.headerTitle}
-                        onChange={(e) => setPositionsData({ ...positionsData, headerTitle: e.target.value })}
+                      <LocaleInput
+                        label="Tiêu đề"
+                        value={getLocaleValue(positionsData, 'headerTitle')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(positionsData, 'headerTitle', value);
+                          setPositionsData(updated);
+                        }}
                         placeholder="Vị trí đang tuyển"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Mô tả</Label>
-                      <Textarea
-                        value={positionsData.headerDescription}
-                        onChange={(e) => setPositionsData({ ...positionsData, headerDescription: e.target.value })}
+                      <LocaleInput
+                        label="Mô tả"
+                        value={getLocaleValue(positionsData, 'headerDescription')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(positionsData, 'headerDescription', value);
+                          setPositionsData(updated);
+                        }}
                         placeholder="Mô tả..."
-                        rows={3}
+                        multiline={true}
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -1211,14 +1667,49 @@ export default function AdminCareersPage() {
                         checked={positionsData.isActive}
                         onCheckedChange={async (checked) => {
                           // If positionsData is empty, fetch existing data first to preserve it
-                          if (!positionsData.headerTitle && !positionsData.headerDescription && positionsData.items.length === 0) {
+                          const hasHeaderTitle = positionsData.headerTitle && (
+                            typeof positionsData.headerTitle === 'string'
+                              ? positionsData.headerTitle.trim() !== ''
+                              : Object.values(positionsData.headerTitle as Record<Locale, string>).some(v => v && v.trim() !== '')
+                          );
+                          const hasHeaderDescription = positionsData.headerDescription && (
+                            typeof positionsData.headerDescription === 'string'
+                              ? positionsData.headerDescription.trim() !== ''
+                              : Object.values(positionsData.headerDescription as Record<Locale, string>).some(v => v && v.trim() !== '')
+                          );
+                          if (!hasHeaderTitle && !hasHeaderDescription && positionsData.items.length === 0) {
                             try {
                               const data = await adminApiCall<{ success: boolean; data?: any }>(
                                 AdminEndpoints.careers.positions.get,
                               );
                               if (data?.data) {
+                                // Normalize dữ liệu để đảm bảo các field luôn là locale object
+                                const normalizedPositions = migrateObjectToLocale(data.data);
+                                // Normalize items
+                                if (normalizedPositions.items && Array.isArray(normalizedPositions.items)) {
+                                  const getStringValue = (value: any): string => {
+                                    if (typeof value === 'string') return value;
+                                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                      if ('vi' in value || 'en' in value || 'ja' in value) {
+                                        return (value as any).vi || (value as any).en || (value as any).ja || '';
+                                      }
+                                    }
+                                    return '';
+                                  };
+                                  normalizedPositions.items = normalizedPositions.items.map((item: any) => {
+                                    const normalizedItem = migrateObjectToLocale(item);
+                                    return {
+                                      ...normalizedItem,
+                                      type: getStringValue(item.type || normalizedItem.type || 'Full-time'),
+                                      gradient: getStringValue(item.gradient || normalizedItem.gradient || GRADIENT_OPTIONS[0].value),
+                                      skills: Array.isArray(item.skills) ? item.skills : [],
+                                      sortOrder: item.sortOrder ?? normalizedItem.sortOrder ?? 0,
+                                      isActive: item.isActive ?? normalizedItem.isActive ?? true
+                                    };
+                                  });
+                                }
                                 setPositionsData({
-                                  ...data.data,
+                                  ...normalizedPositions,
                                   isActive: checked,
                                 });
                               } else {
@@ -1261,65 +1752,65 @@ export default function AdminCareersPage() {
                 </CardHeader>
                 {!collapsedBlocks.positionsItems && (
                   <CardContent className="space-y-4 px-6 py-4">
-                  {positionsData.items.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Chưa có position nào. Nhấn "Thêm Position" để thêm.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {positionsData.items
-                        .sort((a, b) => a.sortOrder - b.sortOrder)
-                        .map((item, index) => (
-                          <Card key={index}>
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <h4 className="font-semibold">{item.title || "Chưa có tiêu đề"}</h4>
-                                  <p className="text-sm text-gray-600">{item.department} • {item.type} • {item.location}</p>
-                                  <p className="text-xs text-gray-500 mt-1">{item.salary} • {item.experience}</p>
+                    {positionsData.items.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Chưa có position nào. Nhấn "Thêm Position" để thêm.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {positionsData.items
+                          .sort((a, b) => a.sortOrder - b.sortOrder)
+                          .map((item, index) => (
+                            <Card key={index}>
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold">{getLocalizedText(item.title, globalLocale) || "Chưa có tiêu đề"}</h4>
+                                    <p className="text-sm text-gray-600">{getLocalizedText(item.department, globalLocale)} • {item.type} • {getLocalizedText(item.location, globalLocale)}</p>
+                                    <p className="text-xs text-gray-500 mt-1">{getLocalizedText(item.salary, globalLocale)} • {getLocalizedText(item.experience, globalLocale)}</p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => handleMovePositionUp(index)}
+                                      disabled={index === 0}
+                                      title="Di chuyển lên"
+                                    >
+                                      <ChevronUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => handleMovePositionDown(index)}
+                                      disabled={index === positionsData.items.length - 1}
+                                      title="Di chuyển xuống"
+                                    >
+                                      <ChevronDown className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => handleEditPosition(index)}
+                                      title="Chỉnh sửa"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => handleRemovePosition(index)}
+                                      title="Xóa"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleMovePositionUp(index)}
-                                    disabled={index === 0}
-                                    title="Di chuyển lên"
-                                  >
-                                    <ChevronUp className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleMovePositionDown(index)}
-                                    disabled={index === positionsData.items.length - 1}
-                                    title="Di chuyển xuống"
-                                  >
-                                    <ChevronDown className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleEditPosition(index)}
-                                    title="Chỉnh sửa"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleRemovePosition(index)}
-                                    title="Xóa"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                    </div>
-                  )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                      </div>
+                    )}
                   </CardContent>
                 )}
               </Card>
@@ -1330,7 +1821,7 @@ export default function AdminCareersPage() {
                   handleCancelPosition();
                 }
               }}>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent style={{ maxWidth: '1100px', maxHeight: '99vh', overflowY: 'auto' }}>
                   <DialogHeader>
                     <DialogTitle>
                       {editingPositionIndex === -1 ? "Thêm Position mới" : "Chỉnh sửa Position"}
@@ -1345,19 +1836,29 @@ export default function AdminCareersPage() {
                     <div className="space-y-4 py-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Tiêu đề *</Label>
-                          <Input
-                            value={positionFormData.title || ""}
-                            onChange={(e) => setPositionFormData({ ...positionFormData, title: e.target.value })}
+                          <LocaleInput
+                            label="Tiêu đề *"
+                            value={getLocaleValue(positionFormData, 'title')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(positionFormData, 'title', value);
+                              setPositionFormData(updated);
+                            }}
                             placeholder="Senior Full-stack Developer"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div>
-                          <Label className="pb-2">Phòng ban</Label>
-                          <Input
-                            value={positionFormData.department || ""}
-                            onChange={(e) => setPositionFormData({ ...positionFormData, department: e.target.value })}
+                          <LocaleInput
+                            label="Phòng ban"
+                            value={getLocaleValue(positionFormData, 'department')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(positionFormData, 'department', value);
+                              setPositionFormData(updated);
+                            }}
                             placeholder="Engineering"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div>
@@ -1420,12 +1921,17 @@ export default function AdminCareersPage() {
                           </Select>
                         </div>
                         <div className="md:col-span-2">
-                          <Label className="pb-2">Mô tả</Label>
-                          <Textarea
-                            value={positionFormData.description || ""}
-                            onChange={(e) => setPositionFormData({ ...positionFormData, description: e.target.value })}
+                          <LocaleInput
+                            label="Mô tả"
+                            value={getLocaleValue(positionFormData, 'description')}
+                            onChange={(value) => {
+                              const updated = setLocaleValue(positionFormData, 'description', value);
+                              setPositionFormData(updated);
+                            }}
                             placeholder="Mô tả..."
-                            rows={3}
+                            multiline={true}
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <div className="md:col-span-2">
@@ -1472,14 +1978,14 @@ export default function AdminCareersPage() {
                     <div className="max-w-[1340px] mx-auto px-6">
                       {/* Header */}
                       <div className="text-center mb-16 max-w-3xl mx-auto">
-                        {positionsData.headerTitle && (
+                        {getLocalizedText(positionsData.headerTitle, globalLocale) && (
                           <h2 className="text-[#0F172A] text-3xl md:text-5xl font-bold mb-6">
-                            {positionsData.headerTitle}
+                            {getLocalizedText(positionsData.headerTitle, globalLocale)}
                           </h2>
                         )}
-                        {positionsData.headerDescription && (
+                        {getLocalizedText(positionsData.headerDescription, globalLocale) && (
                           <p className="text-gray-600 md:text-lg leading-relaxed">
-                            {positionsData.headerDescription}
+                            {getLocalizedText(positionsData.headerDescription, globalLocale)}
                           </p>
                         )}
                       </div>
@@ -1498,11 +2004,11 @@ export default function AdminCareersPage() {
                               <div className="flex items-start justify-between mb-6">
                                 <div className="flex-1">
                                   <h4 className="text-[#0F172A] text-2xl font-bold mb-2">
-                                    {position.title}
+                                    {getLocalizedText(position.title, globalLocale)}
                                   </h4>
                                   <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
                                     <Briefcase size={16} className="text-[#0870B4]" />
-                                    <span>{position.department}</span>
+                                    <span>{getLocalizedText(position.department, globalLocale)}</span>
                                   </div>
                                 </div>
                                 <span className="px-4 py-1.5 bg-blue-50 text-[#0870B4] rounded-full text-sm font-semibold whitespace-nowrap">
@@ -1516,21 +2022,21 @@ export default function AdminCareersPage() {
                                   <MapPin className="text-gray-400 mt-0.5" size={18} />
                                   <div>
                                     <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Địa điểm</div>
-                                    <div className="text-gray-900 font-medium text-sm">{position.location}</div>
+                                    <div className="text-gray-900 font-medium text-sm">{getLocalizedText(position.location, globalLocale)}</div>
                                   </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                   <DollarSign className="text-gray-400 mt-0.5" size={18} />
                                   <div>
                                     <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Mức lương</div>
-                                    <div className="text-gray-900 font-medium text-sm">{position.salary}</div>
+                                    <div className="text-gray-900 font-medium text-sm">{getLocalizedText(position.salary, globalLocale)}</div>
                                   </div>
                                 </div>
                                 <div className="flex items-start gap-3">
                                   <Clock className="text-gray-400 mt-0.5" size={18} />
                                   <div>
                                     <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Kinh nghiệm</div>
-                                    <div className="text-gray-900 font-medium text-sm">{position.experience}</div>
+                                    <div className="text-gray-900 font-medium text-sm">{getLocalizedText(position.experience, globalLocale)}</div>
                                   </div>
                                 </div>
                                 <div className="flex items-start gap-3">
@@ -1543,9 +2049,9 @@ export default function AdminCareersPage() {
                               </div>
 
                               {/* Description */}
-                              {position.description && (
+                              {getLocalizedText(position.description, globalLocale) && (
                                 <p className="text-gray-600 mb-8 leading-relaxed flex-grow">
-                                  {position.description}
+                                  {getLocalizedText(position.description, globalLocale)}
                                 </p>
                               )}
 
@@ -1589,8 +2095,8 @@ export default function AdminCareersPage() {
 
         {/* CTA Tab */}
         <TabsContent value="cta" className="space-y-0">
-          <Tabs 
-            value={activeSubTabs.cta} 
+          <Tabs
+            value={activeSubTabs.cta}
             onValueChange={(value) => setActiveSubTabs({ ...activeSubTabs, cta: value })}
             className="w-full"
           >
@@ -1600,6 +2106,69 @@ export default function AdminCareersPage() {
             </TabsList>
 
             <TabsContent value="config" className="space-y-4 mt-4">
+              {/* Tab Controls - Locale Selector và Translate Button */}
+              <Card className="mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      {/* Locale Selector */}
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-gray-500" />
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                        <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Translate Controls */}
+                    <div className="flex items-center gap-2">
+                      {/* Source Language Selector */}
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600 whitespace-nowrap">Dịch từ:</Label>
+                        <Select value={translateSourceLang} onValueChange={(value: 'vi' | 'en' | 'ja') => setTranslateSourceLang(value)}>
+                          <SelectTrigger className="w-[150px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                            <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Translate Button */}
+                      <Button
+                        onClick={() => handleTranslateSection('cta')}
+                        disabled={translatingAll}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        {translatingAll ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang dịch...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            <span>Dịch khối này</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">CTA Section</h2>
@@ -1617,29 +2186,44 @@ export default function AdminCareersPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="pb-2">Tiêu đề</Label>
-                    <Input
-                      value={ctaData.title}
-                      onChange={(e) => setCtaData({ ...ctaData, title: e.target.value })}
+                    <LocaleInput
+                      label="Tiêu đề"
+                      value={getLocaleValue(ctaData, 'title')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(ctaData, 'title', value);
+                        setCtaData(updated);
+                      }}
                       placeholder="Không tìm thấy vị trí phù hợp?"
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div>
-                    <Label className="pb-2">Mô tả</Label>
-                    <Textarea
-                      value={ctaData.description}
-                      onChange={(e) => setCtaData({ ...ctaData, description: e.target.value })}
+                    <LocaleInput
+                      label="Mô tả"
+                      value={getLocaleValue(ctaData, 'description')}
+                      onChange={(value) => {
+                        const updated = setLocaleValue(ctaData, 'description', value);
+                        setCtaData(updated);
+                      }}
                       placeholder="Mô tả..."
-                      rows={3}
+                      multiline={true}
+                      defaultLocale={globalLocale}
+                      aiProvider={aiProvider}
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="pb-2">Nút chính - Văn bản</Label>
-                      <Input
-                        value={ctaData.primaryButtonText}
-                        onChange={(e) => setCtaData({ ...ctaData, primaryButtonText: e.target.value })}
+                      <LocaleInput
+                        label="Nút chính - Văn bản"
+                        value={getLocaleValue(ctaData, 'primaryButtonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(ctaData, 'primaryButtonText', value);
+                          setCtaData(updated);
+                        }}
                         placeholder="Gửi CV qua email"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
@@ -1651,11 +2235,16 @@ export default function AdminCareersPage() {
                       />
                     </div>
                     <div>
-                      <Label className="pb-2">Nút phụ - Văn bản</Label>
-                      <Input
-                        value={ctaData.secondaryButtonText}
-                        onChange={(e) => setCtaData({ ...ctaData, secondaryButtonText: e.target.value })}
+                      <LocaleInput
+                        label="Nút phụ - Văn bản"
+                        value={getLocaleValue(ctaData, 'secondaryButtonText')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(ctaData, 'secondaryButtonText', value);
+                          setCtaData(updated);
+                        }}
                         placeholder="Liên hệ HR"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
                       />
                     </div>
                     <div>
@@ -1670,11 +2259,13 @@ export default function AdminCareersPage() {
                   <div>
                     <Label className="pb-2">Màu nền gradient</Label>
                     <Select
-                      value={ctaData.backgroundGradient}
+                      value={ctaData.backgroundGradient || HERO_GRADIENT_OPTIONS[0].value}
                       onValueChange={(value) => setCtaData({ ...ctaData, backgroundGradient: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue>
+                          {HERO_GRADIENT_OPTIONS.find(opt => opt.value === (ctaData.backgroundGradient || HERO_GRADIENT_OPTIONS[0].value))?.label || "Chọn màu nền"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {HERO_GRADIENT_OPTIONS.map((opt) => (
@@ -1732,35 +2323,35 @@ export default function AdminCareersPage() {
                   >
                     <div className="container mx-auto px-6 relative z-10">
                       <div className="max-w-4xl mx-auto text-center">
-                        {ctaData.title && (
+                        {getLocalizedText(ctaData.title, globalLocale) && (
                           <h2 className="text-white text-3xl md:text-5xl font-bold mb-6">
-                            {ctaData.title}
+                            {getLocalizedText(ctaData.title, globalLocale)}
                           </h2>
                         )}
-                        {ctaData.description && (
+                        {getLocalizedText(ctaData.description, globalLocale) && (
                           <p className="text-xl text-white/90 mb-10 leading-relaxed font-light">
-                            {ctaData.description}
+                            {getLocalizedText(ctaData.description, globalLocale)}
                           </p>
                         )}
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          {ctaData.primaryButtonText && (
+                          {getLocalizedText(ctaData.primaryButtonText, globalLocale) && (
                             <a
                               href={ctaData.primaryButtonLink || '#'}
                               className="group px-8 py-4 bg-white text-[#0870B4] rounded-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all transform hover:-translate-y-1 inline-flex items-center justify-center gap-2 font-bold shadow-lg"
                             >
-                              {ctaData.primaryButtonText}
+                              {getLocalizedText(ctaData.primaryButtonText, globalLocale)}
                               <ArrowRight
                                 className="group-hover:translate-x-1 transition-transform"
                                 size={20}
                               />
                             </a>
                           )}
-                          {ctaData.secondaryButtonText && (
+                          {getLocalizedText(ctaData.secondaryButtonText, globalLocale) && (
                             <a
                               href={ctaData.secondaryButtonLink || '#'}
                               className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl border border-white/40 hover:bg-white hover:text-[#0870B4] hover:border-white transition-all inline-flex items-center justify-center gap-2 font-semibold"
                             >
-                              {ctaData.secondaryButtonText}
+                              {getLocalizedText(ctaData.secondaryButtonText, globalLocale)}
                             </a>
                           )}
                         </div>

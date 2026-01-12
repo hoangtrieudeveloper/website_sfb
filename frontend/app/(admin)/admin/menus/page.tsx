@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Edit, Trash2, ListTree, Link2 } from "lucide-react";
+import { Plus, Edit, Trash2, ListTree, Link2, Languages, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,20 +26,27 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface MenuItem {
   id: number;
-  title: string;
+  title: string | Record<Locale, string>;
   url: string;
   parentId?: number | null;
-  parentTitle?: string | null;
+  parentTitle?: string | Record<Locale, string> | null;
   sortOrder: number;
   icon?: string;
   isActive: boolean;
 }
 
 interface MenuFormState {
-  title: string;
+  title: string | Record<Locale, string>;
   url: string;
   parentId: string; // store as string id or ""
   sortOrder: string;
@@ -48,7 +55,7 @@ interface MenuFormState {
 }
 
 const EMPTY_FORM: MenuFormState = {
-  title: "",
+  title: { vi: '', en: '', ja: '' },
   url: "",
   parentId: "",
   sortOrder: "0",
@@ -60,6 +67,18 @@ const PAGE_SIZE = 10;
 
 export default function AdminMenusPage() {
   const router = useRouter();
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData
+  } = useTranslationControls();
+
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -78,7 +97,9 @@ export default function AdminMenusPage() {
       const data = await adminApiCall<{ success: boolean; data?: MenuItem[] }>(
         AdminEndpoints.menus.list,
       );
-      setMenus(data?.data || []);
+      // Normalize dữ liệu để đảm bảo các field luôn là locale object
+      const normalizedMenus = (data?.data || []).map(menu => migrateObjectToLocale(menu));
+      setMenus(normalizedMenus);
     } catch (error: any) {
       toast.error(error?.message || "Không thể tải danh sách menu");
       // Silently fail
@@ -94,16 +115,17 @@ export default function AdminMenusPage() {
   const filteredMenus = useMemo(() => {
     const q = search.toLowerCase();
     return menus.filter((m) => {
+      const title = typeof m.title === 'string' ? m.title : getLocalizedText(m.title, globalLocale);
       const matchesSearch =
         !q ||
-        m.title.toLowerCase().includes(q) ||
+        title.toLowerCase().includes(q) ||
         m.url.toLowerCase().includes(q);
 
       const matchesActive = !onlyActive || m.isActive;
 
       return matchesSearch && matchesActive;
     });
-  }, [menus, search, onlyActive]);
+  }, [menus, search, onlyActive, globalLocale]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMenus.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -122,19 +144,22 @@ export default function AdminMenusPage() {
 
   const handleOpenEdit = (menu: MenuItem) => {
     setEditingMenu(menu);
+    // Normalize dữ liệu để đảm bảo các field luôn là locale object
+    const normalizedMenu = migrateObjectToLocale(menu);
     setFormData({
-      title: menu.title,
-      url: menu.url,
-      parentId: menu.parentId ? String(menu.parentId) : "",
-      sortOrder: String(menu.sortOrder ?? 0),
-      icon: menu.icon || "",
-      isActive: menu.isActive,
+      title: normalizedMenu.title,
+      url: normalizedMenu.url,
+      parentId: normalizedMenu.parentId ? String(normalizedMenu.parentId) : "",
+      sortOrder: String(normalizedMenu.sortOrder ?? 0),
+      icon: normalizedMenu.icon || "",
+      isActive: normalizedMenu.isActive,
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (menu: MenuItem) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa menu "${menu.title}"?`)) return;
+    const menuTitle = typeof menu.title === 'string' ? menu.title : getLocalizedText(menu.title, globalLocale);
+    if (!window.confirm(`Bạn có chắc muốn xóa menu "${menuTitle}"?`)) return;
     try {
       await adminApiCall(AdminEndpoints.menus.detail(menu.id), {
         method: "DELETE",
@@ -150,7 +175,8 @@ export default function AdminMenusPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) {
+    const titleValue = typeof formData.title === 'string' ? formData.title : (formData.title.vi || formData.title.en || formData.title.ja || '');
+    if (!titleValue.trim()) {
       toast.error("Tiêu đề menu là bắt buộc");
       return;
     }
@@ -160,7 +186,7 @@ export default function AdminMenusPage() {
     }
 
     const payload = {
-      title: formData.title.trim(),
+      title: formData.title,
       url: formData.url.trim(),
       parentId: formData.parentId ? Number(formData.parentId) : null,
       sortOrder: Number(formData.sortOrder || 0),
@@ -199,6 +225,29 @@ export default function AdminMenusPage() {
     () => menus.filter((m) => !m.parentId && m.isActive),
     [menus],
   );
+
+  // Translation handler
+  const handleTranslateMenus = async () => {
+    // Loại bỏ các trường không cần dịch: url, parentId, sortOrder, icon, isActive
+    const translatedMenus = menus.map((menu: any) => {
+      const { url, parentId, sortOrder, icon, isActive, ...menuFields } = menu;
+      return menuFields;
+    });
+    const dataToTranslate = { menus: translatedMenus };
+    const updateCallback = (translated: any) => {
+      // Giữ nguyên url, parentId, sortOrder, icon, isActive của menus
+      const updatedMenus = translated.menus.map((menu: any, index: number) => ({
+        ...menu,
+        url: menus[index]?.url || '',
+        parentId: menus[index]?.parentId || null,
+        sortOrder: menus[index]?.sortOrder ?? index,
+        icon: menus[index]?.icon || '',
+        isActive: menus[index]?.isActive ?? true
+      }));
+      setMenus(updatedMenus);
+    };
+    await translateData(dataToTranslate, updateCallback, 'Danh sách menu');
+  };
 
 
   const [draggingId, setDraggingId] = useState<number | null>(null);
@@ -286,7 +335,41 @@ export default function AdminMenusPage() {
             Cấu hình menu điều hướng cho website (header, footer, sidebar)
           </p>
         </div>
+        <div className="flex items-center gap-4">
+          {/* AI Provider Selector */}
+          <AIProviderSelector
+            value={aiProvider}
+            onChange={setAiProvider}
+          />
+        </div>
+      </div>
 
+      {/* Translation Controls */}
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              {/* Locale Selector */}
+              <div className="flex items-center gap-2">
+                <Languages className="h-4 w-4 text-gray-500" />
+                <Label className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</Label>
+                <Select value={globalLocale} onValueChange={(value: 'vi' | 'en' | 'ja') => setGlobalLocale(value)}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                    <SelectItem value="en">🇬🇧 English</SelectItem>
+                    <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex items-center justify-between gap-4">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -309,15 +392,16 @@ export default function AdminMenusPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="menu-title">Tiêu đề</Label>
-                  <Input
-                    id="menu-title"
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
+                  <LocaleInput
+                    label="Tiêu đề"
+                    value={getLocaleValue(formData, 'title')}
+                    onChange={(value) => {
+                      const updated = setLocaleValue(formData, 'title', value);
+                      setFormData(updated as MenuFormState);
+                    }}
                     placeholder="Ví dụ: Trang chủ"
-                    required
+                    defaultLocale={globalLocale}
+                    aiProvider={aiProvider}
                   />
                 </div>
               </div>
@@ -359,7 +443,7 @@ export default function AdminMenusPage() {
                         .filter((m) => !editingMenu || m.id !== editingMenu.id)
                         .map((m) => (
                           <SelectItem key={m.id} value={String(m.id)}>
-                            {m.title}
+                            {typeof m.title === 'string' ? m.title : getLocalizedText(m.title, globalLocale)}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -509,7 +593,7 @@ export default function AdminMenusPage() {
                           )}
                           <div className="flex flex-col min-w-0 gap-0.5">
                             <span className="font-medium text-gray-900 truncate">
-                              {item.title}
+                              {typeof item.title === 'string' ? item.title : getLocalizedText(item.title, globalLocale)}
                             </span>
                             <div className="flex flex-wrap items-center gap-1 text-[11px] text-gray-500">
                               <span className="text-gray-400">ID: {item.id}</span>
@@ -547,9 +631,9 @@ export default function AdminMenusPage() {
                           <Badge
                             variant="outline"
                             className="bg-gray-50 border-gray-200 text-gray-700 max-w-xs truncate"
-                            title={item.parentTitle}
+                            title={typeof item.parentTitle === 'string' ? item.parentTitle : getLocalizedText(item.parentTitle, globalLocale)}
                           >
-                            {item.parentTitle}
+                            {typeof item.parentTitle === 'string' ? item.parentTitle : getLocalizedText(item.parentTitle, globalLocale)}
                           </Badge>
                         ) : (
                           <span className="text-xs text-gray-400">Không có</span>

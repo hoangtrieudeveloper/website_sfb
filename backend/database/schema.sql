@@ -81,8 +81,8 @@ CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permission
 -- Bảng news (bài viết tin tức)
 CREATE TABLE IF NOT EXISTS news_categories (
   code VARCHAR(100) PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
+  name TEXT NOT NULL,                          -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  description TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   parent_code VARCHAR(100) REFERENCES news_categories(code) ON UPDATE CASCADE ON DELETE SET NULL,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -91,31 +91,73 @@ CREATE TABLE IF NOT EXISTS news_categories (
 
 CREATE INDEX IF NOT EXISTS idx_news_categories_parent_code ON news_categories(parent_code);
 
+-- Migration: Cập nhật news_categories hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
+DO $$
+BEGIN
+  -- Bước 1: Thay đổi kiểu dữ liệu của cột name từ VARCHAR(255) sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news_categories' 
+    AND column_name = 'name' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news_categories ALTER COLUMN name TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
+  -- Nếu name là string thông thường (không phải JSON), chuyển thành {"vi": "value"}
+  UPDATE news_categories
+  SET 
+    name = CASE 
+      WHEN name IS NULL OR name = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN name::text NOT LIKE '{%' THEN json_build_object('vi', name::text, 'en', '', 'ja', '')::text
+      ELSE name::text
+    END,
+    description = CASE 
+      WHEN description IS NULL OR description = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN description::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(description::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(description::text, '{"vi":"","en":"","ja":""}')
+    END
+  WHERE 
+    name::text NOT LIKE '{%' OR 
+    (description IS NOT NULL AND description::text NOT LIKE '{%');
+
+  -- Bước 3: Đảm bảo tất cả các giá trị đều có format đúng
+  UPDATE news_categories
+  SET 
+    name = COALESCE(NULLIF(name, ''), '{"vi":"","en":"","ja":""}'),
+    description = COALESCE(NULLIF(description, ''), '{"vi":"","en":"","ja":""}')
+  WHERE 
+    name IS NULL OR name = '' OR 
+    description IS NULL OR description = '';
+END $$;
+
 INSERT INTO news_categories (code, name, description, is_active)
 VALUES
-  ('product', 'Sản phẩm & giải pháp', 'Bài viết về sản phẩm/giải pháp', TRUE),
-  ('company', 'Tin công ty', 'Tin tức nội bộ, hoạt động công ty', TRUE),
-  ('tech', 'Tin công nghệ', 'Xu hướng, cập nhật công nghệ', TRUE)
+  ('product', '{"vi":"Sản phẩm & giải pháp","en":"Products & Solutions","ja":"製品とソリューション"}', '{"vi":"Bài viết về sản phẩm/giải pháp","en":"Articles about products/solutions","ja":"製品・ソリューションに関する記事"}', TRUE),
+  ('company', '{"vi":"Tin công ty","en":"Company News","ja":"会社ニュース"}', '{"vi":"Tin tức nội bộ, hoạt động công ty","en":"Internal news, company activities","ja":"社内ニュース、会社活動"}', TRUE),
+  ('tech', '{"vi":"Tin công nghệ","en":"Technology News","ja":"技術ニュース"}', '{"vi":"Xu hướng, cập nhật công nghệ","en":"Technology trends and updates","ja":"技術トレンドとアップデート"}', TRUE)
 ON CONFLICT (code) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS news (
   id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
+  title TEXT NOT NULL,                          -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   slug VARCHAR(255) UNIQUE,
-  excerpt TEXT,
+  excerpt TEXT,                                 -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   content TEXT,
   category VARCHAR(255),
   category_id VARCHAR(100) REFERENCES news_categories(code) ON UPDATE CASCADE ON DELETE SET NULL,
   status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'pending', 'approved', 'rejected', 'published')),
   image_url TEXT,
-  author VARCHAR(255),
-  read_time VARCHAR(100),
+  author TEXT,                                  -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  read_time TEXT,                                -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   gradient VARCHAR(255),
-  seo_title VARCHAR(255),
-  seo_description TEXT,
-  seo_keywords TEXT,
+  seo_title TEXT,                                -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  seo_description TEXT,                          -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  seo_keywords TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   is_featured BOOLEAN DEFAULT FALSE,
-  gallery_title TEXT,
+  gallery_title TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   -- Cấu hình hiển thị chi tiết bài viết (gallery + options)
   gallery_images JSONB,
   gallery_position VARCHAR(20),
@@ -132,6 +174,130 @@ CREATE INDEX IF NOT EXISTS idx_news_status ON news(status);
 CREATE INDEX IF NOT EXISTS idx_news_category_id ON news(category_id);
 CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
 CREATE INDEX IF NOT EXISTS idx_news_published_date ON news(published_date);
+
+-- Migration: Cập nhật news hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
+DO $$
+BEGIN
+  -- Bước 1: Thay đổi kiểu dữ liệu các cột từ VARCHAR sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN title TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'author' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN author TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'read_time' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN read_time TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'seo_title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN seo_title TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
+  UPDATE news
+  SET 
+    title = CASE 
+      WHEN title IS NULL OR title = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN title::text NOT LIKE '{%' THEN json_build_object('vi', title::text, 'en', '', 'ja', '')::text
+      ELSE title::text
+    END,
+    excerpt = CASE 
+      WHEN excerpt IS NULL OR excerpt = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN excerpt::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(excerpt::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(excerpt::text, '{"vi":"","en":"","ja":""}')
+    END,
+    content = CASE 
+      WHEN content IS NULL OR content = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN content::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(content::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(content::text, '{"vi":"","en":"","ja":""}')
+    END,
+    author = CASE 
+      WHEN author IS NULL OR author = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN author::text NOT LIKE '{%' THEN json_build_object('vi', author::text, 'en', '', 'ja', '')::text
+      ELSE author::text
+    END,
+    read_time = CASE 
+      WHEN read_time IS NULL OR read_time = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN read_time::text NOT LIKE '{%' THEN json_build_object('vi', read_time::text, 'en', '', 'ja', '')::text
+      ELSE read_time::text
+    END,
+    seo_title = CASE 
+      WHEN seo_title IS NULL OR seo_title = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN seo_title::text NOT LIKE '{%' THEN json_build_object('vi', seo_title::text, 'en', '', 'ja', '')::text
+      ELSE seo_title::text
+    END,
+    seo_description = CASE 
+      WHEN seo_description IS NULL OR seo_description = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN seo_description::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(seo_description::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(seo_description::text, '{"vi":"","en":"","ja":""}')
+    END,
+    seo_keywords = CASE 
+      WHEN seo_keywords IS NULL OR seo_keywords = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN seo_keywords::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(seo_keywords::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(seo_keywords::text, '{"vi":"","en":"","ja":""}')
+    END,
+    gallery_title = CASE 
+      WHEN gallery_title IS NULL OR gallery_title = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN gallery_title::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(gallery_title::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(gallery_title::text, '{"vi":"","en":"","ja":""}')
+    END
+  WHERE 
+    title::text NOT LIKE '{%' OR 
+    (excerpt IS NOT NULL AND excerpt::text NOT LIKE '{%') OR
+    (content IS NOT NULL AND content::text NOT LIKE '{%') OR
+    (author IS NOT NULL AND author::text NOT LIKE '{%') OR
+    (read_time IS NOT NULL AND read_time::text NOT LIKE '{%') OR
+    (seo_title IS NOT NULL AND seo_title::text NOT LIKE '{%') OR
+    (seo_description IS NOT NULL AND seo_description::text NOT LIKE '{%') OR
+    (seo_keywords IS NOT NULL AND seo_keywords::text NOT LIKE '{%') OR
+    (gallery_title IS NOT NULL AND gallery_title::text NOT LIKE '{%');
+
+  -- Bước 3: Đảm bảo tất cả các giá trị đều có format đúng
+  UPDATE news
+  SET 
+    title = COALESCE(NULLIF(title, ''), '{"vi":"","en":"","ja":""}'),
+    excerpt = COALESCE(NULLIF(excerpt, ''), '{"vi":"","en":"","ja":""}'),
+    content = COALESCE(NULLIF(content, ''), '{"vi":"","en":"","ja":""}'),
+    author = COALESCE(NULLIF(author, ''), '{"vi":"","en":"","ja":""}'),
+    read_time = COALESCE(NULLIF(read_time, ''), '{"vi":"","en":"","ja":""}'),
+    seo_title = COALESCE(NULLIF(seo_title, ''), '{"vi":"","en":"","ja":""}'),
+    seo_description = COALESCE(NULLIF(seo_description, ''), '{"vi":"","en":"","ja":""}'),
+    seo_keywords = COALESCE(NULLIF(seo_keywords, ''), '{"vi":"","en":"","ja":""}'),
+    gallery_title = COALESCE(NULLIF(gallery_title, ''), '{"vi":"","en":"","ja":""}')
+  WHERE 
+    title IS NULL OR title = '' OR 
+    excerpt IS NULL OR excerpt = '' OR
+    content IS NULL OR content = '' OR
+    author IS NULL OR author = '' OR
+    read_time IS NULL OR read_time = '' OR
+    seo_title IS NULL OR seo_title = '' OR
+    seo_description IS NULL OR seo_description = '' OR
+    seo_keywords IS NULL OR seo_keywords = '' OR
+    gallery_title IS NULL OR gallery_title = '';
+END $$;
 
 -- Trigger cập nhật updated_at cho news
 DROP TRIGGER IF EXISTS update_news_updated_at ON news;
@@ -204,7 +370,7 @@ ON CONFLICT (code) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS menus (
   id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
+  title TEXT NOT NULL,
   url TEXT NOT NULL,
   parent_id INTEGER REFERENCES menus(id) ON DELETE SET NULL,
   sort_order INTEGER DEFAULT 0,
@@ -221,6 +387,31 @@ CREATE TRIGGER update_menus_updated_at
     BEFORE UPDATE ON menus
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Migration: Convert title from VARCHAR to TEXT and migrate existing data to locale object format
+DO $$
+BEGIN
+  -- Alter column type if it's still VARCHAR
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'menus' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE menus ALTER COLUMN title TYPE TEXT;
+  END IF;
+
+  -- Migrate existing string data to JSON locale object format
+  UPDATE menus
+  SET title = json_build_object(
+    'vi', title,
+    'en', '',
+    'ja', ''
+  )::text
+  WHERE title IS NOT NULL 
+    AND title != ''
+    AND NOT (title::text LIKE '{%' AND title::text LIKE '%}');
+END $$;
 
 -- Seed sample menus (matching Header.tsx navLinks)
 INSERT INTO menus (title, url, parent_id, sort_order, is_active)
@@ -361,7 +552,7 @@ ON CONFLICT (email) DO NOTHING;
 CREATE TABLE IF NOT EXISTS product_categories (
   id SERIAL PRIMARY KEY,
   slug VARCHAR(100) NOT NULL UNIQUE,        -- "edu", "justice", "gov", "kpi"
-  name VARCHAR(255) NOT NULL,                -- "Giải pháp Giáo dục"
+  name TEXT NOT NULL,                        -- Lưu JSON string cho đa ngôn ngữ: {"vi":"Giải pháp Giáo dục","en":"Education Solutions","ja":"教育ソリューション"}
   icon_name VARCHAR(100),                    -- Tên icon từ lucide-react
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT TRUE,
@@ -372,6 +563,39 @@ CREATE TABLE IF NOT EXISTS product_categories (
 CREATE INDEX IF NOT EXISTS idx_product_categories_slug ON product_categories(slug);
 CREATE INDEX IF NOT EXISTS idx_product_categories_active ON product_categories(is_active);
 CREATE INDEX IF NOT EXISTS idx_product_categories_sort ON product_categories(sort_order);
+
+-- Migration: Cập nhật product_categories hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
+DO $$
+BEGIN
+  -- Bước 1: Thay đổi kiểu dữ liệu của cột name từ VARCHAR(255) sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'product_categories' 
+    AND column_name = 'name' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE product_categories ALTER COLUMN name TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
+  UPDATE product_categories
+  SET 
+    name = CASE 
+      WHEN name IS NULL OR name = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN name::text NOT LIKE '{%' THEN json_build_object('vi', name::text, 'en', '', 'ja', '')::text
+      ELSE name::text
+    END
+  WHERE 
+    name::text NOT LIKE '{%';
+
+  -- Bước 3: Đảm bảo tất cả các giá trị đều có format đúng
+  UPDATE product_categories
+  SET 
+    name = COALESCE(NULLIF(name, ''), '{"vi":"","en":"","ja":""}')
+  WHERE 
+    name IS NULL OR name = '';
+END $$;
 
 -- Trigger cập nhật updated_at cho product_categories
 DROP TRIGGER IF EXISTS update_product_categories_updated_at ON product_categories;
@@ -555,11 +779,11 @@ CREATE TRIGGER update_products_section_items_updated_at
 -- Seed data cho product_categories
 INSERT INTO product_categories (slug, name, icon_name, sort_order, is_active)
 VALUES
-  ('all', 'Tất cả sản phẩm', 'Package', 0, TRUE),
-  ('edu', 'Giải pháp Giáo dục', 'Cloud', 1, TRUE),
-  ('justice', 'Công chứng – Pháp lý', 'Shield', 2, TRUE),
-  ('gov', 'Quản lý Nhà nước/Doanh nghiệp', 'TrendingUp', 3, TRUE),
-  ('kpi', 'Quản lý KPI cá nhân', 'Cpu', 4, TRUE)
+  ('all', '{"vi":"Tất cả sản phẩm","en":"All Products","ja":"すべての製品"}', 'Package', 0, TRUE),
+  ('edu', '{"vi":"Giải pháp Giáo dục","en":"Education Solutions","ja":"教育ソリューション"}', 'Cloud', 1, TRUE),
+  ('justice', '{"vi":"Công chứng – Pháp lý","en":"Notarization & Legal","ja":"公証・法務"}', 'Shield', 2, TRUE),
+  ('gov', '{"vi":"Quản lý Nhà nước/Doanh nghiệp","en":"Government/Enterprise Management","ja":"政府・企業管理"}', 'TrendingUp', 3, TRUE),
+  ('kpi', '{"vi":"Quản lý KPI cá nhân","en":"Personal KPI Management","ja":"個人KPI管理"}', 'Cpu', 4, TRUE)
 ON CONFLICT (slug) DO NOTHING;
 
 -- Seed dữ liệu mẫu cho Products (Optimized)
@@ -1007,9 +1231,9 @@ ON CONFLICT (role_id, permission_id) DO NOTHING;
 -- Bảng testimonials (Khách hàng nói về SFB)
 CREATE TABLE IF NOT EXISTS testimonials (
   id SERIAL PRIMARY KEY,
-  quote TEXT NOT NULL,                           -- Nội dung đánh giá
-  author VARCHAR(255) NOT NULL,                  -- Tên khách hàng (ví dụ: "Ông Nguyễn Khánh Tùng")
-  company VARCHAR(255),                          -- Công ty/Đơn vị (optional)
+  quote TEXT NOT NULL,                           -- Lưu JSON string đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  author TEXT NOT NULL,                          -- Lưu JSON string đa ngôn ngữ: tên khách hàng
+  company TEXT,                                  -- Lưu JSON string đa ngôn ngữ: công ty/đơn vị (optional)
   rating INTEGER DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),  -- Đánh giá sao (1-5)
   sort_order INTEGER DEFAULT 0,                 -- Thứ tự sắp xếp
   is_active BOOLEAN DEFAULT TRUE,               -- Bật/tắt hiển thị
@@ -1026,6 +1250,64 @@ CREATE TRIGGER update_testimonials_updated_at
     BEFORE UPDATE ON testimonials
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Migration: Cập nhật testimonials hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
+DO $$
+BEGIN
+  -- Bước 1: Thay đổi kiểu dữ liệu của các cột author, company sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'testimonials'
+      AND column_name = 'author'
+      AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE testimonials ALTER COLUMN author TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'testimonials'
+      AND column_name = 'company'
+      AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE testimonials ALTER COLUMN company TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ sang locale object
+  UPDATE testimonials
+  SET
+    quote = CASE
+      WHEN quote IS NULL OR quote = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN quote::text NOT LIKE '{%' THEN json_build_object('vi', quote::text, 'en', '', 'ja', '')::text
+      ELSE quote::text
+    END,
+    author = CASE
+      WHEN author IS NULL OR author = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN author::text NOT LIKE '{%' THEN json_build_object('vi', author::text, 'en', '', 'ja', '')::text
+      ELSE author::text
+    END,
+    company = CASE
+      WHEN company IS NULL OR company = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN company::text NOT LIKE '{%' THEN json_build_object('vi', company::text, 'en', '', 'ja', '')::text
+      ELSE company::text
+    END
+  WHERE
+    quote::text NOT LIKE '{%' OR
+    (author IS NOT NULL AND author::text NOT LIKE '{%') OR
+    (company IS NOT NULL AND company::text NOT LIKE '{%');
+
+  -- Bước 3: Đảm bảo format đúng
+  UPDATE testimonials
+  SET
+    quote = COALESCE(NULLIF(quote, ''), '{"vi":"","en":"","ja":""}'),
+    author = COALESCE(NULLIF(author, ''), '{"vi":"","en":"","ja":""}'),
+    company = COALESCE(NULLIF(company, ''), '{"vi":"","en":"","ja":""}')
+  WHERE
+    quote IS NULL OR quote = '' OR
+    author IS NULL OR author = '' OR
+    company IS NULL OR company = '';
+END $$;
 
 -- Seed dữ liệu mẫu cho testimonials
 INSERT INTO testimonials (quote, author, company, rating, sort_order, is_active)
@@ -1098,6 +1380,31 @@ CREATE TABLE IF NOT EXISTS industries (
 
 CREATE INDEX IF NOT EXISTS idx_industries_active ON industries(is_active);
 CREATE INDEX IF NOT EXISTS idx_industries_sort ON industries(sort_order);
+
+-- Migration: Convert title from VARCHAR to TEXT and migrate existing data to locale object format
+DO $$
+BEGIN
+  -- Alter column type if it's still VARCHAR
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'industries' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE industries ALTER COLUMN title TYPE TEXT;
+  END IF;
+
+  -- Migrate existing string data to JSON locale object format
+  UPDATE industries
+  SET title = json_build_object(
+    'vi', COALESCE(title, ''),
+    'en', '',
+    'ja', ''
+  )::text
+  WHERE title IS NOT NULL 
+    AND title NOT LIKE '{%'  -- Only migrate if not already JSON
+    AND title != '';
+END $$;
 
 -- Trigger cập nhật updated_at cho industries
 DROP TRIGGER IF EXISTS update_industries_updated_at ON industries;
@@ -2425,21 +2732,21 @@ CREATE TABLE IF NOT EXISTS seo_pages (
   page_path VARCHAR(255) NOT NULL UNIQUE,  -- '/', '/products', '/about', '/news/[slug]', etc.
   page_type VARCHAR(50),                    -- 'home', 'products', 'about', 'contact', 'news', 'product-detail', 'news-detail'
   
-  -- Basic SEO
-  title VARCHAR(255),
-  description TEXT,
-  keywords TEXT,
+  -- Basic SEO (Lưu JSON string cho đa ngôn ngữ)
+  title TEXT,                               -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  description TEXT,                         -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  keywords TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   
-  -- Open Graph
-  og_title VARCHAR(255),
-  og_description TEXT,
+  -- Open Graph (Lưu JSON string cho đa ngôn ngữ)
+  og_title TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  og_description TEXT,                      -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   og_image TEXT,
   og_type VARCHAR(50) DEFAULT 'website',
   
-  -- Twitter Card
+  -- Twitter Card (Lưu JSON string cho đa ngôn ngữ)
   twitter_card VARCHAR(20) DEFAULT 'summary_large_image',
-  twitter_title VARCHAR(255),
-  twitter_description TEXT,
+  twitter_title TEXT,                       -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  twitter_description TEXT,                 -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   twitter_image TEXT,
   
   -- Advanced
@@ -2466,6 +2773,104 @@ CREATE TRIGGER update_seo_pages_updated_at
     BEFORE UPDATE ON seo_pages
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Migration: Convert title, description, keywords, og_title, og_description, twitter_title, twitter_description from VARCHAR to TEXT and migrate existing data to locale object format
+DO $$
+BEGIN
+  -- Alter column types if they are still VARCHAR
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'seo_pages' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE seo_pages ALTER COLUMN title TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'seo_pages' 
+    AND column_name = 'og_title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE seo_pages ALTER COLUMN og_title TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'seo_pages' 
+    AND column_name = 'twitter_title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE seo_pages ALTER COLUMN twitter_title TYPE TEXT;
+  END IF;
+
+  -- Migrate existing string data to JSON locale object format
+  UPDATE seo_pages
+  SET 
+    title = CASE 
+      WHEN title IS NULL OR title = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN title::text NOT LIKE '{%' THEN json_build_object('vi', title::text, 'en', '', 'ja', '')::text
+      ELSE title::text
+    END,
+    description = CASE 
+      WHEN description IS NULL OR description = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN description::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(description::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(description::text, '{"vi":"","en":"","ja":""}')
+    END,
+    keywords = CASE 
+      WHEN keywords IS NULL OR keywords = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN keywords::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(keywords::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(keywords::text, '{"vi":"","en":"","ja":""}')
+    END,
+    og_title = CASE 
+      WHEN og_title IS NULL OR og_title = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN og_title::text NOT LIKE '{%' THEN json_build_object('vi', og_title::text, 'en', '', 'ja', '')::text
+      ELSE og_title::text
+    END,
+    og_description = CASE 
+      WHEN og_description IS NULL OR og_description = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN og_description::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(og_description::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(og_description::text, '{"vi":"","en":"","ja":""}')
+    END,
+    twitter_title = CASE 
+      WHEN twitter_title IS NULL OR twitter_title = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN twitter_title::text NOT LIKE '{%' THEN json_build_object('vi', twitter_title::text, 'en', '', 'ja', '')::text
+      ELSE twitter_title::text
+    END,
+    twitter_description = CASE 
+      WHEN twitter_description IS NULL OR twitter_description = '' THEN '{"vi":"","en":"","ja":""}'
+      WHEN twitter_description::text NOT LIKE '{%' THEN json_build_object('vi', COALESCE(twitter_description::text, ''), 'en', '', 'ja', '')::text
+      ELSE COALESCE(twitter_description::text, '{"vi":"","en":"","ja":""}')
+    END
+  WHERE 
+    (title IS NOT NULL AND title::text NOT LIKE '{%') OR
+    (description IS NOT NULL AND description::text NOT LIKE '{%') OR
+    (keywords IS NOT NULL AND keywords::text NOT LIKE '{%') OR
+    (og_title IS NOT NULL AND og_title::text NOT LIKE '{%') OR
+    (og_description IS NOT NULL AND og_description::text NOT LIKE '{%') OR
+    (twitter_title IS NOT NULL AND twitter_title::text NOT LIKE '{%') OR
+    (twitter_description IS NOT NULL AND twitter_description::text NOT LIKE '{%');
+
+  -- Đảm bảo tất cả các giá trị đều có format đúng
+  UPDATE seo_pages
+  SET 
+    title = COALESCE(NULLIF(title, ''), '{"vi":"","en":"","ja":""}'),
+    description = COALESCE(NULLIF(description, ''), '{"vi":"","en":"","ja":""}'),
+    keywords = COALESCE(NULLIF(keywords, ''), '{"vi":"","en":"","ja":""}'),
+    og_title = COALESCE(NULLIF(og_title, ''), '{"vi":"","en":"","ja":""}'),
+    og_description = COALESCE(NULLIF(og_description, ''), '{"vi":"","en":"","ja":""}'),
+    twitter_title = COALESCE(NULLIF(twitter_title, ''), '{"vi":"","en":"","ja":""}'),
+    twitter_description = COALESCE(NULLIF(twitter_description, ''), '{"vi":"","en":"","ja":""}')
+  WHERE 
+    title IS NULL OR title = '' OR 
+    description IS NULL OR description = '' OR
+    keywords IS NULL OR keywords = '' OR
+    og_title IS NULL OR og_title = '' OR
+    og_description IS NULL OR og_description = '' OR
+    twitter_title IS NULL OR twitter_title = '' OR
+    twitter_description IS NULL OR twitter_description = '';
+END $$;
 
 -- Seed dữ liệu mẫu cho SEO pages
 INSERT INTO seo_pages (page_path, page_type, title, description, keywords, og_title, og_description, canonical_url)
@@ -2557,6 +2962,23 @@ CREATE TRIGGER update_site_settings_updated_at
     BEFORE UPDATE ON site_settings
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- Migration: Migrate existing settings data to locale object format for multilingual fields
+DO $$
+BEGIN
+  -- Migrate slogan, site_name, site_description, address to JSON locale object format
+  UPDATE site_settings
+  SET setting_value = json_build_object(
+    'vi', setting_value,
+    'en', '',
+    'ja', ''
+  )::text
+  WHERE setting_key IN ('slogan', 'site_name', 'site_description', 'address')
+    AND setting_value IS NOT NULL 
+    AND setting_value != ''
+    AND setting_value::text NOT LIKE '{%'
+    AND setting_value::text NOT LIKE '%"vi"%';
+END $$;
 
 -- Seed dữ liệu mẫu cho site_settings
 INSERT INTO site_settings (setting_key, setting_value, setting_type, description, category)

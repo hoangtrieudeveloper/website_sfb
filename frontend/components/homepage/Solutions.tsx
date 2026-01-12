@@ -6,6 +6,8 @@ import { ScrollAnimation } from "../public/ScrollAnimation";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useLocale } from "@/lib/hooks/useLocale";
 
 interface SolutionsProps {
   data?: any;
@@ -14,7 +16,7 @@ interface SolutionsProps {
 // ---------------------------
 // HELPER: CARD COMPONENT
 // ---------------------------
-function SolutionCard({ s, idx }: { s: any; idx: number }) {
+function SolutionCard({ s, idx, locale }: { s: any; idx: number; locale: 'vi' | 'en' | 'ja' }) {
   const IconComponent = s.iconName ? (LucideIcons as any)[s.iconName] : s.icon;
   const Icon = IconComponent || LucideIcons.Code;
 
@@ -53,26 +55,29 @@ function SolutionCard({ s, idx }: { s: any; idx: number }) {
 
           {/* Title */}
           <h3 className="text-center text-gray-900 font-extrabold text-lg md:text-2xl">
-            {s.title}
+            {getLocalizedText(s.title, locale)}
           </h3>
 
           {/* Description */}
-          {/* Description */}
           <p className="text-center text-gray-600 leading-relaxed text-sm md:text-base">
-            {s.description}
+            {getLocalizedText(s.description, locale)}
           </p>
 
           {/* Benefits */}
           <div className="flex flex-wrap justify-center gap-2">
-            {s.benefits.map((b: string) => (
-              <span
-                key={b}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] md:text-xs text-gray-600 bg-gray-50 border border-gray-200"
-              >
-                <CheckCircle2 size={14} className="text-gray-400" />
-                {b}
-              </span>
-            ))}
+            {(s.benefits || []).map((b: any, bidx: number) => {
+              const benefitText = typeof b === 'string' ? b : getLocalizedText(b, locale);
+              const benefitKey = typeof b === 'string' ? b : (b?.vi || b?.en || b?.ja || `benefit-${bidx}`);
+              return (
+                <span
+                  key={benefitKey}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] md:text-xs text-gray-600 bg-gray-50 border border-gray-200"
+                >
+                  <CheckCircle2 size={14} className="text-gray-400" />
+                  {benefitText}
+                </span>
+              );
+            })}
           </div>
 
           {/* Button */}
@@ -90,9 +95,9 @@ function SolutionCard({ s, idx }: { s: any; idx: number }) {
               transition-all
               bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)]
             "
-            aria-label={s.buttonText || s.button?.text || "Xem thêm"}
+            aria-label={getLocalizedText(s.buttonText || s.button?.text, locale) || "Xem thêm"}
           >
-            {s.buttonText || s.button?.text || "Xem thêm"}
+            {getLocalizedText(s.buttonText || s.button?.text, locale) || "Xem thêm"}
             <ArrowRight size={18} />
           </Link>
         </div>
@@ -107,6 +112,7 @@ export function Solutions({ data }: SolutionsProps) {
     return null;
   }
 
+  const locale = useLocale();
   const subHeader = data.subHeader;
   const title = data.title;
   const domains = data.domains || [];
@@ -148,26 +154,30 @@ export function Solutions({ data }: SolutionsProps) {
           className="mx-auto w-full max-w-5xl self-stretch text-center flex flex-col items-center gap-3 sm:gap-6"
         >
           <div className="self-stretch text-center text-[var(--light-blue,#EFF6FF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[15px] font-medium leading-normal uppercase">
-            {subHeader}
+            {getLocalizedText(subHeader, locale)}
           </div>
 
           <h2 className="mx-auto w-full max-w-[840px] text-center text-[var(--White,#FFF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-2xl sm:text-4xl lg:text-[56px] leading-normal">
-            <span className="font-bold">{title.part1}</span>
+            <span className="font-bold">{getLocalizedText(title?.part1, locale)}</span>
             <br />
-            <span className="font-normal">{title.part2}</span>
+            <span className="font-normal">{getLocalizedText(title?.part2, locale)}</span>
           </h2>
 
           <div className="flex flex-wrap justify-center gap-1 sm:gap-2.5 w-full">
-            {domains.map((d: string, i: number) => (
-              <ScrollAnimation
-                key={d}
-                variant="scale-up"
-                delay={i * 0.06}
-                className="max-w-[110px] sm:max-w-none truncate px-2 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-sm text-white/90 border border-white/35 bg-white/10 backdrop-blur-sm hover:bg-white/15 transition-colors whitespace-nowrap"
-              >
-                {d}
-              </ScrollAnimation>
-            ))}
+            {domains.map((d: any, i: number) => {
+              const domainText = typeof d === 'string' ? d : getLocalizedText(d, locale);
+              const domainKey = typeof d === 'string' ? d : (d?.vi || d?.en || d?.ja || `domain-${i}`);
+              return (
+                <ScrollAnimation
+                  key={domainKey}
+                  variant="scale-up"
+                  delay={i * 0.06}
+                  className="max-w-[110px] sm:max-w-none truncate px-2 py-1 sm:px-4 sm:py-2 rounded-full text-[10px] sm:text-sm text-white/90 border border-white/35 bg-white/10 backdrop-blur-sm hover:bg-white/15 transition-colors whitespace-nowrap"
+                >
+                  {domainText}
+                </ScrollAnimation>
+              );
+            })}
           </div>
         </ScrollAnimation>
 
@@ -177,7 +187,7 @@ export function Solutions({ data }: SolutionsProps) {
         <div className="hidden lg:grid mt-16 mx-auto w-full max-w-[1236px] grid-cols-2 gap-6 place-items-center">
           {items.map((s: any, idx: number) => (
             <div key={s.id} className="w-full max-w-[606px]">
-              <SolutionCard s={s} idx={idx} />
+              <SolutionCard s={s} idx={idx} locale={locale} />
             </div>
           ))}
         </div>
@@ -194,7 +204,7 @@ export function Solutions({ data }: SolutionsProps) {
                   className="flex-[0_0_100%] min-w-0 px-2 flex justify-center"
                 >
                   <div className="w-full max-w-[400px] md:max-w-[600px]">
-                    <SolutionCard s={s} idx={idx} />
+                    <SolutionCard s={s} idx={idx} locale={locale} />
                   </div>
                 </div>
               ))}

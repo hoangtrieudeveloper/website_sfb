@@ -1,5 +1,57 @@
 const { pool } = require('../config/database');
 
+// Helper function to parse locale field from JSON string
+const parseLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+        return parsed;
+      }
+    } catch (e) {
+      // Not JSON, return as string
+    }
+    return value;
+  }
+  return value;
+};
+
+// Helper function to process locale field for database storage
+const processLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object' && value !== null && ('vi' in value || 'en' in value || 'ja' in value)) {
+    return JSON.stringify(value);
+  }
+  return typeof value === 'string' ? value : String(value);
+};
+
+// Helper function to map SEO row data
+const mapSeoPage = (row) => ({
+  id: row.id,
+  page_path: row.page_path,
+  page_type: row.page_type,
+  title: parseLocaleField(row.title),
+  description: parseLocaleField(row.description),
+  keywords: parseLocaleField(row.keywords),
+  og_title: parseLocaleField(row.og_title),
+  og_description: parseLocaleField(row.og_description),
+  og_image: row.og_image,
+  og_type: row.og_type,
+  twitter_card: row.twitter_card,
+  twitter_title: parseLocaleField(row.twitter_title),
+  twitter_description: parseLocaleField(row.twitter_description),
+  twitter_image: row.twitter_image,
+  canonical_url: row.canonical_url,
+  robots_index: row.robots_index,
+  robots_follow: row.robots_follow,
+  robots_noarchive: row.robots_noarchive,
+  robots_nosnippet: row.robots_nosnippet,
+  structured_data: row.structured_data,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+});
+
 /**
  * Lấy tất cả các trang SEO (admin)
  */
@@ -11,7 +63,7 @@ async function getSeoPages(req, res) {
 
     return res.status(200).json({
       success: true,
-      data: result.rows,
+      data: result.rows.map(mapSeoPage),
     });
   } catch (error) {
     console.error('Error fetching SEO pages:', error);
@@ -57,7 +109,7 @@ async function getSeoPageByPath(req, res) {
 
     return res.status(200).json({
       success: true,
-      data: result.rows[0],
+      data: mapSeoPage(result.rows[0]),
     });
   } catch (error) {
     console.error('Error fetching SEO page:', error);
@@ -110,6 +162,10 @@ async function updateSeoPage(req, res) {
       structured_data,
     } = req.body;
 
+    // Ensure twitter_card and og_type are simple strings, not locale objects
+    const safeTwitterCard = typeof twitter_card === 'string' ? twitter_card : (twitter_card?.vi || twitter_card?.en || twitter_card?.ja || 'summary_large_image');
+    const safeOgType = typeof og_type === 'string' ? og_type : (og_type?.vi || og_type?.en || og_type?.ja || 'website');
+
     // Kiểm tra xem đã tồn tại chưa
     const checkResult = await pool.query(
       `SELECT id FROM seo_pages WHERE page_path = $1`,
@@ -143,16 +199,16 @@ async function updateSeoPage(req, res) {
         RETURNING *`,
         [
           page_type,
-          title,
-          description,
-          keywords,
-          og_title,
-          og_description,
+          processLocaleField(title),
+          processLocaleField(description),
+          processLocaleField(keywords),
+          processLocaleField(og_title),
+          processLocaleField(og_description),
           og_image,
-          og_type,
-          twitter_card,
-          twitter_title,
-          twitter_description,
+          safeOgType,
+          safeTwitterCard,
+          processLocaleField(twitter_title),
+          processLocaleField(twitter_description),
           twitter_image,
           canonical_url,
           robots_index,
@@ -167,7 +223,7 @@ async function updateSeoPage(req, res) {
       return res.status(200).json({
         success: true,
         message: 'Cập nhật cấu hình SEO thành công',
-        data: updateResult.rows[0],
+        data: mapSeoPage(updateResult.rows[0]),
       });
     } else {
       // Insert
@@ -183,16 +239,16 @@ async function updateSeoPage(req, res) {
         [
           decodedPath,
           page_type || null,
-          title || null,
-          description || null,
-          keywords || null,
-          og_title || null,
-          og_description || null,
+          processLocaleField(title) || null,
+          processLocaleField(description) || null,
+          processLocaleField(keywords) || null,
+          processLocaleField(og_title) || null,
+          processLocaleField(og_description) || null,
           og_image || null,
-          og_type || 'website',
-          twitter_card || 'summary_large_image',
-          twitter_title || null,
-          twitter_description || null,
+          safeOgType || 'website',
+          safeTwitterCard || 'summary_large_image',
+          processLocaleField(twitter_title) || null,
+          processLocaleField(twitter_description) || null,
           twitter_image || null,
           canonical_url || null,
           robots_index !== undefined ? robots_index : true,
@@ -206,7 +262,7 @@ async function updateSeoPage(req, res) {
       return res.status(201).json({
         success: true,
         message: 'Tạo cấu hình SEO thành công',
-        data: insertResult.rows[0],
+        data: mapSeoPage(insertResult.rows[0]),
       });
     }
   } catch (error) {

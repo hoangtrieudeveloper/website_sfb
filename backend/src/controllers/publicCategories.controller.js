@@ -1,8 +1,30 @@
 const { pool } = require('../config/database');
+const { getLocaleFromRequest, getLocalizedValue } = require('../utils/locale');
+
+// Helper function để parse locale field từ database
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
+};
 
 // GET /api/public/categories - Chỉ lấy danh mục active
-exports.getActiveCategories = async (_req, res, next) => {
+exports.getActiveCategories = async (req, res, next) => {
   try {
+    const locale = getLocaleFromRequest(req);
     const { rows } = await pool.query(
       `SELECT code, name, description, parent_code, is_active
        FROM news_categories
@@ -12,13 +34,17 @@ exports.getActiveCategories = async (_req, res, next) => {
 
     return res.json({
       success: true,
-      data: rows.map((row) => ({
-        code: row.code,
-        name: row.name,
-        description: row.description || '',
-        parentCode: row.parent_code || null,
-        isActive: row.is_active,
-      })),
+      data: rows.map((row) => {
+        const nameLocale = parseLocaleField(row.name);
+        const descLocale = parseLocaleField(row.description);
+        return {
+          code: row.code,
+          name: getLocalizedValue(nameLocale, locale),
+          description: getLocalizedValue(descLocale, locale) || '',
+          parentCode: row.parent_code || null,
+          isActive: row.is_active,
+        };
+      }),
     });
   } catch (error) {
     return next(error);
@@ -29,6 +55,7 @@ exports.getActiveCategories = async (_req, res, next) => {
 exports.getCategoryByCode = async (req, res, next) => {
   try {
     const { code } = req.params;
+    const locale = getLocaleFromRequest(req);
     const { rows } = await pool.query(
       `SELECT code, name, description, parent_code, is_active
        FROM news_categories
@@ -42,13 +69,15 @@ exports.getCategoryByCode = async (req, res, next) => {
     }
 
     const row = rows[0];
+    const nameLocale = parseLocaleField(row.name);
+    const descLocale = parseLocaleField(row.description);
 
     return res.json({
       success: true,
       data: {
         code: row.code,
-        name: row.name,
-        description: row.description || '',
+        name: getLocalizedValue(nameLocale, locale),
+        description: getLocalizedValue(descLocale, locale) || '',
         parentCode: row.parent_code || null,
         isActive: row.is_active,
       },

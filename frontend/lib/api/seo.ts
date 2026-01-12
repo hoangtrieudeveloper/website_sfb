@@ -1,19 +1,21 @@
 import { adminApiCall } from './admin';
 
+type Locale = 'vi' | 'en' | 'ja';
+
 export interface SeoPageData {
   id?: number;
   page_path: string;
   page_type?: string;
-  title?: string;
-  description?: string;
-  keywords?: string;
-  og_title?: string;
-  og_description?: string;
+  title?: string | Record<Locale, string>;
+  description?: string | Record<Locale, string>;
+  keywords?: string | Record<Locale, string>;
+  og_title?: string | Record<Locale, string>;
+  og_description?: string | Record<Locale, string>;
   og_image?: string;
   og_type?: string;
   twitter_card?: string;
-  twitter_title?: string;
-  twitter_description?: string;
+  twitter_title?: string | Record<Locale, string>;
+  twitter_description?: string | Record<Locale, string>;
   twitter_image?: string;
   canonical_url?: string;
   robots_index?: boolean;

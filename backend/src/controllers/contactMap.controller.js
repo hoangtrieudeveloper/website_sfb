@@ -1,5 +1,34 @@
 const { pool } = require('../config/database');
 
+// Helper function to parse locale field from JSON string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'object' && parsed !== null && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+        return parsed;
+      }
+    } catch (e) {
+      // Not JSON, return as string
+    }
+    return value;
+  }
+  if (typeof value === 'object' && value !== null && ('vi' in value || 'en' in value || 'ja' in value)) {
+    return value;
+  }
+  return value;
+};
+
+// Helper function to process locale field for database storage
+const processLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object' && value !== null && ('vi' in value || 'en' in value || 'ja' in value)) {
+    return JSON.stringify(value);
+  }
+  return typeof value === 'string' ? value : String(value);
+};
+
 // Helper function to get section by type (any status)
 const getSectionAnyStatus = async (sectionType) => {
   const { rows } = await pool.query(
@@ -27,7 +56,7 @@ exports.getMap = async (req, res, next) => {
       success: true,
       data: {
         id: section.id,
-        address: data.address || '',
+        address: parseLocaleField(data.address || ''),
         iframeSrc: data.iframeSrc || '',
         isActive: section.is_active !== undefined ? section.is_active : true,
         createdAt: section.created_at,
@@ -52,7 +81,7 @@ exports.updateMap = async (req, res, next) => {
     } = req.body;
 
     const data = {
-      address: address || '',
+      address: processLocaleField(address) || '',
       iframeSrc: iframeSrc || '',
     };
 
@@ -61,7 +90,7 @@ exports.updateMap = async (req, res, next) => {
     if (section) {
       const existingData = section.data || {};
       const updateData = {
-        address: address !== undefined && address !== '' ? address : (existingData.address || ''),
+        address: address !== undefined ? processLocaleField(address) : (existingData.address || ''),
         iframeSrc: iframeSrc !== undefined && iframeSrc !== '' ? iframeSrc : (existingData.iframeSrc || ''),
       };
       await client.query(
@@ -93,7 +122,7 @@ exports.updateMap = async (req, res, next) => {
       message: 'Đã cập nhật map thành công',
       data: {
         id: updatedSection.id,
-        address: updatedData.address || '',
+        address: parseLocaleField(updatedData.address || ''),
         iframeSrc: updatedData.iframeSrc || '',
         isActive: updatedSection.is_active !== undefined ? updatedSection.is_active : true,
         createdAt: updatedSection.created_at,

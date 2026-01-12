@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { adminApiCall, AdminEndpoints } from "@/lib/api/admin";
+import { getLocalizedText } from "@/lib/utils/i18n";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
 import {
   Select,
   SelectContent,
@@ -18,18 +20,19 @@ import {
 } from "@/components/ui/select";
 
 type NewsStatus = "draft" | "published";
+type Locale = 'vi' | 'en' | 'ja';
 
 interface NewsItem {
   id: number;
-  title: string;
-  excerpt?: string;
-  category: string;
+  title: string | Record<Locale, string>;
+  excerpt?: string | Record<Locale, string>;
+  category: string | Record<Locale, string>;
   categoryId?: string;
   status: NewsStatus | string;
   createdAt: string;
   imageUrl?: string;
-  author?: string;
-  readTime?: string;
+  author?: string | Record<Locale, string>;
+  readTime?: string | Record<Locale, string>;
   gradient?: string;
   link?: string;
   isFeatured?: boolean;
@@ -37,7 +40,7 @@ interface NewsItem {
 
 interface CategoryOption {
   code: string;
-  name: string;
+  name: string | Record<Locale, string>;
   isActive: boolean;
 }
 
@@ -45,6 +48,12 @@ const PAGE_SIZE = 10;
 
 export default function AdminNewsPage() {
   const router = useRouter();
+  
+  // Use translation controls hook
+  const {
+    globalLocale,
+  } = useTranslationControls();
+  
   const [news, setNews] = useState<NewsItem[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -101,10 +110,14 @@ export default function AdminNewsPage() {
     const searchLower = search.toLowerCase();
 
     return news.filter((item) => {
+      // Extract string values from locale objects for search
+      const titleStr = typeof item.title === 'string' ? item.title : (item.title?.vi || item.title?.en || item.title?.ja || '');
+      const excerptStr = typeof item.excerpt === 'string' ? item.excerpt : (item.excerpt?.vi || item.excerpt?.en || item.excerpt?.ja || '');
+
       const matchesSearch =
         !searchLower ||
-        item.title.toLowerCase().includes(searchLower) ||
-        (item.excerpt || "").toLowerCase().includes(searchLower);
+        titleStr.toLowerCase().includes(searchLower) ||
+        excerptStr.toLowerCase().includes(searchLower);
 
       const matchesStatus =
         statusFilter === "all" || (item.status && item.status === statusFilter);
@@ -112,7 +125,7 @@ export default function AdminNewsPage() {
       const matchesCategory =
         categoryFilter === "all" ||
         item.categoryId === categoryFilter ||
-        item.category === categoryFilter;
+        (typeof item.category === 'string' ? item.category : (item.category?.vi || item.category?.en || item.category?.ja || '')) === categoryFilter;
 
       const matchesFeatured =
         featuredFilter === "all"
@@ -252,7 +265,9 @@ export default function AdminNewsPage() {
                     <SelectItem value="all">Tất cả chuyên mục</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.code} value={cat.code}>
-                        {cat.name}
+                        {typeof cat.name === "string"
+                          ? cat.name
+                          : (cat.name as any)?.vi || (cat.name as any)?.en || (cat.name as any)?.ja || ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -326,13 +341,16 @@ export default function AdminNewsPage() {
                       <div className="flex gap-2 items-start">
                         <div className="flex flex-col gap-1 min-w-0 w-full">
                           <span className="font-medium text-gray-900 flex items-center gap-1 whitespace-normal break-words break-all leading-snug min-w-0 max-w-full">
-                            {item.title}
+                            {typeof item.title === 'string' ? item.title : getLocalizedText(item.title, globalLocale)}
                           </span>
                           {item.excerpt ? (
                             <span className="text-xs text-gray-500 italic whitespace-normal break-words break-all min-w-0 max-w-full">
-                              {item.excerpt.length > 60
-                                ? `${item.excerpt.slice(0, 60)}...`
-                                : item.excerpt}
+                              {(() => {
+                                const excerptStr = typeof item.excerpt === 'string' ? item.excerpt : getLocalizedText(item.excerpt, globalLocale) || '';
+                                return excerptStr.length > 60
+                                  ? `${excerptStr.slice(0, 60)}...`
+                                  : excerptStr;
+                              })()}
                             </span>
                           ) : null}
                         </div>
@@ -340,7 +358,7 @@ export default function AdminNewsPage() {
                     </td>
                     <td className="py-3 px-1 md:px-2 align-middle">
                       <Badge variant="outline" className="bg-blue-50 border-blue-100 text-blue-700 text-xs font-medium whitespace-normal break-words break-all max-w-full">
-                        {item.category}
+                        {typeof item.category === 'string' ? item.category : getLocalizedText(item.category, globalLocale) || "Chưa phân loại"}
                       </Badge>
                     </td>
                     <td className="py-3 px-1 md:px-2 align-middle text-center">

@@ -76,14 +76,32 @@ exports.updateCta = async (req, res, next) => {
     // Get existing data to preserve fields that are not provided
     const existingData = existing?.data || {};
 
+    // Helper function to check if a value is not empty (handles both string and locale objects)
+    const isNotEmpty = (value) => {
+      if (value === undefined || value === null) return false;
+      if (typeof value === 'string') return value.trim() !== '';
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        // Check if it's a locale object
+        if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+          return (value.vi && value.vi.trim() !== '') || (value.en && value.en.trim() !== '') || (value.ja && value.ja.trim() !== '');
+        }
+      }
+      return false;
+    };
+
+    // Helper function for string fields (links, colors)
+    const isStringNotEmpty = (value) => {
+      return value !== undefined && value !== null && typeof value === 'string' && value.trim() !== '';
+    };
+
     const data = {
-      title: (title !== undefined && title !== null && title.trim() !== '') ? title : (existingData.title || ''),
-      description: (description !== undefined && description !== null && description.trim() !== '') ? description : (existingData.description || ''),
-      primaryButtonText: (primaryButtonText !== undefined && primaryButtonText !== null && primaryButtonText.trim() !== '') ? primaryButtonText : (existingData.primaryButtonText || ''),
-      primaryButtonLink: (primaryButtonLink !== undefined && primaryButtonLink !== null && primaryButtonLink.trim() !== '') ? primaryButtonLink : (existingData.primaryButtonLink || ''),
-      secondaryButtonText: (secondaryButtonText !== undefined && secondaryButtonText !== null && secondaryButtonText.trim() !== '') ? secondaryButtonText : (existingData.secondaryButtonText || ''),
-      secondaryButtonLink: (secondaryButtonLink !== undefined && secondaryButtonLink !== null && secondaryButtonLink.trim() !== '') ? secondaryButtonLink : (existingData.secondaryButtonLink || ''),
-      backgroundColor: (backgroundColor !== undefined && backgroundColor !== null && backgroundColor.trim() !== '') ? backgroundColor : (existingData.backgroundColor || '#29A3DD'),
+      title: isNotEmpty(title) ? title : (existingData.title || ''),
+      description: isNotEmpty(description) ? description : (existingData.description || ''),
+      primaryButtonText: isNotEmpty(primaryButtonText) ? primaryButtonText : (existingData.primaryButtonText || ''),
+      primaryButtonLink: isStringNotEmpty(primaryButtonLink) ? primaryButtonLink : (existingData.primaryButtonLink || ''),
+      secondaryButtonText: isNotEmpty(secondaryButtonText) ? secondaryButtonText : (existingData.secondaryButtonText || ''),
+      secondaryButtonLink: isStringNotEmpty(secondaryButtonLink) ? secondaryButtonLink : (existingData.secondaryButtonLink || ''),
+      backgroundColor: isStringNotEmpty(backgroundColor) ? backgroundColor : (existingData.backgroundColor || '#29A3DD'),
     };
 
     let result;

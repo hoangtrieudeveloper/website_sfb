@@ -28,6 +28,12 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { LocaleInput } from "@/components/admin/LocaleInput";
+import { normalizeLocaleValue, getLocaleValue, setLocaleValue } from "@/lib/utils/locale-admin";
+import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
+import { TranslationControls } from "@/components/admin/TranslationControls";
+import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
+import { getLocalizedText } from "@/lib/utils/i18n";
 import {
   Dialog,
   DialogContent,
@@ -51,7 +57,7 @@ type CategoryId = "product" | "company" | "tech" | string;
 
 interface NewsCategory {
   id: CategoryId;
-  name: string;
+  name: string | Record<'vi' | 'en' | 'ja', string>;
   isActive?: boolean;
 }
 
@@ -94,25 +100,25 @@ const GRADIENT_OPTIONS = [
 ];
 
 interface NewsFormData {
-  title: string;
-  excerpt: string;
+  title: string | Record<'vi' | 'en' | 'ja', string>;
+  excerpt: string | Record<'vi' | 'en' | 'ja', string>;
   category: string;
   categoryId: CategoryId | "";
-  content: string;
+  content: string | Record<'vi' | 'en' | 'ja', string>;
   status: NewsStatus;
   isFeatured: boolean;
   imageUrl?: string;
-  author: string;
-  readTime: string;
+  author: string | Record<'vi' | 'en' | 'ja', string>;
+  readTime: string | Record<'vi' | 'en' | 'ja', string>;
   gradient: string;
   link: string;
   publishedDate: string;
-  seoTitle: string;
-  seoDescription: string;
-  seoKeywords: string;
+  seoTitle: string | Record<'vi' | 'en' | 'ja', string>;
+  seoDescription: string | Record<'vi' | 'en' | 'ja', string>;
+  seoKeywords: string | Record<'vi' | 'en' | 'ja', string>;
 
   // Cấu hình nâng cao cho nội dung chi tiết
-  galleryTitle?: string;
+  galleryTitle?: string | Record<'vi' | 'en' | 'ja', string>;
   galleryImages: string[];
   galleryPosition: "top" | "bottom";
   showTableOfContents: boolean;
@@ -133,6 +139,25 @@ export default function NewsForm({
   onCancel,
   isEditing = false,
 }: NewsFormProps) {
+  // Use translation controls hook
+  const {
+    globalLocale,
+    setGlobalLocale,
+    aiProvider,
+    setAiProvider,
+    translatingAll,
+    translateSourceLang,
+    setTranslateSourceLang,
+    translateData,
+  } = useTranslationControls();
+
+  // Locale riêng cho khối nội dung chi tiết (RichTextEditor)
+  const [contentLocale, setContentLocale] = useState<'vi' | 'en' | 'ja'>(globalLocale);
+
+  useEffect(() => {
+    setContentLocale(globalLocale);
+  }, [globalLocale]);
+
   const [formData, setFormData] = useState<NewsFormData>({
     title: initialData?.title || "",
     excerpt: initialData?.excerpt || "",
@@ -174,6 +199,8 @@ export default function NewsForm({
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!(isEditing && initialData?.link));
   // Key để reset component ImageUpload dùng cho gallery (re-mount sau mỗi lần chọn ảnh)
   const [galleryUploadKey, setGalleryUploadKey] = useState(0);
+  // Key để reset RichTextEditor khi đổi locale
+  const [contentEditorKey, setContentEditorKey] = useState(0);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -204,8 +231,11 @@ export default function NewsForm({
     // 1. Chưa chỉnh sửa thủ công
     // 2. Có tiêu đề
     // 3. Không phải đang edit với slug đã có từ DB
-    if (!slugManuallyEdited && formData.title && !(isEditing && initialData?.link)) {
-      const autoSlug = generateSlug(formData.title);
+    const titleText = typeof formData.title === 'string' 
+      ? formData.title 
+      : formData.title?.vi || '';
+    if (!slugManuallyEdited && titleText && !(isEditing && initialData?.link)) {
+      const autoSlug = generateSlug(titleText);
       if (autoSlug) {
         setFormData(prev => ({ ...prev, link: autoSlug }));
       }
@@ -215,7 +245,10 @@ export default function NewsForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) {
+    const titleText = typeof formData.title === 'string' 
+      ? formData.title 
+      : formData.title?.vi || '';
+    if (!titleText.trim()) {
       toast.error("Vui lòng nhập tiêu đề bài viết");
       return;
     }
@@ -225,7 +258,10 @@ export default function NewsForm({
       return;
     }
 
-    if (!formData.content.trim()) {
+    const contentText = typeof formData.content === 'string' 
+      ? formData.content 
+      : getLocalizedText(formData.content || { vi: "", en: "", ja: "" }, globalLocale) || '';
+    if (!contentText.trim()) {
       toast.error("Vui lòng nhập nội dung bài viết");
       return;
     }
@@ -271,6 +307,10 @@ export default function NewsForm({
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <AIProviderSelector
+                value={aiProvider}
+                onChange={setAiProvider}
+              />
               <Button
                 variant="outline"
                 onClick={onCancel}
@@ -362,33 +402,34 @@ export default function NewsForm({
                 <section className="space-y-4 lg:space-y-5">
                   <Card className="border border-gray-100 shadow-sm">
                     <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                      <div className="flex items-center gap-2">
-                        <Info className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <h2 className="text-lg font-semibold text-gray-900">
-                            Nội dung bài viết
-                          </h2>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Phần nội dung chính người dùng sẽ nhìn thấy trên trang tin tức.
-                          </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Info className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                              Nội dung bài viết
+                            </h2>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              Phần nội dung chính người dùng sẽ nhìn thấy trên trang tin tức.
+                            </p>
+                          </div>
                         </div>
+                        <TranslationControls
+                          globalLocale={globalLocale}
+                          setGlobalLocale={setGlobalLocale}
+                        />
                       </div>
                     </div>
                     <div className="p-4 space-y-5">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="title" className="text-sm font-semibold">
-                            Tiêu đề bài viết <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="title"
-                            value={formData.title}
-                            onChange={(e) =>
-                              setFormData({ ...formData, title: e.target.value })
-                            }
+                          <LocaleInput
+                            value={normalizeLocaleValue(formData.title)}
+                            onChange={(value) => setFormData({ ...formData, title: value })}
+                            label="Tiêu đề bài viết"
                             placeholder="Nhập tiêu đề bài viết..."
-                            required
-                            className="text-base"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
 
@@ -412,52 +453,77 @@ export default function NewsForm({
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="excerpt" className="text-sm font-semibold">
-                          Tóm tắt
-                        </Label>
-                        <Textarea
-                          id="excerpt"
-                          value={formData.excerpt}
-                          onChange={(e) =>
-                            setFormData({ ...formData, excerpt: e.target.value })
-                          }
-                          placeholder="Nhập tóm tắt ngắn gọn về tin tức..."
-                          rows={3}
-                          className="resize-none"
-                        />
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-500">
-                            Tóm tắt sẽ hiển thị trong danh sách tin tức và hỗ trợ SEO.
-                          </p>
-                          <span
-                            className={`text-xs font-semibold px-2 py-0.5 rounded ${formData.excerpt.length > 200
+                      <LocaleInput
+                        value={normalizeLocaleValue(formData.excerpt)}
+                        onChange={(value) => setFormData({ ...formData, excerpt: value })}
+                        label="Tóm tắt"
+                        placeholder="Nhập tóm tắt ngắn gọn về tin tức..."
+                        multiline={true}
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
+                      />
+                      <div className="flex items-center justify-between -mt-2">
+                        <p className="text-xs text-gray-500">
+                          Tóm tắt sẽ hiển thị trong danh sách tin tức và hỗ trợ SEO.
+                        </p>
+                        <span
+                          className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                            (typeof formData.excerpt === 'string' ? formData.excerpt : formData.excerpt?.vi || '').length > 200
                               ? "text-red-600 bg-red-50"
-                              : formData.excerpt.length > 150
+                              : (typeof formData.excerpt === 'string' ? formData.excerpt : formData.excerpt?.vi || '').length > 150
                                 ? "text-yellow-600 bg-yellow-50"
                                 : "text-gray-400 bg-gray-50"
-                              }`}
-                          >
-                            {formData.excerpt.length}/200
-                          </span>
-                        </div>
+                          }`}
+                        >
+                          {(typeof formData.excerpt === 'string' ? formData.excerpt : formData.excerpt?.vi || '').length}/200
+                        </span>
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold">
-                          Nội dung chi tiết
-                        </Label>
+                        <div className="flex items-center justify-between gap-2">
+                          <Label className="text-sm font-semibold">
+                            Nội dung chi tiết ({contentLocale.toUpperCase()})
+                          </Label>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <span>Hiển thị:</span>
+                            <Select
+                              value={contentLocale}
+                              onValueChange={(value: 'vi' | 'en' | 'ja') => setContentLocale(value)}
+                            >
+                              <SelectTrigger className="h-7 w-[120px] px-2 py-1 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="vi">🇻🇳 Tiếng Việt</SelectItem>
+                                <SelectItem value="en">🇬🇧 English</SelectItem>
+                                <SelectItem value="ja">🇯🇵 日本語</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                         <div className="border rounded-lg min-h-[360px]">
                           <RichTextEditor
-                            value={formData.content}
-                            onChange={(value) =>
-                              setFormData({ ...formData, content: value })
-                            }
+                            key={`content-${contentLocale}-${contentEditorKey}`}
+                            value={typeof formData.content === 'string' 
+                              ? formData.content 
+                              : getLocalizedText(formData.content || { vi: "", en: "", ja: "" }, contentLocale) || ""}
+                            onChange={(value) => {
+                              const currentContent = formData.content || { vi: "", en: "", ja: "" };
+                              const updatedContent = typeof currentContent === 'string' 
+                                ? { vi: currentContent, en: "", ja: "" }
+                                : { ...currentContent, [contentLocale]: value };
+                              setFormData({ ...formData, content: updatedContent });
+                            }}
+                            globalLocale={contentLocale}
+                            translateData={translateData}
+                            translatingAll={translatingAll}
+                            translateSourceLang={translateSourceLang}
+                            setTranslateSourceLang={setTranslateSourceLang}
                           />
                         </div>
                         <p className="text-xs text-gray-500">
                           Sử dụng trình soạn thảo để tạo nội dung bài viết với định dạng phong
-                          phú.
+                          phú. Nội dung sẽ được lưu riêng cho từng ngôn ngữ.
                         </p>
                       </div>
 
@@ -468,19 +534,18 @@ export default function NewsForm({
                           Thư viện ảnh (Gallery)
                         </Label>
                         <div className="space-y-2">
-                          <Label htmlFor="galleryTitle" className="text-sm font-semibold">
-                            Tiêu đề bộ sưu tập (tuỳ chọn)
-                          </Label>
-                          <Input
-                            id="galleryTitle"
-                            placeholder="Nhập tiêu đề cho gallery (nếu cần)"
-                            value={(formData as any).galleryTitle || ""}
-                            onChange={(e) =>
+                          <LocaleInput
+                            value={normalizeLocaleValue((formData as any).galleryTitle as any)}
+                            onChange={(value) =>
                               setFormData((prev: any) => ({
                                 ...prev,
-                                galleryTitle: e.target.value,
+                                galleryTitle: value,
                               }))
                             }
+                            label="Tiêu đề bộ sưu tập (tuỳ chọn)"
+                            placeholder="Nhập tiêu đề cho gallery (nếu cần)"
+                            defaultLocale={globalLocale}
+                            aiProvider={aiProvider}
                           />
                         </div>
                         <p className="text-xs text-gray-500">
@@ -704,10 +769,15 @@ export default function NewsForm({
                               const selectedCategory = categories.find(
                                 (c) => c.id === value && c.isActive !== false,
                               );
+                              const categoryName = selectedCategory?.name 
+                                ? (typeof selectedCategory.name === 'string' 
+                                    ? selectedCategory.name 
+                                    : getLocalizedText(selectedCategory.name, globalLocale))
+                                : "";
                               setFormData({
                                 ...formData,
                                 categoryId: value,
-                                category: selectedCategory?.name || "",
+                                category: categoryName,
                               });
                             }}
                             disabled={loadingCategories}
@@ -724,7 +794,9 @@ export default function NewsForm({
                                 .filter((cat) => cat.isActive !== false)
                                 .map((cat) => (
                                   <SelectItem key={cat.id} value={cat.id}>
-                                    {cat.name}
+                                    {typeof cat.name === 'string' 
+                                      ? cat.name 
+                                      : getLocalizedText(cat.name, globalLocale)}
                                   </SelectItem>
                                 ))}
                             </SelectContent>
@@ -868,13 +940,15 @@ export default function NewsForm({
                               <User className="w-3 h-3 inline mr-1" />
                               Tác giả
                             </Label>
-                            <Input
-                              id="author"
-                              value={formData.author}
-                              onChange={(e) =>
-                                setFormData({ ...formData, author: e.target.value })
+                            <LocaleInput
+                              value={normalizeLocaleValue(formData.author as any)}
+                              onChange={(value) =>
+                                setFormData({ ...formData, author: value as any })
                               }
+                              label=""
                               placeholder="SFB Technology"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
                             />
                           </div>
 
@@ -883,13 +957,15 @@ export default function NewsForm({
                               <Clock className="w-3 h-3 inline mr-1" />
                               Thời gian đọc
                             </Label>
-                            <Input
-                              id="readTime"
-                              value={formData.readTime}
-                              onChange={(e) =>
-                                setFormData({ ...formData, readTime: e.target.value })
+                            <LocaleInput
+                              value={normalizeLocaleValue(formData.readTime as any)}
+                              onChange={(value) =>
+                                setFormData({ ...formData, readTime: value as any })
                               }
+                              label=""
                               placeholder="5 phút đọc"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
                             />
                           </div>
                         </div>
@@ -959,6 +1035,7 @@ export default function NewsForm({
                         </div>
 
                         <div className="space-y-3">
+                          {/* Tiêu đề SEO đa ngôn ngữ */}
                           <div className="space-y-2">
                             <div className="flex items-center justify giữa">
                               <Label htmlFor="seoTitle" className="text-sm font-semibold">
@@ -971,11 +1048,21 @@ export default function NewsForm({
                                 className="h-6 text-xs px-2"
                                 onClick={() => {
                                   if (formData.title) {
+                                    const titleText = typeof formData.title === 'string'
+                                      ? formData.title
+                                      : formData.title?.vi || '';
                                     const autoTitle =
-                                      formData.title.length > 60
-                                        ? formData.title.substring(0, 57) + "..."
-                                        : formData.title;
-                                    setFormData({ ...formData, seoTitle: autoTitle });
+                                      titleText.length > 60
+                                        ? titleText.substring(0, 57) + "..."
+                                        : titleText;
+                                    const currentSeo =
+                                      !formData.seoTitle || typeof formData.seoTitle === 'string'
+                                        ? { vi: "", en: "", ja: "" }
+                                        : (formData.seoTitle as any);
+                                    setFormData({
+                                      ...formData,
+                                      seoTitle: { ...currentSeo, [globalLocale]: autoTitle },
+                                    });
                                   }
                                 }}
                                 disabled={!formData.title}
@@ -984,38 +1071,61 @@ export default function NewsForm({
                                 Tự động
                               </Button>
                             </div>
-                            <Input
-                              id="seoTitle"
-                              value={formData.seoTitle}
-                              onChange={(e) =>
-                                setFormData({ ...formData, seoTitle: e.target.value })
-                              }
+                            <LocaleInput
+                              value={getLocaleValue(formData, "seoTitle")}
+                              onChange={(value) => {
+                                const updated = setLocaleValue(formData, "seoTitle", value);
+                                setFormData(updated);
+                              }}
+                              label=""
                               placeholder={
-                                formData.title
-                                  ? `Tự động: ${formData.title.substring(0, 40)}...`
-                                  : "Nhập tiêu đề SEO..."
+                                (() => {
+                                  const titleText =
+                                    typeof formData.title === "string"
+                                      ? formData.title
+                                      : formData.title?.vi || "";
+                                  return titleText
+                                    ? `Tự động: ${titleText.substring(0, 40)}...`
+                                    : "Nhập tiêu đề SEO...";
+                                })()
                               }
-                              maxLength={60}
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
                               className="text-sm"
                             />
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs text-gray-500">Khuyến nghị: 50-60 ký tự</p>
-                              <span
-                                className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoTitle.length > 60
-                                  ? "text-red-600 bg-red-50"
-                                  : formData.seoTitle.length >= 50 &&
-                                    formData.seoTitle.length <= 60
-                                    ? "text-green-600 bg-green-50"
-                                    : formData.seoTitle.length > 0
-                                      ? "text-yellow-600 bg-yellow-50"
-                                      : "text-gray-400 bg-gray-50"
-                                  }`}
-                              >
-                                {formData.seoTitle.length}/60
-                              </span>
-                            </div>
+                            {(() => {
+                              const seoTitleText =
+                                typeof formData.seoTitle === "string"
+                                  ? formData.seoTitle
+                                  : getLocalizedText(
+                                      formData.seoTitle as any,
+                                      globalLocale
+                                    );
+                              return (
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs text-gray-500">
+                                    Khuyến nghị: 50-60 ký tự
+                                  </p>
+                                  <span
+                                    className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                                      seoTitleText.length > 60
+                                        ? "text-red-600 bg-red-50"
+                                        : seoTitleText.length >= 50 &&
+                                          seoTitleText.length <= 60
+                                        ? "text-green-600 bg-green-50"
+                                        : seoTitleText.length > 0
+                                        ? "text-yellow-600 bg-yellow-50"
+                                        : "text-gray-400 bg-gray-50"
+                                    }`}
+                                  >
+                                    {seoTitleText.length}/60
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
 
+                          {/* Mô tả SEO đa ngôn ngữ */}
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <Label
@@ -1031,13 +1141,25 @@ export default function NewsForm({
                                 className="h-6 text-xs px-2"
                                 onClick={() => {
                                   if (formData.excerpt) {
+                                    const excerptText =
+                                      typeof formData.excerpt === "string"
+                                        ? formData.excerpt
+                                        : formData.excerpt?.vi || "";
                                     const autoDesc =
-                                      formData.excerpt.length > 160
-                                        ? formData.excerpt.substring(0, 157) + "..."
-                                        : formData.excerpt;
+                                      excerptText.length > 160
+                                        ? excerptText.substring(0, 157) + "..."
+                                        : excerptText;
+                                    const currentSeoDesc =
+                                      !formData.seoDescription ||
+                                      typeof formData.seoDescription === "string"
+                                        ? { vi: "", en: "", ja: "" }
+                                        : (formData.seoDescription as any);
                                     setFormData({
                                       ...formData,
-                                      seoDescription: autoDesc,
+                                      seoDescription: {
+                                        ...currentSeoDesc,
+                                        [globalLocale]: autoDesc,
+                                      },
                                     });
                                   }
                                 }}
@@ -1047,55 +1169,84 @@ export default function NewsForm({
                                 Tự động
                               </Button>
                             </div>
-                            <Textarea
-                              id="seoDescription"
-                              value={formData.seoDescription}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  seoDescription: e.target.value,
-                                })
-                              }
+                            <LocaleInput
+                              value={getLocaleValue(formData, "seoDescription")}
+                              onChange={(value) => {
+                                const updated = setLocaleValue(
+                                  formData,
+                                  "seoDescription",
+                                  value
+                                );
+                                setFormData(updated);
+                              }}
+                              label=""
                               placeholder={
-                                formData.excerpt
-                                  ? `Tự động: ${formData.excerpt.substring(0, 60)}...`
-                                  : "Nhập mô tả SEO..."
+                                (() => {
+                                  const excerptText =
+                                    typeof formData.excerpt === "string"
+                                      ? formData.excerpt
+                                      : formData.excerpt?.vi || "";
+                                  return excerptText
+                                    ? `Tự động: ${excerptText.substring(0, 60)}...`
+                                    : "Nhập mô tả SEO...";
+                                })()
                               }
-                              rows={3}
-                              maxLength={160}
-                              className="resize-none text-sm"
+                              multiline={true}
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                              className="text-sm"
                             />
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs text-gray-500">
-                                Khuyến nghị: 150-160 ký tự
-                              </p>
-                              <span
-                                className={`text-xs font-semibold px-1.5 py-0.5 rounded ${formData.seoDescription.length > 160
-                                  ? "text-red-600 bg-red-50"
-                                  : formData.seoDescription.length >= 150 &&
-                                    formData.seoDescription.length <= 160
-                                    ? "text-green-600 bg-green-50"
-                                    : formData.seoDescription.length > 0
-                                      ? "text-yellow-600 bg-yellow-50"
-                                      : "text-gray-400 bg-gray-50"
-                                  }`}
-                              >
-                                {formData.seoDescription.length}/160
-                              </span>
-                            </div>
+                            {(() => {
+                              const seoDescText =
+                                typeof formData.seoDescription === "string"
+                                  ? formData.seoDescription
+                                  : getLocalizedText(
+                                      formData.seoDescription as any,
+                                      globalLocale
+                                    );
+                              return (
+                                <div className="flex items-center justify-between">
+                                  <p className="text-xs text-gray-500">
+                                    Khuyến nghị: 150-160 ký tự
+                                  </p>
+                                  <span
+                                    className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                                      seoDescText.length > 160
+                                        ? "text-red-600 bg-red-50"
+                                        : seoDescText.length >= 150 &&
+                                          seoDescText.length <= 160
+                                        ? "text-green-600 bg-green-50"
+                                        : seoDescText.length > 0
+                                        ? "text-yellow-600 bg-yellow-50"
+                                        : "text-gray-400 bg-gray-50"
+                                    }`}
+                                  >
+                                    {seoDescText.length}/160
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
 
+                          {/* Từ khóa SEO đa ngôn ngữ */}
                           <div className="space-y-2">
                             <Label htmlFor="seoKeywords" className="text-sm font-semibold">
                               Từ khóa SEO
                             </Label>
-                            <Input
-                              id="seoKeywords"
-                              value={formData.seoKeywords}
-                              onChange={(e) =>
-                                setFormData({ ...formData, seoKeywords: e.target.value })
-                              }
+                            <LocaleInput
+                              value={getLocaleValue(formData, "seoKeywords")}
+                              onChange={(value) => {
+                                const updated = setLocaleValue(
+                                  formData,
+                                  "seoKeywords",
+                                  value
+                                );
+                                setFormData(updated);
+                              }}
+                              label=""
                               placeholder="từ khóa 1, từ khóa 2..."
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
                               className="text-sm"
                             />
                             <p className="text-xs text-gray-500">
@@ -1110,14 +1261,34 @@ export default function NewsForm({
                               </p>
                               <div className="space-y-1">
                                 <div className="text-xs text-blue-600 font-medium line-clamp-1">
-                                  {formData.seoTitle || formData.title || "Tiêu đề bài viết"}
+                                  {(
+                                    typeof formData.seoTitle === "string"
+                                      ? formData.seoTitle
+                                      : getLocalizedText(
+                                          formData.seoTitle as any,
+                                          globalLocale
+                                        )
+                                  ) ||
+                                    (typeof formData.title === "string"
+                                      ? formData.title
+                                      : formData.title?.vi || "") ||
+                                    "Tiêu đề bài viết"}
                                 </div>
                                 <div className="text-xs text-green-700">
                                   {formData.link || "/news/..."}
                                 </div>
                                 <div className="text-xs text-gray-600 line-clamp-2">
-                                  {formData.seoDescription ||
-                                    formData.excerpt ||
+                                  {(
+                                    typeof formData.seoDescription === "string"
+                                      ? formData.seoDescription
+                                      : getLocalizedText(
+                                          formData.seoDescription as any,
+                                          globalLocale
+                                        )
+                                  ) ||
+                                    (typeof formData.excerpt === "string"
+                                      ? formData.excerpt
+                                      : formData.excerpt?.vi || "") ||
                                     "Mô tả bài viết..."}
                                 </div>
                               </div>

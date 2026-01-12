@@ -2,12 +2,88 @@ const { pool } = require('../config/database');
 
 // Helper function để tạo slug từ name
 const slugify = (text) => {
-  return text
+  if (!text) return '';
+  const textStr = typeof text === 'string' ? text : (text.vi || text.en || text.ja || '');
+  return textStr
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+};
+
+// Helper function để xử lý locale object: convert thành JSON string nếu là object, giữ nguyên nếu là string
+// Đối với VARCHAR(255), nếu JSON string quá dài thì truncate hoặc chỉ lưu giá trị vi
+const processLocaleField = (value, maxLength = null) => {
+  if (value === undefined || value === null) return '';
+  
+  // Helper để truncate string đảm bảo không vượt quá maxLength
+  const truncateString = (str, maxLen) => {
+    if (!maxLen) return str;
+    if (str.length <= maxLen) return str;
+    return str.substring(0, maxLen);
+  };
+  
+  if (typeof value === 'string') {
+    // Nếu là JSON string (bắt đầu bằng {), parse và stringify lại để đảm bảo format đúng
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          const jsonStr = JSON.stringify(parsed);
+          // Nếu có maxLength và vượt quá, chỉ lưu giá trị vi (và truncate nếu cần)
+          if (maxLength && jsonStr.length > maxLength) {
+            const singleValue = parsed.vi || parsed.en || parsed.ja || '';
+            return truncateString(singleValue, maxLength);
+          }
+          // Đảm bảo JSON string không vượt quá maxLength
+          return truncateString(jsonStr, maxLength);
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, truncate string gốc
+        return truncateString(value, maxLength);
+      }
+    }
+    // Truncate string thông thường nếu cần
+    return truncateString(value, maxLength);
+  }
+  
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    // Kiểm tra xem có phải locale object không
+    if (value.vi !== undefined || value.en !== undefined || value.ja !== undefined) {
+      const jsonStr = JSON.stringify(value);
+      // Nếu có maxLength và vượt quá, chỉ lưu giá trị vi (và truncate nếu cần)
+      if (maxLength && jsonStr.length > maxLength) {
+        const singleValue = value.vi || value.en || value.ja || '';
+        return truncateString(singleValue, maxLength);
+      }
+      // Đảm bảo JSON string không vượt quá maxLength
+      return truncateString(jsonStr, maxLength);
+    }
+  }
+  
+  const strValue = String(value);
+  return truncateString(strValue, maxLength);
+};
+
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  return value;
 };
 
 // Chuẩn hóa dữ liệu product trả về cho frontend
@@ -16,27 +92,27 @@ const mapProduct = (row) => ({
   categoryId: row.category_id,
   category: row.category_name || row.category_slug || '',
   slug: row.slug,
-  name: row.name,
-  tagline: row.tagline || '',
-  meta: row.meta || '',
-  description: row.description || '',
+  name: parseLocaleField(row.name),
+  tagline: parseLocaleField(row.tagline),
+  meta: parseLocaleField(row.meta),
+  description: parseLocaleField(row.description),
   image: row.image || '',
   gradient: row.gradient || '',
-  pricing: row.pricing || '',
-  badge: row.badge || null,
-  statsUsers: row.stats_users || '',
+  pricing: parseLocaleField(row.pricing),
+  badge: parseLocaleField(row.badge),
+  statsUsers: parseLocaleField(row.stats_users),
   statsRating: row.stats_rating || 0,
-  statsDeploy: row.stats_deploy || '',
+  statsDeploy: parseLocaleField(row.stats_deploy),
   demoLink: row.demo_link || '',
   sortOrder: row.sort_order || 0,
   isFeatured: row.is_featured || false,
   isActive: row.is_active !== undefined ? row.is_active : true,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
-  features: Array.isArray(row.features) ? row.features : [],
-  seoTitle: row.seo_title || '',
-  seoDescription: row.seo_description || '',
-  seoKeywords: row.seo_keywords || '',
+  features: Array.isArray(row.features) ? row.features.map(f => parseLocaleField(f)) : [],
+  seoTitle: parseLocaleField(row.seo_title),
+  seoDescription: parseLocaleField(row.seo_description),
+  seoKeywords: parseLocaleField(row.seo_keywords),
 });
 
 // GET /api/admin/products
@@ -119,7 +195,7 @@ exports.getProducts = async (req, res, next) => {
       success: true,
       data: products.map(p => ({
         ...mapProduct(p),
-        features: Array.isArray(p.features) ? p.features : [],
+        features: Array.isArray(p.features) ? p.features.map(f => parseLocaleField(f)) : [],
       })),
     });
   } catch (error) {
@@ -186,7 +262,7 @@ exports.getProductById = async (req, res, next) => {
 
     const product = {
       ...mapProduct(rows[0]),
-      features: Array.isArray(rows[0].features) ? rows[0].features : [],
+      features: Array.isArray(rows[0].features) ? rows[0].features.map(f => parseLocaleField(f)) : [],
     };
 
     return res.json({
@@ -224,7 +300,9 @@ exports.createProduct = async (req, res, next) => {
       seoKeywords = '',
     } = req.body;
 
-    if (!name || !name.trim()) {
+    // Kiểm tra name không rỗng (hỗ trợ cả string và locale object)
+    const nameStr = typeof name === 'string' ? name : (name?.vi || name?.en || name?.ja || '');
+    if (!nameStr.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Tên sản phẩm không được để trống',
@@ -232,7 +310,7 @@ exports.createProduct = async (req, res, next) => {
     }
 
     // Xử lý slug: ưu tiên slug từ request, nếu không có thì auto-generate từ name
-    const finalSlug = (slug && slug.trim()) ? slug.trim() : slugify(name);
+    const finalSlug = (slug && typeof slug === 'string' && slug.trim()) ? slug.trim() : slugify(name);
 
     // Kiểm tra slug trùng
     const { rows: existing } = await pool.query(
@@ -252,8 +330,21 @@ exports.createProduct = async (req, res, next) => {
       await client.query('BEGIN');
 
       // Insert product với features JSONB
-      const featureTexts = features && Array.isArray(features) 
-        ? features.map(f => f.trim()).filter(f => f) 
+      const featureTexts = features && Array.isArray(features)
+        ? features.map(f => {
+            // Nếu là locale object, giữ nguyên để lưu vào JSONB
+            if (typeof f === 'object' && !Array.isArray(f) && (f.vi !== undefined || f.en !== undefined || f.ja !== undefined)) {
+              return f;
+            }
+            // Nếu là string, trim và filter
+            return typeof f === 'string' ? f.trim() : String(f).trim();
+          }).filter(f => {
+            // Filter: nếu là locale object thì check có ít nhất 1 giá trị không rỗng
+            if (typeof f === 'object' && !Array.isArray(f) && (f.vi !== undefined || f.en !== undefined || f.ja !== undefined)) {
+              return (f.vi && f.vi.trim()) || (f.en && f.en.trim()) || (f.ja && f.ja.trim());
+            }
+            return f;
+          })
         : [];
 
       // Kiểm tra xem cột features có tồn tại không
@@ -275,15 +366,15 @@ exports.createProduct = async (req, res, next) => {
       const { demoLink } = req.body;
       const insertParams = hasFeaturesColumn
         ? [
-            categoryId || null, finalSlug, name, tagline, meta, description, image, gradient,
-            pricing, badge, statsUsers, statsRating, statsDeploy, demoLink || null, JSON.stringify(featureTexts),
-            seoTitle || null, seoDescription || null, seoKeywords || null,
+            categoryId || null, finalSlug, processLocaleField(name, 255), processLocaleField(tagline, 500), processLocaleField(meta, 255), processLocaleField(description), image, gradient,
+            processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null, JSON.stringify(featureTexts),
+            processLocaleField(seoTitle, 255), processLocaleField(seoDescription), processLocaleField(seoKeywords),
             sortOrder, isFeatured, isActive,
           ]
         : [
-            categoryId || null, finalSlug, name, tagline, meta, description, image, gradient,
-            pricing, badge, statsUsers, statsRating, statsDeploy, demoLink || null,
-            seoTitle || null, seoDescription || null, seoKeywords || null,
+            categoryId || null, finalSlug, processLocaleField(name, 255), processLocaleField(tagline, 500), processLocaleField(meta, 255), processLocaleField(description), image, gradient,
+            processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null,
+            processLocaleField(seoTitle, 255), processLocaleField(seoDescription), processLocaleField(seoKeywords),
             sortOrder, isFeatured, isActive,
           ];
 
@@ -345,7 +436,7 @@ exports.createProduct = async (req, res, next) => {
 
       const product = {
         ...mapProduct(productRows[0]),
-        features: Array.isArray(productRows[0].features) ? productRows[0].features : [],
+        features: Array.isArray(productRows[0].features) ? productRows[0].features.map(f => parseLocaleField(f)) : [],
       };
 
       return res.status(201).json({
@@ -414,7 +505,9 @@ exports.updateProduct = async (req, res, next) => {
 
       const addField = (column, value) => {
         if (value !== undefined) {
-          params.push(value);
+          // Đảm bảo value là string và không null
+          const finalValue = value === null ? null : String(value);
+          params.push(finalValue);
           fields.push(`${column} = $${params.length}`);
         }
       };
@@ -422,7 +515,7 @@ exports.updateProduct = async (req, res, next) => {
       // Xử lý slug: ưu tiên slug từ request, nếu không có thì auto-generate từ name
       if (slug !== undefined) {
         // Nếu có slug từ request, sử dụng slug đó
-        const finalSlug = slug.trim() || slugify(name || existing[0].name);
+        const finalSlug = (typeof slug === 'string' ? slug.trim() : '') || slugify(name || existing[0].name);
         // Kiểm tra slug trùng (trừ chính nó)
         const { rows: slugCheck } = await client.query(
           'SELECT id FROM products WHERE slug = $1 AND id != $2',
@@ -436,40 +529,46 @@ exports.updateProduct = async (req, res, next) => {
           });
         }
         addField('slug', finalSlug);
-      } else if (name !== undefined && name !== existing[0].name) {
-        // Nếu không có slug từ request nhưng name thay đổi, auto-generate slug từ name
-        const newSlug = slugify(name);
-        // Kiểm tra slug trùng (trừ chính nó)
-        const { rows: slugCheck } = await client.query(
-          'SELECT id FROM products WHERE slug = $1 AND id != $2',
-          [newSlug, id],
-        );
-        if (slugCheck.length > 0) {
-          await client.query('ROLLBACK');
-          return res.status(400).json({
-            success: false,
-            message: 'Slug đã tồn tại, vui lòng đổi tên sản phẩm',
-          });
+      } else if (name !== undefined) {
+        // Kiểm tra name có thay đổi không (so sánh cả locale object)
+        const existingName = existing[0].name;
+        const nameChanged = JSON.stringify(parseLocaleField(existingName)) !== JSON.stringify(name);
+        if (nameChanged) {
+          // Nếu không có slug từ request nhưng name thay đổi, auto-generate slug từ name
+          const newSlug = slugify(name);
+          // Kiểm tra slug trùng (trừ chính nó)
+          const { rows: slugCheck } = await client.query(
+            'SELECT id FROM products WHERE slug = $1 AND id != $2',
+            [newSlug, id],
+          );
+          if (slugCheck.length > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+              success: false,
+              message: 'Slug đã tồn tại, vui lòng đổi tên sản phẩm',
+            });
+          }
+          addField('slug', newSlug);
         }
-        addField('slug', newSlug);
       }
 
       addField('category_id', categoryId);
-      addField('name', name);
-      addField('tagline', tagline);
-      addField('meta', meta);
-      addField('description', description);
-      addField('image', image);
-      addField('gradient', gradient);
-      addField('pricing', pricing);
-      addField('badge', badge);
-      addField('stats_users', statsUsers);
+      addField('name', processLocaleField(name, 255)); // VARCHAR(255)
+      addField('tagline', processLocaleField(tagline, 500)); // VARCHAR(500)
+      addField('meta', processLocaleField(meta, 255)); // VARCHAR(255)
+      addField('description', processLocaleField(description)); // TEXT - không giới hạn
+      // image, gradient, demo_link là TEXT hoặc VARCHAR lớn, nhưng vẫn truncate để an toàn
+      addField('image', image ? (typeof image === 'string' ? image.substring(0, 1000) : String(image).substring(0, 1000)) : null);
+      addField('gradient', gradient ? processLocaleField(gradient, 255) : null); // VARCHAR(255)
+      addField('pricing', processLocaleField(pricing, 255)); // VARCHAR(255)
+      addField('badge', processLocaleField(badge, 255)); // VARCHAR(255)
+      addField('stats_users', processLocaleField(statsUsers, 255)); // VARCHAR(255)
       addField('stats_rating', statsRating);
-      addField('stats_deploy', statsDeploy);
-      addField('demo_link', demoLink);
-      addField('seo_title', seoTitle);
-      addField('seo_description', seoDescription);
-      addField('seo_keywords', seoKeywords);
+      addField('stats_deploy', processLocaleField(statsDeploy, 255)); // VARCHAR(255)
+      addField('demo_link', demoLink ? (typeof demoLink === 'string' ? demoLink.substring(0, 500) : String(demoLink).substring(0, 500)) : null); // VARCHAR(500)
+      addField('seo_title', processLocaleField(seoTitle, 255)); // VARCHAR(255)
+      addField('seo_description', processLocaleField(seoDescription)); // TEXT - không giới hạn
+      addField('seo_keywords', processLocaleField(seoKeywords)); // TEXT - không giới hạn
       addField('sort_order', sortOrder);
       addField('is_featured', isFeatured);
       addField('is_active', isActive);
@@ -486,7 +585,20 @@ exports.updateProduct = async (req, res, next) => {
         
         if (hasFeaturesColumn) {
           const featureTexts = features && Array.isArray(features)
-            ? features.map(f => typeof f === 'string' ? f.trim() : String(f).trim()).filter(f => f)
+            ? features.map(f => {
+                // Nếu là locale object, giữ nguyên để lưu vào JSONB
+                if (typeof f === 'object' && !Array.isArray(f) && (f.vi !== undefined || f.en !== undefined || f.ja !== undefined)) {
+                  return f;
+                }
+                // Nếu là string, trim và filter
+                return typeof f === 'string' ? f.trim() : String(f).trim();
+              }).filter(f => {
+                // Filter: nếu là locale object thì check có ít nhất 1 giá trị không rỗng
+                if (typeof f === 'object' && !Array.isArray(f) && (f.vi !== undefined || f.en !== undefined || f.ja !== undefined)) {
+                  return (f.vi && f.vi.trim()) || (f.en && f.en.trim()) || (f.ja && f.ja.trim());
+                }
+                return f;
+              })
             : [];
           addField('features', JSON.stringify(featureTexts));
         }
@@ -551,7 +663,7 @@ exports.updateProduct = async (req, res, next) => {
 
       const product = {
         ...mapProduct(productRows[0]),
-        features: Array.isArray(productRows[0].features) ? productRows[0].features : [],
+        features: Array.isArray(productRows[0].features) ? productRows[0].features.map(f => parseLocaleField(f)) : [],
       };
 
       return res.json({

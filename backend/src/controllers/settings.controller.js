@@ -1,5 +1,34 @@
 const { pool } = require('../config/database');
 
+// Helper function to parse locale field from JSON string
+const parseLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+        return parsed;
+      }
+    } catch (e) {
+      // Not JSON, return as string
+    }
+    return value;
+  }
+  return value;
+};
+
+// Helper function to process locale field for database storage
+const processLocaleField = (value) => {
+  if (!value) return null;
+  if (typeof value === 'object' && value !== null && ('vi' in value || 'en' in value || 'ja' in value)) {
+    return JSON.stringify(value);
+  }
+  return typeof value === 'string' ? value : String(value);
+};
+
+// List of settings keys that should be treated as locale objects
+const LOCALE_SETTINGS_KEYS = ['slogan', 'site_name', 'site_description', 'address'];
+
 // GET /api/admin/settings
 exports.getSettings = async (req, res, next) => {
   try {
@@ -20,8 +49,12 @@ exports.getSettings = async (req, res, next) => {
     // Transform to object format for easier access
     const settings = {};
     rows.forEach(row => {
+      const value = LOCALE_SETTINGS_KEYS.includes(row.setting_key)
+        ? parseLocaleField(row.setting_value)
+        : (row.setting_value || '');
+      
       settings[row.setting_key] = {
-        value: row.setting_value || '',
+        value: value,
         type: row.setting_type || 'text',
         description: row.description || '',
         category: row.category || 'general',
@@ -54,11 +87,15 @@ exports.getSettingByKey = async (req, res, next) => {
       });
     }
     
+    const value = LOCALE_SETTINGS_KEYS.includes(rows[0].setting_key)
+      ? parseLocaleField(rows[0].setting_value)
+      : (rows[0].setting_value || '');
+    
     return res.json({
       success: true,
       data: {
         key: rows[0].setting_key,
-        value: rows[0].setting_value || '',
+        value: value,
         type: rows[0].setting_type || 'text',
         description: rows[0].description || '',
         category: rows[0].category || 'general',
@@ -87,6 +124,11 @@ exports.updateSettings = async (req, res, next) => {
       await client.query('BEGIN');
       
       for (const [key, value] of Object.entries(settings)) {
+        // Process locale field if needed
+        const processedValue = LOCALE_SETTINGS_KEYS.includes(key)
+          ? processLocaleField(value)
+          : (value || '');
+        
         // Check if setting exists
         const { rows } = await client.query(
           'SELECT id FROM site_settings WHERE setting_key = $1',
@@ -97,13 +139,13 @@ exports.updateSettings = async (req, res, next) => {
           // Update existing setting
           await client.query(
             'UPDATE site_settings SET setting_value = $1, updated_at = CURRENT_TIMESTAMP WHERE setting_key = $2',
-            [value || '', key]
+            [processedValue, key]
           );
         } else {
           // Insert new setting
           await client.query(
             'INSERT INTO site_settings (setting_key, setting_value, setting_type, category) VALUES ($1, $2, $3, $4)',
-            [key, value || '', 'text', 'general']
+            [key, processedValue, 'text', 'general']
           );
         }
       }
@@ -131,6 +173,11 @@ exports.updateSetting = async (req, res, next) => {
     const { key } = req.params;
     const { value, type, description, category } = req.body;
     
+    // Process locale field if needed
+    const processedValue = LOCALE_SETTINGS_KEYS.includes(key)
+      ? processLocaleField(value)
+      : (value || '');
+    
     const { rows } = await pool.query(
       'SELECT id FROM site_settings WHERE setting_key = $1',
       [key]
@@ -139,7 +186,7 @@ exports.updateSetting = async (req, res, next) => {
     if (rows.length > 0) {
       // Update existing setting
       const updateFields = ['setting_value = $1', 'updated_at = CURRENT_TIMESTAMP'];
-      const params = [value || ''];
+      const params = [processedValue];
       let paramIndex = 2;
       
       if (type) {
@@ -170,7 +217,7 @@ exports.updateSetting = async (req, res, next) => {
       // Insert new setting
       await pool.query(
         'INSERT INTO site_settings (setting_key, setting_value, setting_type, description, category) VALUES ($1, $2, $3, $4, $5)',
-        [key, value || '', type || 'text', description || '', category || 'general']
+        [key, processedValue, type || 'text', description || '', category || 'general']
       );
     }
     

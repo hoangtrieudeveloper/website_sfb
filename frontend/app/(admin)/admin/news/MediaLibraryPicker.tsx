@@ -96,7 +96,7 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
   return (
     <div className="flex flex-col gap-3 flex-1">
       <div className="flex items-center justify-between gap-2">
-        <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 flex-1">
           <div className="relative flex-1">
             <Input
               placeholder="Tìm kiếm media..."
@@ -105,10 +105,14 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
               className="pl-9"
             />
           </div>
-          <Button type="submit" variant="outline">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={loadFiles}
+          >
             Tìm
           </Button>
-        </form>
+        </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           <Button
             type="button"

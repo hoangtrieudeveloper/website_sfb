@@ -33,7 +33,7 @@ export function Header() {
   const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [language, setLanguage] = useState<"vi" | "en">("vi");
+  const [language, setLanguage] = useState<"vi" | "en" | "ja">("vi");
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoverLang, setHoverLang] = useState(false);
@@ -147,6 +147,7 @@ export function Header() {
   const languages = [
     { code: "vi" as const, native_name: "Tiếng Việt", img_icon_url: "/icons/flags/vi.svg" },
     { code: "en" as const, native_name: "English", img_icon_url: "/icons/flags/en.svg" },
+    { code: "ja" as const, native_name: "日本語", img_icon_url: "/icons/flags/ja.svg" },
   ];
 
   const currentLanguageObj = languages.find(lang => lang.code === language);
@@ -190,9 +191,19 @@ export function Header() {
 
   // Load language preference
   useEffect(() => {
-    const savedLang = localStorage.getItem("language") as "vi" | "en" | null;
-    if (savedLang) setLanguage(savedLang);
+    const savedLang = localStorage.getItem("language") as "vi" | "en" | "ja" | null;
+    if (savedLang && ["vi", "en", "ja"].includes(savedLang)) {
+      setLanguage(savedLang);
+    }
   }, []);
+  
+  // Update language and reload page to apply locale
+  const changeLanguage = (newLang: "vi" | "en" | "ja") => {
+    setLanguage(newLang);
+    localStorage.setItem("language", newLang);
+    // Reload page to apply locale changes
+    window.location.reload();
+  };
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -219,9 +230,11 @@ export function Header() {
   };
 
   const toggleLanguage = () => {
-    const newLang = language === "vi" ? "en" : "vi";
-    setLanguage(newLang);
-    localStorage.setItem("language", newLang);
+    // Cycle through languages: vi -> en -> ja -> vi
+    const langOrder: ("vi" | "en" | "ja")[] = ["vi", "en", "ja"];
+    const currentIndex = langOrder.indexOf(language);
+    const nextIndex = (currentIndex + 1) % langOrder.length;
+    changeLanguage(langOrder[nextIndex]);
   };
 
   const handleDropdownEnter = (href: string) => {
@@ -404,6 +417,72 @@ export function Header() {
               })}
             </nav>
 
+            {/* Language Switcher Desktop */}
+            <div className="hidden lg:flex items-center gap-2 shrink-0 relative" onMouseEnter={() => setHoverLang(true)} onMouseLeave={() => setHoverLang(false)}>
+              <button
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300 ${
+                  useDarkText 
+                    ? 'text-gray-700 hover:text-[#006FB3] hover:bg-gray-50' 
+                    : 'text-white/90 hover:text-white hover:bg-white/10'
+                }`}
+                aria-label="Change language"
+              >
+                <Globe size={18} />
+                <span className="text-xs font-semibold uppercase">
+                  {language === "vi" ? "VI" : language === "en" ? "EN" : "JA"}
+                </span>
+                <ChevronDown 
+                  size={14} 
+                  className={`transition-transform duration-300 ${hoverLang ? "rotate-180" : ""}`}
+                />
+              </button>
+              
+              {/* Language Dropdown */}
+              <AnimatePresence>
+                {hoverLang && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className={`absolute top-full right-0 mt-2 min-w-[160px] rounded-xl shadow-xl border overflow-hidden ${
+                      useDarkText 
+                        ? 'bg-white border-gray-200' 
+                        : 'bg-white/95 backdrop-blur-xl border-white/20'
+                    }`}
+                  >
+                    {languages.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => changeLanguage(lang.code)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
+                          language === lang.code
+                            ? useDarkText
+                              ? 'bg-blue-50 text-[#006FB3] font-semibold'
+                              : 'bg-blue-500/20 text-white font-semibold'
+                            : useDarkText
+                              ? 'text-gray-700 hover:bg-gray-50 hover:text-[#006FB3]'
+                              : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {lang.img_icon_url && (
+                          <img 
+                            src={lang.img_icon_url} 
+                            alt={lang.native_name}
+                            className="w-5 h-5 object-contain"
+                          />
+                        )}
+                        <span className="text-sm">{lang.native_name}</span>
+                        {language === lang.code && (
+                          <span className="ml-auto text-[#006FB3]">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             {/* Contact Info & CTA */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
               {(email || phone) && (
@@ -432,7 +511,9 @@ export function Header() {
               >
                 {/* Shine effect */}
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-                <span className="relative z-10">{language === "vi" ? "Liên hệ ngay" : "Contact Now"}</span>
+                <span className="relative z-10">
+                  {language === "vi" ? "Liên hệ ngay" : language === "en" ? "Contact Now" : "今すぐお問い合わせ"}
+                </span>
               </Link>
             </div>
 
@@ -506,7 +587,11 @@ export function Header() {
                       className="w-full flex items-center justify-center gap-2 py-2.5 text-gray-600 hover:text-[#006FB3] rounded-xl hover:bg-gray-50 transition-all font-medium"
                     >
                       <Globe size={18} />
-                      <span>{language === "vi" ? "Switch to English" : "Chuyển sang Tiếng Việt"}</span>
+                      <span>
+                        {language === "vi" ? "Switch to English" : 
+                         language === "en" ? "日本語に切り替え" : 
+                         "Chuyển sang Tiếng Việt"}
+                      </span>
                     </button>
 
                     {/* Search Mobile */}
@@ -518,7 +603,11 @@ export function Header() {
                       className="w-full flex items-center justify-center gap-2 py-2.5 text-gray-600 hover:text-[#006FB3] rounded-xl hover:bg-gray-50 transition-all font-medium"
                     >
                       <Search size={18} />
-                      <span>{language === "vi" ? "Tìm kiếm" : "Search"}</span>
+                      <span>
+                        {language === "vi" ? "Tìm kiếm" : 
+                         language === "en" ? "Search" : 
+                         "検索"}
+                      </span>
                     </button>
 
                     <Link
@@ -526,7 +615,9 @@ export function Header() {
                       className="block w-full py-3.5 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl text-center font-semibold shadow-lg shadow-blue-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {language === "vi" ? "Liên hệ ngay" : "Contact Us"}
+                      {language === "vi" ? "Liên hệ ngay" : 
+                       language === "en" ? "Contact Us" : 
+                       "今すぐお問い合わせ"}
                     </Link>
 
                     {/* Contact Info */}
