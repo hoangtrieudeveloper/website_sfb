@@ -32,8 +32,8 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
   const title = typeof article.title === 'string' ? article.title : getLocalizedText(article.title, locale);
   const isTuyenSinh = title === "";
   const apiBase = API_BASE_URL;
-  
-  const excerpt = article.excerpt 
+
+  const excerpt = article.excerpt
     ? (typeof article.excerpt === 'string' ? article.excerpt : getLocalizedText(article.excerpt, locale))
     : undefined;
   const categoryName = article.categoryName
@@ -59,6 +59,9 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
             : `${apiBase}${article.imageUrl.startsWith("/") ? "" : "/"}${article.imageUrl}`
       : "/images/no_cover.jpeg";
 
+
+  const linkHref = `/${locale}/news/${article.slug}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -69,24 +72,26 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
     >
       {/* Image - Left Side (Span 7) */}
       <div className="lg:col-span-7 relative z-10 order-1 lg:order-1">
-        <div
-          className="relative overflow-hidden box-border w-full aspect-[16/10] rounded-[24px] lg:ml-auto min-[1920px]:w-[800px] min-[1920px]:h-[500px] min-[1920px]:aspect-auto"
-          style={{
-            border: "10px solid #FFF",
-            background: "#FFF",
-            boxShadow: "0 18px 36px 0 rgba(0, 95, 148, 0.12)",
-          }}
-        >
-          <ImageWithFallback
-            src={imageSrc}
-            alt={title || "Featured news article"}
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
-            loading="lazy"
-            objectFit="cover"
-            className="rounded-[14px] transition-transform duration-700 group-hover:scale-105"
-          />
-        </div>
+        <Link href={linkHref} className="block w-full">
+          <div
+            className="relative overflow-hidden box-border w-full aspect-[16/10] rounded-[24px] lg:ml-auto min-[1920px]:w-[800px] min-[1920px]:h-[500px] min-[1920px]:aspect-auto hover:opacity-90 transition-opacity"
+            style={{
+              border: "10px solid #FFF",
+              background: "#FFF",
+              boxShadow: "0 18px 36px 0 rgba(0, 95, 148, 0.12)",
+            }}
+          >
+            <ImageWithFallback
+              src={imageSrc}
+              alt={title || "Featured news article"}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              loading="lazy"
+              objectFit="cover"
+              className="rounded-[14px] transition-transform duration-700 group-hover:scale-105"
+            />
+          </div>
+        </Link>
       </div>
 
       {/* Content - Right Side (Span 5) */}
@@ -142,7 +147,9 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           transition={{ delay: 0.3 }}
         >
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-gray-900 mb-4">
-            {title}
+            <Link href={linkHref} className="hover:text-[#1D8FCF] transition-colors">
+              {title}
+            </Link>
           </h2>
         </motion.div>
 
