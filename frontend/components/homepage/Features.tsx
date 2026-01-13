@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 
@@ -11,7 +11,7 @@ function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
       <ImageWithFallback
         src={src}
         alt={alt}
-        
+
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
         loading="lazy"
         objectFit="cover"
@@ -40,6 +40,30 @@ function PrimaryLinkButton({
 }
 
 import * as LucideIcons from "lucide-react";
+
+function FeaturesTickIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      className={className}
+      style={{
+        height: "19.999px",
+        flexShrink: 0,
+      }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z"
+        fill="#1D8FCF"
+      />
+    </svg>
+  );
+}
 
 interface FeaturesProps {
   data?: any;
@@ -105,9 +129,9 @@ export function Features({ data }: FeaturesProps) {
                       key={idx}
                       variant="slide-left"
                       delay={0.1 + idx * 0.15}
-                      className="flex items-center gap-2 sm:gap-3 p-1 sm:p-2 rounded-lg hover:bg-white/50 transition-colors"
+                      className="flex items-start gap-2 sm:gap-3 p-1 sm:p-2 rounded-lg hover:bg-white/50 transition-colors"
                     >
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-sky-500" />
+                      <FeaturesTickIcon className="mt-0.5 sm:mt-[5px]" />
                       <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-tight sm:leading-[30px]">
                         {t}
                       </span>
@@ -151,9 +175,9 @@ export function Features({ data }: FeaturesProps) {
                       key={idx}
                       variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
                       delay={idx * 0.15}
-                      className="flex gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
                     >
-                      <CheckCircle className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 text-sky-500 flex-shrink-0" />
+                      <FeaturesTickIcon className="mt-0.5 sm:mt-[5px]" />
                       <div className="flex flex-col items-start">
                         <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-semibold leading-tight sm:leading-[30px]">
                           {item.title}

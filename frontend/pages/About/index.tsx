@@ -73,6 +73,17 @@ export function AboutPage() {
       {shouldRender(heroData) && <AboutHero data={heroData} />}
       {shouldRender(companyData) && <AboutCompany data={companyData} />}
       {shouldRender(visionMissionData) && <AboutVisionMission data={visionMissionData} />}
+
+      {/* Separator Line */}
+      <div className="flex justify-center w-full">
+        <div
+          className="w-full h-[1px] max-w-[1920px]"
+          style={{
+            background: 'linear-gradient(80deg, rgba(29, 143, 207, 0.00) 25.47%, #269DD9 58.86%, rgba(46, 171, 226, 0.00) 97.94%)'
+          }}
+        />
+      </div>
+
       {shouldRender(coreValuesData) && <AboutCoreValues data={coreValuesData} />}
       {shouldRender(milestonesData) && <AboutMilestones data={milestonesData} />}
       {shouldRender(leadershipData) && <AboutLeadership data={leadershipData} />}

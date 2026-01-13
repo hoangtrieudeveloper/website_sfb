@@ -48,7 +48,7 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
     const items = displayData.items || coreValues;
 
     return (
-        <section className="py-10 sm:py-20 bg-[#F8FBFE]">
+        <section className="py-10 sm:py-20" style={{ background: 'linear-gradient(158deg, #F1F9FD 28.21%, #FFF 69.34%)' }}>
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}

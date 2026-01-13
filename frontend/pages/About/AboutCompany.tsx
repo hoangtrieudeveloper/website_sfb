@@ -119,13 +119,13 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                             </div>
                                             <div className="flex flex-col justify-center min-h-[40px]">
                                                 {item.isHighlight ? (
-                                                    <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-relaxed">
-                                                        {item.title}: <span className="font-normal text-gray-600">{item.text}</span>
+                                                    <h4 className="self-stretch font-bold text-gray-900 text-xs sm:text-base lg:text-[20px] lg:font-semibold lg:text-[#0F172A] lg:leading-[30px] lg:font-['Plus_Jakarta_Sans'] [font-feature-settings:'liga'_off,'clig'_off] break-words leading-relaxed">
+                                                        {item.title}: <span className="font-normal text-gray-600 lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">{item.text}</span>
                                                     </h4>
                                                 ) : (
                                                     <>
-                                                        <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-tight mb-1">{item.title}</h4>
-                                                        <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words">
+                                                        <h4 className="self-stretch text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-base lg:text-[20px] font-bold lg:font-semibold leading-tight lg:leading-[30px] break-words mb-1">{item.title}</h4>
+                                                        <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words self-stretch lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">
                                                             {item.text}
                                                         </p>
                                                     </>
