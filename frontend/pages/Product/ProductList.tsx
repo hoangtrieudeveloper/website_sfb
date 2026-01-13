@@ -51,7 +51,7 @@ const ProductCard = ({ product, locale }: { product: any; locale: 'vi' | 'en' | 
     const localizedDescription = getLocalizedText(product.description, locale);
     const localizedMeta = getLocalizedText(product.meta, locale);
     const localizedPricing = getLocalizedText(product.pricing, locale);
-    
+
     // Localize features array
     const localizedFeatures = product.features && Array.isArray(product.features)
         ? product.features.map((feature: any) => getLocalizedText(feature, locale))
@@ -123,7 +123,7 @@ const ProductCard = ({ product, locale }: { product: any; locale: 'vi' | 'en' | 
                 })()}
 
                 {localizedName && (
-                    <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[auto] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
+                    <h3 className="self-stretch mb-1 min-h-[auto] line-clamp-1 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
                         {localizedName}
                     </h3>
                 )}
