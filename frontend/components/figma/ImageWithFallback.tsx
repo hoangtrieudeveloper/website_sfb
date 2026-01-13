@@ -135,7 +135,7 @@ export function ImageWithFallback({
       style={{ ...style, objectFit, objectPosition }}
       loading={loading}
       onError={handleError}
-      {...rest}
+      {...Object.fromEntries(Object.entries(rest).filter(([key]) => key !== 'ref'))}
     />
   );
 }
