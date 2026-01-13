@@ -4,7 +4,11 @@ import { ArrowRight } from "lucide-react";
 import { ctaData } from "./data";
 import { FadeIn } from "../../components/ui/motion";
 
-export function SolutionsCTA() {
+interface SolutionsCTAProps {
+  locale?: 'vi' | 'en' | 'ja';
+}
+
+export function SolutionsCTA({ locale }: SolutionsCTAProps) {
     return (
         <section
             className="py-28 relative overflow-hidden flex items-center justify-center"

@@ -17,11 +17,13 @@ export function useLocale(): Locale {
   
   return useMemo(() => {
     // First, try to extract locale from pathname: /vi/..., /en/..., /ja/...
-    const segments = pathname.split('/').filter(Boolean);
-    const firstSegment = segments[0];
-    
-    if (firstSegment === 'en' || firstSegment === 'ja') {
-      return firstSegment;
+    if (pathname) {
+      const segments = pathname.split('/').filter(Boolean);
+      const firstSegment = segments[0];
+      
+      if (firstSegment === 'en' || firstSegment === 'ja') {
+        return firstSegment;
+      }
     }
     
     // If not in URL, try localStorage

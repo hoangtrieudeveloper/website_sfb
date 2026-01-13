@@ -115,9 +115,9 @@ export function Testimonials({ data, locale: propLocale }: TestimonialsProps) {
                 // Determine width class based on original index (modulo)
                 const widthClass = widthClasses[index % widthClasses.length];
 
-                // Localize review fields
-                const itemQuote = typeof item.quote === 'string' ? item.quote : getLocalizedText(item.quote, locale);
-                const itemAuthor = typeof item.author === 'string' ? item.author : getLocalizedText(item.author, locale);
+                // Localize review fields - getLocalizedText handles both strings and JSON strings
+                const itemQuote = getLocalizedText(item.quote, locale, '');
+                const itemAuthor = getLocalizedText(item.author, locale, '');
 
                 return (
                   <div

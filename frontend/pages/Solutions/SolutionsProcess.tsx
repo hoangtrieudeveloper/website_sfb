@@ -5,7 +5,11 @@ import { processData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 
-export function SolutionsProcess() {
+interface SolutionsProcessProps {
+  locale?: 'vi' | 'en' | 'ja';
+}
+
+export function SolutionsProcess({ locale }: SolutionsProcessProps) {
     return (
         <section className="py-20 bg-white relative overflow-hidden">
             {/* Background Pattern */}

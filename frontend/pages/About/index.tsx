@@ -87,9 +87,9 @@ export function AboutPage({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'j
 
   return (
     <div className="min-h-screen">
-      {shouldRender(heroData) && <AboutHero data={heroData} />}
-      {shouldRender(companyData) && <AboutCompany data={companyData} />}
-      {shouldRender(visionMissionData) && <AboutVisionMission data={visionMissionData} />}
+      {shouldRender(heroData) && <AboutHero data={heroData} locale={locale} />}
+      {shouldRender(companyData) && <AboutCompany data={companyData} locale={locale} />}
+      {shouldRender(visionMissionData) && <AboutVisionMission data={visionMissionData} locale={locale} />}
 
       {/* Separator Line */}
       <div className="flex justify-center w-full">
@@ -101,9 +101,9 @@ export function AboutPage({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'j
         />
       </div>
 
-      {shouldRender(coreValuesData) && <AboutCoreValues data={coreValuesData} />}
-      {shouldRender(milestonesData) && <AboutMilestones data={milestonesData} />}
-      {shouldRender(leadershipData) && <AboutLeadership data={leadershipData} />}
+      {shouldRender(coreValuesData) && <AboutCoreValues data={coreValuesData} locale={locale} />}
+      {shouldRender(milestonesData) && <AboutMilestones data={milestonesData} locale={locale} />}
+      {shouldRender(leadershipData) && <AboutLeadership data={leadershipData} locale={locale} />}
       <Consult locale={locale} />
     </div>
   );

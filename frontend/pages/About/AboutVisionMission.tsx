@@ -9,10 +9,12 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutVisionMissionProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function AboutVisionMission({ data }: AboutVisionMissionProps) {
-    const { locale } = useLocale();
+export function AboutVisionMission({ data, locale: propLocale }: AboutVisionMissionProps) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
     
     // Use data from props if available, otherwise fallback to static data
     const displayData = data?.data || visionMissionSectionData;

@@ -5,7 +5,11 @@ import { solutionsListData } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 import { motion } from "framer-motion";
 
-export function SolutionsList() {
+interface SolutionsListProps {
+  locale?: 'vi' | 'en' | 'ja';
+}
+
+export function SolutionsList({ locale }: SolutionsListProps) {
     return (
         <section id="solutions-list" className="py-20 bg-[#F8FBFE]">
             <div className="max-w-[1340px] mx-auto px-6">

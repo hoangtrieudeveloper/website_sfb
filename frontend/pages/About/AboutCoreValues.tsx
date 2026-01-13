@@ -13,6 +13,7 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutCoreValuesProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
 const CoreValueCard = ({ item, className = "", enableHover = true, locale = 'vi' }: { item: any, className?: string, enableHover?: boolean, locale?: 'vi' | 'en' | 'ja' }) => {
@@ -45,8 +46,9 @@ const CoreValueCard = ({ item, className = "", enableHover = true, locale = 'vi'
     );
 };
 
-export function AboutCoreValues({ data }: AboutCoreValuesProps) {
-    const { locale } = useLocale();
+export function AboutCoreValues({ data, locale: propLocale }: AboutCoreValuesProps) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
     
     // Use data from props if available, otherwise fallback to static data
     const displayData = data?.data || { items: coreValues };

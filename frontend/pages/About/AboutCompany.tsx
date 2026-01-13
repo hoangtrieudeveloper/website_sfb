@@ -10,10 +10,12 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutCompanyProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function AboutCompany({ data }: AboutCompanyProps) {
-    const { locale } = useLocale();
+export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
 
     // Chỉ sử dụng data từ API, không fallback static data
     if (!data || !data.data) {

@@ -9,6 +9,7 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutMilestonesProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
 const cardVariants: Variants = {
@@ -46,8 +47,9 @@ const lineFillVariants: Variants = {
     }
 };
 
-export function AboutMilestones({ data }: AboutMilestonesProps) {
-    const { locale } = useLocale();
+export function AboutMilestones({ data, locale: propLocale }: AboutMilestonesProps) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
 
     // Use data from props if available, otherwise fallback to static data
     const displayData = data?.data || { items: milestones };
@@ -120,12 +122,12 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                                         </g>
                                                         <defs>
                                                             <linearGradient id="paint0_linear_159_544" x1="18.0543" y1="41.7292" x2="39.0832" y2="31.3644" gradientUnits="userSpaceOnUse">
-                                                                <stop stop-color="#1D8FCF" />
-                                                                <stop offset="1" stop-color="#2EABE2" />
+                                                                <stop stopColor="#1D8FCF" />
+                                                                <stop offset="1" stopColor="#2EABE2" />
                                                             </linearGradient>
                                                             <linearGradient id="paint1_linear_159_544" x1="18.2971" y1="22.8968" x2="36.256" y2="14.0769" gradientUnits="userSpaceOnUse">
-                                                                <stop stop-color="#1D8FCF" />
-                                                                <stop offset="1" stop-color="#2EABE2" />
+                                                                <stop stopColor="#1D8FCF" />
+                                                                <stop offset="1" stopColor="#2EABE2" />
                                                             </linearGradient>
                                                             <clipPath id="clip0_159_544">
                                                                 <rect width="39.9896" height="40" fill="white" />

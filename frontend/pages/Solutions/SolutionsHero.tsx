@@ -5,7 +5,11 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 import { solutionsHeroData } from "./data";
 
-export function SolutionsHero() {
+interface SolutionsHeroProps {
+  locale?: 'vi' | 'en' | 'ja';
+}
+
+export function SolutionsHero({ locale }: SolutionsHeroProps) {
     return (
         <section
             className="relative w-full flex justify-center items-center overflow-hidden"

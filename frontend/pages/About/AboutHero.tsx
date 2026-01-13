@@ -9,10 +9,12 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutHeroProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function AboutHero({ data }: AboutHeroProps) {
-    const { locale } = useLocale();
+export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
     
     // Chỉ sử dụng data từ API, không có fallback static data
     if (!data || !data.data) {

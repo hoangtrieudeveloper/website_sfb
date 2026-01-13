@@ -20,9 +20,10 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutLeadershipProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function AboutLeadership({ data }: AboutLeadershipProps) {
+export function AboutLeadership({ data, locale: propLocale }: AboutLeadershipProps) {
     const [api, setApi] = useState<CarouselApi>();
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
@@ -44,7 +45,8 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
         return null;
     }
 
-    const { locale } = useLocale();
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
 
     const displayData = data.data;
     const headerTitleRaw = displayData.headerTitle;
