@@ -61,13 +61,11 @@ const ProductCard = ({ product }: { product: any }) => {
                             onLoad={(e) => {
                                 const img = e.currentTarget;
                                 const ratio = img.naturalWidth / img.naturalHeight;
-                                // 3/2 = 1.5
-                                // Wider than 3/2 => cropped (cover)
-                                // Smaller (narrower) than 3/2 => not cropped (contain)
+                                // Reversed logic as requested
                                 if (ratio > (3 / 2)) {
-                                    setObjectFitStyle('cover');
-                                } else {
                                     setObjectFitStyle('contain');
+                                } else {
+                                    setObjectFitStyle('cover');
                                 }
                             }}
                             className="rounded-[8px]"
