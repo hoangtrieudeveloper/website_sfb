@@ -9,6 +9,9 @@ import { SearchOverlay } from "./SearchOverlay";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { getPublicSettings } from "@/lib/api/settings";
 import { publicApiCall } from "@/lib/api/public/client";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface NavLink {
   id?: number;
@@ -19,12 +22,13 @@ interface NavLink {
 
 interface MenuItem {
   id: number;
-  title: string;
+  title: string | Record<'vi' | 'en' | 'ja', string>;
   url: string;
   parentId?: number | null;
   sortOrder: number;
   icon?: string;
   children?: MenuItem[];
+  description?: string | Record<'vi' | 'en' | 'ja', string>;
 }
 
 export function Header() {
@@ -33,10 +37,9 @@ export function Header() {
   const [scrollDirection, setScrollDirection] = useState<"up" | "down">("up");
   const [lastScrollY, setLastScrollY] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [language, setLanguage] = useState<"vi" | "en" | "ja">("vi");
+  const { locale: language } = useLocale();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [hoverLang, setHoverLang] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [announcementHeight, setAnnouncementHeight] = useState(0);
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -51,21 +54,23 @@ export function Header() {
     const loadSettings = async () => {
       try {
         const keys = 'logo,slogan,site_name,phone,email';
-        const data = await getPublicSettings(keys);
+        const data = await getPublicSettings(keys, language);
         setSettings(data);
       } catch (error: any) {
         // Silently fail - component sẽ sử dụng giá trị mặc định từ settings state
       }
     };
     loadSettings();
-  }, []);
+  }, [language]);
 
   // Load menus from API
   useEffect(() => {
     const loadMenus = async () => {
       try {
         const response = await publicApiCall<{ success: boolean; data?: MenuItem[] }>(
-          '/api/public/menus'
+          '/api/public/menus',
+          {},
+          language
         );
 
         if (response.success && response.data) {
@@ -74,20 +79,31 @@ export function Header() {
             const navLink: NavLink = {
               id: menu.id,
               href: menu.url,
-              label: menu.title,
+              label: typeof menu.title === 'string' 
+                ? menu.title 
+                : getLocalizedText(menu.title, language),
             };
 
             // Convert children if exists (recursive for nested children)
             if (menu.children && Array.isArray(menu.children) && menu.children.length > 0) {
               navLink.children = menu.children.map(child => ({
                 href: child.url,
-                label: child.title,
+                label: typeof child.title === 'string'
+                  ? child.title
+                  : getLocalizedText(child.title, language),
+                description: child.description 
+                  ? (typeof child.description === 'string'
+                      ? child.description
+                      : getLocalizedText(child.description, language))
+                  : undefined,
                 // Note: Currently only support one level of children
                 // If you need nested children, uncomment below:
                 // children: child.children && child.children.length > 0 
                 //   ? child.children.map(grandchild => ({
                 //       href: grandchild.url,
-                //       label: grandchild.title,
+                //       label: typeof grandchild.title === 'string'
+                //         ? grandchild.title
+                //         : getLocalizedText(grandchild.title, language),
                 //     }))
                 //   : undefined,
               }));
@@ -103,7 +119,7 @@ export function Header() {
       }
     };
     loadMenus();
-  }, []);
+  }, [language]);
 
   // Check announcement dismissal status
   useEffect(() => {
@@ -135,9 +151,14 @@ export function Header() {
   }, [showAnnouncement]);
 
   // Chỉ sử dụng data từ API, không có fallback
+  // Backend đã localize các field đa ngôn ngữ, nhưng vẫn cần kiểm tra để đảm bảo
   const logoUrl = settings.logo;
-  const slogan = settings.slogan;
-  const siteName = settings.site_name;
+  const slogan = typeof settings.slogan === 'string' 
+    ? settings.slogan 
+    : (settings.slogan ? getLocalizedText(settings.slogan, language) : '');
+  const siteName = typeof settings.site_name === 'string'
+    ? settings.site_name
+    : (settings.site_name ? getLocalizedText(settings.site_name, language) : '');
   const phone = settings.phone;
   const email = settings.email;
 
@@ -166,7 +187,7 @@ export function Header() {
   // Transparent pages (like About): White text
   const useDarkText = scrolled || pathname === '/' || !isTransparentHeader;
 
-  // Language options with flags
+  // Language options with flags (for display purposes)
   const languages = [
     { code: "vi" as const, native_name: "Tiếng Việt", img_icon_url: "/icons/flags/vi.svg" },
     { code: "en" as const, native_name: "English", img_icon_url: "/icons/flags/en.svg" },
@@ -212,21 +233,7 @@ export function Header() {
     };
   }, [handleScroll]);
 
-  // Load language preference
-  useEffect(() => {
-    const savedLang = localStorage.getItem("language") as "vi" | "en" | "ja" | null;
-    if (savedLang && ["vi", "en", "ja"].includes(savedLang)) {
-      setLanguage(savedLang);
-    }
-  }, []);
-  
-  // Update language and reload page to apply locale
-  const changeLanguage = (newLang: "vi" | "en" | "ja") => {
-    setLanguage(newLang);
-    localStorage.setItem("language", newLang);
-    // Reload page to apply locale changes
-    window.location.reload();
-  };
+  // Language is now managed by LocaleContext
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -252,13 +259,7 @@ export function Header() {
     return pathname.startsWith(path);
   };
 
-  const toggleLanguage = () => {
-    // Cycle through languages: vi -> en -> ja -> vi
-    const langOrder: ("vi" | "en" | "ja")[] = ["vi", "en", "ja"];
-    const currentIndex = langOrder.indexOf(language);
-    const nextIndex = (currentIndex + 1) % langOrder.length;
-    changeLanguage(langOrder[nextIndex]);
-  };
+  // Language switching is now handled by LanguageSwitcher component
 
   const handleDropdownEnter = (href: string) => {
     clearTimeout(dropdownTimeoutRef.current);
@@ -308,7 +309,7 @@ export function Header() {
           <div className="flex items-center justify-between lg:justify-center gap-4 lg:gap-6 xl:gap-[60px] h-full min-w-0">
             {/* Logo */}
             <Link
-              href="/"
+              href={`/${language}`}
               className="flex items-center group relative z-50 shrink-0"
               style={{ height: "67px", gap: "10px" }}
             >
@@ -468,69 +469,8 @@ export function Header() {
             </nav>
 
             {/* Language Switcher Desktop */}
-            <div className="hidden lg:flex items-center gap-2 shrink-0 relative" onMouseEnter={() => setHoverLang(true)} onMouseLeave={() => setHoverLang(false)}>
-              <button
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-300 ${
-                  useDarkText 
-                    ? 'text-gray-700 hover:text-[#006FB3] hover:bg-gray-50' 
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                }`}
-                aria-label="Change language"
-              >
-                <Globe size={18} />
-                <span className="text-xs font-semibold uppercase">
-                  {language === "vi" ? "VI" : language === "en" ? "EN" : "JA"}
-                </span>
-                <ChevronDown 
-                  size={14} 
-                  className={`transition-transform duration-300 ${hoverLang ? "rotate-180" : ""}`}
-                />
-              </button>
-              
-              {/* Language Dropdown */}
-              <AnimatePresence>
-                {hoverLang && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className={`absolute top-full right-0 mt-2 min-w-[160px] rounded-xl shadow-xl border overflow-hidden ${
-                      useDarkText 
-                        ? 'bg-white border-gray-200' 
-                        : 'bg-white/95 backdrop-blur-xl border-white/20'
-                    }`}
-                  >
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => changeLanguage(lang.code)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-all ${
-                          language === lang.code
-                            ? useDarkText
-                              ? 'bg-blue-50 text-[#006FB3] font-semibold'
-                              : 'bg-blue-500/20 text-white font-semibold'
-                            : useDarkText
-                              ? 'text-gray-700 hover:bg-gray-50 hover:text-[#006FB3]'
-                              : 'text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {lang.img_icon_url && (
-                          <img 
-                            src={lang.img_icon_url} 
-                            alt={lang.native_name}
-                            className="w-5 h-5 object-contain"
-                          />
-                        )}
-                        <span className="text-sm">{lang.native_name}</span>
-                        {language === lang.code && (
-                          <span className="ml-auto text-[#006FB3]">✓</span>
-                        )}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            <div className="hidden lg:flex items-center gap-2 shrink-0">
+              <LanguageSwitcher />
             </div>
 
             {/* Contact Info & CTA */}
@@ -550,7 +490,7 @@ export function Header() {
                 </div>
               )}
               <Link
-                href="/contact"
+                href={`/${language}/contact`}
                 className="relative text-white hover:shadow-xl hover:shadow-[#006FB3]/50 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 text-[11px] xl:text-xs font-bold uppercase tracking-wide overflow-hidden group flex items-center justify-center h-[50px] px-4 xl:px-5 min-[1920px]:px-[30px] py-[7px] whitespace-nowrap"
                 style={{
                   gap: "0px",
@@ -632,17 +572,9 @@ export function Header() {
                     className="mt-4 pt-4 border-t border-gray-100 space-y-4"
                   >
                     {/* Language Switcher Mobile */}
-                    <button
-                      onClick={toggleLanguage}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 text-gray-600 hover:text-[#006FB3] rounded-xl hover:bg-gray-50 transition-all font-medium"
-                    >
-                      <Globe size={18} />
-                      <span>
-                        {language === "vi" ? "Switch to English" : 
-                         language === "en" ? "日本語に切り替え" : 
-                         "Chuyển sang Tiếng Việt"}
-                      </span>
-                    </button>
+                    <div className="w-full px-4">
+                      <LanguageSwitcher />
+                    </div>
 
                     {/* Search Mobile */}
                     <button
@@ -661,7 +593,7 @@ export function Header() {
                     </button>
 
                     <Link
-                      href="/contact"
+                      href={`/${language}/contact`}
                       className="block w-full py-3.5 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl text-center font-semibold shadow-lg shadow-blue-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >

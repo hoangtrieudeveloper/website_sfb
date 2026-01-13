@@ -2,7 +2,7 @@ type Locale = 'vi' | 'en' | 'ja';
 
 /**
  * Lấy text từ field có thể là string hoặc object locale
- * @param field - Có thể là string (backward compatible) hoặc object {vi, en, ja}
+ * @param field - Có thể là string (backward compatible), JSON string, hoặc object {vi, en, ja}
  * @param locale - Locale hiện tại
  * @param fallback - Fallback nếu không tìm thấy
  */
@@ -13,8 +13,19 @@ export function getLocalizedText(
 ): string {
   if (!field) return fallback;
   
-  // Nếu là string (backward compatible)
+  // Nếu là string, kiểm tra xem có phải JSON string không
   if (typeof field === 'string') {
+    // Try to parse as JSON (could be a JSON string representing locale object)
+    try {
+      const parsed = JSON.parse(field);
+      if (parsed && typeof parsed === 'object' && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+        // It's a JSON string representing a locale object, recurse with parsed object
+        return getLocalizedText(parsed, locale, fallback);
+      }
+    } catch (e) {
+      // Not JSON, treat as regular string
+    }
+    // Return as regular string
     return field;
   }
   

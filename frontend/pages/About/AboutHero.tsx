@@ -4,12 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutHeroProps {
     data?: any;
 }
 
 export function AboutHero({ data }: AboutHeroProps) {
+    const { locale } = useLocale();
+    
     // Chỉ sử dụng data từ API, không có fallback static data
     if (!data || !data.data) {
         return null;
@@ -17,13 +21,20 @@ export function AboutHero({ data }: AboutHeroProps) {
 
     const displayData = data.data;
     const backgroundGradient = displayData.backgroundGradient || 'linear-gradient(73deg, #1D8FCF 32.85%, #2EABE2 82.8%)';
-    const titleLine1 = displayData.titleLine1 || displayData.title?.line1;
-    const titleLine2 = displayData.titleLine2 || displayData.title?.line2;
-    const titleLine3 = displayData.titleLine3 || displayData.title?.line3;
-    const description = displayData.description;
-    const buttonText = displayData.buttonText || displayData.button?.text;
+    const titleLine1Raw = displayData.titleLine1 || displayData.title?.line1;
+    const titleLine2Raw = displayData.titleLine2 || displayData.title?.line2;
+    const titleLine3Raw = displayData.titleLine3 || displayData.title?.line3;
+    const descriptionRaw = displayData.description;
+    const buttonTextRaw = displayData.buttonText || displayData.button?.text;
     const buttonLink = displayData.buttonLink || displayData.button?.link;
     const image = displayData.image;
+    
+    // Localize fields
+    const titleLine1 = typeof titleLine1Raw === 'string' ? titleLine1Raw : getLocalizedText(titleLine1Raw, locale);
+    const titleLine2 = typeof titleLine2Raw === 'string' ? titleLine2Raw : getLocalizedText(titleLine2Raw, locale);
+    const titleLine3 = typeof titleLine3Raw === 'string' ? titleLine3Raw : getLocalizedText(titleLine3Raw, locale);
+    const description = typeof descriptionRaw === 'string' ? descriptionRaw : getLocalizedText(descriptionRaw, locale);
+    const buttonText = typeof buttonTextRaw === 'string' ? buttonTextRaw : getLocalizedText(buttonTextRaw, locale);
 
     // Không render nếu thiếu dữ liệu cần thiết
     if (!titleLine1 || !titleLine2 || !image) {

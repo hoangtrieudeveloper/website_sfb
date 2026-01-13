@@ -7,8 +7,12 @@ import { FieldProcess } from "./FieldProcess";
 import { Consult } from "../../components/public/Consult";
 import { publicApiCall } from "@/lib/api/public/client";
 import { PublicEndpoints } from "@/lib/api/public/endpoints";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { applyLocale } from "@/lib/utils/i18n";
 
-export function FieldPage() {
+export function FieldPage({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'ja' }) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
     const [heroData, setHeroData] = useState<any>(null);
     const [listHeaderData, setListHeaderData] = useState<any>(null);
     const [industries, setIndustries] = useState<any[]>([]);
@@ -21,27 +25,27 @@ export function FieldPage() {
             try {
                 // Fetch all data in parallel
                 const [heroRes, listHeaderRes, industriesRes, processRes, ctaRes] = await Promise.all([
-                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.hero),
-                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.listHeader),
-                    publicApiCall<{ success: boolean; data?: any[] }>(PublicEndpoints.industries.list),
-                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.process),
-                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.cta),
+                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.hero, {}, locale),
+                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.listHeader, {}, locale),
+                    publicApiCall<{ success: boolean; data?: any[] }>(PublicEndpoints.industries.list, {}, locale),
+                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.process, {}, locale),
+                    publicApiCall<{ success: boolean; data?: any }>(PublicEndpoints.industries.cta, {}, locale),
                 ]);
 
                 if (heroRes?.success && heroRes.data) {
-                    setHeroData(heroRes.data);
+                    setHeroData(applyLocale(heroRes.data, locale));
                 }
                 if (listHeaderRes?.success && listHeaderRes.data) {
-                    setListHeaderData(listHeaderRes.data);
+                    setListHeaderData(applyLocale(listHeaderRes.data, locale));
                 }
                 if (industriesRes?.success && industriesRes.data) {
-                    setIndustries(industriesRes.data);
+                    setIndustries(industriesRes.data.map((item: any) => applyLocale(item, locale)));
                 }
                 if (processRes?.success && processRes.data) {
-                    setProcessData(processRes.data);
+                    setProcessData(applyLocale(processRes.data, locale));
                 }
                 if (ctaRes?.success && ctaRes.data) {
-                    setCtaData(ctaRes.data);
+                    setCtaData(applyLocale(ctaRes.data, locale));
                 }
             } catch (error) {
                 // Silently fail
@@ -51,7 +55,7 @@ export function FieldPage() {
         };
 
         void fetchData();
-    }, []);
+    }, [locale]);
 
     if (loading) {
         return null; // Hoặc có thể return loading state

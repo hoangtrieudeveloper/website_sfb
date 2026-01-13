@@ -7,25 +7,41 @@ import { motion } from "framer-motion";
 import { API_BASE_URL } from "@/lib/api/base";
 import { formatDateVN } from "@/lib/date";
 import { PLACEHOLDER_CATEGORY } from "@/lib/placeholders";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface FeaturedNewsProps {
   article: {
     id: number;
-    title: string;
+    title: string | Record<Locale, string>;
     slug: string;
-    excerpt?: string;
-    categoryName?: string;
+    excerpt?: string | Record<Locale, string>;
+    categoryName?: string | Record<Locale, string>;
     imageUrl?: string;
-    author?: string;
-    readTime?: string;
+    author?: string | Record<Locale, string>;
+    readTime?: string | Record<Locale, string>;
     gradient?: string;
     publishedDate?: string;
   };
 }
 
 export function FeaturedNews({ article }: FeaturedNewsProps) {
-  const isTuyenSinh = article?.title === "";
+  const { locale } = useLocale();
+  const title = typeof article.title === 'string' ? article.title : getLocalizedText(article.title, locale);
+  const isTuyenSinh = title === "";
   const apiBase = API_BASE_URL;
+  
+  const excerpt = article.excerpt 
+    ? (typeof article.excerpt === 'string' ? article.excerpt : getLocalizedText(article.excerpt, locale))
+    : undefined;
+  const categoryName = article.categoryName
+    ? getLocalizedText(article.categoryName, locale)
+    : undefined;
+  const author = article.author
+    ? (typeof article.author === 'string' ? article.author : getLocalizedText(article.author, locale))
+    : undefined;
 
   // Gradient cho từng bài viết (lưu trong DB từ admin)
   const gradient = article.gradient || "from-blue-600 to-cyan-600";
@@ -63,7 +79,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         >
           <ImageWithFallback
             src={imageSrc}
-            alt={article.title || "Featured news article"}
+            alt={title || "Featured news article"}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             loading="lazy"
@@ -85,10 +101,10 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           className="flex flex-wrap items-center gap-4 text-sm"
         >
           {/* Category Name */}
-          {article.categoryName && (
+          {categoryName && (
             <div className="flex items-center">
               <span className="text-[#1D8FCF] text-[14px] font-normal leading-[250%] font-['Plus_Jakarta_Sans']">
-                {article.categoryName}
+                {categoryName}
               </span>
             </div>
           )}
@@ -106,13 +122,13 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           )}
 
           {/* Author */}
-          {article.author && (
+          {author && (
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M5 15C5.05305 15 5.10772 15 5.16409 15H10M5 15C4.17644 14.9993 3.74445 14.989 3.40983 14.8185C3.09623 14.6587 2.84144 14.4031 2.68166 14.0895C2.5 13.733 2.5 13.2669 2.5 12.3335V7.66683C2.5 6.73341 2.5 6.26635 2.68166 5.90983C2.84144 5.59623 3.09623 5.34144 3.40983 5.18166C3.76635 5 4.23341 5 5.16683 5H14.8335C15.7669 5 16.233 5 16.5895 5.18166C16.9031 5.34144 17.1587 5.59623 17.3185 5.90983C17.5 6.266 17.5 6.73249 17.5 7.66409V12.3359C17.5 13.2675 17.5 13.7333 17.3185 14.0895C17.1587 14.4031 16.9031 14.6587 16.5895 14.8185C16.2333 15 15.7675 15 14.8359 15H10M5 15C5.00003 14.0795 6.11931 13.3333 7.5 13.3333C8.88071 13.3333 10 14.0795 10 15M5 15C5 15 5 14.9999 5 15ZM15 11.6667H11.6667M15 9.16667H12.5M7.5 10.8333C6.57953 10.8333 5.83333 10.0871 5.83333 9.16667C5.83333 8.24619 6.57953 7.5 7.5 7.5C8.42047 7.5 9.16667 8.24619 9.16667 9.16667C9.16667 10.0871 8.42047 10.8333 7.5 10.8333Z" stroke="#64748B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <span className="text-[#64748B] text-[14px] font-normal leading-[250%] font-['Plus_Jakarta_Sans']">
-                {article.author}
+                {author}
               </span>
             </div>
           )}
@@ -126,12 +142,12 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           transition={{ delay: 0.3 }}
         >
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-gray-900 mb-4">
-            {article.title}
+            {title}
           </h2>
         </motion.div>
 
         {/* Excerpt */}
-        {article.excerpt && (
+        {excerpt && (
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -139,7 +155,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
             transition={{ delay: 0.4 }}
             className="text-gray-600 text-base lg:text-lg leading-relaxed line-clamp-3"
           >
-            {article.excerpt}
+            {excerpt}
           </motion.p>
         )}
 
@@ -152,11 +168,11 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
           className="pt-2"
         >
           <Link
-            href={`/news/${article.slug}`}
+            href={`/${locale}/news/${article.slug}`}
             className={`inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white text-white font-semibold shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all ${gradientBg}`}
             prefetch={true}
           >
-            Đọc ngay
+            {locale === 'vi' ? 'Đọc ngay' : locale === 'en' ? 'Read more' : '続きを読む'}
             <ArrowRight size={18} />
           </Link>
         </motion.div>

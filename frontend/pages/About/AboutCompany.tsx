@@ -5,12 +5,16 @@ import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { FadeIn, InViewSection } from "../../components/ui/motion";
 import * as LucideIcons from "lucide-react";
 import Link from "next/link";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutCompanyProps {
     data?: any;
 }
 
 export function AboutCompany({ data }: AboutCompanyProps) {
+    const { locale } = useLocale();
+    
     // Chỉ sử dụng data từ API, không fallback static data
     if (!data || !data.data) {
         return null;
@@ -23,6 +27,31 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
     // Handle contacts array
     const contacts = displayData.contacts || contact?.items || [];
+    
+    // Localize fields
+    const headerSub = displayData.headerSub 
+        ? (typeof displayData.headerSub === 'string' ? displayData.headerSub : getLocalizedText(displayData.headerSub, locale))
+        : undefined;
+    const headerTitleLine1 = displayData.headerTitleLine1
+        ? (typeof displayData.headerTitleLine1 === 'string' ? displayData.headerTitleLine1 : getLocalizedText(displayData.headerTitleLine1, locale))
+        : undefined;
+    const headerTitleLine2 = displayData.headerTitleLine2
+        ? (typeof displayData.headerTitleLine2 === 'string' ? displayData.headerTitleLine2 : getLocalizedText(displayData.headerTitleLine2, locale))
+        : undefined;
+    const contentTitle = displayData.contentTitle
+        ? (typeof displayData.contentTitle === 'string' ? displayData.contentTitle : getLocalizedText(displayData.contentTitle, locale))
+        : undefined;
+    const contentDescription = displayData.contentDescription
+        ? (typeof displayData.contentDescription === 'string' ? displayData.contentDescription : getLocalizedText(displayData.contentDescription, locale))
+        : undefined;
+    const contentButtonText = displayData.contentButtonText
+        ? (typeof displayData.contentButtonText === 'string' ? displayData.contentButtonText : getLocalizedText(displayData.contentButtonText, locale))
+        : undefined;
+    const contactButtonText = displayData.contactButtonText || contact?.button?.text
+        ? (typeof (displayData.contactButtonText || contact?.button?.text) === 'string' 
+            ? (displayData.contactButtonText || contact?.button?.text)
+            : getLocalizedText(displayData.contactButtonText || contact?.button?.text, locale))
+        : undefined;
 
     // Không render nếu thiếu dữ liệu quan trọng
     if (!displayData.headerTitleLine1 && !displayData.headerTitleLine2) {
@@ -35,19 +64,19 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                 <InViewSection className="mx-auto w-full max-w-[1340px]">
                     {/* Header */}
                     <FadeIn className="text-center mb-8 sm:mb-16">
-                        {displayData.headerSub && (
+                        {headerSub && (
                             <span className="text-[#2CA4E0] font-semibold text-[11px] sm:text-xs tracking-wider uppercase mb-3 block">
-                                {displayData.headerSub}
+                                {headerSub}
                             </span>
                         )}
-                        {(displayData.headerTitleLine1 || displayData.headerTitleLine2) && (
+                        {(headerTitleLine1 || headerTitleLine2) && (
                             <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xl sm:text-2xl md:text-3xl lg:text-[56px] leading-tight sm:leading-[normal] break-words">
                                 <span className="font-bold">
-                                    {displayData.headerTitleLine1}
+                                    {headerTitleLine1}
                                 </span>
                                 <br />
                                 <span className="font-medium">
-                                    {displayData.headerTitleLine2}
+                                    {headerTitleLine2}
                                 </span>
                             </h2>
                         )}
@@ -74,28 +103,28 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
                         {/* Right: Content */}
                         <FadeIn className="flex-1" delay={0.4}>
-                            {(displayData.contentTitle || displayData.contentDescription) && (
+                            {(contentTitle || contentDescription) && (
                                 <div className="space-y-6 mb-[30px]">
-                                    {displayData.contentTitle && (
+                                    {contentTitle && (
                                         <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-sm md:text-base lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
-                                            {displayData.contentTitle}
+                                            {contentTitle}
                                         </h3>
                                     )}
-                                    {displayData.contentDescription && (
+                                    {contentDescription && (
                                         <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-sm md:text-base lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
-                                            {displayData.contentDescription}
+                                            {contentDescription}
                                         </p>
                                     )}
                                 </div>
                             )}
-                            {displayData.contentButtonText && (
+                            {contentButtonText && (
                                 <div>
                                     <Link
                                         href={displayData.contentButtonLink || content?.button?.link || '#'}
                                         prefetch={true}
                                         className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-xs sm:text-sm transition-transform hover:scale-105 shadow-md hover:shadow-cyan-500/30"
                                     >
-                                        {displayData.contentButtonText}
+                                        {contentButtonText}
                                         <ArrowRight size={16} />
                                     </Link>
                                 </div>
@@ -112,6 +141,8 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                     const IconComponent = item.iconName
                                         ? ((LucideIcons as any)[item.iconName] || LucideIcons.Building2)
                                         : (item.icon || LucideIcons.Building2);
+                                    const itemTitle = typeof item.title === 'string' ? item.title : getLocalizedText(item.title, locale);
+                                    const itemText = typeof item.text === 'string' ? item.text : getLocalizedText(item.text, locale);
                                     return (
                                         <div key={idx} className="flex items-start gap-4 group">
                                             <div className="flex-shrink-0 p-2 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
@@ -120,13 +151,13 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                             <div className="flex flex-col justify-center min-h-[40px]">
                                                 {item.isHighlight ? (
                                                     <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-relaxed">
-                                                        {item.title}: <span className="font-normal text-gray-600">{item.text}</span>
+                                                        {itemTitle}: <span className="font-normal text-gray-600">{itemText}</span>
                                                     </h4>
                                                 ) : (
                                                     <>
-                                                        <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-tight mb-1">{item.title}</h4>
+                                                        <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-tight mb-1">{itemTitle}</h4>
                                                         <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words">
-                                                            {item.text}
+                                                            {itemText}
                                                         </p>
                                                     </>
                                                 )}
@@ -136,14 +167,14 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                 })}
                             </div>
 
-                            {displayData.contactButtonText && (
+                            {contactButtonText && (
                                 <div className="pt-2">
                                     <Link
                                         href={displayData.contactButtonLink || contact?.button?.link || '#'}
                                         prefetch={true}
                                         className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-xs sm:text-sm transition-transform hover:scale-105 shadow-md hover:shadow-cyan-500/30"
                                     >
-                                        {displayData.contactButtonText || contact?.button?.text}
+                                        {contactButtonText}
                                         <ArrowRight size={16} />
                                     </Link>
                                 </div>

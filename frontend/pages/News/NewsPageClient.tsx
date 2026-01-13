@@ -29,12 +29,14 @@ interface NewsPageClientProps {
   initialNews: NewsItem[];
   initialFeatured?: NewsItem;
   categories: Array<{ id: string; name: string; code?: string }>;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
 export function NewsPageClient({
   initialNews,
   initialFeatured,
   categories = [],
+  locale = 'vi',
 }: NewsPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [news, setNews] = useState<NewsItem[]>(initialNews || []);

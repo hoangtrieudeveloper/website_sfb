@@ -5,13 +5,17 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "@/lib/api/base";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
+
+type Locale = 'vi' | 'en' | 'ja';
 
 interface NewsItem {
   id: number;
-  title: string;
+  title: string | Record<Locale, string>;
   slug: string;
-  excerpt?: string;
-  categoryName?: string;
+  excerpt?: string | Record<Locale, string>;
+  categoryName?: string | Record<Locale, string>;
   imageUrl?: string;
   publishedDate?: string;
 
@@ -22,12 +26,18 @@ interface NewsItem {
 
 interface NewsListProps {
   news: NewsItem[];
+  locale?: 'vi' | 'en' | 'ja';
 }
 
-export function NewsList({ news }: NewsListProps) {
+export function NewsList({ news, locale: propLocale }: NewsListProps) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
+  
   if (news.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-12">Không có bài viết nào.</div>
+      <div className="text-center text-gray-500 py-12">
+        {locale === 'vi' ? 'Không có bài viết nào.' : locale === 'en' ? 'No articles found.' : '記事が見つかりません。'}
+      </div>
     );
   }
 
@@ -43,6 +53,11 @@ export function NewsList({ news }: NewsListProps) {
     >
       <AnimatePresence>
         {news.map((article, index) => {
+          const title = typeof article.title === 'string' ? article.title : getLocalizedText(article.title, locale);
+          const excerpt = article.excerpt 
+            ? (typeof article.excerpt === 'string' ? article.excerpt : getLocalizedText(article.excerpt, locale))
+            : undefined;
+          
           const img = article.imageUrl
             ? article.imageUrl.startsWith("http")
               ? article.imageUrl
@@ -57,7 +72,7 @@ export function NewsList({ news }: NewsListProps) {
           const comments = article.comments ?? 0;
 
           const dateText = article.publishedDate
-            ? new Date(article.publishedDate).toLocaleDateString("vi-VN")
+            ? new Date(article.publishedDate).toLocaleDateString(locale === 'vi' ? "vi-VN" : locale === 'en' ? "en-US" : "ja-JP")
             : "";
 
           return (
@@ -71,8 +86,8 @@ export function NewsList({ news }: NewsListProps) {
               key={article.id}
             >
               <Link
-                href={`/news/${article.slug}`}
-                aria-label={article.title}
+                href={`/${locale}/news/${article.slug}`}
+                aria-label={title}
                 className="block h-full"
                 prefetch={true}
               >
@@ -96,7 +111,7 @@ export function NewsList({ news }: NewsListProps) {
                   <div className="w-full rounded-[12px] overflow-hidden shrink-0 relative group h-[220px] md:h-[273.243px] lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[273px] min-[1920px]:aspect-auto">
                     <ImageWithFallback
                       src={img}
-                      alt={article.title || "News article"}
+                      alt={title || "News article"}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       loading="lazy"
@@ -112,15 +127,15 @@ export function NewsList({ news }: NewsListProps) {
                       className="h-[60px] self-stretch line-clamp-2 font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] text-[var(--Color-2,#0F172A)] group-hover:text-[#1D8FCF] transition-colors"
                       style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                     >
-                      {article.title}
+                      {title}
                     </h3>
 
-                    {article.excerpt && (
+                    {excerpt && (
                       <p
                         className="mt-3 flex-[1_0_0] min-h-0 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)]"
                         style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                       >
-                        {article.excerpt}
+                        {excerpt}
                       </p>
                     )}
 

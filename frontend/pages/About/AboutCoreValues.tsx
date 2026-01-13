@@ -8,15 +8,20 @@ import { motion } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutCoreValuesProps {
     data?: any;
 }
 
-const CoreValueCard = ({ item, className = "", enableHover = true }: { item: any, className?: string, enableHover?: boolean }) => {
+const CoreValueCard = ({ item, className = "", enableHover = true, locale = 'vi' }: { item: any, className?: string, enableHover?: boolean, locale?: 'vi' | 'en' | 'ja' }) => {
     const IconComponent = item.iconName
         ? ((LucideIcons as any)[item.iconName] || LucideIcons.Lightbulb)
         : (item.icon || LucideIcons.Lightbulb);
+    
+    const itemTitle = typeof item.title === 'string' ? item.title : getLocalizedText(item.title, locale);
+    const itemDescription = typeof item.description === 'string' ? item.description : getLocalizedText(item.description, locale);
 
     return (
         <motion.div
@@ -31,21 +36,27 @@ const CoreValueCard = ({ item, className = "", enableHover = true }: { item: any
                 <IconComponent size={32} strokeWidth={1.5} className="w-8 h-8 sm:w-12 sm:h-12" />
             </motion.div>
             <h3 className="text-[#0F172A] text-lg sm:text-xl font-bold mb-3">
-                {item.title}
+                {itemTitle}
             </h3>
             <p className="text-gray-600 leading-relaxed text-sm lg:text-base">
-                {item.description}
+                {itemDescription}
             </p>
         </motion.div>
     );
 };
 
 export function AboutCoreValues({ data }: AboutCoreValuesProps) {
+    const { locale } = useLocale();
+    
     // Use data from props if available, otherwise fallback to static data
     const displayData = data?.data || { items: coreValues };
-    const headerTitle = displayData.headerTitle || "Giá trị cốt lõi";
-    const headerDescription = displayData.headerDescription || "Những nguyên tắc định hình văn hoá và cách SFB hợp tác với khách hàng, đối tác và đội ngũ nội bộ";
+    const headerTitleRaw = displayData.headerTitle || "Giá trị cốt lõi";
+    const headerDescriptionRaw = displayData.headerDescription || "Những nguyên tắc định hình văn hoá và cách SFB hợp tác với khách hàng, đối tác và đội ngũ nội bộ";
     const items = displayData.items || coreValues;
+    
+    // Localize fields
+    const headerTitle = typeof headerTitleRaw === 'string' ? headerTitleRaw : getLocalizedText(headerTitleRaw, locale);
+    const headerDescription = typeof headerDescriptionRaw === 'string' ? headerDescriptionRaw : getLocalizedText(headerDescriptionRaw, locale);
 
     return (
         <section className="py-10 sm:py-20 bg-[#F8FBFE]">
@@ -69,7 +80,7 @@ export function AboutCoreValues({ data }: AboutCoreValuesProps) {
                     <StaggerContainer className="hidden lg:grid lg:grid-cols-3 gap-6">
                         {items.filter((item: any) => item.isActive !== false).map((item: any, idx: number) => (
                             <FadeIn key={item.id || idx}>
-                                <CoreValueCard item={item} />
+                                <CoreValueCard item={item} locale={locale} />
                             </FadeIn>
                         ))}
                     </StaggerContainer>

@@ -16,12 +16,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { buildUrl } from "@/lib/api/base";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface HeroBannerProps {
   data?: any;
 }
 
 export function HeroBanner({ data }: HeroBannerProps) {
+  const { locale } = useLocale();
   const [showVideoDialog, setShowVideoDialog] = useState(false);
 
   // Chỉ sử dụng data từ API, không có fallback static data
@@ -29,12 +32,33 @@ export function HeroBanner({ data }: HeroBannerProps) {
     return null;
   }
 
-  const title = data?.title;
-  const description = data?.description;
+  // Localize fields
+  // Title can be string or object with line1, line2, line3
+  let title: { line1?: string; line2?: string; line3?: string } | string = data?.title;
+  if (title && typeof title === 'object' && !Array.isArray(title)) {
+    title = {
+      line1: typeof title.line1 === 'string' ? title.line1 : getLocalizedText(title.line1, locale),
+      line2: typeof title.line2 === 'string' ? title.line2 : getLocalizedText(title.line2, locale),
+      line3: typeof title.line3 === 'string' ? title.line3 : getLocalizedText(title.line3, locale),
+    };
+  } else if (typeof title === 'string') {
+    // If title is string, keep as is
+    title = title;
+  }
+  
+  const description = typeof data?.description === 'string' ? data.description : getLocalizedText(data?.description, locale);
   const primaryButton = data?.primaryButton;
   const secondaryButton = data?.secondaryButton;
   const heroImage = data?.heroImage;
   const partnersList = data?.partners || [];
+  
+  // Localize button texts
+  const primaryButtonText = primaryButton?.text
+    ? (typeof primaryButton.text === 'string' ? primaryButton.text : getLocalizedText(primaryButton.text, locale))
+    : undefined;
+  const secondaryButtonText = secondaryButton?.text
+    ? (typeof secondaryButton.text === 'string' ? secondaryButton.text : getLocalizedText(secondaryButton.text, locale))
+    : undefined;
 
   // Get YouTube video ID from URL
   const getYouTubeVideoId = (url: string): string | null => {
@@ -118,9 +142,15 @@ export function HeroBanner({ data }: HeroBannerProps) {
                   fontFeatureSettings: "'liga' off, 'clig' off",
                 }}
               >
-                {title.line1}<br className="hidden lg:block" />
-                {title.line2}<br className="hidden lg:block" />
-                {title.line3}
+                {typeof title === 'string' ? (
+                  title
+                ) : (
+                  <>
+                    {title.line1}<br className="hidden lg:block" />
+                    {title.line2}<br className="hidden lg:block" />
+                    {title.line3}
+                  </>
+                )}
               </h1>
             </ScrollAnimation>
 
@@ -268,7 +298,7 @@ export function HeroBanner({ data }: HeroBannerProps) {
           >
             <DialogHeader className="p-6 pb-4 flex-shrink-0">
               <DialogTitle>
-                {secondaryButton.text || "Video"}
+                {secondaryButtonText || "Video"}
               </DialogTitle>
             </DialogHeader>
             <div className="px-6 pb-6 flex-1 flex items-center justify-center min-h-0">

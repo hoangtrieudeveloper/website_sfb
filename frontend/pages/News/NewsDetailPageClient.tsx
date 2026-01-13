@@ -29,24 +29,26 @@ import {
 import { toast } from "sonner";
 import { PLACEHOLDER_EXCERPT, PLACEHOLDER_CONTENT } from "@/lib/placeholders";
 import { API_BASE_URL } from "@/lib/api/base";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface NewsDetailPageClientProps {
   article: {
     id: number;
-    title: string;
+    title: string | Record<'vi' | 'en' | 'ja', string>;
     slug: string;
-    excerpt?: string;
-    content?: string;
-    categoryName?: string;
+    excerpt?: string | Record<'vi' | 'en' | 'ja', string>;
+    content?: string | Record<'vi' | 'en' | 'ja', string>;
+    categoryName?: string | Record<'vi' | 'en' | 'ja', string>;
     categoryId?: string;
     imageUrl?: string;
-    author?: string;
-    readTime?: string;
+    author?: string | Record<'vi' | 'en' | 'ja', string>;
+    readTime?: string | Record<'vi' | 'en' | 'ja', string>;
     gradient?: string;
     publishedDate?: string;
-    seoKeywords?: string;
+    seoKeywords?: string | Record<'vi' | 'en' | 'ja', string>;
     // Các field mới phục vụ hiển thị chi tiết
-    galleryTitle?: string;
+    galleryTitle?: string | Record<'vi' | 'en' | 'ja', string>;
     galleryImages?: string[];
     galleryPosition?: "top" | "bottom";
     showTableOfContents?: boolean;
@@ -67,9 +69,22 @@ interface NewsDetailPageClientProps {
 export function NewsDetailPageClient({
   article,
   relatedArticles = [],
-}: NewsDetailPageClientProps) {
+  locale: initialLocale,
+}: NewsDetailPageClientProps & { locale?: 'vi' | 'en' | 'ja' }) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
+  
   const [linkCopied, setLinkCopied] = useState(false);
   const [supportsWebShare, setSupportsWebShare] = useState(false);
+  
+  // Localize article fields - getLocalizedText now handles JSON strings automatically
+  const articleTitle = getLocalizedText(article.title, locale);
+  const articleExcerpt = getLocalizedText(article.excerpt, locale);
+  const articleContent = getLocalizedText(article.content, locale);
+  const articleAuthor = getLocalizedText(article.author, locale);
+  const articleReadTime = getLocalizedText(article.readTime, locale);
+  const articleCategoryName = getLocalizedText(article.categoryName, locale);
+  const articleGalleryTitle = getLocalizedText(article.galleryTitle, locale);
   const [relatedPage, setRelatedPage] = useState<number>(1);
   const RELATED_PAGE_SIZE = 6;
   
@@ -100,20 +115,20 @@ export function NewsDetailPageClient({
   const currentUrl = typeof window !== "undefined" 
     ? window.location.href 
     : "";
-  const shareTitle = article.title;
-  const shareDescription = article.excerpt || PLACEHOLDER_EXCERPT;
+  const shareTitle = articleTitle;
+  const shareDescription = articleExcerpt || PLACEHOLDER_EXCERPT;
 
   const showTableOfContents = article.showTableOfContents !== false;
   const enableShareButtons = article.enableShareButtons !== false;
   const showAuthorBox = article.showAuthorBox !== false;
 
-  const galleryTitle = article.galleryTitle || "";
+  const galleryTitle = articleGalleryTitle || "";
   const galleryImages = article.galleryImages || [];
   const galleryPosition: "top" | "bottom" =
     (article.galleryPosition as any) === "top" ? "top" : "bottom";
 
   const contentHtml =
-    article.content || article.excerpt || PLACEHOLDER_CONTENT;
+    articleContent || articleExcerpt || PLACEHOLDER_CONTENT;
 
   const { processedHtml, tocItems } = processContentHtml({
     html: contentHtml,
@@ -189,7 +204,7 @@ export function NewsDetailPageClient({
     try {
       await navigator.clipboard.writeText(currentUrl);
       setLinkCopied(true);
-      toast.success("Đã sao chép liên kết!");
+      toast.success(locale === 'vi' ? "Đã sao chép liên kết!" : locale === 'en' ? "Link copied!" : "リンクをコピーしました！");
       setTimeout(() => setLinkCopied(false), 2000);
     } catch (err) {
       // Fallback cho trình duyệt không hỗ trợ clipboard API
@@ -200,10 +215,10 @@ export function NewsDetailPageClient({
       try {
         document.execCommand("copy");
         setLinkCopied(true);
-        toast.success("Đã sao chép liên kết!");
+        toast.success(locale === 'vi' ? "Đã sao chép liên kết!" : locale === 'en' ? "Link copied!" : "リンクをコピーしました！");
         setTimeout(() => setLinkCopied(false), 2000);
       } catch (e) {
-        toast.error("Không thể sao chép liên kết");
+        toast.error(locale === 'vi' ? "Không thể sao chép liên kết" : locale === 'en' ? "Failed to copy link" : "リンクのコピーに失敗しました");
       }
       document.body.removeChild(textArea);
     }
@@ -224,7 +239,7 @@ export function NewsDetailPageClient({
       }
     } else {
       // Fallback: mở dropdown menu
-      toast.info("Trình duyệt không hỗ trợ chia sẻ trực tiếp");
+      toast.info(locale === 'vi' ? "Trình duyệt không hỗ trợ chia sẻ trực tiếp" : locale === 'en' ? "Browser does not support direct sharing" : "ブラウザが直接共有をサポートしていません");
     }
   };
 
@@ -235,18 +250,18 @@ export function NewsDetailPageClient({
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm mb-6 text-gray-500">
             <Link
-              href="/news"
+              href={`/${locale}/news`}
               className="text-gray-600 hover:text-[#006FB3] transition-colors flex items-center gap-2"
               prefetch={true}
             >
               <ArrowLeft size={16} />
-              Tin tức
+              {locale === 'vi' ? 'Tin tức' : locale === 'en' ? 'News' : 'ニュース'}
             </Link>
-            {article.categoryName && (
+            {articleCategoryName && (
               <>
                 <ChevronRight size={16} className="text-gray-400" />
                 <span className="text-gray-400">
-                  {article.categoryName}
+                  {articleCategoryName}
                 </span>
               </>
             )}
@@ -256,7 +271,7 @@ export function NewsDetailPageClient({
           <div className="w-full rounded-2xl overflow-hidden bg-gray-100 relative h-[220px] md:h-[420px]">
             <ImageWithFallback
               src={featuredImageSrc}
-              alt={article.title}
+              alt={articleTitle}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               loading="lazy"
@@ -386,35 +401,35 @@ export function NewsDetailPageClient({
 
             {/* Row 2: Category / Date / Author */}
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              {article.categoryName && (
+              {articleCategoryName && (
                 <span className="inline-flex items-center gap-2">
                   <Tag size={16} className="text-gray-400" />
-                  <span className="text-[#006FB3]">{article.categoryName}</span>
+                  <span className="text-[#006FB3]">{articleCategoryName}</span>
                 </span>
               )}
 
               {article.publishedDate && (
                 <span className="inline-flex items-center gap-2">
                   <Calendar size={16} className="text-gray-400" />
-                  {new Date(article.publishedDate).toLocaleDateString("vi-VN")}
+                  {new Date(article.publishedDate).toLocaleDateString(locale === 'vi' ? "vi-VN" : locale === 'en' ? "en-US" : "ja-JP")}
                 </span>
               )}
 
-              {article.author && (
+              {articleAuthor && (
                 <span className="inline-flex items-center gap-2">
                   <User size={16} className="text-gray-400" />
-                  {article.author}
+                  {articleAuthor}
                 </span>
               )}
             </div>
 
             <h1 className="mt-6 text-gray-900 text-3xl md:text-4xl font-bold">
-              {article.title}
+              {articleTitle}
             </h1>
 
-            {article.excerpt && (
+            {articleExcerpt && (
               <p className="mt-4 text-gray-600 leading-relaxed">
-                {article.excerpt}
+                {articleExcerpt}
               </p>
             )}
           </div>
@@ -485,19 +500,19 @@ export function NewsDetailPageClient({
       {showAuthorBox && (
         <section className="pb-16 bg-white">
           <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-            {article.author && (
+            {articleAuthor && (
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-start gap-3 shadow-sm">
                 <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
-                  {article.author.charAt(0).toUpperCase()}
+                  {articleAuthor.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Tác giả</p>
+                  <p className="text-sm text-gray-500">{locale === 'vi' ? 'Tác giả' : locale === 'en' ? 'Author' : '著者'}</p>
                   <p className="text-base font-semibold text-gray-900">
-                    {article.author}
+                    {articleAuthor}
                   </p>
                   {article.publishedDate && (
                     <p className="text-xs text-gray-500">
-                      Ngày đăng: {new Date(article.publishedDate).toLocaleDateString("vi-VN")}
+                      {locale === 'vi' ? 'Ngày đăng' : locale === 'en' ? 'Published' : '公開日'}: {new Date(article.publishedDate).toLocaleDateString(locale === 'vi' ? "vi-VN" : locale === 'en' ? "en-US" : "ja-JP")}
                     </p>
                   )}
                 </div>
@@ -517,12 +532,14 @@ export function NewsDetailPageClient({
             </div>
 
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Bài viết liên quan</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {locale === 'vi' ? 'Bài viết liên quan' : locale === 'en' ? 'Related Articles' : '関連記事'}
+              </h2>
               {/* <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p> */}
             </div>
 
             <div data-related-news-section>
-              <NewsList news={relatedPaginated.slice(0, 6)} />
+              <NewsList news={relatedPaginated.slice(0, 6)} locale={locale} />
             </div>
 
             {/* Divider between Related list and pagination */}
@@ -541,7 +558,7 @@ export function NewsDetailPageClient({
                     ? "border-gray-200 text-gray-300 cursor-not-allowed"
                     : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
                     }`}
-                  aria-label="Trang trước"
+                  aria-label={locale === 'vi' ? "Trang trước" : locale === 'en' ? "Previous page" : "前のページ"}
                 >
                   &lt;
                 </button>
@@ -570,7 +587,7 @@ export function NewsDetailPageClient({
                         ? "bg-[#0870B4] text-white border-[#0870B4] shadow-md"
                         : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
                         }`}
-                      aria-label={`Trang ${pageNum}`}
+                      aria-label={locale === 'vi' ? `Trang ${pageNum}` : locale === 'en' ? `Page ${pageNum}` : `ページ ${pageNum}`}
                       aria-current={isActive ? "page" : undefined}
                     >
                       {pageNum}
@@ -586,7 +603,7 @@ export function NewsDetailPageClient({
                     ? "border-gray-200 text-gray-300 cursor-not-allowed"
                     : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
                     }`}
-                  aria-label="Trang sau"
+                  aria-label={locale === 'vi' ? "Trang sau" : locale === 'en' ? "Next page" : "次のページ"}
                 >
                   &gt;
                 </button>
@@ -597,7 +614,7 @@ export function NewsDetailPageClient({
       )}
        <section className=" bg-white">
               <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-                <Consult />
+                <Consult locale={locale} />
               </div>
             </section>
     </div>

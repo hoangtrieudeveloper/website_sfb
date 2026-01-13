@@ -7,7 +7,7 @@ import { ArrowRight, CheckCircle2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { getLocalizedText } from "@/lib/utils/i18n";
-import { useLocale } from "@/lib/hooks/useLocale";
+import { useLocale } from "@/lib/contexts/LocaleContext";
 
 interface SolutionsProps {
   data?: any;

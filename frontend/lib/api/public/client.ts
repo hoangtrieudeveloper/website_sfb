@@ -9,10 +9,14 @@ import { buildUrl, parseErrorResponse } from "../base";
 /**
  * Make an unauthenticated API call for public section
  * No JWT token required
+ * @param endpoint - API endpoint
+ * @param options - Fetch options
+ * @param locale - Optional locale (vi/en/ja) to pass in Accept-Language header
  */
 export async function publicApiCall<T = any>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  locale?: 'vi' | 'en' | 'ja'
 ): Promise<T> {
   try {
     const url = buildUrl(endpoint);
@@ -20,6 +24,11 @@ export async function publicApiCall<T = any>(
       "Content-Type": "application/json",
       ...(options.headers || {}),
     };
+
+    // Add Accept-Language header if locale is provided
+    if (locale) {
+      headers['Accept-Language'] = locale;
+    }
 
     const response = await fetch(url, {
       ...options,

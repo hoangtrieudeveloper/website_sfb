@@ -6,9 +6,10 @@ import { ScrollAnimation } from "./ScrollAnimation";
 
 interface ConsultProps {
     data?: any;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function Consult({ data }: ConsultProps) {
+export function Consult({ data, locale }: ConsultProps) {
     // Chỉ sử dụng data từ API, không có fallback static data
     if (!data) {
         return null;

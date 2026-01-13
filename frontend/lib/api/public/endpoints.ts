@@ -70,6 +70,26 @@ export const PublicEndpoints = {
     detail: (slug: string) => `/api/public/products/${slug}`,
   },
   
+  // Public SEO
+  seo: {
+    getByPath: (path: string) => {
+      // Handle root path specially
+      if (path === '/') {
+        return '/api/public/seo?path=%2F';
+      }
+      const encodedPath = encodeURIComponent(path);
+      return `/api/public/seo/${encodedPath}`;
+    },
+  },
+  
+  // Public Solutions
+  solutions: {
+    hero: "/api/public/solutions/hero",
+    list: "/api/public/solutions/list",
+    process: "/api/public/solutions/process",
+    cta: "/api/public/solutions/cta",
+  },
+  
   // Other public endpoints can be added here
 } as const;
 

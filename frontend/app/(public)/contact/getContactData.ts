@@ -1,23 +1,16 @@
 import { PublicEndpoints } from "@/lib/api/public";
-import { buildUrl } from "@/lib/api/base";
+import { publicApiCall } from "@/lib/api/public/client";
 
-export async function getContactData() {
+export async function getContactData(locale?: 'vi' | 'en' | 'ja') {
   try {
-    const response = await fetch(buildUrl(PublicEndpoints.contact.get), {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      next: { revalidate: 60 },
-    });
+    const response = await publicApiCall<{ success: boolean; data?: any }>(
+      PublicEndpoints.contact.get,
+      {},
+      locale
+    );
 
-    if (!response.ok) {
-      return null;
-    }
-
-    const result = await response.json();
-    if (result.success && result.data) {
-      return result.data;
+    if (response.success && response.data) {
+      return response.data;
     }
 
     return null;

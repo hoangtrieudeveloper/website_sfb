@@ -4,19 +4,26 @@ import React, { useState, useEffect, useCallback } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { Star } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface TestimonialsProps {
   data?: any;
 }
 
 export function Testimonials({ data }: TestimonialsProps) {
+  const { locale } = useLocale();
+  
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {
     return null;
   }
 
-  const title = data?.title;
+  const titleRaw = data?.title;
   const reviewsData = data?.reviews || [];
+  
+  // Localize title
+  const title = typeof titleRaw === 'string' ? titleRaw : getLocalizedText(titleRaw, locale);
 
   // Không render nếu không có dữ liệu cần thiết
   if (!title || reviewsData.length === 0) {
@@ -101,6 +108,10 @@ export function Testimonials({ data }: TestimonialsProps) {
               {testimonials.map((item, index) => {
                 // Determine width class based on original index (modulo)
                 const widthClass = widthClasses[index % widthClasses.length];
+                
+                // Localize review fields
+                const itemQuote = typeof item.quote === 'string' ? item.quote : getLocalizedText(item.quote, locale);
+                const itemAuthor = typeof item.author === 'string' ? item.author : getLocalizedText(item.author, locale);
 
                 return (
                   <div
@@ -123,12 +134,12 @@ export function Testimonials({ data }: TestimonialsProps) {
 
                       {/* Quote */}
                       <p className="text-[#334155] text-sm sm:text-[15px] leading-relaxed">
-                        “{item.quote}”
+                        "{itemQuote}"
                       </p>
 
                       {/* Author */}
                       <div className="font-bold text-[#0F172A] text-[15px] mt-auto">
-                        {item.author}
+                        {itemAuthor}
                       </div>
                     </div>
                   </div>

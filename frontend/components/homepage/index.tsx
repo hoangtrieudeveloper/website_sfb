@@ -10,7 +10,7 @@ import { Testimonials } from "./Testimonials";
 import { Consult } from "../public/Consult";
 import { publicApiCall } from "@/lib/api/public/client";
 import { PublicEndpoints } from "@/lib/api/public/endpoints";
-import { useLocale } from "@/lib/hooks/useLocale";
+import { useLocale } from "@/lib/contexts/LocaleContext";
 import { applyLocale } from "@/lib/utils/i18n";
 
 interface HomepageBlock {
@@ -20,8 +20,9 @@ interface HomepageBlock {
   isActive: boolean;
 }
 
-export function HomepageContent() {
-  const locale = useLocale();
+export function HomepageContent({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'ja' }) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
   const [blocks, setBlocks] = useState<Record<string, HomepageBlock>>({});
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +30,9 @@ export function HomepageContent() {
     const fetchBlocks = async () => {
       try {
         const response = await publicApiCall<{ success: boolean; data: HomepageBlock[] }>(
-          `${PublicEndpoints.homepage.list}?locale=${locale}`
+          PublicEndpoints.homepage.list,
+          {},
+          locale
         );
         
         if (response.success && response.data) {

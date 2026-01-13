@@ -6,20 +6,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { getPublicSettings } from "@/lib/api/settings";
 import { buildUrl } from "@/lib/api/base";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const { locale } = useLocale();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadSettings();
-  }, []);
+  }, [locale]);
 
   const loadSettings = async () => {
     try {
       const keys = 'logo,slogan,site_name,site_description,phone,email,address,social_facebook,social_twitter,social_linkedin,social_instagram,footer_quick_links,footer_solutions';
-      const data = await getPublicSettings(keys);
+      const data = await getPublicSettings(keys, locale);
       setSettings(data);
     } catch (error: any) {
       // Silently fail - component sẽ return null nếu không có data
@@ -39,12 +42,20 @@ export function Footer() {
   }
 
   const logoUrl = settings.logo;
-  const slogan = settings.slogan;
-  const siteName = settings.site_name;
-  const siteDescription = settings.site_description;
+  const slogan = typeof settings.slogan === 'string' 
+    ? settings.slogan 
+    : getLocalizedText(settings.slogan, locale);
+  const siteName = typeof settings.site_name === 'string'
+    ? settings.site_name
+    : getLocalizedText(settings.site_name, locale);
+  const siteDescription = typeof settings.site_description === 'string'
+    ? settings.site_description
+    : getLocalizedText(settings.site_description, locale);
   const phone = settings.phone;
   const email = settings.email;
-  const address = settings.address;
+  const address = typeof settings.address === 'string'
+    ? settings.address
+    : getLocalizedText(settings.address, locale);
 
   // Chỉ hiển thị social links nếu có URL
   const socialLinks = [
@@ -70,12 +81,20 @@ export function Footer() {
     },
   ].filter(Boolean) as Array<{ icon: typeof Facebook; href: string; label: string }>;
 
-  // Parse JSON links from settings
+  // Parse JSON links from settings and apply locale
   const parseLinks = (jsonString: string): Array<{ name: string; href: string }> => {
     try {
       if (!jsonString) return [];
       const parsed = JSON.parse(jsonString);
-      return Array.isArray(parsed) ? parsed : [];
+      if (!Array.isArray(parsed)) return [];
+      
+      // Apply locale to each link's name field
+      return parsed.map((link: any) => ({
+        name: typeof link.name === 'string' 
+          ? link.name 
+          : getLocalizedText(link.name, locale),
+        href: link.href || '',
+      }));
     } catch (error: any) {
       // Silently fail - return empty array
       return [];
@@ -90,7 +109,7 @@ export function Footer() {
       <div className="grid grid-cols-2 lg:flex lg:flex-row w-full max-w-[1298px] items-start gap-x-4 lg:gap-x-8 gap-y-6 lg:gap-[48px] mb-6 lg:mb-16 px-4 sm:px-6 xl:px-0">
         {/* Column 1: Logo & Intro */}
         <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start space-y-4 lg:space-y-6 text-center lg:text-left">
-          <Link href="/" className="inline-block" aria-label={`${siteName} - ${slogan || 'Trang chủ'}`}>
+          <Link href={`/${locale}`} className="inline-block" aria-label={`${siteName} - ${slogan || (locale === 'vi' ? 'Trang chủ' : locale === 'en' ? 'Home' : 'ホーム')}`}>
             <div className="flex items-center gap-3">
               {/* Logo Image */}
               {logoUrl && (
@@ -173,7 +192,9 @@ export function Footer() {
         {/* Column 2: Links */}
         {quickLinks.length > 0 && (
           <nav className="col-span-1 lg:flex-1" aria-label="Quick links">
-            <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">Liên kết</h4>
+            <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">
+              {locale === 'vi' ? 'Liên kết' : locale === 'en' ? 'Links' : 'リンク'}
+            </h4>
             <ul className="space-y-2 lg:space-y-3">
               {quickLinks.map((link, idx) => (
                 <li key={idx}>
@@ -193,7 +214,9 @@ export function Footer() {
         {/* Column 3: Services */}
         {solutions.length > 0 && (
           <nav className="col-span-1 lg:flex-1" aria-label="Services">
-            <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">Dịch vụ</h4>
+            <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">
+              {locale === 'vi' ? 'Dịch vụ' : locale === 'en' ? 'Services' : 'サービス'}
+            </h4>
             <ul className="space-y-1.5 lg:space-y-3">
               {solutions.map((item, idx) => (
                <li key={idx} className={idx > 2 ? "hidden lg:block" : ""}>
@@ -213,11 +236,15 @@ export function Footer() {
         {/* Column 4: Contact Info */}
         {(address || phone || email) && (
           <address className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start text-center lg:text-left not-italic">
-            <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">Thông tin liên hệ</h4>
+            <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">
+              {locale === 'vi' ? 'Thông tin liên hệ' : locale === 'en' ? 'Contact Information' : 'お問い合わせ情報'}
+            </h4>
             <div className="space-y-2 lg:space-y-4 w-full">
               {address && (
                 <div>
-                  <span className="font-bold text-[#334155] block mb-0.5 text-sm lg:text-[15px]">Địa chỉ</span>
+                  <span className="font-bold text-[#334155] block mb-0.5 text-sm lg:text-[15px]">
+                    {locale === 'vi' ? 'Địa chỉ' : locale === 'en' ? 'Address' : '住所'}
+                  </span>
                   <p className="text-[#334155] text-sm lg:text-[15px] leading-relaxed">
                     {address}
                   </p>
@@ -225,7 +252,9 @@ export function Footer() {
               )}
               {phone && (
                 <div>
-                  <span className="font-bold text-[#334155] inline-block mr-1 text-sm lg:text-[15px]">Hotline:</span>
+                  <span className="font-bold text-[#334155] inline-block mr-1 text-sm lg:text-[15px]">
+                    {locale === 'vi' ? 'Hotline:' : locale === 'en' ? 'Hotline:' : 'ホットライン:'}
+                  </span>
                   <a href={`tel:${phone.replace(/\s/g, '')}`} className="text-[#334155] hover:text-[#006FB3] transition-colors text-[15px]">
                     {phone}
                   </a>
@@ -233,7 +262,9 @@ export function Footer() {
               )}
               {email && (
                 <div>
-                  <span className="font-bold text-[#334155] inline-block mr-1 text-sm lg:text-[15px]">Email:</span>
+                  <span className="font-bold text-[#334155] inline-block mr-1 text-sm lg:text-[15px]">
+                    {locale === 'vi' ? 'Email:' : locale === 'en' ? 'Email:' : 'メール:'}
+                  </span>
                   <a href={`mailto:${email}`} className="text-[#334155] hover:text-[#006FB3] transition-colors text-sm lg:text-[15px]">
                     {email}
                   </a>
@@ -250,16 +281,16 @@ export function Footer() {
           © {currentYear} SFBTECH.,JSC. All rights reserved.
         </p>
         <nav aria-label="Footer legal links" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-2 md:mt-0">
-          <Link href="/privacy" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors" prefetch={true}>
-            Chính sách bảo mật
+          <Link href={`/${locale}/privacy`} className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors" prefetch={true}>
+            {locale === 'vi' ? 'Chính sách bảo mật' : locale === 'en' ? 'Privacy Policy' : 'プライバシーポリシー'}
           </Link>
           <div className="hidden md:block h-4 w-px bg-[#E2E8F0]" aria-hidden="true"></div>
-          <Link href="/terms" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors" prefetch={true}>
-            Điều khoản sử dụng
+          <Link href={`/${locale}/terms`} className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors" prefetch={true}>
+            {locale === 'vi' ? 'Điều khoản sử dụng' : locale === 'en' ? 'Terms of Use' : '利用規約'}
           </Link>
           <div className="hidden md:block h-4 w-px bg-[#E2E8F0]" aria-hidden="true"></div>
-          <Link href="/contact" className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors" prefetch={true}>
-            Liên hệ
+          <Link href={`/${locale}/contact`} className="text-[#334155] hover:text-[#006FB3] text-sm font-medium transition-colors" prefetch={true}>
+            {locale === 'vi' ? 'Liên hệ' : locale === 'en' ? 'Contact' : 'お問い合わせ'}
           </Link>
         </nav>
       </div>

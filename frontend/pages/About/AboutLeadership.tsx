@@ -15,6 +15,8 @@ import {
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import { FadeIn, InViewSection } from "../../components/ui/motion";
 import { motion } from "framer-motion";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutLeadershipProps {
     data?: any;
@@ -42,10 +44,16 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
         return null;
     }
 
+    const { locale } = useLocale();
+    
     const displayData = data.data;
-    const headerTitle = displayData.headerTitle;
-    const headerDescription = displayData.headerDescription;
+    const headerTitleRaw = displayData.headerTitle;
+    const headerDescriptionRaw = displayData.headerDescription;
     const items = displayData.items || [];
+    
+    // Localize fields
+    const headerTitle = typeof headerTitleRaw === 'string' ? headerTitleRaw : getLocalizedText(headerTitleRaw, locale);
+    const headerDescription = typeof headerDescriptionRaw === 'string' ? headerDescriptionRaw : getLocalizedText(headerDescriptionRaw, locale);
 
     // Không render nếu không có items
     if (!items || items.length === 0) {
@@ -81,7 +89,12 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                             className="w-full"
                         >
                             <CarouselContent className="-ml-4 py-4">
-                                {items.filter((item: any) => item.isActive !== false).map((leader: any, index: number) => (
+                                {items.filter((item: any) => item.isActive !== false).map((leader: any, index: number) => {
+                                    const leaderName = typeof leader.name === 'string' ? leader.name : getLocalizedText(leader.name, locale);
+                                    const leaderPosition = typeof leader.position === 'string' ? leader.position : getLocalizedText(leader.position, locale);
+                                    const leaderDescription = typeof leader.description === 'string' ? leader.description : getLocalizedText(leader.description, locale);
+                                    
+                                    return (
                                     <CarouselItem key={index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                                         <motion.div
                                             whileHover={{ y: -8 }}
@@ -90,7 +103,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                             <div className="relative h-[234px] flex-shrink-0 self-stretch rounded-[8px] overflow-hidden bg-gray-200 lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
                                                 <ImageWithFallback
                                                     src={leader.image}
-                                                    alt={leader.name ? `${leader.name} - ${leader.position || 'Leadership'}` : "Leadership Team Member"}
+                                                    alt={leaderName ? `${leaderName} - ${leaderPosition || 'Leadership'}` : "Leadership Team Member"}
 
                                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                     loading="lazy"
@@ -101,15 +114,15 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
 
                                             <div className="flex flex-col items-start w-full">
                                                 <h3 className="self-stretch text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] [font-feature-settings:'liga'_off,'clig'_off] mb-1">
-                                                    {leader.name}
+                                                    {leaderName}
                                                 </h3>
 
                                                 <div className="w-full max-w-[336px] self-center text-[#1D8FCF] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-medium leading-normal uppercase [font-feature-settings:'liga'_off,'clig'_off] overflow-hidden text-ellipsis line-clamp-1 mb-3">
-                                                    {leader.position}
+                                                    {leaderPosition}
                                                 </div>
 
                                                 <p className="w-full max-w-[336px] self-center text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] mb-0">
-                                                    {leader.description}
+                                                    {leaderDescription}
                                                 </p>
                                             </div>
 
@@ -129,7 +142,8 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                                             </div>
                                         </motion.div>
                                     </CarouselItem>
-                                ))}
+                                    );
+                                })}
                             </CarouselContent>
                             <CarouselPrevious className="hidden md:flex -left-12 border-[#2CA4E0] text-[#2CA4E0] hover:bg-[#2CA4E0] hover:text-white" />
                             <CarouselNext className="hidden md:flex -right-12 border-[#2CA4E0] text-[#2CA4E0] hover:bg-[#2CA4E0] hover:text-white" />

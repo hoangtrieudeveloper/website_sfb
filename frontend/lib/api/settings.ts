@@ -57,13 +57,14 @@ export async function updateSetting(key: string, value: string, type?: string, d
 /**
  * Get public settings (no auth required)
  * @param keys - Comma-separated list of keys, e.g., "logo,phone,email"
+ * @param locale - Optional locale for multilingual settings
  */
-export async function getPublicSettings(keys?: string): Promise<PublicSettings> {
+export async function getPublicSettings(keys?: string, locale?: 'vi' | 'en' | 'ja'): Promise<PublicSettings> {
   const url = keys 
     ? `/api/public/settings?keys=${encodeURIComponent(keys)}`
     : `/api/public/settings`;
   
-  const response = await publicApiCall<{ data: PublicSettings }>(url);
+  const response = await publicApiCall<{ data: PublicSettings }>(url, {}, locale);
   return response.data;
 }
 

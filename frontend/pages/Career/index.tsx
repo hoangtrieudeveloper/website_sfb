@@ -7,6 +7,8 @@ import { CareerPositions } from "./CareerPositions";
 import { CareerCTA } from "./CareerCTA";
 import { publicApiCall } from "@/lib/api/public/client";
 import { PublicEndpoints } from "@/lib/api/public/endpoints";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { applyLocale } from "@/lib/utils/i18n";
 
 interface CareerSection {
   id: number;
@@ -15,7 +17,9 @@ interface CareerSection {
   isActive: boolean;
 }
 
-export const CareersPage = () => {
+export const CareersPage = ({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'ja' }) => {
+  const { locale: contextLocale } = useLocale();
+  const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
   const [heroData, setHeroData] = useState<CareerSection | null>(null);
   const [benefitsData, setBenefitsData] = useState<CareerSection | null>(null);
   const [positionsData, setPositionsData] = useState<CareerSection | null>(null);
@@ -31,16 +35,16 @@ export const CareersPage = () => {
           positionsResponse,
           ctaResponse,
         ] = await Promise.all([
-          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.hero),
-          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.benefits),
-          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.positions),
-          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.cta),
+          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.hero, {}, locale),
+          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.benefits, {}, locale),
+          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.positions, {}, locale),
+          publicApiCall<{ success: boolean; data?: CareerSection }>(PublicEndpoints.careers.cta, {}, locale),
         ]);
 
-        if (heroResponse.success && heroResponse.data) setHeroData(heroResponse.data);
-        if (benefitsResponse.success && benefitsResponse.data) setBenefitsData(benefitsResponse.data);
-        if (positionsResponse.success && positionsResponse.data) setPositionsData(positionsResponse.data);
-        if (ctaResponse.success && ctaResponse.data) setCtaData(ctaResponse.data);
+        if (heroResponse.success && heroResponse.data) setHeroData({ ...heroResponse.data, data: applyLocale(heroResponse.data.data, locale) });
+        if (benefitsResponse.success && benefitsResponse.data) setBenefitsData({ ...benefitsResponse.data, data: applyLocale(benefitsResponse.data.data, locale) });
+        if (positionsResponse.success && positionsResponse.data) setPositionsData({ ...positionsResponse.data, data: applyLocale(positionsResponse.data.data, locale) });
+        if (ctaResponse.success && ctaResponse.data) setCtaData({ ...ctaResponse.data, data: applyLocale(ctaResponse.data.data, locale) });
 
       } catch (error) {
         // Silently fail
@@ -50,7 +54,7 @@ export const CareersPage = () => {
     };
 
     void fetchAllCareersData();
-  }, []);
+  }, [locale]);
 
   const shouldRender = (data: CareerSection | null) => data && data.isActive;
 

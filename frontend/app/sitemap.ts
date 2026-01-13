@@ -41,54 +41,33 @@ async function fetchPublishedNews(): Promise<News[]> {
   }
 }
 
+const LOCALES = ['vi', 'en', 'ja'] as const;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
 
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/products`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/about`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/news`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/industries`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/careers`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-  ];
+  const sitemapEntries: MetadataRoute.Sitemap = [];
+
+  // Static pages với tất cả locales
+  const staticPages = ['', '/products', '/about', '/contact', '/news', '/industries', '/careers'];
+  
+  staticPages.forEach((page) => {
+    LOCALES.forEach((locale) => {
+      sitemapEntries.push({
+        url: `${baseUrl}/${locale}${page}`,
+        lastModified: new Date(),
+        changeFrequency: page === '' ? 'daily' : 'weekly',
+        priority: page === '' ? 1 : 0.8,
+        alternates: {
+          languages: {
+            vi: `${baseUrl}/vi${page}`,
+            en: `${baseUrl}/en${page}`,
+            ja: `${baseUrl}/ja${page}`,
+          },
+        },
+      });
+    });
+  });
 
   // Dynamic pages - fetch from API
   const [products, news] = await Promise.all([
@@ -96,21 +75,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     fetchPublishedNews(),
   ]);
 
-  const productPages: MetadataRoute.Sitemap = products.map((product) => ({
-    url: `${baseUrl}/products/${product.slug}`,
-    lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+  // Product pages với tất cả locales
+  products.forEach((product) => {
+    LOCALES.forEach((locale) => {
+      sitemapEntries.push({
+        url: `${baseUrl}/${locale}/products/${product.slug}`,
+        lastModified: product.updated_at ? new Date(product.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+        alternates: {
+          languages: {
+            vi: `${baseUrl}/vi/products/${product.slug}`,
+            en: `${baseUrl}/en/products/${product.slug}`,
+            ja: `${baseUrl}/ja/products/${product.slug}`,
+          },
+        },
+      });
+    });
+  });
 
-  const newsPages: MetadataRoute.Sitemap = news.map((article) => ({
-    url: `${baseUrl}/news/${article.slug}`,
-    lastModified: article.updated_at ? new Date(article.updated_at) : new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
+  // News pages với tất cả locales
+  news.forEach((article) => {
+    LOCALES.forEach((locale) => {
+      sitemapEntries.push({
+        url: `${baseUrl}/${locale}/news/${article.slug}`,
+        lastModified: article.updated_at ? new Date(article.updated_at) : new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+        alternates: {
+          languages: {
+            vi: `${baseUrl}/vi/news/${article.slug}`,
+            en: `${baseUrl}/en/news/${article.slug}`,
+            ja: `${baseUrl}/ja/news/${article.slug}`,
+          },
+        },
+      });
+    });
+  });
 
-  return [...staticPages, ...productPages, ...newsPages];
+  return sitemapEntries;
 }
 
 

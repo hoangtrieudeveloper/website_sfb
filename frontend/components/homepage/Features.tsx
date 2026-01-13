@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
   return (
@@ -46,6 +48,8 @@ interface FeaturesProps {
 }
 
 export function Features({ data }: FeaturesProps) {
+  const { locale } = useLocale();
+  
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {
     return null;
@@ -53,6 +57,17 @@ export function Features({ data }: FeaturesProps) {
 
   const header = data?.header;
   const blocks = data?.blocks || [];
+  
+  // Localize header
+  const headerSub = header?.sub
+    ? (typeof header.sub === 'string' ? header.sub : getLocalizedText(header.sub, locale))
+    : undefined;
+  const headerTitle = header?.title
+    ? (typeof header.title === 'string' ? header.title : getLocalizedText(header.title, locale))
+    : undefined;
+  const headerDescription = header?.description
+    ? (typeof header.description === 'string' ? header.description : getLocalizedText(header.description, locale))
+    : undefined;
 
   // Convert old block1/2/3 format to blocks array if needed
   let displayBlocks = blocks;
@@ -80,6 +95,20 @@ export function Features({ data }: FeaturesProps) {
     const imageElement = block.image ? (
       <FeatureImageFrame src={block.image} alt={`Feature ${index + 1}`} />
     ) : null;
+    
+    // Localize block fields
+    const blockText = block.text
+      ? (typeof block.text === 'string' ? block.text : getLocalizedText(block.text, locale))
+      : undefined;
+    const blockTitle = block.title
+      ? (typeof block.title === 'string' ? block.title : getLocalizedText(block.title, locale))
+      : undefined;
+    const blockDescription = block.description
+      ? (typeof block.description === 'string' ? block.description : getLocalizedText(block.description, locale))
+      : undefined;
+    const blockButtonText = block.button?.text
+      ? (typeof block.button.text === 'string' ? block.button.text : getLocalizedText(block.button.text, locale))
+      : undefined;
 
     if (block.type === 'type1') {
       return (
@@ -92,15 +121,17 @@ export function Features({ data }: FeaturesProps) {
 
           <ScrollAnimation variant="slide-left" delay={0.1}>
             <div className="flex w-full max-w-[549px] flex-col items-start gap-4 sm:gap-[30px]">
-              {block.text && (
+              {blockText && (
                 <p className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-normal leading-normal sm:leading-[38px]">
-                  {block.text}
+                  {blockText}
                 </p>
               )}
 
               {block.list && block.list.length > 0 && (
                 <div className="w-full space-y-1 sm:space-y-[18px]">
-                  {block.list.map((t: string, idx: number) => (
+                  {block.list.map((t: any, idx: number) => {
+                    const listItemText = typeof t === 'string' ? t : getLocalizedText(t, locale);
+                    return (
                     <ScrollAnimation
                       key={idx}
                       variant="slide-left"
@@ -109,17 +140,18 @@ export function Features({ data }: FeaturesProps) {
                     >
                       <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-sky-500" />
                       <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-tight sm:leading-[30px]">
-                        {t}
+                        {listItemText}
                       </span>
                     </ScrollAnimation>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
-              {block.button?.text && (
+              {blockButtonText && (
                 <div>
                   <PrimaryLinkButton href={block.button.link || '#'}>
-                    {block.button.text} <ArrowRight className="h-4 w-4" />
+                    {blockButtonText} <ArrowRight className="h-4 w-4" />
                   </PrimaryLinkButton>
                 </div>
               )}
@@ -146,7 +178,10 @@ export function Features({ data }: FeaturesProps) {
             <div className="flex w-full max-w-[549px] min-h-0 sm:min-h-[374px] flex-col items-start gap-2 sm:gap-[30px] bg-transparent">
               {block.items && block.items.length > 0 && (
                 <div className="w-full space-y-2 sm:space-y-5">
-                  {block.items.map((item: any, idx: number) => (
+                  {block.items.map((item: any, idx: number) => {
+                    const itemTitle = typeof item.title === 'string' ? item.title : getLocalizedText(item.title, locale);
+                    const itemText = typeof item.text === 'string' ? item.text : getLocalizedText(item.text, locale);
+                    return (
                     <ScrollAnimation
                       key={idx}
                       variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
@@ -156,21 +191,22 @@ export function Features({ data }: FeaturesProps) {
                       <CheckCircle className="mt-0.5 h-4 w-4 sm:h-5 sm:w-5 text-sky-500 flex-shrink-0" />
                       <div className="flex flex-col items-start">
                         <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-semibold leading-tight sm:leading-[30px]">
-                          {item.title}
+                          {itemTitle}
                         </p>
                         <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-snug sm:leading-[26px]">
-                          {item.text}
+                          {itemText}
                         </p>
                       </div>
                     </ScrollAnimation>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
-              {block.button?.text && (
+              {blockButtonText && (
                 <div>
                   <PrimaryLinkButton href={block.button.link || '#'}>
-                    {block.button.text} <ArrowRight className="h-4 w-4" />
+                    {blockButtonText} <ArrowRight className="h-4 w-4" />
                   </PrimaryLinkButton>
                 </div>
               )}
@@ -195,17 +231,23 @@ export function Features({ data }: FeaturesProps) {
       <div className="relative z-10 w-full max-w-[1340px]">
         {/* HEADER */}
         <ScrollAnimation variant="blur-in" className="mx-auto mb-8 sm:mb-[46px] max-w-4xl text-center flex flex-col items-center gap-6">
-          <p className="text-[15px] font-medium uppercase text-[#1D8FCF]">
-            {header.sub}
-          </p>
+          {headerSub && (
+            <p className="text-[15px] font-medium uppercase text-[#1D8FCF]">
+              {headerSub}
+            </p>
+          )}
 
-          <h2 className="text-2xl sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
-            {header.title}
-          </h2>
+          {headerTitle && (
+            <h2 className="text-2xl sm:text-[44px] lg:text-[56px] font-bold text-[#0F172A]">
+              {headerTitle}
+            </h2>
+          )}
 
-          <p className="mx-auto max-w-3xl text-sm sm:text-[16px] leading-[26px] text-[#0F172A]">
-            {header.description}
-          </p>
+          {headerDescription && (
+            <p className="mx-auto max-w-3xl text-sm sm:text-[16px] leading-[26px] text-[#0F172A]">
+              {headerDescription}
+            </p>
+          )}
         </ScrollAnimation>
 
         <div className="flex flex-col gap-8 sm:gap-[90px]">

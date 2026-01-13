@@ -12,9 +12,10 @@ interface ContactPageProps {
         sidebar?: any;
         map?: any;
     } | null;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function ContactPage({ contactData }: ContactPageProps) {
+export function ContactPage({ contactData, locale }: ContactPageProps) {
     return (
         <div className="min-h-screen">
             {contactData?.hero && <ContactHero data={contactData.hero} />}
@@ -32,7 +33,7 @@ export function ContactPage({ contactData }: ContactPageProps) {
                 </div>
             </section>
 
-            {contactData?.map && <ContactMap data={contactData.map} />}
+            {contactData?.map && <ContactMap data={contactData.map} locale={locale} />}
         </div>
     );
 }

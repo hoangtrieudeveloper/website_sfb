@@ -4,6 +4,8 @@ import { TrendingUp } from "lucide-react";
 import { milestones } from "./data";
 import { FadeIn, InViewSection } from "../../components/ui/motion";
 import { motion, Variants } from "framer-motion";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutMilestonesProps {
     data?: any;
@@ -45,11 +47,17 @@ const lineFillVariants: Variants = {
 };
 
 export function AboutMilestones({ data }: AboutMilestonesProps) {
+    const { locale } = useLocale();
+    
     // Use data from props if available, otherwise fallback to static data
     const displayData = data?.data || { items: milestones };
-    const headerTitle = displayData.headerTitle || "Hành trình phát triển";
-    const headerDescription = displayData.headerDescription || "Từ năm 2017 đến nay, SFB liên tục mở rộng đội ngũ, nâng cấp sản phẩm và chuẩn hóa dịch vụ để đồng hành cùng khách hàng lâu dài";
+    const headerTitleRaw = displayData.headerTitle || "Hành trình phát triển";
+    const headerDescriptionRaw = displayData.headerDescription || "Từ năm 2017 đến nay, SFB liên tục mở rộng đội ngũ, nâng cấp sản phẩm và chuẩn hóa dịch vụ để đồng hành cùng khách hàng lâu dài";
     const items = displayData.items || milestones;
+    
+    // Localize fields
+    const headerTitle = typeof headerTitleRaw === 'string' ? headerTitleRaw : getLocalizedText(headerTitleRaw, locale);
+    const headerDescription = typeof headerDescriptionRaw === 'string' ? headerDescriptionRaw : getLocalizedText(headerDescriptionRaw, locale);
 
     return (
         <section
@@ -78,6 +86,10 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                         <div className="space-y-12 lg:space-y-0 relative">
                             {items.filter((item: any) => item.isActive !== false).map((item: any, index: number) => {
                                 const isLeft = index % 2 === 0;
+                                
+                                // Localize item fields
+                                const itemTitle = typeof item.title === 'string' ? item.title : getLocalizedText(item.title, locale);
+                                const itemDescription = typeof item.description === 'string' ? item.description : getLocalizedText(item.description, locale);
 
                                 return (
                                     <div key={index} className="relative lg:min-h-[300px] flex flex-col lg:flex-row items-center justify-center">
@@ -121,10 +133,10 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                                     </div>
                                                 )}
                                                 <h3 className="text-[#0F172A] font-bold text-lg mb-3">
-                                                    {item.title}
+                                                    {itemTitle}
                                                 </h3>
                                                 <p className="text-gray-500 text-sm leading-relaxed">
-                                                    {item.description}
+                                                    {itemDescription}
                                                 </p>
                                             </motion.div>
                                         </div>

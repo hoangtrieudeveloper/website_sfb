@@ -10,6 +10,8 @@ import { AboutLeadership } from "./AboutLeadership";
 import { Consult } from "../../components/public/Consult";
 import { publicApiCall } from "@/lib/api/public/client";
 import { PublicEndpoints } from "@/lib/api/public/endpoints";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { applyLocale } from "@/lib/utils/i18n";
 
 interface AboutSection {
   id: number;
@@ -18,7 +20,10 @@ interface AboutSection {
   isActive: boolean;
 }
 
-export function AboutPage() {
+export function AboutPage({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'ja' }) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
+  
   const [heroData, setHeroData] = useState<AboutSection | null>(null);
   const [companyData, setCompanyData] = useState<AboutSection | null>(null);
   const [visionMissionData, setVisionMissionData] = useState<AboutSection | null>(null);
@@ -38,19 +43,31 @@ export function AboutPage() {
           milestonesResponse,
           leadershipResponse,
         ] = await Promise.all([
-          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.hero),
-          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.company),
-          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.visionMission),
-          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.coreValues),
-          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.milestones),
-          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.leadership),
+          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.hero, {}, locale),
+          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.company, {}, locale),
+          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.visionMission, {}, locale),
+          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.coreValues, {}, locale),
+          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.milestones, {}, locale),
+          publicApiCall<{ success: boolean; data?: AboutSection }>(PublicEndpoints.about.leadership, {}, locale),
         ]);
-        if (heroResponse.success && heroResponse.data) setHeroData(heroResponse.data);
-        if (companyResponse.success && companyResponse.data) setCompanyData(companyResponse.data);
-        if (visionMissionResponse.success && visionMissionResponse.data) setVisionMissionData(visionMissionResponse.data);
-        if (coreValuesResponse.success && coreValuesResponse.data) setCoreValuesData(coreValuesResponse.data);
-        if (milestonesResponse.success && milestonesResponse.data) setMilestonesData(milestonesResponse.data);
-        if (leadershipResponse.success && leadershipResponse.data) setLeadershipData(leadershipResponse.data);
+        if (heroResponse.success && heroResponse.data) {
+          setHeroData({ ...heroResponse.data, data: applyLocale(heroResponse.data.data, locale) });
+        }
+        if (companyResponse.success && companyResponse.data) {
+          setCompanyData({ ...companyResponse.data, data: applyLocale(companyResponse.data.data, locale) });
+        }
+        if (visionMissionResponse.success && visionMissionResponse.data) {
+          setVisionMissionData({ ...visionMissionResponse.data, data: applyLocale(visionMissionResponse.data.data, locale) });
+        }
+        if (coreValuesResponse.success && coreValuesResponse.data) {
+          setCoreValuesData({ ...coreValuesResponse.data, data: applyLocale(coreValuesResponse.data.data, locale) });
+        }
+        if (milestonesResponse.success && milestonesResponse.data) {
+          setMilestonesData({ ...milestonesResponse.data, data: applyLocale(milestonesResponse.data.data, locale) });
+        }
+        if (leadershipResponse.success && leadershipResponse.data) {
+          setLeadershipData({ ...leadershipResponse.data, data: applyLocale(leadershipResponse.data.data, locale) });
+        }
 
       } catch (error) {
         // Silently fail
@@ -59,8 +76,8 @@ export function AboutPage() {
       }
     };
 
-    void fetchAllAboutData();
-  }, []);
+      void fetchAllAboutData();
+    }, [locale]);
 
   const shouldRender = (data: AboutSection | null) => data && data.isActive;
 
@@ -76,7 +93,7 @@ export function AboutPage() {
       {shouldRender(coreValuesData) && <AboutCoreValues data={coreValuesData} />}
       {shouldRender(milestonesData) && <AboutMilestones data={milestonesData} />}
       {shouldRender(leadershipData) && <AboutLeadership data={leadershipData} />}
-      <Consult />
+      <Consult locale={locale} />
     </div>
   );
 }

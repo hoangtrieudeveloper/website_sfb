@@ -275,6 +275,31 @@ async function updateSeoPage(req, res) {
   }
 }
 
+// Helper function to get localized text from locale object
+const getLocalizedText = (value, locale) => {
+  if (!value) return null;
+  
+  // If it's already a string, return as-is
+  if (typeof value === 'string') {
+    return value;
+  }
+  
+  // If it's a locale object, get the value for the requested locale
+  if (typeof value === 'object' && value !== null) {
+    // Priority: requested locale -> vi -> en -> ja -> first available
+    if (value[locale]) return value[locale];
+    if (value.vi) return value.vi;
+    if (value.en) return value.en;
+    if (value.ja) return value.ja;
+    
+    // Fallback to first available value
+    const firstValue = Object.values(value)[0];
+    return typeof firstValue === 'string' ? firstValue : null;
+  }
+  
+  return String(value);
+};
+
 /**
  * Lấy SEO theo page path (public - không cần auth)
  */
@@ -295,6 +320,15 @@ async function getPublicSeoByPath(req, res) {
       decodedPath = path;
     }
 
+    // Get locale from Accept-Language header
+    const acceptLanguage = req.headers['accept-language'] || 'vi';
+    let locale = 'vi'; // default
+    if (acceptLanguage.includes('en')) {
+      locale = 'en';
+    } else if (acceptLanguage.includes('ja')) {
+      locale = 'ja';
+    }
+
     const result = await pool.query(
       `SELECT * FROM seo_pages WHERE page_path = $1`,
       [decodedPath]
@@ -307,7 +341,33 @@ async function getPublicSeoByPath(req, res) {
       });
     }
 
-    const seoData = result.rows[0];
+    const rawSeoData = result.rows[0];
+    
+    // Parse and localize all locale fields
+    const seoData = {
+      id: rawSeoData.id,
+      page_path: rawSeoData.page_path,
+      page_type: rawSeoData.page_type,
+      title: getLocalizedText(parseLocaleField(rawSeoData.title), locale),
+      description: getLocalizedText(parseLocaleField(rawSeoData.description), locale),
+      keywords: getLocalizedText(parseLocaleField(rawSeoData.keywords), locale),
+      og_title: getLocalizedText(parseLocaleField(rawSeoData.og_title), locale),
+      og_description: getLocalizedText(parseLocaleField(rawSeoData.og_description), locale),
+      og_image: rawSeoData.og_image,
+      og_type: rawSeoData.og_type,
+      twitter_card: rawSeoData.twitter_card,
+      twitter_title: getLocalizedText(parseLocaleField(rawSeoData.twitter_title), locale),
+      twitter_description: getLocalizedText(parseLocaleField(rawSeoData.twitter_description), locale),
+      twitter_image: rawSeoData.twitter_image,
+      canonical_url: rawSeoData.canonical_url,
+      robots_index: rawSeoData.robots_index,
+      robots_follow: rawSeoData.robots_follow,
+      robots_noarchive: rawSeoData.robots_noarchive,
+      robots_nosnippet: rawSeoData.robots_nosnippet,
+      structured_data: rawSeoData.structured_data,
+      created_at: rawSeoData.created_at,
+      updated_at: rawSeoData.updated_at,
+    };
     
     // Parse structured_data nếu có
     if (seoData.structured_data) {
