@@ -9,7 +9,7 @@ interface ExpandSectionProps {
 export function ExpandSection({ product }: ExpandSectionProps) {
     return (
         <section className="w-full bg-white">
-            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-10 min-[1920px]:px-[365px] pb-[45px]">
+            <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-10 min-[1920px]:px-[365px] pb-[45px]">
                 <div className="mx-auto w-full max-w-[1191px] flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-[90px] min-[1920px]:h-[511px]">
                     <div className="space-y-5 w-full lg:max-w-[400px] lg:shrink-0">
                         <h3 className="text-gray-900 text-2xl font-bold">

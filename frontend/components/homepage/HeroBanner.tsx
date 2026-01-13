@@ -45,13 +45,13 @@ export function HeroBanner({ data }: HeroBannerProps) {
     // If title is string, keep as is
     title = title;
   }
-  
+
   const description = typeof data?.description === 'string' ? data.description : getLocalizedText(data?.description, locale);
   const primaryButton = data?.primaryButton;
   const secondaryButton = data?.secondaryButton;
   const heroImage = data?.heroImage;
   const partnersList = data?.partners || [];
-  
+
   // Localize button texts
   const primaryButtonText = primaryButton?.text
     ? (typeof primaryButton.text === 'string' ? primaryButton.text : getLocalizedText(primaryButton.text, locale))
@@ -146,8 +146,8 @@ export function HeroBanner({ data }: HeroBannerProps) {
                   title
                 ) : (
                   <>
-                    {title.line1}<br className="hidden lg:block" />
-                    {title.line2}<br className="hidden lg:block" />
+                    {title.line1} <br className="hidden lg:block" />
+                    {title.line2} <br className="hidden lg:block" />
                     {title.line3}
                   </>
                 )}

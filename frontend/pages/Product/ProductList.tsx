@@ -42,6 +42,7 @@ const splitMetaParts = (meta: string) => {
 
 const ProductCard = ({ product }: { product: any }) => {
     const [objectFitStyle, setObjectFitStyle] = useState<'cover' | 'contain'>('contain');
+    const productLink = `/products/${product.slug || slugify(product.name || '')}`;
 
     return (
         <div
@@ -50,27 +51,29 @@ const ProductCard = ({ product }: { product: any }) => {
             {/* Image kiểu ảnh: có padding + khung */}
             {product.image && (
                 <div className="w-full self-stretch">
-                    <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden">
-                        <ImageWithFallback
-                            src={product.image}
-                            alt={product.name || PLACEHOLDER_TITLE}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-                            loading="lazy"
-                            objectFit={objectFitStyle}
-                            onLoad={(e) => {
-                                const img = e.currentTarget;
-                                const ratio = img.naturalWidth / img.naturalHeight;
-                                // Reversed logic as requested
-                                if (ratio > (3 / 2)) {
-                                    setObjectFitStyle('contain');
-                                } else {
-                                    setObjectFitStyle('cover');
-                                }
-                            }}
-                            className="rounded-[8px]"
-                        />
-                    </div>
+                    <Link href={productLink} className="block w-full">
+                        <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden hover:opacity-90 transition-opacity">
+                            <ImageWithFallback
+                                src={product.image}
+                                alt={product.name || PLACEHOLDER_TITLE}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+                                loading="lazy"
+                                objectFit={objectFitStyle}
+                                onLoad={(e) => {
+                                    const img = e.currentTarget;
+                                    const ratio = img.naturalWidth / img.naturalHeight;
+                                    // Reversed logic as requested
+                                    if (ratio > (3 / 2)) {
+                                        setObjectFitStyle('contain');
+                                    } else {
+                                        setObjectFitStyle('cover');
+                                    }
+                                }}
+                                className="rounded-[8px]"
+                            />
+                        </div>
+                    </Link>
                 </div>
             )}
 
@@ -103,7 +106,9 @@ const ProductCard = ({ product }: { product: any }) => {
 
                 {product.name && (
                     <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[auto] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
-                        {product.name}
+                        <Link href={productLink} className="hover:text-[#1D8FCF] transition-colors">
+                            {product.name}
+                        </Link>
                     </h3>
                 )}
 
@@ -174,7 +179,7 @@ const ProductCard = ({ product }: { product: any }) => {
                     )}
 
                     <Link
-                        href={`/products/${product.slug || slugify(product.name || '')}`}
+                        href={productLink}
                         prefetch={true}
                         className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-1 sm:gap-2"
                     >
