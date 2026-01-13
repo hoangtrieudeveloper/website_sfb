@@ -5,9 +5,8 @@ import { TrendingUp, Filter, Tag, Inbox } from "lucide-react";
 import { FeaturedNews } from "../../components/news/FeaturedNews";
 import { NewsList } from "../../components/news/NewsList";
 import { publicApiCall, PublicEndpoints } from "@/lib/api/public";
-import { newsHeroData, newsSectionHeaders, newsletterData, uiText } from "./data";
+import { newsHeroData, newsletterData, uiText } from "./data";
 import { Consult } from "../../components/public/Consult";
-import { consultData } from "../../components/public/data";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NewsItem {
@@ -44,6 +43,81 @@ export function NewsPageClient({
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [pageSize, setPageSize] = useState<number>(6);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Localized UI texts
+  const uiTexts = {
+    vi: {
+      showLabel: "Hiển thị:",
+      articles6: "6 bài viết",
+      articles12: "12 bài viết",
+      articles24: "24 bài viết",
+      articles48: "48 bài viết",
+      noArticlesTitle: "Chưa có bài viết",
+      noArticlesMessage: "Hiện tại chưa có bài viết nào để hiển thị. Vui lòng quay lại sau.",
+      latestTitle: "Bài viết mới nhất",
+      latestSubtitle: "Cập nhật tin công ty, sản phẩm và công nghệ từ SFB",
+      consultTitle: "Miễn phí tư vấn",
+      consultDescription: "Đặt lịch tư vấn miễn phí với chuyên gia của SFB và khám phá cách chúng tôi có thể đồng hành cùng doanh nghiệp bạn trong hành trình chuyển đổi số.",
+      consultPrimaryButton: "Tư vấn miễn phí ngay",
+      consultSecondaryButton: "Xem case studies",
+    },
+    en: {
+      showLabel: "Show:",
+      articles6: "6 articles",
+      articles12: "12 articles",
+      articles24: "24 articles",
+      articles48: "48 articles",
+      noArticlesTitle: "No articles",
+      noArticlesMessage: "There are currently no articles to display. Please check back later.",
+      latestTitle: "Latest Articles",
+      latestSubtitle: "Latest company news, products and technology updates from SFB",
+      consultTitle: "Free Consultation",
+      consultDescription: "Schedule a free consultation with SFB experts and discover how we can partner with your business on your digital transformation journey.",
+      consultPrimaryButton: "Get Free Consultation",
+      consultSecondaryButton: "View Case Studies",
+    },
+    ja: {
+      showLabel: "表示:",
+      articles6: "6記事",
+      articles12: "12記事",
+      articles24: "24記事",
+      articles48: "48記事",
+      noArticlesTitle: "記事がありません",
+      noArticlesMessage: "現在表示する記事がありません。後でもう一度確認してください。",
+      latestTitle: "最新記事",
+      latestSubtitle: "SFBからの最新の会社ニュース、製品、技術アップデート",
+      consultTitle: "無料相談",
+      consultDescription: "SFBの専門家による無料相談を予約し、デジタル変革の旅でビジネスとどのようにパートナーシップを組めるかを発見してください。",
+      consultPrimaryButton: "今すぐ無料相談",
+      consultSecondaryButton: "ケーススタディを見る",
+    },
+  };
+
+  const t = uiTexts[locale];
+
+  // Localized section headers
+  const localizedSectionHeaders = {
+    latest: {
+      title: t.latestTitle,
+      subtitle: t.latestSubtitle,
+    },
+  };
+
+  // Localized consult data
+  const localizedConsultData = {
+    title: t.consultTitle,
+    description: t.consultDescription,
+    buttons: {
+      primary: {
+        text: t.consultPrimaryButton,
+        link: "/contact",
+      },
+      secondary: {
+        text: t.consultSecondaryButton,
+        link: "/solutions",
+      },
+    },
+  };
 
   // Fetch news with filters
   const fetchNews = useCallback(async (category: string) => {
@@ -270,12 +344,12 @@ export function NewsPageClient({
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">{newsSectionHeaders.latest.title}</h2>
-              <p className="text-gray-500">{newsSectionHeaders.latest.subtitle}</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">{localizedSectionHeaders.latest.title}</h2>
+              <p className="text-gray-500">{localizedSectionHeaders.latest.subtitle}</p>
             </motion.div>
 
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 font-medium">Hiển thị:</span>
+              <span className="text-sm text-gray-500 font-medium">{t.showLabel}</span>
               <div className="relative">
                 <select
                   value={pageSize}
@@ -285,10 +359,10 @@ export function NewsPageClient({
                   }}
                   className="appearance-none bg-white border border-gray-200 rounded-lg pl-4 pr-10 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:border-[#0870B4] focus:ring-1 focus:ring-[#0870B4] transition-all cursor-pointer hover:border-gray-300"
                 >
-                  <option value={6}>6 bài viết</option>
-                  <option value={12}>12 bài viết</option>
-                  <option value={24}>24 bài viết</option>
-                  <option value={48}>48 bài viết</option>
+                  <option value={6}>{t.articles6}</option>
+                  <option value={12}>{t.articles12}</option>
+                  <option value={24}>{t.articles24}</option>
+                  <option value={48}>{t.articles48}</option>
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
                   <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -309,9 +383,9 @@ export function NewsPageClient({
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                 <Inbox className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Chưa có bài viết</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.noArticlesTitle}</h3>
               <p className="text-sm text-gray-500 max-w-md mx-auto">
-                Hiện tại chưa có bài viết nào để hiển thị. Vui lòng quay lại sau.
+                {t.noArticlesMessage}
               </p>
             </div>
           ) : (
@@ -396,7 +470,7 @@ export function NewsPageClient({
 
       <section className="pb-[45px] bg-white">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-          <Consult data={consultData} />
+          <Consult data={localizedConsultData} locale={locale} />
         </div>
       </section>
     </div>

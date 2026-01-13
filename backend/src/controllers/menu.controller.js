@@ -354,13 +354,6 @@ exports.getPublicMenus = async (req, res, next) => {
     // Sắp xếp root menus
     rootMenus.sort((a, b) => a.sortOrder - b.sortOrder);
 
-    // Debug log để kiểm tra structure
-    console.log('[Menu API] Root menus count:', rootMenus.length);
-    rootMenus.forEach(menu => {
-      if (menu.children && menu.children.length > 0) {
-        console.log(`[Menu API] Menu "${menu.title}" has ${menu.children.length} children`);
-      }
-    });
 
     return res.json({
       success: true,

@@ -1,11 +1,12 @@
 const { pool } = require('../config/database');
-const { applyLocaleToData, validateLocale } = require('../utils/locale');
+const { applyLocaleToData, getLocaleFromRequest } = require('../utils/locale');
 
-// GET /api/public/homepage?locale=vi - Lấy tất cả các blocks đang active
+// GET /api/public/homepage - Lấy tất cả các blocks đang active
+// Locale được đọc từ query ?locale= hoặc header Accept-Language
 exports.getPublicHomepageBlocks = async (req, res, next) => {
   try {
-    const { locale } = req.query;
-    const currentLocale = validateLocale(locale);
+    // Đọc locale từ query hoặc header Accept-Language
+    const currentLocale = getLocaleFromRequest(req);
     
     const { rows } = await pool.query(
       `
@@ -42,12 +43,13 @@ exports.getPublicHomepageBlocks = async (req, res, next) => {
   }
 };
 
-// GET /api/public/homepage/:sectionType?locale=vi - Lấy một block cụ thể (chỉ khi active)
+// GET /api/public/homepage/:sectionType - Lấy một block cụ thể (chỉ khi active)
+// Locale được đọc từ query ?locale= hoặc header Accept-Language
 exports.getPublicHomepageBlock = async (req, res, next) => {
   try {
     const { sectionType } = req.params;
-    const { locale } = req.query;
-    const currentLocale = validateLocale(locale);
+    // Đọc locale từ query hoặc header Accept-Language
+    const currentLocale = getLocaleFromRequest(req);
 
     const { rows } = await pool.query(
       'SELECT * FROM homepage_blocks WHERE section_type = $1 AND is_active = TRUE',

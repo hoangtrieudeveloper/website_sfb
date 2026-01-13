@@ -8,6 +8,8 @@ import Link from "next/link";
 import * as LucideIcons from "lucide-react";
 import { PLACEHOLDER_PRICING, PLACEHOLDER_TITLE } from "@/lib/placeholders";
 import Image from "next/image";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 const slugify = (s: string) =>
     s
@@ -40,8 +42,27 @@ const splitMetaParts = (meta: string) => {
     return { parts: [normalized], separator: "•" };
 };
 
-const ProductCard = ({ product }: { product: any }) => {
+const ProductCard = ({ product, locale }: { product: any; locale: 'vi' | 'en' | 'ja' }) => {
     const [objectFitStyle, setObjectFitStyle] = useState<'cover' | 'contain'>('contain');
+
+    // Localize all product fields
+    const localizedName = getLocalizedText(product.name, locale);
+    const localizedTagline = getLocalizedText(product.tagline, locale);
+    const localizedDescription = getLocalizedText(product.description, locale);
+    const localizedMeta = getLocalizedText(product.meta, locale);
+    const localizedPricing = getLocalizedText(product.pricing, locale);
+    
+    // Localize features array
+    const localizedFeatures = product.features && Array.isArray(product.features)
+        ? product.features.map((feature: any) => getLocalizedText(feature, locale))
+        : [];
+
+    // Localized UI texts
+    const pricingLabel = locale === 'vi' ? 'Giá tham khảo' : locale === 'en' ? 'Reference Price' : '参考価格';
+    const demoQuickLabel = locale === 'vi' ? 'Demo nhanh' : locale === 'en' ? 'Quick Demo' : 'クイックデモ';
+    const demoLabel = locale === 'vi' ? 'Demo' : locale === 'en' ? 'Demo' : 'デモ';
+    const learnMoreLabel = locale === 'vi' ? 'Tìm hiểu thêm' : locale === 'en' ? 'Learn More' : '詳細を見る';
+    const detailsLabel = locale === 'vi' ? 'Chi tiết' : locale === 'en' ? 'Details' : '詳細';
 
     return (
         <div
@@ -53,7 +74,7 @@ const ProductCard = ({ product }: { product: any }) => {
                     <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden">
                         <ImageWithFallback
                             src={product.image}
-                            alt={product.name || PLACEHOLDER_TITLE}
+                            alt={localizedName || PLACEHOLDER_TITLE}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                             loading="lazy"
@@ -76,13 +97,13 @@ const ProductCard = ({ product }: { product: any }) => {
 
             {/* Content */}
             <div className="w-full flex-1 flex flex-col">
-                {product.meta && (() => {
-                    const { parts, separator } = splitMetaParts(product.meta);
+                {localizedMeta && (() => {
+                    const { parts, separator } = splitMetaParts(localizedMeta);
 
                     if (parts.length <= 1) {
                         return (
                             <div className="text-xs text-gray-500 mb-2 truncate">
-                                {product.meta}
+                                {localizedMeta}
                             </div>
                         );
                     }
@@ -101,33 +122,33 @@ const ProductCard = ({ product }: { product: any }) => {
                     );
                 })()}
 
-                {product.name && (
+                {localizedName && (
                     <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[auto] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
-                        {product.name}
+                        {localizedName}
                     </h3>
                 )}
 
-                {product.tagline && (
+                {localizedTagline && (
                     <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs lg:text-[13px] font-medium lg:font-[500] leading-normal lg:leading-normal">
-                        {product.tagline}
+                        {localizedTagline}
                     </div>
                 )}
 
-                {product.description && (
+                {localizedDescription && (
                     <p className={`self-stretch mb-4 lg:mb-5 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]
-                        ${(product.features && Array.isArray(product.features) && product.features.length > 0)
+                        ${(localizedFeatures && localizedFeatures.length > 0)
                             ? 'line-clamp-3'
                             : 'line-clamp-[7]'
                         }
                     `}>
-                        {product.description}
+                        {localizedDescription}
                     </p>
                 )}
 
                 {/* Features */}
-                {product.features && Array.isArray(product.features) && product.features.length > 0 && (
+                {localizedFeatures && localizedFeatures.length > 0 && (
                     <div className="space-y-2 lg:space-y-3 w-full max-w-full mt-auto flex-[1_0_0] min-w-0">
-                        {product.features.slice(0, 4).map((feature: string, i: number) => (
+                        {localizedFeatures.slice(0, 4).map((feature: string, i: number) => (
                             <div key={i} className="flex items-start gap-3 w-full min-w-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-1 lg:mt-[5px] w-4 h-4 lg:w-[20px] lg:h-[20px]">
                                     <path fillRule="evenodd" clipRule="evenodd" d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z" fill="#1D8FCF" />
@@ -144,9 +165,9 @@ const ProductCard = ({ product }: { product: any }) => {
 
             <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
                 <div className="min-w-0 shrink">
-                    <div className="text-xs text-gray-500 truncate">Giá tham khảo</div>
+                    <div className="text-xs text-gray-500 truncate">{pricingLabel}</div>
                     <div className="text-lg font-extrabold text-gray-900 truncate">
-                        {product.pricing || PLACEHOLDER_PRICING}
+                        {localizedPricing || PLACEHOLDER_PRICING}
                     </div>
                 </div>
 
@@ -161,8 +182,8 @@ const ProductCard = ({ product }: { product: any }) => {
                 font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
                     inline-flex items-center gap-1 sm:gap-2"
                         >
-                            <span className="whitespace-nowrap sm:inline hidden">Demo nhanh</span>
-                            <span className="whitespace-nowrap sm:hidden inline">Demo</span>
+                            <span className="whitespace-nowrap sm:inline hidden">{demoQuickLabel}</span>
+                            <span className="whitespace-nowrap sm:hidden inline">{demoLabel}</span>
                             <Image
                                 src="/icons/custom/product_media.svg"
                                 alt="media icon"
@@ -174,12 +195,12 @@ const ProductCard = ({ product }: { product: any }) => {
                     )}
 
                     <Link
-                        href={`/products/${product.slug || slugify(product.name || '')}`}
+                        href={`/${locale}/products/${product.slug || slugify(localizedName || '')}`}
                         prefetch={true}
                         className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-1 sm:gap-2"
                     >
-                        <span className="whitespace-nowrap sm:inline hidden">Tìm hiểu thêm</span>
-                        <span className="whitespace-nowrap sm:hidden inline">Chi tiết</span>
+                        <span className="whitespace-nowrap sm:inline hidden">{learnMoreLabel}</span>
+                        <span className="whitespace-nowrap sm:hidden inline">{detailsLabel}</span>
                         <ArrowRight size={16} className="shrink-0" />
                     </Link>
                 </div>
@@ -195,6 +216,7 @@ interface ProductListProps {
 }
 
 export function ProductList({ headerData, products: dynamicProducts, categories: dynamicCategories }: ProductListProps) {
+    const { locale } = useLocale();
     const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
     const [mobilePage, setMobilePage] = useState(1);
     const MOBILE_ITEMS_PER_PAGE = 3;
@@ -208,19 +230,24 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
         return null;
     }
 
+    // Localized "All Products" text
+    const allProductsText = locale === 'vi' ? 'Tất cả sản phẩm' : locale === 'en' ? 'All Products' : 'すべての製品';
+
     // Map dynamic categories to include icon component
     const categoriesWithIcons = useMemo(() => {
         if (categories && categories.length > 0) {
             return [
-                { id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" },
+                { id: "all", name: allProductsText, icon: Package, slug: "all" },
                 ...categories
-                    .filter((cat: any) => cat.isActive !== false && cat.name !== "Tất cả sản phẩm")
+                    .filter((cat: any) => cat.isActive !== false)
                     .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
                     .map((cat: any) => {
                         const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
+                        // Localize category name - getLocalizedText handles JSON strings automatically
+                        const localizedName = getLocalizedText(cat.name, locale);
                         return {
                             id: cat.id,
-                            name: cat.name,
+                            name: localizedName,
                             icon: IconComponent,
                             slug: cat.slug,
                         };
@@ -228,8 +255,8 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
             ];
         }
         // Fallback: chỉ có "Tất cả sản phẩm" nếu không có categories
-        return [{ id: "all", name: "Tất cả sản phẩm", icon: Package, slug: "all" }];
-    }, [categories]);
+        return [{ id: "all", name: allProductsText, icon: Package, slug: "all" }];
+    }, [categories, locale, allProductsText]);
 
     const filteredProducts = useMemo(() => {
         if (selectedCategory === "all") {
@@ -355,7 +382,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-x-8 gap-y-[45px] justify-items-center mb-12">
                         {paginatedProducts.map((product: any) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard key={product.id} product={product} locale={locale} />
                         ))}
                     </div>
 
@@ -424,7 +451,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                 {/* Mobile Grid (< lg) - Pagination */}
                 <div className="lg:hidden flex flex-col gap-[32px] px-6">
                     {mobileProducts.map((product: any) => (
-                        <ProductCard key={product.id} product={product} />
+                        <ProductCard key={product.id} product={product} locale={locale} />
                     ))}
 
                     {/* Pagination Controls */}

@@ -5,20 +5,26 @@ import { ArrowRight } from "lucide-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import * as LucideIcons from "lucide-react";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface TrustsProps {
   data?: any;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
-export function Trusts({ data }: TrustsProps) {
+export function Trusts({ data, locale: propLocale }: TrustsProps) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {
     return null;
   }
 
-  const subHeader = data?.subHeader;
-  const title = data?.title;
-  const description = data?.description;
+  // Localize fields
+  const subHeader = typeof data?.subHeader === 'string' ? data.subHeader : getLocalizedText(data?.subHeader, locale);
+  const title = typeof data?.title === 'string' ? data.title : getLocalizedText(data?.title, locale);
+  const description = typeof data?.description === 'string' ? data.description : getLocalizedText(data?.description, locale);
   const image = data?.image;
   const button = data?.button;
   const features = data?.features || [];
@@ -91,7 +97,7 @@ export function Trusts({ data }: TrustsProps) {
                         fontFeatureSettings: "'liga' off, 'clig' off",
                       }}
                     >
-                      {feature.title}
+                      {typeof feature.title === 'string' ? feature.title : getLocalizedText(feature.title, locale)}
                     </h3>
                     <p
                       className="self-stretch text-[#0F172A] text-xs sm:text-base"
@@ -104,7 +110,7 @@ export function Trusts({ data }: TrustsProps) {
                         fontFeatureSettings: "'liga' off, 'clig' off",
                       }}
                     >
-                      {feature.description}
+                      {typeof feature.description === 'string' ? feature.description : getLocalizedText(feature.description, locale)}
                     </p>
                   </div>
                 </ScrollAnimation>
@@ -117,7 +123,7 @@ export function Trusts({ data }: TrustsProps) {
                 prefetch={true}
                 className="inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-1 transition-all duration-300 group text-xs sm:text-base"
               >
-                <span>{button.text}</span>
+                <span>{typeof button.text === 'string' ? button.text : getLocalizedText(button.text, locale)}</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </ScrollAnimation>

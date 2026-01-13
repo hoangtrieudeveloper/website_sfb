@@ -52,7 +52,6 @@ app.use(logger);
 // Serve static files from uploads directory
 // Đảm bảo static files được serve trước các routes khác
 const uploadsPath = path.join(__dirname, '../uploads');
-console.log('📁 Static files path:', uploadsPath);
 
 // Serve static files với options tối ưu
 app.use('/uploads', express.static(uploadsPath, {
@@ -88,7 +87,6 @@ testConnection().catch((err) => {
 
 // Đảm bảo bảng media được tạo khi khởi động
 ensureTablesOnce().then(() => {
-  console.log('✅ Media tables ready');
 }).catch((err) => {
   console.error('⚠️  Media tables setup warning:', err.message);
 });

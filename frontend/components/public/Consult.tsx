@@ -3,20 +3,26 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ScrollAnimation } from "./ScrollAnimation";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface ConsultProps {
     data?: any;
     locale?: 'vi' | 'en' | 'ja';
 }
 
-export function Consult({ data, locale }: ConsultProps) {
+export function Consult({ data, locale: propLocale }: ConsultProps) {
+    const { locale: contextLocale } = useLocale();
+    const currentLocale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
+    
     // Chỉ sử dụng data từ API, không có fallback static data
     if (!data) {
         return null;
     }
 
-    const title = data?.title;
-    const description = data?.description;
+    // Localize fields
+    const title = typeof data?.title === 'string' ? data.title : getLocalizedText(data?.title, currentLocale);
+    const description = typeof data?.description === 'string' ? data.description : getLocalizedText(data?.description, currentLocale);
     const buttons = data?.buttons;
     const backgroundColor = data?.backgroundColor || '#29A3DD';
 
@@ -59,7 +65,11 @@ export function Consult({ data, locale }: ConsultProps) {
                                     prefetch={true}
                                     className="flex w-full sm:w-auto min-h-[44px] sm:h-[48px] px-4 sm:px-[29px] py-2 sm:py-[7px] justify-center items-center gap-2 sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 text-sm sm:text-base leading-tight text-center"
                                 >
-                                    <span className="whitespace-normal break-words">{buttons.secondary.text}</span>
+                                    <span className="whitespace-normal break-words">
+                                        {typeof buttons.secondary.text === 'string' 
+                                          ? buttons.secondary.text 
+                                          : getLocalizedText(buttons.secondary.text, currentLocale)}
+                                    </span>
                                 </Link>
 
                                 <Link
@@ -67,7 +77,11 @@ export function Consult({ data, locale }: ConsultProps) {
                                     prefetch={true}
                                     className="group flex w-full sm:w-auto min-h-[44px] sm:h-[48px] px-4 sm:px-[29px] py-2 sm:py-[7px] justify-center items-center gap-2 sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 text-sm sm:text-base leading-tight text-center"
                                 >
-                                    <span className="whitespace-normal break-words">{buttons.primary.text}</span>
+                                    <span className="whitespace-normal break-words">
+                                        {typeof buttons.primary.text === 'string' 
+                                          ? buttons.primary.text 
+                                          : getLocalizedText(buttons.primary.text, currentLocale)}
+                                    </span>
                                     <ArrowRight className="w-5 h-5 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>

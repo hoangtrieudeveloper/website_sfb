@@ -5,19 +5,34 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import { ScrollAnimation } from "../public/ScrollAnimation";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface AboutCompanyProps {
   data?: any;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
-export function AboutCompany({ data }: AboutCompanyProps) {
+export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {
     return null;
   }
 
-  const title = data?.title;
-  const description = data?.description;
+  // Localize title và description
+  const titleRaw = data?.title;
+  const title = titleRaw && typeof titleRaw === 'object' && !Array.isArray(titleRaw)
+    ? {
+        part1: getLocalizedText(titleRaw.part1, locale),
+        highlight1: getLocalizedText(titleRaw.highlight1, locale),
+        part2: getLocalizedText(titleRaw.part2, locale),
+        highlight2: getLocalizedText(titleRaw.highlight2, locale),
+        part3: getLocalizedText(titleRaw.part3, locale),
+      }
+    : titleRaw;
+  const description = typeof data?.description === 'string' ? data.description : getLocalizedText(data?.description, locale);
   const slidesData = data?.slides || [];
 
   // Không render nếu không có dữ liệu cần thiết
@@ -181,13 +196,13 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                             <h3
                               className="text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg sm:text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF]"
                             >
-                              {slide.title}
+                              {typeof slide.title === 'string' ? slide.title : getLocalizedText(slide.title, locale)}
                             </h3>
 
                             <p
                               className="flex-1 line-clamp-4 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px]"
                             >
-                              {slide.description}
+                              {typeof slide.description === 'string' ? slide.description : getLocalizedText(slide.description, locale)}
                             </p>
 
                             {/* BUTTON */}
@@ -208,7 +223,9 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                               "
                             >
                               <span className="relative z-10 flex items-center gap-2">
-                                {slide.buttonText || slide.button?.text || "Xem thêm"}
+                                {typeof (slide.buttonText || slide.button?.text) === 'string' 
+                                  ? (slide.buttonText || slide.button?.text || "Xem thêm")
+                                  : getLocalizedText(slide.buttonText || slide.button?.text, locale) || "Xem thêm"}
                               </span>
                             </Link>
                           </div>

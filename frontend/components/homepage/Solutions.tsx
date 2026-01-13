@@ -11,12 +11,13 @@ import { useLocale } from "@/lib/contexts/LocaleContext";
 
 interface SolutionsProps {
   data?: any;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
 // ---------------------------
 // HELPER: CARD COMPONENT
 // ---------------------------
-function SolutionCard({ s, idx, locale }: { s: any; idx: number; locale: 'vi' | 'en' | 'ja' }) {
+function SolutionCard({ s, idx, locale: cardLocale }: { s: any; idx: number; locale: 'vi' | 'en' | 'ja' }) {
   const IconComponent = s.iconName ? (LucideIcons as any)[s.iconName] : s.icon;
   const Icon = IconComponent || LucideIcons.Code;
 
@@ -55,18 +56,18 @@ function SolutionCard({ s, idx, locale }: { s: any; idx: number; locale: 'vi' | 
 
           {/* Title */}
           <h3 className="text-center text-gray-900 font-extrabold text-lg md:text-2xl">
-            {getLocalizedText(s.title, locale)}
+            {getLocalizedText(s.title, cardLocale)}
           </h3>
 
           {/* Description */}
           <p className="text-center text-gray-600 leading-relaxed text-sm md:text-base">
-            {getLocalizedText(s.description, locale)}
+            {getLocalizedText(s.description, cardLocale)}
           </p>
 
           {/* Benefits */}
           <div className="flex flex-wrap justify-center gap-2">
             {(s.benefits || []).map((b: any, bidx: number) => {
-              const benefitText = typeof b === 'string' ? b : getLocalizedText(b, locale);
+              const benefitText = typeof b === 'string' ? b : getLocalizedText(b, cardLocale);
               const benefitKey = typeof b === 'string' ? b : (b?.vi || b?.en || b?.ja || `benefit-${bidx}`);
               return (
                 <span
@@ -95,9 +96,9 @@ function SolutionCard({ s, idx, locale }: { s: any; idx: number; locale: 'vi' | 
               transition-all
               bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)]
             "
-            aria-label={getLocalizedText(s.buttonText || s.button?.text, locale) || "Xem thêm"}
+            aria-label={getLocalizedText(s.buttonText || s.button?.text, cardLocale) || "Xem thêm"}
           >
-            {getLocalizedText(s.buttonText || s.button?.text, locale) || "Xem thêm"}
+            {getLocalizedText(s.buttonText || s.button?.text, cardLocale) || "Xem thêm"}
             <ArrowRight size={18} />
           </Link>
         </div>
@@ -106,13 +107,14 @@ function SolutionCard({ s, idx, locale }: { s: any; idx: number; locale: 'vi' | 
   );
 }
 
-export function Solutions({ data }: SolutionsProps) {
+export function Solutions({ data, locale: propLocale }: SolutionsProps) {
   // Chỉ sử dụng data từ API, không fallback static data
   if (!data) {
     return null;
   }
 
-  const locale = useLocale();
+  const { locale: contextLocale } = useLocale();
+  const currentLocale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
   const subHeader = data.subHeader;
   const title = data.title;
   const domains = data.domains || [];
@@ -154,19 +156,20 @@ export function Solutions({ data }: SolutionsProps) {
           className="mx-auto w-full max-w-5xl self-stretch text-center flex flex-col items-center gap-3 sm:gap-6"
         >
           <div className="self-stretch text-center text-[var(--light-blue,#EFF6FF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[15px] font-medium leading-normal uppercase">
-            {getLocalizedText(subHeader, locale)}
+            {getLocalizedText(subHeader, currentLocale)}
           </div>
 
           <h2 className="mx-auto w-full max-w-[840px] text-center text-[var(--White,#FFF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-2xl sm:text-4xl lg:text-[56px] leading-normal">
-            <span className="font-bold">{getLocalizedText(title?.part1, locale)}</span>
+            <span className="font-bold">{getLocalizedText(title?.part1, currentLocale)}</span>
             <br />
-            <span className="font-normal">{getLocalizedText(title?.part2, locale)}</span>
+            <span className="font-normal">{getLocalizedText(title?.part2, currentLocale)}</span>
           </h2>
 
           <div className="flex flex-wrap justify-center gap-1 sm:gap-2.5 w-full">
             {domains.map((d: any, i: number) => {
-              const domainText = typeof d === 'string' ? d : getLocalizedText(d, locale);
-              const domainKey = typeof d === 'string' ? d : (d?.vi || d?.en || d?.ja || `domain-${i}`);
+              const domainText = typeof d === 'string' ? d : getLocalizedText(d, currentLocale);
+              // Use index in key to ensure uniqueness, even if domain values are duplicated
+              const domainKey = `domain-${i}-${typeof d === 'string' ? d : (d?.vi || d?.en || d?.ja || '')}`;
               return (
                 <ScrollAnimation
                   key={domainKey}
@@ -187,7 +190,7 @@ export function Solutions({ data }: SolutionsProps) {
         <div className="hidden lg:grid mt-16 mx-auto w-full max-w-[1236px] grid-cols-2 gap-6 place-items-center">
           {items.map((s: any, idx: number) => (
             <div key={s.id} className="w-full max-w-[606px]">
-              <SolutionCard s={s} idx={idx} locale={locale} />
+              <SolutionCard s={s} idx={idx} locale={currentLocale} />
             </div>
           ))}
         </div>
@@ -204,7 +207,7 @@ export function Solutions({ data }: SolutionsProps) {
                   className="flex-[0_0_100%] min-w-0 px-2 flex justify-center"
                 >
                   <div className="w-full max-w-[400px] md:max-w-[600px]">
-                    <SolutionCard s={s} idx={idx} locale={locale} />
+                    <SolutionCard s={s} idx={idx} locale={currentLocale} />
                   </div>
                 </div>
               ))}

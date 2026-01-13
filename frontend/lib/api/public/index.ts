@@ -5,4 +5,5 @@
 
 export { publicApiCall } from "./client";
 export { PublicEndpoints } from "./endpoints";
+export { getContactData } from "./contact";
 

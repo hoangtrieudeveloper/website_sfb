@@ -43,6 +43,7 @@ export interface ArticleSchema {
       url: string;
     };
   };
+  inLanguage?: string;
 }
 
 export interface ProductSchema {
@@ -72,9 +73,30 @@ export function generateOrganizationSchema(
     logo?: string;
     phone?: string;
     socialLinks?: string[];
+    locale?: 'vi' | 'en' | 'ja';
   }
 ): OrganizationSchema {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
+  const locale = options?.locale || 'vi';
+  
+  // Localize contact type and available language
+  const contactTypeMap = {
+    vi: 'dịch vụ khách hàng',
+    en: 'customer service',
+    ja: 'カスタマーサービス',
+  };
+  
+  const availableLanguageMap = {
+    vi: 'Vietnamese',
+    en: 'English',
+    ja: 'Japanese',
+  };
+  
+  const languagesMap = {
+    vi: ['Vietnamese', 'English', 'Japanese'],
+    en: ['Vietnamese', 'English', 'Japanese'],
+    ja: ['Vietnamese', 'English', 'Japanese'],
+  };
   
   return {
     '@context': 'https://schema.org',
@@ -86,9 +108,9 @@ export function generateOrganizationSchema(
       contactPoint: {
         '@type': 'ContactPoint',
         telephone: options.phone,
-        contactType: 'customer service',
+        contactType: contactTypeMap[locale],
         areaServed: 'VN',
-        availableLanguage: 'Vietnamese',
+        availableLanguage: languagesMap[locale].join(', '),
       },
     }),
     ...(options?.socialLinks && options.socialLinks.length > 0 && {
@@ -132,8 +154,13 @@ export function generateArticleSchema(article: {
   publishedDate?: string;
   updatedAt?: string;
   author?: string;
+  locale?: 'vi' | 'en' | 'ja';
 }): ArticleSchema {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn';
+  const locale = article.locale || 'vi';
+  
+  // Publisher name is consistent across locales, but we can add locale-specific if needed
+  const publisherName = 'SFB Technology';
   
   return {
     '@context': 'https://schema.org',
@@ -151,12 +178,13 @@ export function generateArticleSchema(article: {
     }),
     publisher: {
       '@type': 'Organization',
-      name: 'SFB Technology',
+      name: publisherName,
       logo: {
         '@type': 'ImageObject',
         url: `${baseUrl}/logo.png`,
       },
     },
+    inLanguage: locale === 'vi' ? 'vi-VN' : locale === 'en' ? 'en-US' : 'ja-JP',
   };
 }
 
@@ -169,7 +197,17 @@ export function generateProductSchema(product: {
   heroImage?: string;
   price?: number;
   currency?: string;
+  locale?: 'vi' | 'en' | 'ja';
 }): ProductSchema {
+  const locale = product.locale || 'vi';
+  
+  // Currency mapping based on locale
+  const currencyMap = {
+    vi: 'VND',
+    en: 'USD',
+    ja: 'JPY',
+  };
+  
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -184,7 +222,7 @@ export function generateProductSchema(product: {
       offers: {
         '@type': 'Offer',
         availability: 'https://schema.org/InStock',
-        priceCurrency: product.currency || 'VND',
+        priceCurrency: product.currency || currencyMap[locale],
         // @ts-expect-error: price is required by schema.org but not in type declaration
         price: product.price,
       }, 

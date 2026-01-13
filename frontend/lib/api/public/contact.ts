@@ -1,5 +1,10 @@
-import { PublicEndpoints } from "@/lib/api/public";
-import { publicApiCall } from "@/lib/api/public/client";
+/**
+ * Contact API Service
+ * Functions for fetching contact-related data from the public API
+ */
+
+import { PublicEndpoints } from "./endpoints";
+import { publicApiCall } from "./client";
 
 export async function getContactData(locale?: 'vi' | 'en' | 'ja') {
   try {
@@ -18,4 +23,3 @@ export async function getContactData(locale?: 'vi' | 'en' | 'ja') {
     return null;
   }
 }
-

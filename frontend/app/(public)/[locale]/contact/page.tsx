@@ -1,5 +1,5 @@
 import { ContactPage } from "@/pages/Contact";
-import { getContactData } from "../../contact/getContactData";
+import { getContactData } from "@/lib/api/public";
 import { generateSeoMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { getLocalizedText } from "@/lib/utils/i18n";

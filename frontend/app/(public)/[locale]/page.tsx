@@ -72,7 +72,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const locale = localeParam as Locale;
   if (!LOCALES.includes(locale)) notFound();
 
-  const organizationSchema = generateOrganizationSchema();
+  const organizationSchema = generateOrganizationSchema({ locale });
 
   return (
     <>

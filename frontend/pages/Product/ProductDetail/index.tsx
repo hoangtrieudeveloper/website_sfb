@@ -28,9 +28,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLocale } from "@/lib/contexts/LocaleContext";
 
 interface ProductDetailViewProps {
     product: ProductDetail | null;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
 // Helper function để xử lý HTML và tạo TOC
@@ -59,10 +61,18 @@ function processContentHtml({
 }
 
 // Component Gallery Slider cho Product
-function ProductGallerySlider({ images, title }: { images: string[]; title?: string }) {
+function ProductGallerySlider({ images, title, locale = 'vi' }: { images: string[]; title?: string; locale?: 'vi' | 'en' | 'ja' }) {
   if (!images || images.length === 0) return null;
 
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  
+  const galleryTexts = {
+    vi: { close: "Đóng", prevImage: "Ảnh trước", nextImage: "Ảnh sau" },
+    en: { close: "Close", prevImage: "Previous image", nextImage: "Next image" },
+    ja: { close: "閉じる", prevImage: "前の画像", nextImage: "次の画像" },
+  };
+  
+  const gt = galleryTexts[locale];
 
   return (
     <>
@@ -88,7 +98,7 @@ function ProductGallerySlider({ images, title }: { images: string[]; title?: str
                         img.startsWith("/") ? "" : "/"
                       }${img}`
                 }
-                alt={`Ảnh gallery ${index + 1}`}
+                                    alt={locale === 'vi' ? `Ảnh gallery ${index + 1}` : locale === 'en' ? `Gallery image ${index + 1}` : `ギャラリー画像 ${index + 1}`}
                 className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
               />
             </button>
@@ -106,7 +116,7 @@ function ProductGallerySlider({ images, title }: { images: string[]; title?: str
             type="button"
             onClick={() => setPreviewIndex(null)}
             className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
-            aria-label="Đóng"
+            aria-label={gt.close}
           >
             <svg
               className="w-8 h-8"
@@ -131,7 +141,7 @@ function ProductGallerySlider({ images, title }: { images: string[]; title?: str
                       images[previewIndex].startsWith("/") ? "" : "/"
                     }${images[previewIndex]}`
               }
-              alt={`Ảnh gallery ${previewIndex + 1}`}
+              alt={locale === 'vi' ? `Ảnh gallery ${previewIndex + 1}` : locale === 'en' ? `Gallery image ${previewIndex + 1}` : `ギャラリー画像 ${previewIndex + 1}`}
               className="max-w-full max-h-[90vh] object-contain"
             />
           </div>
@@ -145,7 +155,7 @@ function ProductGallerySlider({ images, title }: { images: string[]; title?: str
                     setPreviewIndex(previewIndex - 1);
                   }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
-                  aria-label="Ảnh trước"
+                  aria-label={gt.prevImage}
                 >
                   <svg
                     className="w-8 h-8"
@@ -170,7 +180,7 @@ function ProductGallerySlider({ images, title }: { images: string[]; title?: str
                     setPreviewIndex(previewIndex + 1);
                   }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
-                  aria-label="Ảnh sau"
+                  aria-label={gt.nextImage}
                 >
                   <svg
                     className="w-8 h-8"
@@ -196,9 +206,90 @@ function ProductGallerySlider({ images, title }: { images: string[]; title?: str
 }
 
 // Component được sử dụng bởi App Router
-export function ProductDetailView({ product }: ProductDetailViewProps) {
+export function ProductDetailView({ product, locale: propLocale }: ProductDetailViewProps) {
+    const { locale: contextLocale } = useLocale();
+    const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
+    
     const [linkCopied, setLinkCopied] = useState(false);
     const [supportsWebShare, setSupportsWebShare] = useState(false);
+    
+    // Localized texts
+    const uiTexts = {
+        vi: {
+            productNotFound: "Không tìm thấy sản phẩm",
+            productNotFoundDesc: "Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+            linkCopied: "Đã sao chép liên kết!",
+            copyLinkFailed: "Không thể sao chép liên kết",
+            share: "Chia sẻ",
+            shareFacebook: "Chia sẻ Facebook",
+            shareTwitter: "Chia sẻ Twitter",
+            shareLinkedIn: "Chia sẻ LinkedIn",
+            shareOther: "Chia sẻ khác...",
+            copyLink: "Sao chép liên kết",
+            copied: "Đã sao chép",
+            tableOfContents: "Mục lục",
+            noHeadings: "Chưa có tiêu đề.",
+            author: "Tác giả",
+            authorDesc: "Nhà phát triển giải pháp công nghệ hàng đầu Việt Nam",
+            shareNotSupported: "Trình duyệt không hỗ trợ chia sẻ trực tiếp",
+            contactNow: "LIÊN HỆ NGAY",
+            demoSystem: "DEMO HỆ THỐNG",
+            saveArticle: "Lưu bài viết",
+            close: "Đóng",
+            prevImage: "Ảnh trước",
+            nextImage: "Ảnh sau",
+        },
+        en: {
+            productNotFound: "Product not found",
+            productNotFoundDesc: "The product you are looking for does not exist or has been removed.",
+            linkCopied: "Link copied!",
+            copyLinkFailed: "Failed to copy link",
+            share: "Share",
+            shareFacebook: "Share on Facebook",
+            shareTwitter: "Share on Twitter",
+            shareLinkedIn: "Share on LinkedIn",
+            shareOther: "Share more...",
+            copyLink: "Copy link",
+            copied: "Copied",
+            tableOfContents: "Table of Contents",
+            noHeadings: "No headings yet.",
+            author: "Author",
+            authorDesc: "Leading technology solutions developer in Vietnam",
+            shareNotSupported: "Browser does not support direct sharing",
+            contactNow: "CONTACT US NOW",
+            demoSystem: "DEMO SYSTEM",
+            saveArticle: "Save article",
+            close: "Close",
+            prevImage: "Previous image",
+            nextImage: "Next image",
+        },
+        ja: {
+            productNotFound: "製品が見つかりません",
+            productNotFoundDesc: "お探しの製品は存在しないか、削除されました。",
+            linkCopied: "リンクをコピーしました！",
+            copyLinkFailed: "リンクのコピーに失敗しました",
+            share: "共有",
+            shareFacebook: "Facebookで共有",
+            shareTwitter: "Twitterで共有",
+            shareLinkedIn: "LinkedInで共有",
+            shareOther: "その他で共有...",
+            copyLink: "リンクをコピー",
+            copied: "コピー済み",
+            tableOfContents: "目次",
+            noHeadings: "見出しがまだありません。",
+            author: "著者",
+            authorDesc: "ベトナムのトップテクノロジーソリューション開発者",
+            shareNotSupported: "ブラウザは直接共有をサポートしていません",
+            contactNow: "今すぐお問い合わせ",
+            demoSystem: "システムデモ",
+            saveArticle: "記事を保存",
+            close: "閉じる",
+            prevImage: "前の画像",
+            nextImage: "次の画像",
+        },
+    };
+    
+    const t = uiTexts[locale];
 
     // Kiểm tra Web Share API support
     useEffect(() => {
@@ -216,9 +307,9 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.productNotFound}</h3>
                     <p className="text-sm text-gray-500 max-w-md mx-auto">
-                        Sản phẩm bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.
+                        {t.productNotFoundDesc}
                     </p>
                 </div>
             </div>
@@ -280,7 +371,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
         try {
             await navigator.clipboard.writeText(currentUrl);
             setLinkCopied(true);
-            toast.success("Đã sao chép liên kết!");
+            toast.success(t.linkCopied);
             setTimeout(() => setLinkCopied(false), 2000);
         } catch (err) {
             // Fallback cho trình duyệt không hỗ trợ clipboard API
@@ -291,10 +382,10 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             try {
                 document.execCommand("copy");
                 setLinkCopied(true);
-                toast.success("Đã sao chép liên kết!");
+                toast.success(t.linkCopied);
                 setTimeout(() => setLinkCopied(false), 2000);
             } catch (e) {
-                toast.error("Không thể sao chép liên kết");
+                toast.error(t.copyLinkFailed);
             }
             document.body.removeChild(textArea);
         }
@@ -315,7 +406,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             }
         } else {
             // Fallback: mở dropdown menu
-            toast.info("Trình duyệt không hỗ trợ chia sẻ trực tiếp");
+            toast.info(t.shareNotSupported);
         }
     };
     // numberedSections có thể là empty array, không nên return null
@@ -359,7 +450,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
     return (
         <div className="bg-white">
-            {hasHeroData && <HeroSection product={product} />}
+            {hasHeroData && <HeroSection product={product} locale={locale} />}
 
             {/* Hiển thị theo chế độ: Content HTML hoặc Widget */}
             {(hasContentHtml || (isContentMode && hasGallery)) ? (
@@ -376,20 +467,20 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                         type="button"
                                         className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium hover:bg-[#166FE5] transition-colors"
                                         onClick={shareToFacebook}
-                                        aria-label="Chia sẻ Facebook"
+                                        aria-label={t.shareFacebook}
                                     >
                                         <Facebook size={14} />
-                                        <span>Chia sẻ</span>
+                                        <span>{t.share}</span>
                                     </button>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <button
                                                 type="button"
                                                 className="inline-flex items-center gap-2 h-7 px-3 rounded bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors"
-                                                aria-label="Chia sẻ khác"
+                                                aria-label={t.shareOther}
                                             >
                                                 <Share2 size={14} />
-                                                <span>Khác</span>
+                                                <span>{locale === 'vi' ? 'Khác' : locale === 'en' ? 'More' : 'その他'}</span>
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48">
@@ -398,14 +489,14 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                                 className="cursor-pointer"
                                             >
                                                 <Twitter size={16} className="mr-2 text-[#1DA1F2]" />
-                                                Chia sẻ Twitter
+                                                {t.shareTwitter}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={shareToLinkedIn}
                                                 className="cursor-pointer"
                                             >
                                                 <Linkedin size={16} className="mr-2 text-[#0077B5]" />
-                                                Chia sẻ LinkedIn
+                                                {t.shareLinkedIn}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem
                                                 onClick={copyToClipboard}
@@ -414,12 +505,12 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                                 {linkCopied ? (
                                                     <>
                                                         <Check size={16} className="mr-2 text-green-600" />
-                                                        Đã sao chép
+                                                        {t.copied}
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Copy size={16} className="mr-2" />
-                                                        Sao chép liên kết
+                                                        {t.copyLink}
                                                     </>
                                                 )}
                                             </DropdownMenuItem>
@@ -429,7 +520,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                                     className="cursor-pointer"
                                                 >
                                                     <Share2 size={16} className="mr-2" />
-                                                    Chia sẻ khác...
+                                                    {t.shareOther}
                                                 </DropdownMenuItem>
                                             )}
                                         </DropdownMenuContent>
@@ -448,9 +539,9 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                     <button
                                         type="button"
                                         onClick={copyToClipboard}
-                                        aria-label="Copy link"
+                                        aria-label={t.copyLink}
                                         className="hover:text-gray-600 transition-colors"
-                                        title="Sao chép liên kết"
+                                        title={t.copyLink}
                                     >
                                         {linkCopied ? (
                                             <Check size={18} className="text-green-600" />
@@ -461,26 +552,26 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                     <button
                                         type="button"
                                         onClick={shareToFacebook}
-                                        aria-label="Chia sẻ Facebook"
+                                        aria-label={t.shareFacebook}
                                         className="hover:text-[#1877F2] transition-colors"
-                                        title="Chia sẻ Facebook"
+                                        title={t.shareFacebook}
                                     >
                                         <Facebook size={18} />
                                     </button>
                                     <button
                                         type="button"
                                         onClick={shareToTwitter}
-                                        aria-label="Chia sẻ Twitter"
+                                        aria-label={t.shareTwitter}
                                         className="hover:text-[#1DA1F2] transition-colors"
-                                        title="Chia sẻ Twitter"
+                                        title={t.shareTwitter}
                                     >
                                         <Twitter size={18} />
                                     </button>
                                     <button
                                         type="button"
-                                        aria-label="Lưu bài viết"
+                                        aria-label={t.saveArticle}
                                         className="hover:text-gray-600 transition-colors"
-                                        title="Lưu bài viết"
+                                        title={t.saveArticle}
                                     >
                                         <Bookmark size={18} />
                                     </button>
@@ -494,6 +585,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                 <ProductGallerySlider
                                     images={galleryImages}
                                     title={galleryTitle || undefined}
+                                    locale={locale}
                                 />
                             </div>
                         )}
@@ -501,7 +593,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                         {/* Table of Contents - chỉ hiển thị khi có contentHtml */}
                         {hasContentHtml && showTableOfContents && product.contentHtml && (
                             <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                                <p className="text-sm font-semibold text-gray-900 mb-2">Mục lục</p>
+                                <p className="text-sm font-semibold text-gray-900 mb-2">{t.tableOfContents}</p>
                                 {(() => {
                                     const { tocItems } = processContentHtml({
                                         html: product.contentHtml,
@@ -522,7 +614,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                         </ol>
                                     ) : (
                                         <p className="text-xs text-gray-500">
-                                            Chưa có tiêu đề.
+                                            {t.noHeadings}
                                         </p>
                                     );
                                 })()}
@@ -553,6 +645,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                 <ProductGallerySlider
                                     images={galleryImages}
                                     title={galleryTitle || undefined}
+                                    locale={locale}
                                 />
                             </div>
                         )}
@@ -564,12 +657,12 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                                     SFB
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Tác giả</p>
+                                    <p className="text-sm text-gray-500">{t.author}</p>
                                     <p className="text-base font-semibold text-gray-900">
                                         SFB Technology
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        Nhà phát triển giải pháp công nghệ hàng đầu Việt Nam
+                                        {t.authorDesc}
                                     </p>
                                 </div>
                             </div>
@@ -598,7 +691,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             )}
 
             <div id="demo" />
-            <Consult />
+            <Consult locale={locale} />
         </div>
     );
 }

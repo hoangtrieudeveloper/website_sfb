@@ -9,10 +9,12 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface TestimonialsProps {
   data?: any;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
-export function Testimonials({ data }: TestimonialsProps) {
-  const { locale } = useLocale();
+export function Testimonials({ data, locale: propLocale }: TestimonialsProps) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
   
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {

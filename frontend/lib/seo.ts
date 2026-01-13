@@ -32,18 +32,17 @@ async function fetchSeoData(pagePath: string, locale?: 'vi' | 'en' | 'ja'): Prom
   try {
     // Encode path để tránh lỗi với các ký tự đặc biệt
     const encodedPath = encodeURIComponent(pagePath);
-    const headers: HeadersInit = {};
     
-    // Add Accept-Language header if locale is provided
+    // Build URL with locale query parameter
+    let url = `${API_BASE_URL}/api/public/seo/${encodedPath}`;
     if (locale) {
-      headers['Accept-Language'] = locale;
+      url += `?locale=${locale}`;
     }
     
-    const res = await fetch(`${API_BASE_URL}/api/public/seo/${encodedPath}`, {
+    const res = await fetch(url, {
       next: { revalidate: 3600 }, // Cache 1 hour
       // Thêm timeout
       signal: AbortSignal.timeout(5000), // 5 seconds timeout
-      headers,
     });
 
     if (!res.ok) {

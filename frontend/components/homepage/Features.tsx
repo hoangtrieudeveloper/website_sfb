@@ -69,10 +69,12 @@ function FeaturesTickIcon({ className }: { className?: string }) {
 
 interface FeaturesProps {
   data?: any;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
-export function Features({ data }: FeaturesProps) {
-  const { locale } = useLocale();
+export function Features({ data, locale: propLocale }: FeaturesProps) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
   
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {

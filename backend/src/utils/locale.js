@@ -71,10 +71,34 @@ function validateLocale(locale) {
 
 /**
  * Get locale from request (query param or header)
+ * Priority: query.locale > Accept-Language header > default 'vi'
  */
 function getLocaleFromRequest(req) {
-  const locale = req.query?.locale || req.headers?.['accept-language']?.split(',')[0]?.split('-')[0] || 'vi';
-  return validateLocale(locale);
+  // Ưu tiên query param
+  if (req.query?.locale) {
+    return validateLocale(req.query.locale);
+  }
+  
+  // Đọc từ Accept-Language header (case-insensitive)
+  const acceptLanguage = req.headers?.['accept-language'] || req.headers?.['Accept-Language'] || '';
+  if (acceptLanguage) {
+    // Parse Accept-Language header: "ja,en;q=0.9" -> "ja"
+    const firstLang = acceptLanguage.split(',')[0]?.trim();
+    if (firstLang) {
+      // Remove quality value if present: "ja;q=0.9" -> "ja"
+      const langCode = firstLang.split(';')[0]?.trim();
+      if (langCode) {
+        // Extract language code: "ja-JP" -> "ja"
+        const locale = langCode.split('-')[0]?.toLowerCase();
+        if (locale) {
+          return validateLocale(locale);
+        }
+      }
+    }
+  }
+  
+  // Default fallback
+  return 'vi';
 }
 
 /**

@@ -1,4 +1,25 @@
 const { pool } = require('../config/database');
+const { applyLocaleToData, getLocaleFromRequest } = require('../utils/locale');
+
+// Helper function to parse locale field from JSON string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (typeof parsed === 'object' && parsed !== null && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+        return parsed;
+      }
+    } catch (e) {
+      // Not JSON, return as string
+    }
+    return value;
+  }
+  if (typeof value === 'object' && value !== null && ('vi' in value || 'en' in value || 'ja' in value)) {
+    return value;
+  }
+  return value;
+};
 
 // Helper function to get section by type (only active)
 const getSection = async (sectionType) => {
@@ -21,6 +42,7 @@ const getItems = async (sectionId, sectionType) => {
 // GET /api/public/industries/hero
 exports.getPublicHero = async (req, res, next) => {
   try {
+    const currentLocale = getLocaleFromRequest(req);
     const section = await getSection('hero');
     
     if (!section || !section.is_active) {
@@ -30,31 +52,46 @@ exports.getPublicHero = async (req, res, next) => {
       });
     }
 
-    const data = section.data || {};
+    const rawData = section.data || {};
     const stats = await getItems(section.id, 'hero');
+
+    // Parse locale fields
+    const parsedData = {
+      titlePrefix: parseLocaleField(rawData.titlePrefix || ''),
+      titleSuffix: parseLocaleField(rawData.titleSuffix || ''),
+      description: parseLocaleField(rawData.description || ''),
+      buttonText: parseLocaleField(rawData.buttonText || ''),
+      buttonLink: rawData.buttonLink || '',
+      image: rawData.image || '',
+      backgroundGradient: rawData.backgroundGradient || '',
+      stats: stats.map(s => {
+        const itemData = s.data || {};
+        return {
+          id: s.id,
+          iconName: itemData.iconName || '',
+          value: itemData.value || '',
+          label: parseLocaleField(itemData.label || ''),
+          gradient: itemData.gradient || '',
+          sortOrder: s.sort_order || 0,
+        };
+      }),
+    };
+    
+    // Apply locale to get strings
+    const localizedData = applyLocaleToData(parsedData, currentLocale);
 
     return res.json({
       success: true,
       data: {
         id: section.id,
-        titlePrefix: data.titlePrefix || '',
-        titleSuffix: data.titleSuffix || '',
-        description: data.description || '',
-        buttonText: data.buttonText || '',
-        buttonLink: data.buttonLink || '',
-        image: data.image || '',
-        backgroundGradient: data.backgroundGradient || '',
-        stats: stats.map(s => {
-          const itemData = s.data || {};
-          return {
-            id: s.id,
-            iconName: itemData.iconName || '',
-            value: itemData.value || '',
-            label: itemData.label || '',
-            gradient: itemData.gradient || '',
-            sortOrder: s.sort_order || 0,
-          };
-        }),
+        titlePrefix: localizedData.titlePrefix || '',
+        titleSuffix: localizedData.titleSuffix || '',
+        description: localizedData.description || '',
+        buttonText: localizedData.buttonText || '',
+        buttonLink: localizedData.buttonLink || '',
+        image: localizedData.image || '',
+        backgroundGradient: localizedData.backgroundGradient || '',
+        stats: localizedData.stats || [],
       },
     });
   } catch (error) {
@@ -65,6 +102,7 @@ exports.getPublicHero = async (req, res, next) => {
 // GET /api/public/industries/list-header
 exports.getPublicListHeader = async (req, res, next) => {
   try {
+    const currentLocale = getLocaleFromRequest(req);
     const section = await getSection('list-header');
     
     if (!section || !section.is_active) {
@@ -74,13 +112,22 @@ exports.getPublicListHeader = async (req, res, next) => {
       });
     }
 
-    const data = section.data || {};
+    const rawData = section.data || {};
+    // Parse locale fields
+    const parsedData = {
+      title: parseLocaleField(rawData.title || ''),
+      description: parseLocaleField(rawData.description || ''),
+    };
+    
+    // Apply locale to get strings
+    const localizedData = applyLocaleToData(parsedData, currentLocale);
+    
     return res.json({
       success: true,
       data: {
         id: section.id,
-        title: data.title || '',
-        description: data.description || '',
+        title: localizedData.title || '',
+        description: localizedData.description || '',
       },
     });
   } catch (error) {
@@ -91,6 +138,7 @@ exports.getPublicListHeader = async (req, res, next) => {
 // GET /api/public/industries/list
 exports.getPublicIndustries = async (req, res, next) => {
   try {
+    const currentLocale = getLocaleFromRequest(req);
     const { rows } = await pool.query(
       `SELECT id, icon_name, title, short, points, gradient, sort_order
        FROM industries
@@ -98,17 +146,44 @@ exports.getPublicIndustries = async (req, res, next) => {
        ORDER BY sort_order ASC, id ASC`
     );
 
-    return res.json({
-      success: true,
-      data: rows.map(row => ({
+    // Parse and localize each industry
+    const localizedIndustries = rows.map(row => {
+      // Parse locale fields
+      const rawTitle = parseLocaleField(row.title);
+      const rawShort = parseLocaleField(row.short || '');
+      // Parse points - could be array or JSON string
+      let rawPoints = [];
+      if (Array.isArray(row.points)) {
+        rawPoints = row.points.map(p => parseLocaleField(p));
+      } else if (row.points) {
+        try {
+          const parsed = JSON.parse(row.points);
+          if (Array.isArray(parsed)) {
+            rawPoints = parsed.map(p => parseLocaleField(p));
+          }
+        } catch (e) {
+          // Not JSON, ignore
+        }
+      }
+      
+      // Build raw data object
+      const rawData = {
         id: row.id,
         iconName: row.icon_name || '',
-        title: row.title,
-        short: row.short || '',
-        points: row.points || [],
+        title: rawTitle,
+        short: rawShort,
+        points: rawPoints,
         gradient: row.gradient || '',
         sortOrder: row.sort_order || 0,
-      })),
+      };
+      
+      // Apply locale to get strings
+      return applyLocaleToData(rawData, currentLocale);
+    });
+
+    return res.json({
+      success: true,
+      data: localizedIndustries,
     });
   } catch (error) {
     return next(error);
@@ -118,49 +193,74 @@ exports.getPublicIndustries = async (req, res, next) => {
 // GET /api/public/industries/process
 exports.getPublicProcess = async (req, res, next) => {
   try {
+    const currentLocale = getLocaleFromRequest(req);
     const section = await getSection('process-header');
     const steps = await pool.query(
       'SELECT * FROM industries_section_items WHERE section_type = $1 AND is_active = true ORDER BY sort_order ASC',
       ['process']
     );
 
+    // Parse and localize header
+    let localizedHeader = null;
+    if (section && section.is_active) {
+      const rawHeaderData = section.data || {};
+      const parsedHeader = {
+        subtitle: parseLocaleField(rawHeaderData.subtitle || ''),
+        titlePart1: parseLocaleField(rawHeaderData.titlePart1 || ''),
+        titleHighlight: parseLocaleField(rawHeaderData.titleHighlight || ''),
+        titlePart2: parseLocaleField(rawHeaderData.titlePart2 || ''),
+      };
+      localizedHeader = {
+        id: section.id,
+        ...applyLocaleToData(parsedHeader, currentLocale),
+      };
+    }
+
+    // Parse and localize steps
+    const localizedSteps = steps.rows.map(s => {
+      const itemData = s.data || {};
+      const parsedStep = {
+        stepId: itemData.stepId || '',
+        iconName: itemData.iconName || '',
+        title: parseLocaleField(itemData.title || ''),
+        description: parseLocaleField(itemData.description || ''),
+        points: Array.isArray(itemData.points) 
+          ? itemData.points.map(p => parseLocaleField(p))
+          : [],
+        image: itemData.image || '',
+        colors: itemData.colors || {
+          gradient: '',
+          strip: '',
+          border: '',
+          shadowBase: '',
+          shadowHover: '',
+          check: '',
+        },
+        button: itemData.button ? {
+          text: parseLocaleField(itemData.button.text || ''),
+          link: itemData.button.link || '',
+          iconName: itemData.button.iconName || '',
+          iconSize: itemData.button.iconSize || 18,
+        } : {
+          text: '',
+          link: '',
+          iconName: '',
+          iconSize: 18,
+        },
+        sortOrder: s.sort_order || 0,
+      };
+      
+      return {
+        id: s.id,
+        ...applyLocaleToData(parsedStep, currentLocale),
+      };
+    });
+
     return res.json({
       success: true,
       data: {
-        header: section && section.is_active ? {
-          id: section.id,
-          subtitle: section.data?.subtitle || '',
-          titlePart1: section.data?.titlePart1 || '',
-          titleHighlight: section.data?.titleHighlight || '',
-          titlePart2: section.data?.titlePart2 || '',
-        } : null,
-        steps: steps.rows.map(s => {
-          const itemData = s.data || {};
-          return {
-            id: s.id,
-            stepId: itemData.stepId || '',
-            iconName: itemData.iconName || '',
-            title: itemData.title || '',
-            description: itemData.description || '',
-            points: itemData.points || [],
-            image: itemData.image || '',
-            colors: itemData.colors || {
-              gradient: '',
-              strip: '',
-              border: '',
-              shadowBase: '',
-              shadowHover: '',
-              check: '',
-            },
-            button: itemData.button || {
-              text: '',
-              link: '',
-              iconName: '',
-              iconSize: 18,
-            },
-            sortOrder: s.sort_order || 0,
-          };
-        }),
+        header: localizedHeader,
+        steps: localizedSteps,
       },
     });
   } catch (error) {
@@ -171,6 +271,7 @@ exports.getPublicProcess = async (req, res, next) => {
 // GET /api/public/industries/cta
 exports.getPublicCta = async (req, res, next) => {
   try {
+    const currentLocale = getLocaleFromRequest(req);
     const { rows } = await pool.query(
       `SELECT id, data, is_active
        FROM industries_sections 
@@ -186,19 +287,33 @@ exports.getPublicCta = async (req, res, next) => {
     }
 
     const row = rows[0];
-    const data = row.data || {};
+    const rawData = row.data || {};
+    
+    // Parse locale fields
+    const parsedData = {
+      title: parseLocaleField(rawData.title || ''),
+      description: parseLocaleField(rawData.description || ''),
+      primaryButtonText: parseLocaleField(rawData.primaryButtonText || rawData.primary?.text || ''),
+      primaryButtonLink: rawData.primaryButtonLink || rawData.primary?.link || '',
+      secondaryButtonText: parseLocaleField(rawData.secondaryButtonText || rawData.secondary?.text || ''),
+      secondaryButtonLink: rawData.secondaryButtonLink || rawData.secondary?.link || '',
+      backgroundColor: rawData.backgroundColor || '#29A3DD',
+    };
+    
+    // Apply locale to get strings
+    const localizedData = applyLocaleToData(parsedData, currentLocale);
     
     return res.json({
       success: true,
       data: {
         id: row.id,
-        title: data.title || '',
-        description: data.description || '',
-        primaryButtonText: data.primaryButtonText || data.primary?.text || '',
-        primaryButtonLink: data.primaryButtonLink || data.primary?.link || '',
-        secondaryButtonText: data.secondaryButtonText || data.secondary?.text || '',
-        secondaryButtonLink: data.secondaryButtonLink || data.secondary?.link || '',
-        backgroundColor: data.backgroundColor || '#29A3DD',
+        title: localizedData.title || '',
+        description: localizedData.description || '',
+        primaryButtonText: localizedData.primaryButtonText || '',
+        primaryButtonLink: localizedData.primaryButtonLink || '',
+        secondaryButtonText: localizedData.secondaryButtonText || '',
+        secondaryButtonLink: localizedData.secondaryButtonLink || '',
+        backgroundColor: localizedData.backgroundColor || '#29A3DD',
       },
     });
   } catch (error) {

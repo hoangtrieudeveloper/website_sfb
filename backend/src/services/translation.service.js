@@ -125,7 +125,6 @@ ${text}`;
   let lastError = null;
   for (const modelName of modelsToTry) {
     try {
-      console.log(`🔄 Trying model: ${modelName} with REST API v1...`);
 
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`,
@@ -151,7 +150,6 @@ ${text}`;
       const translated = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
       if (translated) {
-        console.log(`✓ Translation successful using ${modelName} with REST API v1 (rẻ, nhanh)`);
         return translated;
       }
     } catch (error) {

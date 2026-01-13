@@ -28,7 +28,9 @@ export function HomepageContent({ locale: initialLocale }: { locale?: 'vi' | 'en
 
   useEffect(() => {
     const fetchBlocks = async () => {
+      setLoading(true);
       try {
+        
         const response = await publicApiCall<{ success: boolean; data: HomepageBlock[] }>(
           PublicEndpoints.homepage.list,
           {},
@@ -44,6 +46,9 @@ export function HomepageContent({ locale: initialLocale }: { locale?: 'vi' | 'en
         }
       } catch (error: any) {
         // Silently fail - components sẽ return null nếu không có data
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[HomepageContent] Error fetching blocks:', error);
+        }
       } finally {
         setLoading(false);
       }
@@ -128,17 +133,17 @@ export function HomepageContent({ locale: initialLocale }: { locale?: 'vi' | 'en
   return (
     <>
       {/* Hero được render ngay khi có data, không cần đợi loading */}
-      {shouldRenderHero && <HeroBanner data={heroData} />}
+      {shouldRenderHero && <HeroBanner data={heroData} locale={locale} />}
       
       {/* Các sections khác render sau khi loading xong để tránh flash */}
       {!loading && (
         <>
-          {shouldRender("aboutCompany") && <AboutCompany data={getBlockData("aboutCompany")} />}
-          {shouldRender("features") && <Features data={getBlockData("features")} />}
-          {shouldRender("solutions") && <Solutions data={getBlockData("solutions")} />}
-          {shouldRender("trusts") && <Trusts data={getBlockData("trusts")} />}
-          {shouldRender("testimonials") && <Testimonials data={getBlockData("testimonials")} />}
-          {shouldRender("consult") && <Consult data={getBlockData("consult")} />}
+          {shouldRender("aboutCompany") && <AboutCompany data={getBlockData("aboutCompany")} locale={locale} />}
+          {shouldRender("features") && <Features data={getBlockData("features")} locale={locale} />}
+          {shouldRender("solutions") && <Solutions data={getBlockData("solutions")} locale={locale} />}
+          {shouldRender("trusts") && <Trusts data={getBlockData("trusts")} locale={locale} />}
+          {shouldRender("testimonials") && <Testimonials data={getBlockData("testimonials")} locale={locale} />}
+          {shouldRender("consult") && <Consult data={getBlockData("consult")} locale={locale} />}
         </>
       )}
     </>

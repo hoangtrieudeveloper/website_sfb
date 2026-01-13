@@ -163,6 +163,11 @@ export function applyLocale<T extends Record<string, any>>(
       result[key] = value.map(item => {
         if (item === null || item === undefined) return item;
         
+        // Nếu item là string, kiểm tra xem có phải JSON string không
+        if (typeof item === 'string') {
+          return getLocalizedText(item, locale);
+        }
+        
         // Nếu item là locale object
         if (typeof item === 'object' && !Array.isArray(item)) {
           if ('vi' in item || 'en' in item || 'ja' in item) {

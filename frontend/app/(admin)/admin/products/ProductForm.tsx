@@ -2041,6 +2041,114 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                           </TabsContent>
 
                           <TabsContent value="content" className="space-y-4 mt-4">
+                            {/* Hero Section Config */}
+                            {detailData && (
+                              <Card>
+                                <CardHeader>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <CardTitle>Khối 1 - Hero trang chi tiết</CardTitle>
+                                      <p className="text-sm text-gray-600 mt-1">
+                                        Tiêu đề, đoạn mở đầu và ảnh lớn ở đầu trang chi tiết sản phẩm.
+                                      </p>
+                                    </div>
+                                    <TranslationControls
+                                      globalLocale={globalLocale}
+                                      setGlobalLocale={setGlobalLocale}
+                                    />
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                  <div>
+                                    <LocaleInput
+                                      label="Dòng chữ phía trên (Meta Top)"
+                                      value={getLocaleValue(detailData, 'metaTop')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'metaTop', value);
+                                        setDetailData(updated);
+                                      }}
+                                      placeholder="Ví dụ: Giải pháp phần mềm"
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
+                                  </div>
+                                  <div>
+                                    <LocaleInput
+                                      label="Mô tả Hero"
+                                      value={getLocaleValue(detailData, 'heroDescription')}
+                                      onChange={(value) => {
+                                        const updated = setLocaleValue(detailData, 'heroDescription', value);
+                                        setDetailData(updated);
+                                      }}
+                                      multiline={true}
+                                      placeholder="Mô tả về sản phẩm..."
+                                      defaultLocale={globalLocale}
+                                      aiProvider={aiProvider}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="mb-2">Ảnh Hero</Label>
+                                    <ImageUpload
+                                      currentImage={detailData.heroImage || ""}
+                                      onImageSelect={(url: string) => {
+                                        setDetailData({ ...detailData, heroImage: url });
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <LocaleInput
+                                        label="Nút liên hệ - Văn bản"
+                                        value={getLocaleValue(detailData, 'ctaContactText')}
+                                        onChange={(value) => {
+                                          const updated = setLocaleValue(detailData, 'ctaContactText', value);
+                                          setDetailData(updated);
+                                        }}
+                                        placeholder="LIÊN HỆ NGAY"
+                                        defaultLocale={globalLocale}
+                                        aiProvider={aiProvider}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Nút liên hệ - Đường dẫn</Label>
+                                      <Input
+                                        value={detailData.ctaContactHref || ""}
+                                        onChange={(e) => {
+                                          setDetailData({ ...detailData, ctaContactHref: e.target.value });
+                                        }}
+                                        placeholder="/contact"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <LocaleInput
+                                        label="Nút demo - Văn bản"
+                                        value={getLocaleValue(detailData, 'ctaDemoText')}
+                                        onChange={(value) => {
+                                          const updated = setLocaleValue(detailData, 'ctaDemoText', value);
+                                          setDetailData(updated);
+                                        }}
+                                        placeholder="DEMO HỆ THỐNG"
+                                        defaultLocale={globalLocale}
+                                        aiProvider={aiProvider}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="mb-2">Nút demo - Đường dẫn</Label>
+                                      <Input
+                                        value={detailData.ctaDemoHref || ""}
+                                        onChange={(e) => {
+                                          setDetailData({ ...detailData, ctaDemoHref: e.target.value });
+                                        }}
+                                        placeholder="/demo"
+                                      />
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            )}
+
                             <Card>
                               <CardHeader>
                                 <div className="flex items-center justify-between">

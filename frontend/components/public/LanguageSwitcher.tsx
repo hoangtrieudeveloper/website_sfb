@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/select";
 
 const LOCALE_OPTIONS = [
-  { value: 'vi', label: '🇻🇳 Tiếng Việt', flag: '🇻🇳' },
-  { value: 'en', label: '🇬🇧 English', flag: '🇬🇧' },
+  { value: 'vi', label: '🇻🇳 VIE', flag: '🇻🇳' },
+  { value: 'en', label: '🇬🇧 Eng', flag: '🇬🇧' },
   { value: 'ja', label: '🇯🇵 日本語', flag: '🇯🇵' },
 ] as const;
 

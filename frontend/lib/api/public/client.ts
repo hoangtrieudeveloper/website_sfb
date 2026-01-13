@@ -11,7 +11,7 @@ import { buildUrl, parseErrorResponse } from "../base";
  * No JWT token required
  * @param endpoint - API endpoint
  * @param options - Fetch options
- * @param locale - Optional locale (vi/en/ja) to pass in Accept-Language header
+ * @param locale - Optional locale (vi/en/ja) to pass as query parameter (?locale=vi)
  */
 export async function publicApiCall<T = any>(
   endpoint: string,
@@ -19,15 +19,32 @@ export async function publicApiCall<T = any>(
   locale?: 'vi' | 'en' | 'ja'
 ): Promise<T> {
   try {
-    const url = buildUrl(endpoint);
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    };
-
-    // Add Accept-Language header if locale is provided
+    let url = buildUrl(endpoint);
+    
+    // Add locale as query parameter instead of header (avoids cache issues)
     if (locale) {
-      headers['Accept-Language'] = locale;
+      const separator = url.includes('?') ? '&' : '?';
+      url = `${url}${separator}locale=${locale}`;
+    }
+    
+    // Build headers object properly
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    // Merge existing headers from options
+    if (options.headers) {
+      if (options.headers instanceof Headers) {
+        options.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+      } else if (Array.isArray(options.headers)) {
+        options.headers.forEach(([key, value]) => {
+          headers[key] = value;
+        });
+      } else {
+        Object.assign(headers, options.headers);
+      }
     }
 
     const response = await fetch(url, {

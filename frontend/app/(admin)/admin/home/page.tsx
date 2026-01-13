@@ -544,21 +544,10 @@ export default function AdminHomepagePage() {
         return;
       }
 
-      // Debug: Log block data structure
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[Translate ${activeTab}] Block data:`, JSON.stringify(block.data, null, 2));
-        console.log(`[Translate ${activeTab}] Source language:`, translateSourceLang);
-      }
 
       // Build translation object cho block hiện tại
       const blockTranslationData = buildTranslationObject(block.data, activeTab);
       
-      // Debug: Log results
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[Translate ${activeTab}] Translation data keys:`, Object.keys(blockTranslationData));
-        console.log(`[Translate ${activeTab}] Field map size:`, fieldMap.size);
-        console.log(`[Translate ${activeTab}] Field map entries:`, Array.from(fieldMap.entries()));
-      }
       
       if (Object.keys(blockTranslationData).length === 0 || fieldMap.size === 0) {
         // Kiểm tra xem block có dữ liệu không
@@ -587,12 +576,6 @@ export default function AdminHomepagePage() {
         return;
       }
 
-      // Debug log
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[Translate ${activeTab}] Translation data:`, JSON.stringify(blockTranslationData, null, 2));
-        console.log(`[Translate ${activeTab}] Field map size:`, fieldMap.size);
-        console.log(`[Translate ${activeTab}] Field map keys:`, Array.from(fieldMap.keys()));
-      }
 
       toast.info(`Đang dịch ${fieldMap.size} trường trong khối "${tabsConfig.find(t => t.value === activeTab)?.label}" (1 request duy nhất)...`);
 
@@ -640,10 +623,6 @@ export default function AdminHomepagePage() {
         );
 
         if (response.success && response.data) {
-          // Debug log response
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[Translate ${activeTab}] Response data:`, JSON.stringify(response.data, null, 2));
-          }
 
           // Hàm để extract và cập nhật translations từ response
           // Response.data có cấu trúc giống như translationData đã gửi (không wrap trong blockType key)
@@ -692,9 +671,6 @@ export default function AdminHomepagePage() {
                         updateLocaleValue(blockType, currentPath, newLocaleValue);
                         updatedCount++;
                         
-                        if (process.env.NODE_ENV === 'development') {
-                          console.log(`[Translate ${activeTab}] Updated ${fieldKey}:`, newLocaleValue);
-                        }
                       }
                     }
                   } else {
@@ -747,21 +723,8 @@ export default function AdminHomepagePage() {
                     if (newLocaleValue.vi !== originalValue.vi || 
                         newLocaleValue.en !== originalValue.en || 
                         newLocaleValue.ja !== originalValue.ja) {
-                      // Debug: Log trước khi update
-                      if (process.env.NODE_ENV === 'development') {
-                        const beforeUpdate = getBlockData(blockType, currentPath.split('.').slice(0, -1).join('.'));
-                        console.log(`[Translate ${activeTab}] Before update ${fieldKey}:`, beforeUpdate);
-                      }
-                      
                       updateLocaleValue(blockType, currentPath, newLocaleValue);
                       updatedCount++;
-                      
-                      // Debug: Log sau khi update
-                      if (process.env.NODE_ENV === 'development') {
-                        const afterUpdate = getBlockData(blockType, currentPath.split('.').slice(0, -1).join('.'));
-                        console.log(`[Translate ${activeTab}] After update ${fieldKey}:`, afterUpdate);
-                        console.log(`[Translate ${activeTab}] Updated locale value:`, newLocaleValue);
-                      }
                     }
                   } else {
                     // Không tìm thấy trong fieldMap - có thể là nested locale object

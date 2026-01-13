@@ -9,9 +9,9 @@ export async function GET(request: Request) {
     const validLocales = ['vi', 'en', 'ja'];
     const currentLocale = validLocales.includes(locale) ? locale : 'vi';
     
+    // Forward locale as query parameter to backend (avoids cache issues)
     const url = `${API_BASE_URL}/api/public/homepage?locale=${currentLocale}`;
     
-
     // Add timeout to fetch request
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout

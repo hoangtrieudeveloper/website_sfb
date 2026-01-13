@@ -21,64 +21,53 @@ export const revalidate = 60;
 
 async function getProductBySlugFromAPI(slug: string, locale: Locale) {
   try {
-    const baseUrl = API_BASE_URL;
+    // Sử dụng publicApiCall để đảm bảo header Accept-Language được set đúng
+    const data = await publicApiCall<{ success: boolean; data: any }>(
+      `/api/public/products/${slug}`,
+      {},
+      locale
+    );
     
-    const res = await fetch(`${baseUrl}/api/public/products/${slug}`, {
-      next: { revalidate: 60 },
-      cache: process.env.NODE_ENV === "production" ? "default" : "no-store",
-      headers: {
-        'Accept-Language': locale,
-      },
-    });
-
-    if (!res.ok) {
-      return null;
-    }
-
-    const data = await res.json();
     if (!data.success || !data.data) {
       return null;
     }
     
-    return data.data;
+    // Backend đã localize data, nhưng vẫn apply locale ở frontend để đảm bảo
+    return applyLocale(data.data, locale);
   } catch (error: any) {
     return null;
   }
 }
 
 // Transform API data to match ProductDetail interface
+// Backend đã localize data, nhưng vẫn cần transform structure để match interface
 function transformProductData(apiData: any, locale: Locale): any {
   if (!apiData) return null;
 
+  // Backend đã localize, chỉ cần transform structure
   const detail = apiData.detail || {};
   const showcase = detail.showcase || {};
   const expand = detail.expand || {};
 
-  // Apply locale to all translatable fields
-  const localizedApiData = applyLocale(apiData, locale);
-  const localizedDetail = applyLocale(detail, locale);
-  const localizedShowcase = applyLocale(showcase, locale);
-  const localizedExpand = applyLocale(expand, locale);
-
-  // Transform numberedSections
-  const numberedSections = (localizedDetail.numberedSections || []).map((section: any) => ({
+  // Transform numberedSections - data đã được localize từ backend
+  const numberedSections = (detail.numberedSections || []).map((section: any) => ({
     no: section.sectionNo || section.no || 0,
-    title: typeof section.title === 'string' ? section.title : getLocalizedText(section.title, locale),
-    paragraphs: (section.paragraphs || []).map((p: any) => typeof p === 'string' ? p : getLocalizedText(p, locale)),
+    title: section.title || '',
+    paragraphs: section.paragraphs || [],
     image: section.image || section.imageBack || '',
-    imageAlt: typeof section.imageAlt === 'string' ? section.imageAlt : getLocalizedText(section.imageAlt, locale),
+    imageAlt: section.imageAlt || '',
     imageSide: section.imageSide || 'left',
     overlay: section.imageBack || section.imageFront ? {
       back: {
         src: section.imageBack || section.image || '',
-        alt: typeof section.imageAlt === 'string' ? section.imageAlt : getLocalizedText(section.imageAlt, locale),
+        alt: section.imageAlt || '',
         sizeClass: 'w-[701px] h-[511px]',
         frameClass: 'rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)]',
       },
       ...(section.imageFront ? {
         front: {
           src: section.imageFront,
-          alt: typeof section.imageAlt === 'string' ? section.imageAlt : getLocalizedText(section.imageAlt, locale),
+          alt: section.imageAlt || '',
           sizeClass: 'w-[400px] h-[300px]',
           frameClass: 'rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)]',
         },
@@ -86,34 +75,34 @@ function transformProductData(apiData: any, locale: Locale): any {
     } : undefined,
   }));
 
-  // Transform overviewCards
-  const overviewCards = (localizedDetail.overviewCards || []).map((card: any) => ({
+  // Transform overviewCards - data đã được localize từ backend
+  const overviewCards = (detail.overviewCards || []).map((card: any) => ({
     step: card.step || 0,
-    title: typeof card.title === 'string' ? card.title : getLocalizedText(card.title, locale),
-    desc: typeof card.desc === 'string' ? card.desc : typeof card.description === 'string' ? card.description : getLocalizedText(card.description || card.desc, locale),
+    title: card.title || '',
+    desc: card.desc || card.description || '',
   }));
 
-  // Transform showcase
+  // Transform showcase - data đã được localize từ backend
   const transformedShowcase = {
-    title: typeof localizedShowcase.title === 'string' ? localizedShowcase.title : getLocalizedText(localizedShowcase.title, locale),
-    desc: typeof localizedShowcase.desc === 'string' ? localizedShowcase.desc : getLocalizedText(localizedShowcase.desc, locale),
-    bullets: (localizedShowcase.bullets || []).map((b: any) => typeof b === 'string' ? b : getLocalizedText(b, locale)),
-    ctaText: typeof localizedShowcase.ctaText === 'string' ? localizedShowcase.ctaText : getLocalizedText(localizedShowcase.ctaText, locale),
-    ctaHref: localizedShowcase.ctaHref || '',
-    overlay: localizedShowcase.imageBack || localizedShowcase.imageFront ? {
-      ...(localizedShowcase.imageBack ? {
+    title: showcase.title || '',
+    desc: showcase.desc || '',
+    bullets: showcase.bullets || [],
+    ctaText: showcase.ctaText || '',
+    ctaHref: showcase.ctaHref || '',
+    overlay: showcase.imageBack || showcase.imageFront ? {
+      ...(showcase.imageBack ? {
         back: {
-          src: localizedShowcase.imageBack,
-          alt: typeof localizedShowcase.title === 'string' ? localizedShowcase.title : getLocalizedText(localizedShowcase.title, locale),
+          src: showcase.imageBack,
+          alt: showcase.title || '',
           sizeClass: 'w-[701px] h-[511px]',
           objectClass: 'object-contain',
           frameClass: 'rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden',
         },
       } : {}),
-      ...(localizedShowcase.imageFront ? {
+      ...(showcase.imageFront ? {
         front: {
-          src: localizedShowcase.imageFront,
-          alt: typeof localizedShowcase.title === 'string' ? localizedShowcase.title : getLocalizedText(localizedShowcase.title, locale),
+          src: showcase.imageFront,
+          alt: showcase.title || '',
           sizeClass: 'w-[400px] h-[300px]',
           positionClass: 'absolute left-[183.5px] bottom-0',
           objectClass: 'object-contain',
@@ -124,34 +113,34 @@ function transformProductData(apiData: any, locale: Locale): any {
   };
 
   return {
-    slug: localizedApiData.slug || '',
-    contentMode: localizedDetail.contentMode || 'config',
-    contentHtml: typeof localizedDetail.contentHtml === 'string' ? localizedDetail.contentHtml : getLocalizedText(localizedDetail.contentHtml, locale),
-    metaTop: typeof localizedDetail.metaTop === 'string' ? localizedDetail.metaTop : getLocalizedText(localizedDetail.metaTop, locale),
-    meta: typeof localizedApiData.meta === 'string' ? localizedApiData.meta : getLocalizedText(localizedApiData.meta, locale),
-    name: typeof localizedApiData.name === 'string' ? localizedApiData.name : getLocalizedText(localizedApiData.name, locale),
-    heroDescription: typeof localizedDetail.heroDescription === 'string' ? localizedDetail.heroDescription : getLocalizedText(localizedDetail.heroDescription, locale),
-    heroImage: localizedDetail.heroImage || '',
-    seoTitle: typeof localizedApiData.seoTitle === 'string' ? localizedApiData.seoTitle : getLocalizedText(localizedApiData.seoTitle, locale),
-    seoDescription: typeof localizedApiData.seoDescription === 'string' ? localizedApiData.seoDescription : getLocalizedText(localizedApiData.seoDescription, locale),
-    seoKeywords: typeof localizedApiData.seoKeywords === 'string' ? localizedApiData.seoKeywords : getLocalizedText(localizedApiData.seoKeywords, locale),
-    overviewKicker: typeof localizedDetail.overviewKicker === 'string' ? localizedDetail.overviewKicker : getLocalizedText(localizedDetail.overviewKicker, locale),
-    overviewTitle: typeof localizedDetail.overviewTitle === 'string' ? localizedDetail.overviewTitle : getLocalizedText(localizedDetail.overviewTitle, locale),
+    slug: apiData.slug || '',
+    contentMode: detail.contentMode || 'config',
+    contentHtml: detail.contentHtml || '',
+    metaTop: detail.metaTop || '',
+    meta: apiData.meta || '',
+    name: apiData.name || '',
+    heroDescription: detail.heroDescription || '',
+    heroImage: detail.heroImage || '',
+    seoTitle: apiData.seoTitle || '',
+    seoDescription: apiData.seoDescription || '',
+    seoKeywords: apiData.seoKeywords || '',
+    overviewKicker: detail.overviewKicker || '',
+    overviewTitle: detail.overviewTitle || '',
     overviewCards: overviewCards,
     showcase: transformedShowcase,
     numberedSections: numberedSections,
-    expandTitle: typeof localizedExpand.title === 'string' ? localizedExpand.title : getLocalizedText(localizedExpand.title, locale),
-    expandBullets: (localizedExpand.bullets || []).map((b: any) => typeof b === 'string' ? b : getLocalizedText(b, locale)),
-    expandCtaText: typeof localizedExpand.ctaText === 'string' ? localizedExpand.ctaText : getLocalizedText(localizedExpand.ctaText, locale),
-    expandCtaHref: localizedExpand.ctaHref || '',
-    expandImage: localizedExpand.image || '',
-    galleryTitle: typeof localizedDetail.galleryTitle === 'string' ? localizedDetail.galleryTitle : getLocalizedText(localizedDetail.galleryTitle, locale),
+    expandTitle: expand.title || '',
+    expandBullets: expand.bullets || [],
+    expandCtaText: expand.ctaText || '',
+    expandCtaHref: expand.ctaHref || '',
+    expandImage: expand.image || '',
+    galleryTitle: detail.galleryTitle || '',
     galleryImages: (() => {
-      if (!localizedDetail.galleryImages) return [];
-      if (Array.isArray(localizedDetail.galleryImages)) return localizedDetail.galleryImages;
-      if (typeof localizedDetail.galleryImages === 'string') {
+      if (!detail.galleryImages) return [];
+      if (Array.isArray(detail.galleryImages)) return detail.galleryImages;
+      if (typeof detail.galleryImages === 'string') {
         try {
-          const parsed = JSON.parse(localizedDetail.galleryImages);
+          const parsed = JSON.parse(detail.galleryImages);
           return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
           return [];
@@ -159,10 +148,10 @@ function transformProductData(apiData: any, locale: Locale): any {
       }
       return [];
     })(),
-    galleryPosition: localizedDetail.galleryPosition || 'top',
-    showTableOfContents: localizedDetail.showTableOfContents !== false,
-    enableShareButtons: localizedDetail.enableShareButtons !== false,
-    showAuthorBox: localizedDetail.showAuthorBox !== false,
+    galleryPosition: detail.galleryPosition || 'top',
+    showTableOfContents: detail.showTableOfContents !== false,
+    enableShareButtons: detail.enableShareButtons !== false,
+    showAuthorBox: detail.showAuthorBox !== false,
   };
 }
 
@@ -193,6 +182,7 @@ export default async function ProductDetailPage({
     name: product.name,
     description: product.heroDescription,
     heroImage: product.heroImage,
+    locale,
   });
 
   // Generate breadcrumbs schema

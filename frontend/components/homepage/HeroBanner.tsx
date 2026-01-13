@@ -21,10 +21,12 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface HeroBannerProps {
   data?: any;
+  locale?: 'vi' | 'en' | 'ja';
 }
 
-export function HeroBanner({ data }: HeroBannerProps) {
-  const { locale } = useLocale();
+export function HeroBanner({ data, locale: propLocale }: HeroBannerProps) {
+  const { locale: contextLocale } = useLocale();
+  const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
   const [showVideoDialog, setShowVideoDialog] = useState(false);
 
   // Chỉ sử dụng data từ API, không có fallback static data

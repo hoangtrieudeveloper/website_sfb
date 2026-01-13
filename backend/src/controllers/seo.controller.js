@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { getLocaleFromRequest } = require('../utils/locale');
 
 // Helper function to parse locale field from JSON string
 const parseLocaleField = (value) => {
@@ -165,6 +166,32 @@ async function updateSeoPage(req, res) {
     // Ensure twitter_card and og_type are simple strings, not locale objects
     const safeTwitterCard = typeof twitter_card === 'string' ? twitter_card : (twitter_card?.vi || twitter_card?.en || twitter_card?.ja || 'summary_large_image');
     const safeOgType = typeof og_type === 'string' ? og_type : (og_type?.vi || og_type?.en || og_type?.ja || 'website');
+    
+    // Ensure page_type is a simple string, not a locale object or JSON string
+    let safePageType = null;
+    if (page_type) {
+      if (typeof page_type === 'string') {
+        // Check if it's a JSON string (starts with '{')
+        if (page_type.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(page_type);
+            // If it's a locale object, extract the first available value
+            safePageType = parsed.vi || parsed.en || parsed.ja || null;
+          } catch (e) {
+            // If parsing fails, use the string as-is but truncate
+            safePageType = page_type.substring(0, 50);
+          }
+        } else {
+          safePageType = page_type.substring(0, 50);
+        }
+      } else if (typeof page_type === 'object') {
+        // If it's already an object, extract the first available value
+        safePageType = page_type.vi || page_type.en || page_type.ja || null;
+      }
+    }
+    
+    // Ensure og_type is a string and not longer than 50 characters
+    const safeOgTypeTruncated = safeOgType && typeof safeOgType === 'string' ? safeOgType.substring(0, 50) : safeOgType;
 
     // Kiểm tra xem đã tồn tại chưa
     const checkResult = await pool.query(
@@ -198,14 +225,14 @@ async function updateSeoPage(req, res) {
         WHERE page_path = $19
         RETURNING *`,
         [
-          page_type,
+          safePageType,
           processLocaleField(title),
           processLocaleField(description),
           processLocaleField(keywords),
           processLocaleField(og_title),
           processLocaleField(og_description),
           og_image,
-          safeOgType,
+          safeOgTypeTruncated,
           safeTwitterCard,
           processLocaleField(twitter_title),
           processLocaleField(twitter_description),
@@ -238,14 +265,14 @@ async function updateSeoPage(req, res) {
         RETURNING *`,
         [
           decodedPath,
-          page_type || null,
+          safePageType,
           processLocaleField(title) || null,
           processLocaleField(description) || null,
           processLocaleField(keywords) || null,
           processLocaleField(og_title) || null,
           processLocaleField(og_description) || null,
           og_image || null,
-          safeOgType || 'website',
+          safeOgTypeTruncated || 'website',
           safeTwitterCard || 'summary_large_image',
           processLocaleField(twitter_title) || null,
           processLocaleField(twitter_description) || null,
@@ -320,14 +347,8 @@ async function getPublicSeoByPath(req, res) {
       decodedPath = path;
     }
 
-    // Get locale from Accept-Language header
-    const acceptLanguage = req.headers['accept-language'] || 'vi';
-    let locale = 'vi'; // default
-    if (acceptLanguage.includes('en')) {
-      locale = 'en';
-    } else if (acceptLanguage.includes('ja')) {
-      locale = 'ja';
-    }
+    // Get locale from query parameter or Accept-Language header
+    const locale = getLocaleFromRequest(req);
 
     const result = await pool.query(
       `SELECT * FROM seo_pages WHERE page_path = $1`,

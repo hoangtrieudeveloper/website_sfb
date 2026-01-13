@@ -1,4 +1,29 @@
 const { pool } = require('../config/database');
+const { applyLocaleToData, getLocaleFromRequest } = require('../utils/locale');
+
+// Helper function để parse locale field từ database: nếu là JSON string thì parse, nếu không thì trả về string
+const parseLocaleField = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    // Thử parse JSON
+    if (value.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(value);
+        if (parsed && typeof parsed === 'object' && (parsed.vi !== undefined || parsed.en !== undefined || parsed.ja !== undefined)) {
+          return parsed;
+        }
+      } catch (e) {
+        // Không phải JSON hợp lệ, trả về string gốc
+      }
+    }
+    return value;
+  }
+  // Nếu đã là object, trả về nguyên
+  if (typeof value === 'object' && value !== null) {
+    return value;
+  }
+  return value;
+};
 
 // GET /api/public/products/hero
 exports.getPublicHero = async (req, res, next) => {
@@ -328,6 +353,8 @@ exports.getPublicCategories = async (req, res, next) => {
 exports.getPublicProductBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
+    // Lấy locale từ query ?locale= hoặc từ header Accept-Language
+    const currentLocale = getLocaleFromRequest(req);
 
     // Lấy product basic info
     const { rows: products } = await pool.query(
@@ -380,38 +407,42 @@ exports.getPublicProductBySlug = async (req, res, next) => {
       [productId]
     );
 
-    // Nếu không có detail, trả về product basic info
+    // Nếu không có detail, trả về product basic info (đã localize)
     if (details.length === 0) {
+      const rawBasicData = {
+        id: product.id,
+        categoryId: product.category_id,
+        category: parseLocaleField(product.category_name || product.category_slug || ''),
+        slug: product.slug,
+        name: parseLocaleField(product.name || ''),
+        tagline: parseLocaleField(product.tagline || ''),
+        meta: parseLocaleField(product.meta || ''),
+        description: parseLocaleField(product.description || ''),
+        image: product.image || '',
+        gradient: product.gradient || '',
+        pricing: product.pricing || '',
+        badge: product.badge || null,
+        statsUsers: product.stats_users || '',
+        statsRating: product.stats_rating || 0,
+        statsDeploy: product.stats_deploy || '',
+        demoLink: product.demo_link || '',
+        seoTitle: parseLocaleField(product.seo_title || ''),
+        seoDescription: parseLocaleField(product.seo_description || ''),
+        seoKeywords: parseLocaleField(product.seo_keywords || ''),
+        sortOrder: product.sort_order || 0,
+        isFeatured: product.is_featured || false,
+        isActive: product.is_active !== undefined ? product.is_active : true,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at,
+        features: Array.isArray(product.features) ? product.features.map(f => parseLocaleField(f)) : [],
+        detail: null,
+      };
+      
+      const localizedBasicData = applyLocaleToData(rawBasicData, currentLocale);
+      
       return res.json({
         success: true,
-        data: {
-          id: product.id,
-          categoryId: product.category_id,
-          category: product.category_name || product.category_slug || '',
-          slug: product.slug,
-          name: product.name,
-          tagline: product.tagline || '',
-          meta: product.meta || '',
-          description: product.description || '',
-          image: product.image || '',
-          gradient: product.gradient || '',
-          pricing: product.pricing || '',
-          badge: product.badge || null,
-          statsUsers: product.stats_users || '',
-          statsRating: product.stats_rating || 0,
-          statsDeploy: product.stats_deploy || '',
-          demoLink: product.demo_link || '',
-          seoTitle: product.seo_title || '',
-          seoDescription: product.seo_description || '',
-          seoKeywords: product.seo_keywords || '',
-          sortOrder: product.sort_order || 0,
-          isFeatured: product.is_featured || false,
-          isActive: product.is_active !== undefined ? product.is_active : true,
-          createdAt: product.created_at,
-          updatedAt: product.updated_at,
-          features: Array.isArray(product.features) ? product.features : [],
-          detail: null,
-        },
+        data: localizedBasicData,
       });
     }
 
@@ -463,108 +494,121 @@ exports.getPublicProductBySlug = async (req, res, next) => {
       [detail.id, 'expand-bullets']
     );
 
-    // Parse overview cards
-    const overviewCards = overviewCardsRows.map(row => ({
-      step: row.data?.step || 0,
-      title: row.data?.title || '',
-      description: row.data?.description || row.data?.desc || '',
-      desc: row.data?.description || row.data?.desc || '',
-    }));
+    // Parse overview cards - parse locale fields
+    const overviewCards = overviewCardsRows.map(row => {
+      const rowData = row.data || {};
+      return {
+        step: rowData.step || 0,
+        title: parseLocaleField(rowData.title || ''),
+        description: parseLocaleField(rowData.description || rowData.desc || ''),
+        desc: parseLocaleField(rowData.description || rowData.desc || ''),
+      };
+    });
 
-    // Parse showcase bullets
+    // Parse showcase bullets - parse locale fields
     const showcaseBullets = showcaseBulletsRows.map(row => 
-      row.data?.bullet_text || row.data?.text || ''
+      parseLocaleField(row.data?.bullet_text || row.data?.text || '')
     );
 
-    // Parse numbered sections
-    const numberedSections = numberedSectionsRows.map(section => ({
-      sectionNo: section.data?.section_no || section.data?.sectionNo || section.data?.no || 0,
-      no: section.data?.section_no || section.data?.sectionNo || section.data?.no || 0,
-      title: section.data?.title || '',
-      image: section.data?.image || section.data?.overlay_back_image || section.data?.imageBack || '',
-      imageBack: section.data?.overlay_back_image || section.data?.imageBack || section.data?.image || '',
-      imageFront: section.data?.overlay_front_image || section.data?.imageFront || '',
-      imageSide: section.data?.image_side || section.data?.imageSide || 'left',
-      paragraphs: paragraphsMap[section.id] || [],
-    }));
+    // Parse numbered sections - parse locale fields
+    const numberedSections = numberedSectionsRows.map(section => {
+      const sectionData = section.data || {};
+      return {
+        sectionNo: sectionData.section_no || sectionData.sectionNo || sectionData.no || 0,
+        no: sectionData.section_no || sectionData.sectionNo || sectionData.no || 0,
+        title: parseLocaleField(sectionData.title || ''),
+        image: sectionData.image || sectionData.overlay_back_image || sectionData.imageBack || '',
+        imageBack: sectionData.overlay_back_image || sectionData.imageBack || sectionData.image || '',
+        imageFront: sectionData.overlay_front_image || sectionData.imageFront || '',
+        imageSide: sectionData.image_side || sectionData.imageSide || 'left',
+        imageAlt: parseLocaleField(sectionData.imageAlt || sectionData.image_alt || ''),
+        paragraphs: (paragraphsMap[section.id] || []).map(p => parseLocaleField(p)),
+      };
+    });
 
-    // Parse expand bullets
+    // Parse expand bullets - parse locale fields
     const expandBullets = expandBulletsRows.map(b => 
-      b.data?.bullet_text || b.data?.text || ''
+      parseLocaleField(b.data?.bullet_text || b.data?.text || '')
     );
+
+    // Build raw data object (with locale objects)
+    const rawData = {
+      // Product basic info
+      id: product.id,
+      categoryId: product.category_id,
+      category: parseLocaleField(product.category_name || product.category_slug || ''),
+      slug: product.slug,
+      name: parseLocaleField(product.name || ''),
+      tagline: parseLocaleField(product.tagline || ''),
+      meta: parseLocaleField(product.meta || ''),
+      description: parseLocaleField(product.description || ''),
+      image: product.image || '',
+      gradient: product.gradient || '',
+      pricing: product.pricing || '',
+      badge: product.badge || null,
+      statsUsers: product.stats_users || '',
+      statsRating: product.stats_rating || 0,
+      statsDeploy: product.stats_deploy || '',
+      demoLink: product.demo_link || '',
+      seoTitle: parseLocaleField(product.seo_title || ''),
+      seoDescription: parseLocaleField(product.seo_description || ''),
+      seoKeywords: parseLocaleField(product.seo_keywords || ''),
+      sortOrder: product.sort_order || 0,
+      isFeatured: product.is_featured || false,
+      isActive: product.is_active !== undefined ? product.is_active : true,
+      createdAt: product.created_at,
+      updatedAt: product.updated_at,
+      features: Array.isArray(product.features) ? product.features.map(f => parseLocaleField(f)) : [],
+      // Product detail info
+      detail: {
+        contentMode: detail.content_mode || 'config',
+        contentHtml: parseLocaleField(detail.content_html || ''),
+        metaTop: parseLocaleField(detail.meta_top || ''),
+        heroDescription: parseLocaleField(detail.hero_description || ''),
+        heroImage: detail.hero_image || '',
+        ctaContactText: parseLocaleField(detail.cta_contact_text || ''),
+        ctaContactHref: detail.cta_contact_href || '',
+        ctaDemoText: parseLocaleField(detail.cta_demo_text || ''),
+        ctaDemoHref: detail.cta_demo_href || '',
+        overviewKicker: parseLocaleField(detail.overview_kicker || ''),
+        overviewTitle: parseLocaleField(detail.overview_title || ''),
+        overviewCards: overviewCards,
+        showcase: {
+          title: parseLocaleField(detail.showcase_title || ''),
+          desc: parseLocaleField(detail.showcase_desc || ''),
+          bullets: showcaseBullets,
+          ctaText: parseLocaleField(detail.showcase_cta_text || ''),
+          ctaHref: detail.showcase_cta_href || '',
+          imageBack: detail.showcase_image_back || '',
+          imageFront: detail.showcase_image_front || '',
+          overlay: {
+            back: { src: detail.showcase_image_back || '' },
+            front: { src: detail.showcase_image_front || '' },
+          },
+        },
+        numberedSections: numberedSections,
+        expand: {
+          title: parseLocaleField(detail.expand_title || ''),
+          bullets: expandBullets,
+          ctaText: parseLocaleField(detail.expand_cta_text || ''),
+          ctaHref: detail.expand_cta_href || '',
+          image: detail.expand_image || '',
+        },
+        galleryTitle: parseLocaleField(detail.gallery_title || ''),
+        galleryImages: Array.isArray(detail.gallery_images) ? detail.gallery_images : (detail.gallery_images ? JSON.parse(detail.gallery_images) : []),
+        galleryPosition: detail.gallery_position || 'top',
+        showTableOfContents: detail.show_table_of_contents !== false,
+        enableShareButtons: detail.enable_share_buttons !== false,
+        showAuthorBox: detail.show_author_box !== false,
+      },
+    };
+
+    // Apply locale to all data recursively
+    const localizedData = applyLocaleToData(rawData, currentLocale);
 
     return res.json({
       success: true,
-      data: {
-        // Product basic info
-        id: product.id,
-        categoryId: product.category_id,
-        category: product.category_name || product.category_slug || '',
-        slug: product.slug,
-        name: product.name,
-        tagline: product.tagline || '',
-        meta: product.meta || '',
-        description: product.description || '',
-        image: product.image || '',
-        gradient: product.gradient || '',
-        pricing: product.pricing || '',
-        badge: product.badge || null,
-        statsUsers: product.stats_users || '',
-        statsRating: product.stats_rating || 0,
-        statsDeploy: product.stats_deploy || '',
-        demoLink: product.demo_link || '',
-        seoTitle: product.seo_title || '',
-        seoDescription: product.seo_description || '',
-        seoKeywords: product.seo_keywords || '',
-        sortOrder: product.sort_order || 0,
-        isFeatured: product.is_featured || false,
-        isActive: product.is_active !== undefined ? product.is_active : true,
-        createdAt: product.created_at,
-        updatedAt: product.updated_at,
-        features: Array.isArray(product.features) ? product.features : [],
-        // Product detail info
-        detail: {
-          contentMode: detail.content_mode || 'config',
-          contentHtml: detail.content_html || '',
-          metaTop: detail.meta_top || '',
-          heroDescription: detail.hero_description || '',
-          heroImage: detail.hero_image || '',
-          ctaContactText: detail.cta_contact_text || '',
-          ctaContactHref: detail.cta_contact_href || '',
-          ctaDemoText: detail.cta_demo_text || '',
-          ctaDemoHref: detail.cta_demo_href || '',
-          overviewKicker: detail.overview_kicker || '',
-          overviewTitle: detail.overview_title || '',
-          overviewCards: overviewCards,
-          showcase: {
-            title: detail.showcase_title || '',
-            desc: detail.showcase_desc || '',
-            bullets: showcaseBullets,
-            ctaText: detail.showcase_cta_text || '',
-            ctaHref: detail.showcase_cta_href || '',
-            imageBack: detail.showcase_image_back || '',
-            imageFront: detail.showcase_image_front || '',
-            overlay: {
-              back: { src: detail.showcase_image_back || '' },
-              front: { src: detail.showcase_image_front || '' },
-            },
-          },
-          numberedSections: numberedSections,
-          expand: {
-            title: detail.expand_title || '',
-            bullets: expandBullets,
-            ctaText: detail.expand_cta_text || '',
-            ctaHref: detail.expand_cta_href || '',
-            image: detail.expand_image || '',
-          },
-          galleryTitle: detail.gallery_title || '',
-          galleryImages: Array.isArray(detail.gallery_images) ? detail.gallery_images : (detail.gallery_images ? JSON.parse(detail.gallery_images) : []),
-          galleryPosition: detail.gallery_position || 'top',
-          showTableOfContents: detail.show_table_of_contents !== false,
-          enableShareButtons: detail.enable_share_buttons !== false,
-          showAuthorBox: detail.show_author_box !== false,
-        },
-      },
+      data: localizedData,
     });
   } catch (error) {
     return next(error);

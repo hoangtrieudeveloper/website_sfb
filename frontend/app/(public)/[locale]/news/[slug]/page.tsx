@@ -108,6 +108,7 @@ export default async function NewsDetailRoute({
     publishedDate: article.publishedDate,
     updatedAt: article.updatedAt,
     author: typeof article.author === 'string' ? article.author : getLocalizedText(article.author, locale),
+    locale,
   });
 
   // Generate breadcrumbs schema
