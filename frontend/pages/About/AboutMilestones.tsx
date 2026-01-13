@@ -48,13 +48,13 @@ const lineFillVariants: Variants = {
 
 export function AboutMilestones({ data }: AboutMilestonesProps) {
     const { locale } = useLocale();
-    
+
     // Use data from props if available, otherwise fallback to static data
     const displayData = data?.data || { items: milestones };
     const headerTitleRaw = displayData.headerTitle || "Hành trình phát triển";
     const headerDescriptionRaw = displayData.headerDescription || "Từ năm 2017 đến nay, SFB liên tục mở rộng đội ngũ, nâng cấp sản phẩm và chuẩn hóa dịch vụ để đồng hành cùng khách hàng lâu dài";
     const items = displayData.items || milestones;
-    
+
     // Localize fields
     const headerTitle = typeof headerTitleRaw === 'string' ? headerTitleRaw : getLocalizedText(headerTitleRaw, locale);
     const headerDescription = typeof headerDescriptionRaw === 'string' ? headerDescriptionRaw : getLocalizedText(headerDescriptionRaw, locale);
@@ -86,7 +86,7 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                         <div className="space-y-12 lg:space-y-0 relative">
                             {items.filter((item: any) => item.isActive !== false).map((item: any, index: number) => {
                                 const isLeft = index % 2 === 0;
-                                
+
                                 // Localize item fields
                                 const itemTitle = typeof item.title === 'string' ? item.title : getLocalizedText(item.title, locale);
                                 const itemDescription = typeof item.description === 'string' ? item.description : getLocalizedText(item.description, locale);
@@ -104,7 +104,13 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                                 custom={isLeft}
                                                 variants={cardVariants}
                                                 whileHover={{ scale: 1.02, boxShadow: "0 20px 40px -10px rgba(44, 164, 224, 0.15)" }}
-                                                className="bg-white rounded-[24px] p-5 sm:p-8 shadow-none sm:shadow-sm max-w-lg w-full relative z-10 border border-gray-200 sm:border-transparent hover:border-blue-100 transition-colors duration-300 cursor-default"
+                                                className={`
+                                                    relative z-10 transition-all duration-300 cursor-default flex flex-col
+                                                    ${isLeft
+                                                        ? 'bg-white rounded-[24px] border border-gray-200 lg:border-white lg:w-[402.667px] lg:p-[45px] lg:items-end lg:gap-[18px] lg:shadow-[0_12px_36px_0_rgba(59,90,136,0.12)] text-left lg:text-right p-5 sm:p-8 w-full max-w-lg'
+                                                        : 'bg-white rounded-[24px] p-5 sm:p-8 shadow-none sm:shadow-sm max-w-lg w-full border border-gray-200 sm:border-transparent hover:border-blue-100 text-left lg:border-white lg:w-[402.667px] lg:p-[45px] lg:justify-center lg:items-start lg:gap-[18px] lg:shrink-0 lg:shadow-[0_12px_36px_0_rgba(59,90,136,0.12)]'
+                                                    }
+                                                `}
                                             >
                                                 <div className="w-12 h-12 mb-4 flex items-center justify-center">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -128,14 +134,14 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                                     </svg>
                                                 </div>
                                                 {item.year && (
-                                                    <div className="mb-2">
+                                                    <div className="mb-2 lg:hidden">
                                                         <span className="text-[#2CA4E0] font-bold text-lg">{item.year}</span>
                                                     </div>
                                                 )}
-                                                <h3 className="text-[#0F172A] font-bold text-lg mb-3">
+                                                <h3 className={`text-[#0F172A] font-bold text-lg mb-3 ${isLeft ? 'lg:text-right' : 'lg:text-left'} lg:w-[236px] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] lg:text-[20px] lg:font-semibold lg:leading-[30px]`}>
                                                     {itemTitle}
                                                 </h3>
-                                                <p className="text-gray-500 text-sm leading-relaxed">
+                                                <p className={`text-gray-500 text-sm leading-relaxed ${isLeft ? 'lg:text-right' : 'lg:text-left'} lg:w-[322px] lg:text-[#0F172A] lg:text-[16px] lg:font-normal lg:leading-[26px] lg:font-['Plus_Jakarta_Sans']`}>
                                                     {itemDescription}
                                                 </p>
                                             </motion.div>
@@ -156,12 +162,25 @@ export function AboutMilestones({ data }: AboutMilestonesProps) {
                                             {index < items.filter((i: any) => i.isActive !== false).length - 1 && (
                                                 <motion.div
                                                     variants={lineContainerVariants}
-                                                    className="absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-[220px] z-10 bg-[#E2E8F0] overflow-hidden"
+                                                    className="absolute top-full left-1/2 -translate-x-1/2 w-[2px] h-[285px] z-10"
                                                 >
-                                                    <motion.div
-                                                        variants={lineFillVariants}
-                                                        className="w-full bg-[#2CA4E0]"
-                                                    />
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="2" height="285" viewBox="0 0 2 285" fill="none">
+                                                        <motion.path
+                                                            d="M0.75 0L0.749988 285"
+                                                            stroke={`url(#paint0_linear_159_476_${index})`}
+                                                            strokeWidth="1.5"
+                                                            initial={{ pathLength: 0 }}
+                                                            whileInView={{ pathLength: 1 }}
+                                                            viewport={{ once: true, margin: "-100px" }}
+                                                            transition={{ duration: 1.0, ease: "linear" }}
+                                                        />
+                                                        <defs>
+                                                            <linearGradient id={`paint0_linear_159_476_${index}`} x1="1.20129" y1="304.95" x2="1.85465" y2="304.949" gradientUnits="userSpaceOnUse">
+                                                                <stop stopColor="#1D8FCF" />
+                                                                <stop offset="1" stopColor="#2EABE2" />
+                                                            </linearGradient>
+                                                        </defs>
+                                                    </svg>
                                                 </motion.div>
                                             )}
                                         </div>

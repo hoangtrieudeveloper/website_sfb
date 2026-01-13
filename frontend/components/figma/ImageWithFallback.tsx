@@ -9,7 +9,7 @@ const ERROR_IMG_SRC =
 // Ảnh mặc định khi không có ảnh
 const DEFAULT_NO_COVER = '/images/no_cover.jpeg'
 
-interface ImageWithFallbackProps {
+interface ImageWithFallbackProps extends Omit<React.ComponentProps<typeof Image>, 'src' | 'alt' | 'width' | 'height' | 'fill' | 'quality' | 'priority' | 'loading' | 'sizes' | 'style' | 'className'> {
   src?: string | null;
   alt?: string;
   className?: string;
@@ -52,10 +52,10 @@ export function ImageWithFallback({
 
   // Update imgSrc khi src prop thay đổi
   useEffect(() => {
-    const normalizedSrc = !src || (typeof src === 'string' && src.trim() === '') 
-      ? DEFAULT_NO_COVER 
+    const normalizedSrc = !src || (typeof src === 'string' && src.trim() === '')
+      ? DEFAULT_NO_COVER
       : src;
-    
+
     if (normalizedSrc !== imgSrc) {
       setImgSrc(normalizedSrc);
       setDidError(false);
@@ -75,12 +75,12 @@ export function ImageWithFallback({
 
   // Nếu fill được set, sử dụng fill mode
   if (fill) {
-    const objectFitClass = objectFit === 'cover' ? 'object-cover' : 
-                           objectFit === 'contain' ? 'object-contain' :
-                           objectFit === 'fill' ? 'object-fill' :
-                           objectFit === 'none' ? 'object-none' :
-                           objectFit === 'scale-down' ? 'object-scale-down' : 'object-cover';
-    
+    const objectFitClass = objectFit === 'cover' ? 'object-cover' :
+      objectFit === 'contain' ? 'object-contain' :
+        objectFit === 'fill' ? 'object-fill' :
+          objectFit === 'none' ? 'object-none' :
+            objectFit === 'scale-down' ? 'object-scale-down' : 'object-cover';
+
     return (
       <div className="relative w-full h-full" style={style}>
         <Image
@@ -93,6 +93,8 @@ export function ImageWithFallback({
           className={`${objectFitClass} ${className}`}
           style={{ objectPosition }}
           unoptimized={isExternal || isDataUrl}
+          onError={() => handleError()}
+          {...rest}
         />
       </div>
     );
@@ -100,12 +102,12 @@ export function ImageWithFallback({
 
   // Nếu có width và height, sử dụng chúng
   if (width && height) {
-    const objectFitClass = objectFit === 'cover' ? 'object-cover' : 
-                           objectFit === 'contain' ? 'object-contain' :
-                           objectFit === 'fill' ? 'object-fill' :
-                           objectFit === 'none' ? 'object-none' :
-                           objectFit === 'scale-down' ? 'object-scale-down' : 'object-cover';
-    
+    const objectFitClass = objectFit === 'cover' ? 'object-cover' :
+      objectFit === 'contain' ? 'object-contain' :
+        objectFit === 'fill' ? 'object-fill' :
+          objectFit === 'none' ? 'object-none' :
+            objectFit === 'scale-down' ? 'object-scale-down' : 'object-cover';
+
     return (
       <Image
         src={imgSrc}
@@ -126,14 +128,14 @@ export function ImageWithFallback({
   // Fallback: sử dụng img tag nếu không có width/height và không fill
   // (trường hợp này nên tránh, nhưng giữ lại để tương thích)
   return (
-    <img 
-      src={imgSrc} 
-      alt={alt} 
-      className={className} 
-      style={{ ...style, objectFit, objectPosition }} 
+    <img
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      style={{ ...style, objectFit, objectPosition }}
       loading={loading}
       onError={handleError}
-      {...rest}
+      {...Object.fromEntries(Object.entries(rest).filter(([key]) => key !== 'ref'))}
     />
   );
 }

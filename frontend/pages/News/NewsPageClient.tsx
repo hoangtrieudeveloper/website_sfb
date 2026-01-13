@@ -214,15 +214,15 @@ export function NewsPageClient({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
             {/* Categories */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            <div className="flex flex-wrap items-center gap-2 pb-0">
               <div
-                className="p-2.5 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center flex-none"
+                className="p-2 sm:p-2.5 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center flex-none"
                 aria-hidden="true"
               >
                 <img
                   src="/icons/interface/iconnews.svg"
                   alt=""
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   aria-hidden="true"
                 />
               </div>
@@ -230,7 +230,7 @@ export function NewsPageClient({
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`px-5 py-2.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
+                  className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
                     ? "bg-[#0870B4] text-white shadow-md select-none"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                     }`}

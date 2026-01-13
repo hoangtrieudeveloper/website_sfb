@@ -41,25 +41,35 @@ const splitMetaParts = (meta: string) => {
 };
 
 const ProductCard = ({ product }: { product: any }) => {
+    const [objectFitStyle, setObjectFitStyle] = useState<'cover' | 'contain'>('contain');
+
     return (
         <div
             className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] lg:h-[786px] lg:max-w-[606px]"
         >
             {/* Image kiểu ảnh: có padding + khung */}
             {product.image && (
-                <div className="w-full lg:self-stretch">
-                    <div className="rounded-2xl lg:rounded-[8px] overflow-hidden border border-gray-100 lg:border-none bg-white lg:bg-gray-200">
-                        <div className="relative aspect-[16/7] lg:aspect-[600/262] lg:ml-auto min-[1920px]:w-[600px] min-[1920px]:h-[262px] min-[1920px]:aspect-auto">
-                            <ImageWithFallback
-                                src={product.image}
-                                alt={product.name || PLACEHOLDER_TITLE}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-                                loading="lazy"
-                                objectFit="contain"
-                                className="rounded-[8px]"
-                            />
-                        </div>
+                <div className="w-full self-stretch">
+                    <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden">
+                        <ImageWithFallback
+                            src={product.image}
+                            alt={product.name || PLACEHOLDER_TITLE}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+                            loading="lazy"
+                            objectFit={objectFitStyle}
+                            onLoad={(e) => {
+                                const img = e.currentTarget;
+                                const ratio = img.naturalWidth / img.naturalHeight;
+                                // Reversed logic as requested
+                                if (ratio > (3 / 2)) {
+                                    setObjectFitStyle('contain');
+                                } else {
+                                    setObjectFitStyle('cover');
+                                }
+                            }}
+                            className="rounded-[8px]"
+                        />
                     </div>
                 </div>
             )}
@@ -104,7 +114,12 @@ const ProductCard = ({ product }: { product: any }) => {
                 )}
 
                 {product.description && (
-                    <p className="self-stretch mb-4 lg:mb-5 line-clamp-3 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
+                    <p className={`self-stretch mb-4 lg:mb-5 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]
+                        ${(product.features && Array.isArray(product.features) && product.features.length > 0)
+                            ? 'line-clamp-3'
+                            : 'line-clamp-[7]'
+                        }
+                    `}>
                         {product.description}
                     </p>
                 )}
@@ -235,6 +250,16 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
         setMobilePage(1);
     }, [selectedCategory]);
 
+    const [pageSize, setPageSize] = useState(6);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Desktop Pagination Calculation
+    const totalPages = Math.ceil(filteredProducts.length / pageSize);
+    const paginatedProducts = filteredProducts.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
+
     const mobileTotalPages = Math.ceil(filteredProducts.length / MOBILE_ITEMS_PER_PAGE);
     const mobileProducts = filteredProducts.slice(
         (mobilePage - 1) * MOBILE_ITEMS_PER_PAGE,
@@ -302,11 +327,98 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     </div>
                 </div>
 
-                {/* Desktop Grid (>= lg) - Show All */}
-                <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-x-8 gap-y-[45px] justify-items-center w-full max-w-[1244px] mx-auto px-6">
-                    {filteredProducts.map((product: any) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
+                {/* Desktop Grid (>= lg) with Pagination */}
+                <div className="hidden lg:block w-full max-w-[1244px] mx-auto px-6">
+                    {/* Items per page selector */}
+                    <div className="flex justify-end mb-6 z-10 relative">
+                        <div className="flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-100">
+                            <span className="text-sm font-medium text-gray-500">Hiển thị:</span>
+                            <div className="flex gap-1">
+                                {[4, 6, 12].map((size) => (
+                                    <button
+                                        key={size}
+                                        onClick={() => {
+                                            setPageSize(size);
+                                            setCurrentPage(1);
+                                        }}
+                                        className={`px-3 py-1 text-sm font-semibold rounded-md transition-all ${pageSize === size
+                                            ? "bg-[#0870B4] text-white shadow-sm"
+                                            : "text-gray-600 hover:bg-gray-100"
+                                            }`}
+                                    >
+                                        {size}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 auto-rows-fr gap-x-8 gap-y-[45px] justify-items-center mb-12">
+                        {paginatedProducts.map((product: any) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+
+                    {/* Desktop Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center gap-2 items-center">
+                            <button
+                                onClick={() => setCurrentPage(1)}
+                                disabled={currentPage === 1}
+                                className={`px-3 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
+                                    ${currentPage === 1
+                                        ? "bg-gray-50 text-gray-300 cursor-not-allowed"
+                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                                    }`}
+                            >
+                                First
+                            </button>
+
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <button
+                                    key={page}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
+                                        ${page === currentPage
+                                            ? "bg-[#0870B4] text-white shadow-md"
+                                            : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                                        }`}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+
+                            <div className="flex items-center gap-2 px-2">
+                                <span className="text-sm text-gray-500">Go to:</span>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={totalPages}
+                                    className="w-16 h-10 border border-gray-200 rounded-lg px-2 text-sm text-center focus:outline-none focus:border-[#0870B4]"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const val = parseInt((e.target as HTMLInputElement).value);
+                                            if (val >= 1 && val <= totalPages) {
+                                                setCurrentPage(val);
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}
+                                className={`px-3 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
+                                    ${currentPage === totalPages
+                                        ? "bg-gray-50 text-gray-300 cursor-not-allowed"
+                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
+                                    }`}
+                            >
+                                Last
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Mobile Grid (< lg) - Pagination */}

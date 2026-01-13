@@ -25,9 +25,7 @@ export function AboutVisionMission({ data }: AboutVisionMissionProps) {
     const headerDescription = typeof headerDescriptionRaw === 'string' ? headerDescriptionRaw : getLocalizedText(headerDescriptionRaw, locale);
 
     return (
-        <section className="py-10 sm:py-20 bg-white overflow-hidden relative">
-            {/* Background Tech Pattern */}
-            <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#2CA4E0_1px,transparent_1px)] bg-[size:20px_20px]" />
+        <section className="py-10 sm:py-20 overflow-hidden relative" style={{ background: 'linear-gradient(164deg, #FFF 28.56%, #F1F9FD 88.4%)' }}>
 
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)] relative z-10">
                 <InViewSection className="mx-auto w-full max-w-[1340px]">

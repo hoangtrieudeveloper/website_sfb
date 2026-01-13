@@ -14,7 +14,7 @@ interface AboutCompanyProps {
 
 export function AboutCompany({ data }: AboutCompanyProps) {
     const { locale } = useLocale();
-    
+
     // Chỉ sử dụng data từ API, không fallback static data
     if (!data || !data.data) {
         return null;
@@ -27,9 +27,9 @@ export function AboutCompany({ data }: AboutCompanyProps) {
 
     // Handle contacts array
     const contacts = displayData.contacts || contact?.items || [];
-    
+
     // Localize fields
-    const headerSub = displayData.headerSub 
+    const headerSub = displayData.headerSub
         ? (typeof displayData.headerSub === 'string' ? displayData.headerSub : getLocalizedText(displayData.headerSub, locale))
         : undefined;
     const headerTitleLine1 = displayData.headerTitleLine1
@@ -48,7 +48,7 @@ export function AboutCompany({ data }: AboutCompanyProps) {
         ? (typeof displayData.contentButtonText === 'string' ? displayData.contentButtonText : getLocalizedText(displayData.contentButtonText, locale))
         : undefined;
     const contactButtonText = displayData.contactButtonText || contact?.button?.text
-        ? (typeof (displayData.contactButtonText || contact?.button?.text) === 'string' 
+        ? (typeof (displayData.contactButtonText || contact?.button?.text) === 'string'
             ? (displayData.contactButtonText || contact?.button?.text)
             : getLocalizedText(displayData.contactButtonText || contact?.button?.text, locale))
         : undefined;
@@ -150,13 +150,13 @@ export function AboutCompany({ data }: AboutCompanyProps) {
                                             </div>
                                             <div className="flex flex-col justify-center min-h-[40px]">
                                                 {item.isHighlight ? (
-                                                    <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-relaxed">
-                                                        {itemTitle}: <span className="font-normal text-gray-600">{itemText}</span>
+                                                    <h4 className="self-stretch font-bold text-gray-900 text-xs sm:text-base lg:text-[20px] lg:font-semibold lg:text-[#0F172A] lg:leading-[30px] lg:font-['Plus_Jakarta_Sans'] [font-feature-settings:'liga'_off,'clig'_off] break-words leading-relaxed">
+                                                        {itemTitle}: <span className="font-normal text-gray-600 lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">{itemTitle}</span>
                                                     </h4>
                                                 ) : (
                                                     <>
-                                                        <h4 className="font-bold text-gray-900 text-xs sm:text-base break-words leading-tight mb-1">{itemTitle}</h4>
-                                                        <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words">
+                                                        <h4 className="self-stretch text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-base lg:text-[20px] font-bold lg:font-semibold leading-tight lg:leading-[30px] break-words mb-1">{itemText}</h4>
+                                                        <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words self-stretch lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">
                                                             {itemText}
                                                         </p>
                                                     </>

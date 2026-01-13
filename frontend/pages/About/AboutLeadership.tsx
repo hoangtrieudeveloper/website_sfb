@@ -45,12 +45,12 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
     }
 
     const { locale } = useLocale();
-    
+
     const displayData = data.data;
     const headerTitleRaw = displayData.headerTitle;
     const headerDescriptionRaw = displayData.headerDescription;
     const items = displayData.items || [];
-    
+
     // Localize fields
     const headerTitle = typeof headerTitleRaw === 'string' ? headerTitleRaw : getLocalizedText(headerTitleRaw, locale);
     const headerDescription = typeof headerDescriptionRaw === 'string' ? headerDescriptionRaw : getLocalizedText(headerDescriptionRaw, locale);
@@ -63,7 +63,7 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
     return (
         <section className="py-10 sm:py-20 bg-white">
             <div className="mx-auto w-full max-w-[1920px] px-6 lg:px-[clamp(24px,7.8125vw,150px)]">
-                <InViewSection className="mx-auto w-full max-w-[1340px]">
+                <InViewSection className="mx-auto w-full max-w-[1408px]">
                     {/* Header */}
                     <FadeIn className="text-center mb-8 sm:mb-16 max-w-4xl mx-auto">
                         {headerTitle && (
@@ -88,17 +88,17 @@ export function AboutLeadership({ data }: AboutLeadershipProps) {
                             }}
                             className="w-full"
                         >
-                            <CarouselContent className="-ml-4 py-4">
+                            <CarouselContent className="-ml-[34px] py-4">
                                 {items.filter((item: any) => item.isActive !== false).map((leader: any, index: number) => {
                                     const leaderName = typeof leader.name === 'string' ? leader.name : getLocalizedText(leader.name, locale);
                                     const leaderPosition = typeof leader.position === 'string' ? leader.position : getLocalizedText(leader.position, locale);
                                     const leaderDescription = typeof leader.description === 'string' ? leader.description : getLocalizedText(leader.description, locale);
-                                    
+
                                     return (
-                                    <CarouselItem key={index} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                                    <CarouselItem key={index} className="pl-[34px] basis-full md:basis-1/2 lg:basis-1/3">
                                         <motion.div
                                             whileHover={{ y: -8 }}
-                                            className="group flex flex-col w-full max-w-[410px] h-[523px] p-6 items-start gap-6 rounded-[24px] bg-white shadow-none transition-all duration-300 mx-auto"
+                                            className="group flex flex-col w-full lg:w-[410px] lg:h-[523px] p-6 items-start gap-6 rounded-[24px] bg-white shadow-none lg:shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] transition-all duration-300 mx-auto"
                                         >
                                             <div className="relative h-[234px] flex-shrink-0 self-stretch rounded-[8px] overflow-hidden bg-gray-200 lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
                                                 <ImageWithFallback
