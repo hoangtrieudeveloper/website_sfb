@@ -14,7 +14,7 @@ import { applyLocale } from "@/lib/utils/i18n";
 export function ProductsPage({ locale: initialLocale }: { locale?: 'vi' | 'en' | 'ja' }) {
     const { locale: contextLocale } = useLocale();
     const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
-    
+
     const [heroData, setHeroData] = useState<any>(null);
     const [benefitsData, setBenefitsData] = useState<any[]>([]);
     const [listHeaderData, setListHeaderData] = useState<any>(null);
@@ -93,8 +93,26 @@ export function ProductsPage({ locale: initialLocale }: { locale?: 'vi' | 'en' |
                     categories={categoriesData}
                 />
             )}
-            {testimonialsData.length > 0 && <Testimonials data={{ reviews: testimonialsData }} />}
-            {shouldRender(ctaData) && <Consult data={ctaData} />}
+            {testimonialsData.length > 0 && <Testimonials data={{ title: "Khách hàng nói gì về SFB ?", reviews: testimonialsData }} />}
+            {shouldRender(ctaData) && (
+                <Consult
+                    data={{
+                        title: ctaData.title,
+                        description: ctaData.description,
+                        buttons: ctaData.buttons || {
+                            primary: {
+                                text: ctaData.primaryButtonText,
+                                link: ctaData.primaryButtonLink,
+                            },
+                            secondary: {
+                                text: ctaData.secondaryButtonText,
+                                link: ctaData.secondaryButtonLink,
+                            },
+                        },
+                        backgroundColor: ctaData.backgroundColor,
+                    }}
+                />
+            )}
         </div>
     );
 }

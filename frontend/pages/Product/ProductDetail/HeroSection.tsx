@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, ChevronLeft } from "lucide-react";
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ProductDetail } from "./data";
 
@@ -30,10 +30,18 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
     return (
         <section className="w-full max-w-[100vw] overflow-hidden">
             <div className="bg-[linear-gradient(31deg,#0870B4_51.21%,#2EABE2_97.73%)]">
-                <div className="mx-auto w-full max-w-[1920px] px-4 min-[1920px]:px-[243px] py-[80px] sm:py-[110px] lg:py-[127.5px] min-[1920px]:py-0">
+                <div className="mx-auto w-full max-w-[1400px] px-4 min-[1920px]:px-[243px] py-[80px] sm:py-[110px] lg:py-[127.5px] min-[1920px]:py-0">
                     <div className="w-full flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-[56px] min-[1920px]:gap-[98px] min-[1920px]:h-[760px]">
                         {/* LEFT */}
                         <div className="text-white flex flex-col items-start gap-[29px] w-full lg:w-[543px] lg:shrink-0 max-w-full min-w-0">
+                            <Link
+                                href="/products"
+                                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white text-[#0B78B8] text-xs sm:text-sm font-semibold shadow-sm hover:bg-white/90 transition-all group -mb-1 sm:-mb-2"
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" />
+                                <span className="hidden sm:inline">Quay lại danh sách sản phẩm</span>
+                                <span className="sm:hidden">Danh sách sản phẩm</span>
+                            </Link>
                             <div
                                 className="text-white uppercase font-medium text-[16px]"
                                 style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}

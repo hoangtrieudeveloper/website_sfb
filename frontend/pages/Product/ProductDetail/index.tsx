@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import {
-  Facebook,
-  Twitter,
-  Linkedin,
-  Copy,
-  Check,
-  Share2,
-  Bookmark,
-  Link as LinkIcon,
+    Facebook,
+    Twitter,
+    Linkedin,
+    Copy,
+    Check,
+    Share2,
+    Bookmark,
+    Link as LinkIcon,
+    ChevronLeft,
 } from "lucide-react";
+import Link from "next/link";
 import { Consult } from "@/components/public/Consult";
 import { ProductDetail } from "./data";
 import { HeroSection } from "./HeroSection";
@@ -23,13 +25,13 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { API_BASE_URL } from "@/lib/api/base";
 import { toast } from "sonner";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollActionButton } from "@/components/public/ScrollActionButton";
 import { useLocale } from "@/lib/contexts/LocaleContext";
-
 interface ProductDetailViewProps {
     product: ProductDetail | null;
     locale?: 'vi' | 'en' | 'ja';
@@ -37,27 +39,27 @@ interface ProductDetailViewProps {
 
 // Helper function để xử lý HTML và tạo TOC
 function processContentHtml({
-  html,
-  enableToc,
+    html,
+    enableToc,
 }: {
-  html: string;
-  enableToc: boolean;
+    html: string;
+    enableToc: boolean;
 }) {
-  let processed = html;
-  const tocItems: { id: string; text: string; level: number }[] = [];
+    let processed = html;
+    const tocItems: { id: string; text: string; level: number }[] = [];
 
-  // Thêm id cho H2/H3 để làm TOC
-  if (enableToc) {
-    let counter = 1;
-    processed = processed.replace(/<h([23])>(.*?)<\/h\1>/gi, (_m, level, text) => {
-      const id = `toc-${counter++}`;
-      const cleanText = String(text).replace(/<[^>]+>/g, "").trim();
-      tocItems.push({ id, text: cleanText, level: Number(level) });
-      return `<h${level} id="${id}">${text}</h${level}>`;
-    });
-  }
+    // Thêm id cho H2/H3 để làm TOC
+    if (enableToc) {
+        let counter = 1;
+        processed = processed.replace(/<h([23])>(.*?)<\/h\1>/gi, (_m, level, text) => {
+            const id = `toc-${counter++}`;
+            const cleanText = String(text).replace(/<[^>]+>/g, "").trim();
+            tocItems.push({ id, text: cleanText, level: Number(level) });
+            return `<h${level} id="${id}">${text}</h${level}>`;
+        });
+    }
 
-  return { processedHtml: processed, tocItems };
+    return { processedHtml: processed, tocItems };
 }
 
 // Component Gallery Slider cho Product
@@ -65,13 +67,13 @@ function ProductGallerySlider({ images, title, locale = 'vi' }: { images: string
   if (!images || images.length === 0) return null;
 
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  
+
   const galleryTexts = {
     vi: { close: "Đóng", prevImage: "Ảnh trước", nextImage: "Ảnh sau" },
     en: { close: "Close", prevImage: "Previous image", nextImage: "Next image" },
     ja: { close: "閉じる", prevImage: "前の画像", nextImage: "次の画像" },
   };
-  
+
   const gt = galleryTexts[locale];
 
   return (
@@ -209,10 +211,10 @@ function ProductGallerySlider({ images, title, locale = 'vi' }: { images: string
 export function ProductDetailView({ product, locale: propLocale }: ProductDetailViewProps) {
     const { locale: contextLocale } = useLocale();
     const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
-    
+
     const [linkCopied, setLinkCopied] = useState(false);
     const [supportsWebShare, setSupportsWebShare] = useState(false);
-    
+
     // Localized texts
     const uiTexts = {
         vi: {
@@ -288,7 +290,7 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
             nextImage: "次の画像",
         },
     };
-    
+
     const t = uiTexts[locale];
 
     // Kiểm tra Web Share API support
@@ -342,8 +344,8 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
         (product.galleryPosition as any) === "top" ? "top" : "bottom";
 
     // Lấy URL hiện tại của trang
-    const currentUrl = typeof window !== "undefined" 
-        ? window.location.href 
+    const currentUrl = typeof window !== "undefined"
+        ? window.location.href
         : "";
     const shareTitle = product.name;
     const shareDescription = product.heroDescription || "";
@@ -419,23 +421,23 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
 
     // Kiểm tra xem các section có dữ liệu không
     const hasHeroData = hasValue(product.name) || hasValue(product.heroImage) || hasValue(product.heroDescription);
-    
-    const hasOverviewData = hasValue(product.overviewTitle) || 
-        hasValue(product.overviewKicker) || 
+
+    const hasOverviewData = hasValue(product.overviewTitle) ||
+        hasValue(product.overviewKicker) ||
         (product.overviewCards && product.overviewCards.length > 0);
-    
+
     const hasShowcaseData = product.showcase && (
-        hasValue(product.showcase.title) || 
-        hasValue(product.showcase.desc) || 
-        hasValue(product.showcase.overlay?.back?.src) || 
-        hasValue(product.showcase.overlay?.front?.src) || 
+        hasValue(product.showcase.title) ||
+        hasValue(product.showcase.desc) ||
+        hasValue(product.showcase.overlay?.back?.src) ||
+        hasValue(product.showcase.overlay?.front?.src) ||
         hasValue(product.showcase.single?.src)
     );
-    
+
     const hasNumberedSections = numberedSections.length > 0;
-    
-    const hasExpandData = hasValue(product.expandTitle) || 
-        (product.expandBullets && product.expandBullets.length > 0) || 
+
+    const hasExpandData = hasValue(product.expandTitle) ||
+        (product.expandBullets && product.expandBullets.length > 0) ||
         hasValue(product.expandImage);
 
     // Kiểm tra contentMode: nếu là 'content' thì hiển thị HTML, nếu là 'config' thì hiển thị widget
@@ -456,12 +458,12 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
             {(hasContentHtml || (isContentMode && hasGallery)) ? (
                 // Chế độ Content: Hiển thị HTML từ RichTextEditor
                 <section className="w-full bg-white">
-                    <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[20px]">
+                    <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-[120px] py-[20px]">
                         {/* Share buttons và Meta thông tin */}
                         {enableShareButtons && (
                             <div className="mb-6 flex items-center justify-between gap-4 pb-4 border-b border-gray-200">
                                 <div className="flex items-center gap-4">
-                                   
+
                                     <div className="flex items-center gap-2">
                                     <button
                                         type="button"
@@ -526,8 +528,8 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                     </div>
-                                     {/* Meta thông tin */}
-                                     {(product.meta || product.metaTop) && (
+                                    {/* Meta thông tin */}
+                                    {(product.meta || product.metaTop) && (
                                         <p className="text-sm text-gray-500 font-medium">
                                             {product.meta || product.metaTop}
                                         </p>
@@ -630,7 +632,7 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
                                         enableToc: showTableOfContents,
                                     });
                                     return (
-                                        <div 
+                                        <div
                                             className="prose prose-lg max-w-none"
                                             dangerouslySetInnerHTML={{ __html: processedHtml }}
                                         />
@@ -678,7 +680,7 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
 
                     {hasNumberedSections && (
                         <section className="w-full bg-white">
-                            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
+                            <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
                                 {numberedSections.map((section) => (
                                     <ProductFeatureSection key={section.no} section={section} />
                                 ))}
@@ -692,6 +694,8 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
 
             <div id="demo" />
             <Consult locale={locale} />
+            {/* Scroll Action Button */}
+            <ScrollActionButton />
         </div>
     );
 }

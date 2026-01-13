@@ -10,7 +10,7 @@ interface ShowcaseSectionProps {
 export function ShowcaseSection({ product }: ShowcaseSectionProps) {
     return (
         <section className="w-full bg-white">
-            <div className="w-full max-w-[1920px] mx-auto px-6 lg:px-10 min-[1920px]:px-[243px]">
+            <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-10 min-[1920px]:px-[243px]">
                 <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[60px] min-[1920px]:gap-[90px]  min-[1920px]:py-0 min-[1920px]:h-[567px]">
                     <div className="relative w-full lg:w-auto flex justify-center lg:justify-start">
                         {product.showcase.overlay && (product.showcase.overlay.back || product.showcase.overlay.front) ? (
@@ -37,8 +37,8 @@ export function ShowcaseSection({ product }: ShowcaseSectionProps) {
                                 {product.showcase.overlay.front && (
                                     <div
                                         className={`${product.showcase.overlay.back
-                                                ? (product.showcase.overlay.front.positionClass ?? "absolute left-[183.5px] bottom-0")
-                                                : "relative"
+                                            ? (product.showcase.overlay.front.positionClass ?? "absolute left-[183.5px] bottom-0")
+                                            : "relative"
                                             } ${product.showcase.overlay.front.frameClass ?? "rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden"} ${product.showcase.overlay.front.sizeClass ?? (product.showcase.overlay.back ? "w-[400px] h-[300px]" : "w-[701px] h-[511px]")}`}
                                     >
                                         <ImageWithFallback
