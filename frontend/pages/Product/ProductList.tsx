@@ -41,25 +41,37 @@ const splitMetaParts = (meta: string) => {
 };
 
 const ProductCard = ({ product }: { product: any }) => {
+    const [objectFitStyle, setObjectFitStyle] = useState<'cover' | 'contain'>('contain');
+
     return (
         <div
             className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] lg:h-[786px] lg:max-w-[606px]"
         >
             {/* Image kiểu ảnh: có padding + khung */}
             {product.image && (
-                <div className="w-full lg:self-stretch">
-                    <div className="rounded-2xl lg:rounded-[8px] overflow-hidden border border-gray-100 lg:border-none bg-white lg:bg-gray-200">
-                        <div className="relative aspect-[16/7] lg:aspect-[600/262] lg:ml-auto min-[1920px]:w-[600px] min-[1920px]:h-[262px] min-[1920px]:aspect-auto">
-                            <ImageWithFallback
-                                src={product.image}
-                                alt={product.name || PLACEHOLDER_TITLE}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-                                loading="lazy"
-                                objectFit="contain"
-                                className="rounded-[8px]"
-                            />
-                        </div>
+                <div className="w-full self-stretch">
+                    <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden">
+                        <ImageWithFallback
+                            src={product.image}
+                            alt={product.name || PLACEHOLDER_TITLE}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+                            loading="lazy"
+                            objectFit={objectFitStyle}
+                            onLoad={(e) => {
+                                const img = e.currentTarget;
+                                const ratio = img.naturalWidth / img.naturalHeight;
+                                // 3/2 = 1.5
+                                // Wider than 3/2 => cropped (cover)
+                                // Smaller (narrower) than 3/2 => not cropped (contain)
+                                if (ratio > (3 / 2)) {
+                                    setObjectFitStyle('cover');
+                                } else {
+                                    setObjectFitStyle('contain');
+                                }
+                            }}
+                            className="rounded-[8px]"
+                        />
                     </div>
                 </div>
             )}
