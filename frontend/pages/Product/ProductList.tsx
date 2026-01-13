@@ -114,7 +114,12 @@ const ProductCard = ({ product }: { product: any }) => {
                 )}
 
                 {product.description && (
-                    <p className="self-stretch mb-4 lg:mb-5 line-clamp-3 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
+                    <p className={`self-stretch mb-4 lg:mb-5 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]
+                        ${(product.features && Array.isArray(product.features) && product.features.length > 0)
+                            ? 'line-clamp-3'
+                            : 'line-clamp-[7]'
+                        }
+                    `}>
                         {product.description}
                     </p>
                 )}
