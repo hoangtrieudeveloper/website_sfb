@@ -66,6 +66,8 @@ interface NewsDetailPageClientProps {
   }>;
 }
 
+import { ScrollActionButton } from "../../components/public/ScrollActionButton";
+
 export function NewsDetailPageClient({
   article,
   relatedArticles = [],
@@ -73,10 +75,10 @@ export function NewsDetailPageClient({
 }: NewsDetailPageClientProps & { locale?: 'vi' | 'en' | 'ja' }) {
   const { locale: contextLocale } = useLocale();
   const locale = (initialLocale || contextLocale) as 'vi' | 'en' | 'ja';
-  
+
   const [linkCopied, setLinkCopied] = useState(false);
   const [supportsWebShare, setSupportsWebShare] = useState(false);
-  
+
   // Localize article fields - getLocalizedText now handles JSON strings automatically
   const articleTitle = getLocalizedText(article.title, locale);
   const articleExcerpt = getLocalizedText(article.excerpt, locale);
@@ -87,7 +89,7 @@ export function NewsDetailPageClient({
   const articleGalleryTitle = getLocalizedText(article.galleryTitle, locale);
   const [relatedPage, setRelatedPage] = useState<number>(1);
   const RELATED_PAGE_SIZE = 6;
-  
+
   // Kiểm tra Web Share API support
   useEffect(() => {
     if (typeof window !== "undefined" && "navigator" in window && "share" in navigator) {
@@ -99,11 +101,32 @@ export function NewsDetailPageClient({
   useEffect(() => {
     setRelatedPage(1);
   }, [relatedArticles]);
-  
+
+  const [isAtTop, setIsAtTop] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsAtTop(window.scrollY < 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleScrollAction = () => {
+    if (isAtTop) {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   if (!article) {
     return null;
   }
-  
+
   const apiBase = API_BASE_URL;
   const featuredImageSrc = article?.imageUrl
     ? article.imageUrl.startsWith("http")
@@ -112,8 +135,8 @@ export function NewsDetailPageClient({
     : "/images/no_cover.jpeg";
 
   // Lấy URL hiện tại của trang
-  const currentUrl = typeof window !== "undefined" 
-    ? window.location.href 
+  const currentUrl = typeof window !== "undefined"
+    ? window.location.href
     : "";
   const shareTitle = articleTitle;
   const shareDescription = articleExcerpt || PLACEHOLDER_EXCERPT;
@@ -612,11 +635,14 @@ export function NewsDetailPageClient({
           </div>
         </section>
       )}
-       <section className=" bg-white">
-              <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-                <Consult locale={locale} />
-              </div>
-            </section>
+      <section className=" bg-white">
+        <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
+          <Consult locale={locale} />
+        </div>
+      </section>
+
+      {/* Scroll Action Button */}
+      <ScrollActionButton />
     </div>
   );
 }
@@ -648,9 +674,8 @@ function NewsGallerySlider({ images, title }: { images: string[]; title?: string
                 src={
                   img.startsWith("http")
                     ? img
-                    : `${API_BASE_URL}${
-                        img.startsWith("/") ? "" : "/"
-                      }${img}`
+                    : `${API_BASE_URL}${img.startsWith("/") ? "" : "/"
+                    }${img}`
                 }
                 alt={`Ảnh gallery ${index + 1}`}
                 className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
@@ -680,9 +705,8 @@ function NewsGallerySlider({ images, title }: { images: string[]; title?: string
               src={
                 images[previewIndex].startsWith("http")
                   ? images[previewIndex]
-                  : `${API_BASE_URL}${
-                      images[previewIndex].startsWith("/") ? "" : "/"
-                    }${images[previewIndex]}`
+                  : `${API_BASE_URL}${images[previewIndex].startsWith("/") ? "" : "/"
+                  }${images[previewIndex]}`
               }
               alt={`Ảnh gallery ${previewIndex + 1}`}
               className="w-full max-h-[90vh] object-contain rounded-xl bg-black"
@@ -721,5 +745,5 @@ function processContentHtml({
 
 // Default export cho Pages Router - trả về empty page vì route thực tế nằm ở App Router
 export default function NewsDetailPageClientPage() {
-    return null;
+  return null;
 }

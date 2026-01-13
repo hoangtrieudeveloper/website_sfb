@@ -258,6 +258,25 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
     const [pageSize, setPageSize] = useState(6);
     const [currentPage, setCurrentPage] = useState(1);
 
+    const scrollToTop = () => {
+        const section = document.getElementById('products');
+        if (section) {
+            const yOffset = -100; // Adjust for header
+            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        scrollToTop();
+    };
+
+    const handleMobilePageChange = (page: number) => {
+        setMobilePage(page);
+        scrollToTop();
+    };
+
     // Desktop Pagination Calculation
     const totalPages = Math.ceil(filteredProducts.length / pageSize);
     const paginatedProducts = filteredProducts.slice(
@@ -345,6 +364,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                         onClick={() => {
                                             setPageSize(size);
                                             setCurrentPage(1);
+                                            scrollToTop();
                                         }}
                                         className={`px-3 py-1 text-sm font-semibold rounded-md transition-all ${pageSize === size
                                             ? "bg-[#0870B4] text-white shadow-sm"
@@ -368,7 +388,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     {totalPages > 1 && (
                         <div className="flex justify-center gap-2 items-center">
                             <button
-                                onClick={() => setCurrentPage(1)}
+                                onClick={() => handlePageChange(1)}
                                 disabled={currentPage === 1}
                                 className={`px-3 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
                                     ${currentPage === 1
@@ -382,7 +402,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
-                                    onClick={() => setCurrentPage(page)}
+                                    onClick={() => handlePageChange(page)}
                                     className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
                                         ${page === currentPage
                                             ? "bg-[#0870B4] text-white shadow-md"
@@ -404,7 +424,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                         if (e.key === 'Enter') {
                                             const val = parseInt((e.target as HTMLInputElement).value);
                                             if (val >= 1 && val <= totalPages) {
-                                                setCurrentPage(val);
+                                                handlePageChange(val);
                                             }
                                         }
                                     }}
@@ -412,7 +432,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                             </div>
 
                             <button
-                                onClick={() => setCurrentPage(totalPages)}
+                                onClick={() => handlePageChange(totalPages)}
                                 disabled={currentPage === totalPages}
                                 className={`px-3 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
                                     ${currentPage === totalPages
@@ -438,7 +458,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                             {Array.from({ length: mobileTotalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
-                                    onClick={() => setMobilePage(page)}
+                                    onClick={() => handleMobilePageChange(page)}
                                     className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
                                         ${page === mobilePage
                                             ? "bg-[#0870B4] text-white shadow-md"

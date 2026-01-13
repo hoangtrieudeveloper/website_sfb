@@ -10,8 +10,6 @@ import {
     Share2,
     Bookmark,
     Link as LinkIcon,
-    ArrowUp,
-    ArrowDown,
     ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
@@ -32,6 +30,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollActionButton } from "@/components/public/ScrollActionButton";
 
 interface ProductDetailViewProps {
     product: ProductDetail | null;
@@ -359,27 +358,6 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
         // Content mode debug - removed
     }, [isContentMode, hasContentHtml, hasGallery, galleryImages, galleryPosition, galleryTitle]);
 
-    const [isAtTop, setIsAtTop] = useState(true);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsAtTop(window.scrollY < 300);
-        };
-
-        window.addEventListener("scroll", handleScroll);
-        handleScroll();
-
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    const handleScrollAction = () => {
-        if (isAtTop) {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    };
-
     return (
         <div className="bg-white">
             {hasHeroData && <HeroSection product={product} />}
@@ -626,18 +604,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             <Consult />
 
             {/* Scroll Action Button */}
-            <button
-                onClick={handleScrollAction}
-                className="fixed bottom-8 right-8 z-50 p-3 rounded-full bg-[#1D8FCF] text-white shadow-lg hover:bg-[#166FE5] transition-all duration-300 hover:scale-110"
-                aria-label={isAtTop ? "Cuộn xuống cuối" : "Cuộn lên đầu"}
-                title={isAtTop ? "Cuộn xuống cuối" : "Cuộn lên đầu"}
-            >
-                {isAtTop ? (
-                    <ArrowDown size={24} />
-                ) : (
-                    <ArrowUp size={24} />
-                )}
-            </button>
+            <ScrollActionButton />
         </div>
     );
 }
