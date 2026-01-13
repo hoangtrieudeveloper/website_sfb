@@ -13,24 +13,7 @@ interface TestimonialsProps {
 
 export function Testimonials({ data }: TestimonialsProps) {
   const { locale } = useLocale();
-  
-  // Chỉ sử dụng data từ API, không có fallback static data
-  if (!data) {
-    return null;
-  }
 
-  const titleRaw = data?.title;
-  const reviewsData = data?.reviews || [];
-  
-  // Localize title
-  const title = typeof titleRaw === 'string' ? titleRaw : getLocalizedText(titleRaw, locale);
-
-  // Không render nếu không có dữ liệu cần thiết
-  if (!title || reviewsData.length === 0) {
-    return null;
-  }
-
-  const baseTestimonials = reviewsData;
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",
@@ -40,34 +23,6 @@ export function Testimonials({ data }: TestimonialsProps) {
   });
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
-
-
-  // Duplicate to create "infinite" look and enough items for scrolling
-  const testimonials = [...baseTestimonials, ...baseTestimonials, ...baseTestimonials];
-
-  // Random-like widths for visual interest
-  const widthClasses = [
-    "md:flex-[0_0_40%] lg:flex-[0_0_30%]",
-    "md:flex-[0_0_50%] lg:flex-[0_0_35%]",
-    "md:flex-[0_0_45%] lg:flex-[0_0_28%]",
-    "md:flex-[0_0_55%] lg:flex-[0_0_38%]",
-  ];
-
-  // Auto-scroll logic
-  useEffect(() => {
-    if (!emblaApi) return;
-
-    // Auto scroll every 3 seconds
-    const intervalId = setInterval(() => {
-      if (emblaApi.canScrollNext()) {
-        emblaApi.scrollNext();
-      } else {
-        emblaApi.scrollTo(0);
-      }
-    }, 5000);
-
-    return () => clearInterval(intervalId);
-  }, [emblaApi]);
 
   const onInit = useCallback((emblaApi: any) => {
     setScrollSnaps(emblaApi.scrollSnapList());
@@ -86,10 +41,54 @@ export function Testimonials({ data }: TestimonialsProps) {
     emblaApi.on("select", onSelect);
   }, [emblaApi, onInit, onSelect]);
 
+  // Auto-scroll logic
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    // Auto scroll every 3 seconds
+    const intervalId = setInterval(() => {
+      if (emblaApi.canScrollNext()) {
+        emblaApi.scrollNext();
+      } else {
+        emblaApi.scrollTo(0);
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [emblaApi]);
+
   const scrollTo = useCallback(
     (index: number) => emblaApi && emblaApi.scrollTo(index),
     [emblaApi]
   );
+
+  const titleRaw = data?.title;
+  const reviewsData = data?.reviews || [];
+
+  // Localize title
+  const title = typeof titleRaw === 'string' ? titleRaw : getLocalizedText(titleRaw, locale);
+
+  // Random-like widths for visual interest
+  const widthClasses = [
+    "md:flex-[0_0_40%] lg:flex-[0_0_30%]",
+    "md:flex-[0_0_50%] lg:flex-[0_0_35%]",
+    "md:flex-[0_0_45%] lg:flex-[0_0_28%]",
+    "md:flex-[0_0_55%] lg:flex-[0_0_38%]",
+  ];
+
+  // Chỉ sử dụng data từ API, không có fallback static data
+  if (!data) {
+    return null;
+  }
+
+  // Không render nếu không có dữ liệu cần thiết
+  if (!title || reviewsData.length === 0) {
+    return null;
+  }
+
+  const baseTestimonials = reviewsData;
+  // Duplicate to create "infinite" look and enough items for scrolling
+  const testimonials = [...baseTestimonials, ...baseTestimonials, ...baseTestimonials];
 
   return (
     <section className="bg-[#eff8ff] py-16 sm:py-24 overflow-hidden">
@@ -108,7 +107,7 @@ export function Testimonials({ data }: TestimonialsProps) {
               {testimonials.map((item, index) => {
                 // Determine width class based on original index (modulo)
                 const widthClass = widthClasses[index % widthClasses.length];
-                
+
                 // Localize review fields
                 const itemQuote = typeof item.quote === 'string' ? item.quote : getLocalizedText(item.quote, locale);
                 const itemAuthor = typeof item.author === 'string' ? item.author : getLocalizedText(item.author, locale);
