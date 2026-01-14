@@ -21,9 +21,9 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 
   return (
     <Select value={locale} onValueChange={(value) => setLocale(value as 'vi' | 'en' | 'ja')}>
-      <SelectTrigger className={`flex w-[40px] h-[40px] p-0 justify-center items-center gap-0 rounded-[23px] border border-[#222] bg-transparent focus:ring-0 focus:ring-offset-0 [&>svg]:hidden data-[state=open]:opacity-80 hover:opacity-80 transition-opacity ${className}`}>
+      <SelectTrigger className={`flex !w-[40px] !h-[40px] !p-0 justify-center items-center gap-0 !rounded-full border border-[#222] bg-transparent focus:ring-0 focus:ring-offset-0 [&_svg]:hidden data-[state=open]:opacity-80 hover:opacity-80 transition-opacity ${className}`}>
         {currentOption && (
-          <div className="relative w-full h-full rounded-[23px] overflow-hidden">
+          <div className="relative w-full h-full rounded-full overflow-hidden">
             <img
               src={currentOption.icon}
               alt={currentOption.label}

@@ -475,10 +475,7 @@ export function Header() {
               })}
             </nav>
 
-            {/* Language Switcher Desktop */}
-            <div className="hidden lg:flex items-center gap-2 shrink-0">
-              <LanguageSwitcher className={useDarkText ? "text-gray-700" : "text-white"} />
-            </div>
+
 
             {/* Contact Info & CTA */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
@@ -512,6 +509,11 @@ export function Header() {
                   {language === "vi" ? "Liên hệ ngay" : language === "en" ? "Contact Now" : "今すぐお問い合わせ"}
                 </span>
               </Link>
+            </div>
+
+            {/* Language Switcher */}
+            <div className="flex items-center gap-2 shrink-0 ml-auto lg:ml-0">
+              <LanguageSwitcher className={useDarkText ? "text-gray-700" : "text-white"} />
             </div>
 
             {/* Mobile Menu Button */}
@@ -578,10 +580,7 @@ export function Header() {
                     transition={{ delay: 0.4 }}
                     className="mt-4 pt-4 border-t border-gray-100 space-y-4"
                   >
-                    {/* Language Switcher Mobile */}
-                    <div className="w-full px-4">
-                      <LanguageSwitcher className="text-gray-700" />
-                    </div>
+
 
                     {/* Search Mobile */}
                     <button
