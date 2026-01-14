@@ -169,7 +169,7 @@ export function isTranslatableField(fieldName: string): boolean {
     'path', 'route', 'slug',
     // Other non-translatable fields
     'slug', 'id', 'sortorder', 'isactive', 'categoryid',
-    'publisheddate', 'author', 'readtime', 'status',
+    'publisheddate', 'publishedat', 'author', 'readtime', 'status',
     'partners', 'galleryimages', 'galleryposition', 'showtableofcontents',
     'enablesharebuttons', 'showauthorbox', 'contentmode',
     'statsusers', 'statsrating', 'statsdeploy', 'pricing',

@@ -107,6 +107,7 @@ const mapProduct = (row) => ({
   sortOrder: row.sort_order || 0,
   isFeatured: row.is_featured || false,
   isActive: row.is_active !== undefined ? row.is_active : true,
+  publishedAt: row.published_at || null,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   features: Array.isArray(row.features) ? row.features.map(f => parseLocaleField(f)) : [],
@@ -181,6 +182,7 @@ exports.getProducts = async (req, res, next) => {
         p.sort_order,
         p.is_featured,
         p.is_active,
+        TO_CHAR(p.published_at, 'YYYY-MM-DD') AS published_at,
         p.created_at,
         p.updated_at
       FROM products p
@@ -243,6 +245,7 @@ exports.getProductById = async (req, res, next) => {
           p.sort_order,
           p.is_featured,
           p.is_active,
+          TO_CHAR(p.published_at, 'YYYY-MM-DD') AS published_at,
           p.created_at,
           p.updated_at
         FROM products p
@@ -298,6 +301,7 @@ exports.createProduct = async (req, res, next) => {
       seoTitle = '',
       seoDescription = '',
       seoKeywords = '',
+      publishedAt = null,
     } = req.body;
 
     // Kiểm tra name không rỗng (hỗ trợ cả string và locale object)
@@ -356,12 +360,12 @@ exports.createProduct = async (req, res, next) => {
       const hasFeaturesColumn = columnCheck.length > 0;
 
       const insertFields = hasFeaturesColumn
-        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, features, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active'
-        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active';
+        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, features, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active, published_at'
+        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active, published_at';
       
       const insertValues = hasFeaturesColumn
-        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21'
-        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20';
+        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22'
+        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21';
 
       const { demoLink } = req.body;
       const insertParams = hasFeaturesColumn
@@ -369,13 +373,13 @@ exports.createProduct = async (req, res, next) => {
             categoryId || null, finalSlug, processLocaleField(name, 255), processLocaleField(tagline, 500), processLocaleField(meta, 255), processLocaleField(description), image, gradient,
             processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null, JSON.stringify(featureTexts),
             processLocaleField(seoTitle, 255), processLocaleField(seoDescription), processLocaleField(seoKeywords),
-            sortOrder, isFeatured, isActive,
+            sortOrder, isFeatured, isActive, publishedAt || null,
           ]
         : [
             categoryId || null, finalSlug, processLocaleField(name, 255), processLocaleField(tagline, 500), processLocaleField(meta, 255), processLocaleField(description), image, gradient,
             processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null,
             processLocaleField(seoTitle, 255), processLocaleField(seoDescription), processLocaleField(seoKeywords),
-            sortOrder, isFeatured, isActive,
+            sortOrder, isFeatured, isActive, publishedAt || null,
           ];
 
       const insertQuery = `
@@ -480,6 +484,7 @@ exports.updateProduct = async (req, res, next) => {
       seoTitle,
       seoDescription,
       seoKeywords,
+      publishedAt,
     } = req.body;
 
     const client = await pool.connect();
@@ -505,8 +510,26 @@ exports.updateProduct = async (req, res, next) => {
 
       const addField = (column, value) => {
         if (value !== undefined) {
-          // Đảm bảo value là string và không null
-          const finalValue = value === null ? null : String(value);
+          let finalValue;
+
+          // published_at là TIMESTAMP, cho phép null hoặc Date/string dạng 'YYYY-MM-DD'
+          if (column === 'published_at') {
+            if (!value) {
+              finalValue = null;
+            } else if (value instanceof Date) {
+              finalValue = value;
+            } else if (typeof value === 'string') {
+              // Chuẩn hóa: nếu chỉ có date (YYYY-MM-DD) thì để nguyên, nếu dạng khác thì để Postgres parse
+              finalValue = value;
+            } else {
+              // Nếu lỡ nhận object (VD: { vi: ... }) thì bỏ qua để tránh lỗi "[object Object]"
+              finalValue = null;
+            }
+          } else {
+            // Các cột khác vẫn giữ logic cũ: cast sang string (hoặc null)
+            finalValue = value === null ? null : String(value);
+          }
+
           params.push(finalValue);
           fields.push(`${column} = $${params.length}`);
         }
@@ -572,6 +595,7 @@ exports.updateProduct = async (req, res, next) => {
       addField('sort_order', sortOrder);
       addField('is_featured', isFeatured);
       addField('is_active', isActive);
+      addField('published_at', publishedAt);
 
       // Cập nhật features nếu có (JSONB)
       if (features !== undefined) {
@@ -650,6 +674,7 @@ exports.updateProduct = async (req, res, next) => {
             p.sort_order,
             p.is_featured,
             p.is_active,
+            TO_CHAR(p.published_at, 'YYYY-MM-DD') AS published_at,
             p.created_at,
             p.updated_at,
             pc.name AS category_name,

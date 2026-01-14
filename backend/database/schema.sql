@@ -632,6 +632,17 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Bổ sung cột thời gian xuất bản (published_at) cho products (nếu chưa tồn tại)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'products' AND column_name = 'published_at'
+  ) THEN
+    ALTER TABLE products ADD COLUMN published_at TIMESTAMP NULL;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products(is_active);

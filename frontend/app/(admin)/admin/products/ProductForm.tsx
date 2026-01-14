@@ -26,7 +26,7 @@ import { ShowcaseWidget } from "@/components/admin/ProductWidgets/ShowcaseWidget
 import { NumberedSectionWidget } from "@/components/admin/ProductWidgets/NumberedSectionWidget";
 import { ExpandWidget } from "@/components/admin/ProductWidgets/ExpandWidget";
 import RichTextEditor from "@/components/admin/RichTextEditor";
-import { generateSlug } from "@/lib/date";
+import { generateSlug, formatDateForInput } from "@/lib/date";
 import { buildUrl } from "@/lib/api/base";
 import { LocaleInput } from "@/components/admin/LocaleInput";
 import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/utils/locale-admin";
@@ -59,6 +59,7 @@ interface ProductFormData {
   seoTitle: string | Record<Locale, string>;
   seoDescription: string | Record<Locale, string>;
   seoKeywords: string | Record<Locale, string>;
+  publishedAt?: string | null;
 }
 
 interface CategoryOption {
@@ -81,6 +82,14 @@ interface ProductFormProps {
   productId?: number;
   onSuccess?: () => void;
 }
+
+const getTodayDateString = () => {
+  try {
+    return new Date().toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
 
 export default function ProductForm({ productId, onSuccess }: ProductFormProps) {
   const router = useRouter();
@@ -109,7 +118,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   const [galleryUploadKey, setGalleryUploadKey] = useState(0);
   const [contentHtmlEditorKey, setContentHtmlEditorKey] = useState(0);
 
-  const [formData, setFormData] = useState<ProductFormData>({
+  const [formData, setFormData] = useState<ProductFormData>(() => ({
     categoryId: "",
     name: { vi: "", en: "", ja: "" },
     slug: "",
@@ -130,8 +139,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     demoLink: "",
     seoTitle: { vi: "", en: "", ja: "" },
     seoDescription: { vi: "", en: "", ja: "" },
-    seoKeywords: { vi: "", en: "", ja: "" }
-  });
+    seoKeywords: { vi: "", en: "", ja: "" },
+    // Mặc định ngày xuất bản là hôm nay cho sản phẩm mới
+    publishedAt: getTodayDateString(),
+  }));
 
   useEffect(() => {
     fetchCategories();
@@ -460,7 +471,8 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           demoLink: normalizedData.demoLink || "",
           seoTitle: normalizedData.seoTitle || { vi: "", en: "", ja: "" },
           seoDescription: normalizedData.seoDescription || { vi: "", en: "", ja: "" },
-          seoKeywords: normalizedData.seoKeywords || { vi: "", en: "", ja: "" }
+          seoKeywords: normalizedData.seoKeywords || { vi: "", en: "", ja: "" },
+          publishedAt: normalizedData.publishedAt || ""
         });
       }
     } catch (error: any) {
@@ -473,7 +485,16 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const nameStr = typeof formData.name === 'string' ? formData.name : getLocalizedText(formData.name, globalLocale);
+    // Validate required fields
+    if (!formData.categoryId) {
+      toast.error("Danh mục không được để trống");
+      return;
+    }
+
+    const nameStr =
+      typeof formData.name === "string"
+        ? formData.name
+        : getLocalizedText(formData.name, globalLocale);
     if (!nameStr || !nameStr.trim()) {
       toast.error("Tên sản phẩm không được để trống");
       return;
@@ -778,6 +799,20 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                       setFormData({ ...formData, sortOrder: Number(e.target.value) || 0 })
                     }
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publishedAt" className="text-gray-900">Ngày xuất bản</Label>
+                  <Input
+                    id="publishedAt"
+                    type="date"
+                    value={formatDateForInput(formData.publishedAt || "")}
+                    onChange={(e) =>
+                      setFormData({ ...formData, publishedAt: e.target.value || "" })
+                    }
+                  />
+                  <p className="text-xs text-gray-500">
+                    Ngày bài viết/sản phẩm được xuất bản (dùng cho hiển thị & sắp xếp).
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">

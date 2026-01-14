@@ -58,6 +58,7 @@ interface ProductItem {
   sortOrder?: number;
   isFeatured?: boolean;
   isActive?: boolean;
+  publishedAt?: string;
   createdAt?: string;
   updatedAt?: string;
   features?: string[];

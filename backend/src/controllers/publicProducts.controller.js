@@ -279,12 +279,17 @@ exports.getPublicProducts = async (req, res, next) => {
         p.is_featured,
         p.is_active,
         p.features,
+        TO_CHAR(p.published_at, 'YYYY-MM-DD') AS published_at,
         p.created_at,
         p.updated_at
       FROM products p
       LEFT JOIN product_categories pc ON p.category_id = pc.id
       ${whereClause}
-      ORDER BY p.sort_order ASC, p.id ASC
+      ORDER BY 
+        p.is_featured DESC,
+        p.published_at DESC NULLS LAST,
+        p.sort_order ASC,
+        p.id ASC
     `;
 
     const { rows } = await pool.query(query, params);
@@ -308,6 +313,7 @@ exports.getPublicProducts = async (req, res, next) => {
         statsRating: row.stats_rating || 0,
         statsDeploy: row.stats_deploy || '',
         demoLink: row.demo_link || '',
+        publishedAt: row.published_at || null,
         sortOrder: row.sort_order || 0,
         isFeatured: row.is_featured || false,
         isActive: row.is_active !== undefined ? row.is_active : true,
