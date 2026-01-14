@@ -79,8 +79,8 @@ export function Header() {
             const navLink: NavLink = {
               id: menu.id,
               href: menu.url,
-              label: typeof menu.title === 'string' 
-                ? menu.title 
+              label: typeof menu.title === 'string'
+                ? menu.title
                 : getLocalizedText(menu.title, language),
             };
 
@@ -91,10 +91,10 @@ export function Header() {
                 label: typeof child.title === 'string'
                   ? child.title
                   : getLocalizedText(child.title, language),
-                description: child.description 
+                description: child.description
                   ? (typeof child.description === 'string'
-                      ? child.description
-                      : getLocalizedText(child.description, language))
+                    ? child.description
+                    : getLocalizedText(child.description, language))
                   : undefined,
                 // Note: Currently only support one level of children
                 // If you need nested children, uncomment below:
@@ -153,8 +153,8 @@ export function Header() {
   // Chỉ sử dụng data từ API, không có fallback
   // Backend đã localize các field đa ngôn ngữ, nhưng vẫn cần kiểm tra để đảm bảo
   const logoUrl = settings.logo;
-  const slogan = typeof settings.slogan === 'string' 
-    ? settings.slogan 
+  const slogan = typeof settings.slogan === 'string'
+    ? settings.slogan
     : (settings.slogan ? getLocalizedText(settings.slogan, language) : '');
   const siteName = typeof settings.site_name === 'string'
     ? settings.site_name
@@ -255,8 +255,15 @@ export function Header() {
 
   const isActivePath = (path: string) => {
     if (!pathname) return false;
-    if (path === "/") return pathname === "/";
-    return pathname.startsWith(path);
+
+    // Normalizing the pathname by removing the language prefix
+    let currentPath = pathname;
+    if (currentPath.startsWith(`/${language}`)) {
+      currentPath = currentPath.replace(`/${language}`, '') || '/';
+    }
+
+    if (path === "/") return currentPath === "/";
+    return currentPath === path || currentPath.startsWith(`${path}/`);
   };
 
   // Language switching is now handled by LanguageSwitcher component
@@ -586,9 +593,9 @@ export function Header() {
                     >
                       <Search size={18} />
                       <span>
-                        {language === "vi" ? "Tìm kiếm" : 
-                         language === "en" ? "Search" : 
-                         "検索"}
+                        {language === "vi" ? "Tìm kiếm" :
+                          language === "en" ? "Search" :
+                            "検索"}
                       </span>
                     </button>
 
@@ -597,9 +604,9 @@ export function Header() {
                       className="block w-full py-3.5 bg-gradient-to-r from-[#006FB3] to-[#0088D9] text-white rounded-xl text-center font-semibold shadow-lg shadow-blue-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {language === "vi" ? "Liên hệ ngay" : 
-                       language === "en" ? "Contact Us" : 
-                       "今すぐお問い合わせ"}
+                      {language === "vi" ? "Liên hệ ngay" :
+                        language === "en" ? "Contact Us" :
+                          "今すぐお問い合わせ"}
                     </Link>
 
                     {/* Contact Info */}
