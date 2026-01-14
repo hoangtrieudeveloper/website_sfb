@@ -10,6 +10,7 @@ import { PLACEHOLDER_PRICING, PLACEHOLDER_TITLE } from "@/lib/placeholders";
 import Image from "next/image";
 import { useLocale } from "@/lib/contexts/LocaleContext";
 import { getLocalizedText } from "@/lib/utils/i18n";
+import { CustomPagination } from "../../components/common/CustomPagination";
 
 const slugify = (s: string) =>
     s
@@ -412,65 +413,13 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     </div>
 
                     {/* Desktop Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center gap-2 items-center">
-                            <button
-                                onClick={() => handlePageChange(1)}
-                                disabled={currentPage === 1}
-                                className={`px-3 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
-                                    ${currentPage === 1
-                                        ? "bg-gray-50 text-gray-300 cursor-not-allowed"
-                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
-                                    }`}
-                            >
-                                First
-                            </button>
-
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => handlePageChange(page)}
-                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
-                                        ${page === currentPage
-                                            ? "bg-[#0870B4] text-white shadow-md"
-                                            : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-
-                            <div className="flex items-center gap-2 px-2">
-                                <span className="text-sm text-gray-500">Go to:</span>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={totalPages}
-                                    className="w-16 h-10 border border-gray-200 rounded-lg px-2 text-sm text-center focus:outline-none focus:border-[#0870B4]"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            const val = parseInt((e.target as HTMLInputElement).value);
-                                            if (val >= 1 && val <= totalPages) {
-                                                handlePageChange(val);
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-
-                            <button
-                                onClick={() => handlePageChange(totalPages)}
-                                disabled={currentPage === totalPages}
-                                className={`px-3 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
-                                    ${currentPage === totalPages
-                                        ? "bg-gray-50 text-gray-300 cursor-not-allowed"
-                                        : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-[#0870B4] hover:border-[#0870B4]"
-                                    }`}
-                            >
-                                Last
-                            </button>
-                        </div>
-                    )}
+                    <div className="mt-12">
+                        <CustomPagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
                 </div>
 
                 {/* Mobile Grid (< lg) - Pagination */}
@@ -480,23 +429,13 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                     ))}
 
                     {/* Pagination Controls */}
-                    {mobileTotalPages > 1 && (
-                        <div className="flex justify-center gap-2 mt-8">
-                            {Array.from({ length: mobileTotalPages }, (_, i) => i + 1).map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => handleMobilePageChange(page)}
-                                    className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all
-                                        ${page === mobilePage
-                                            ? "bg-[#0870B4] text-white shadow-md"
-                                            : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
-                                        }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                    <div className="mt-8">
+                        <CustomPagination
+                            currentPage={mobilePage}
+                            totalPages={mobileTotalPages}
+                            onPageChange={handleMobilePageChange}
+                        />
+                    </div>
                 </div>
             </div>
         </section>

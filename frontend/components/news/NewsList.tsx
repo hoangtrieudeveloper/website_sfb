@@ -32,7 +32,7 @@ interface NewsListProps {
 export function NewsList({ news, locale: propLocale }: NewsListProps) {
   const { locale: contextLocale } = useLocale();
   const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
-  
+
   if (news.length === 0) {
     return (
       <div className="text-center text-gray-500 py-12">
@@ -54,10 +54,10 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
       <AnimatePresence>
         {news.map((article, index) => {
           const title = typeof article.title === 'string' ? article.title : getLocalizedText(article.title, locale);
-          const excerpt = article.excerpt 
+          const excerpt = article.excerpt
             ? (typeof article.excerpt === 'string' ? article.excerpt : getLocalizedText(article.excerpt, locale))
             : undefined;
-          
+
           const img = article.imageUrl
             ? article.imageUrl.startsWith("http")
               ? article.imageUrl
@@ -132,7 +132,7 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
 
                     {excerpt && (
                       <p
-                        className="mt-3 flex-[1_0_0] min-h-0 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)]"
+                        className="mt-3 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)]"
                         style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                       >
                         {excerpt}
