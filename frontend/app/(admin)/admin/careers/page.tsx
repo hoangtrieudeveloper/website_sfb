@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Save, Plus, Edit, Trash2, ChevronUp, ChevronDown, ArrowRight, Briefcase, MapPin, DollarSign, Clock, Award, CheckCircle2, Target, Phone, Languages, Sparkles, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/uti
 import { getLocalizedText } from "@/lib/utils/i18n";
 import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
 import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
-
 type Locale = 'vi' | 'en' | 'ja';
 import {
   Select,
@@ -36,7 +34,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import "@/styles/admin-about-hero.css";
-
 // Icon options
 const ICON_OPTIONS = [
   "DollarSign",
