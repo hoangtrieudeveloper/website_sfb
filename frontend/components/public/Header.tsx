@@ -477,7 +477,7 @@ export function Header() {
 
             {/* Language Switcher Desktop */}
             <div className="hidden lg:flex items-center gap-2 shrink-0">
-              <LanguageSwitcher />
+              <LanguageSwitcher className={useDarkText ? "text-gray-700" : "text-white"} />
             </div>
 
             {/* Contact Info & CTA */}
@@ -580,7 +580,7 @@ export function Header() {
                   >
                     {/* Language Switcher Mobile */}
                     <div className="w-full px-4">
-                      <LanguageSwitcher />
+                      <LanguageSwitcher className="text-gray-700" />
                     </div>
 
                     {/* Search Mobile */}

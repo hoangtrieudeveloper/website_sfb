@@ -67,12 +67,12 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                     {/* Header */}
                     <FadeIn className="text-center mb-8 sm:mb-16">
                         {headerSub && (
-                            <span className="text-[#2CA4E0] font-semibold text-[11px] sm:text-xs tracking-wider uppercase mb-3 block">
+                            <span className="text-[#2CA4E0] font-semibold text-sm sm:text-base tracking-wider uppercase mb-3 block">
                                 {headerSub}
                             </span>
                         )}
                         {(headerTitleLine1 || headerTitleLine2) && (
-                            <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xl sm:text-2xl md:text-3xl lg:text-[56px] leading-tight sm:leading-[normal] break-words">
+                            <h2 className="text-center text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-2xl sm:text-3xl md:text-4xl lg:text-[56px] leading-tight sm:leading-[normal] break-words">
                                 <span className="font-bold">
                                     {headerTitleLine1}
                                 </span>
@@ -108,12 +108,12 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                             {(contentTitle || contentDescription) && (
                                 <div className="space-y-6 mb-[30px]">
                                     {contentTitle && (
-                                        <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-sm md:text-base lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
+                                        <h3 className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-base md:text-lg lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
                                             {contentTitle}
                                         </h3>
                                     )}
                                     {contentDescription && (
-                                        <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-sm md:text-base lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
+                                        <p className="self-stretch w-full text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-base md:text-lg lg:text-[20px] font-normal leading-relaxed md:leading-[30px] lg:leading-[38px] break-words">
                                             {contentDescription}
                                         </p>
                                     )}
@@ -152,13 +152,13 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                                             </div>
                                             <div className="flex flex-col justify-center min-h-[40px]">
                                                 {item.isHighlight ? (
-                                                    <h4 className="self-stretch font-bold text-gray-900 text-xs sm:text-base lg:text-[20px] lg:font-semibold lg:text-[#0F172A] lg:leading-[30px] lg:font-['Plus_Jakarta_Sans'] [font-feature-settings:'liga'_off,'clig'_off] break-words leading-relaxed">
+                                                    <h4 className="self-stretch font-bold text-gray-900 text-sm sm:text-base lg:text-[20px] lg:font-semibold lg:text-[#0F172A] lg:leading-[30px] lg:font-['Plus_Jakarta_Sans'] [font-feature-settings:'liga'_off,'clig'_off] break-words leading-relaxed">
                                                         {itemTitle}: <span className="font-normal text-gray-600 lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">{itemTitle}</span>
                                                     </h4>
                                                 ) : (
                                                     <>
-                                                        <h4 className="self-stretch text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-base lg:text-[20px] font-bold lg:font-semibold leading-tight lg:leading-[30px] break-words mb-1">{itemText}</h4>
-                                                        <p className="text-gray-600 text-[11px] sm:text-sm leading-relaxed break-words self-stretch lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">
+                                                        <h4 className="self-stretch text-[#0F172A] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-lg lg:text-[20px] font-bold lg:font-semibold leading-tight lg:leading-[30px] break-words mb-1">{itemTitle}</h4>
+                                                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed break-words self-stretch lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">
                                                             {itemText}
                                                         </p>
                                                     </>
