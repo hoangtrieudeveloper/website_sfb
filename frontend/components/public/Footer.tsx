@@ -42,8 +42,8 @@ export function Footer() {
   }
 
   const logoUrl = settings.logo;
-  const slogan = typeof settings.slogan === 'string' 
-    ? settings.slogan 
+  const slogan = typeof settings.slogan === 'string'
+    ? settings.slogan
     : getLocalizedText(settings.slogan, locale);
   const siteName = typeof settings.site_name === 'string'
     ? settings.site_name
@@ -87,11 +87,11 @@ export function Footer() {
       if (!jsonString) return [];
       const parsed = JSON.parse(jsonString);
       if (!Array.isArray(parsed)) return [];
-      
+
       // Apply locale to each link's name field
       return parsed.map((link: any) => ({
-        name: typeof link.name === 'string' 
-          ? link.name 
+        name: typeof link.name === 'string'
+          ? link.name
           : getLocalizedText(link.name, locale),
         href: link.href || '',
       }));
@@ -105,7 +105,7 @@ export function Footer() {
   const solutions = parseLinks(settings.footer_solutions || '');
 
   return (
-    <footer className="relative flex flex-col items-center gap-0 lg:gap-[10px] w-full max-w-[1920px] mx-auto pt-8 lg:pt-[120px] pb-5 lg:pb-[20px] bg-[#F9FAFC] text-[#334155] overflow-hidden">
+    <footer className="relative flex flex-col items-center gap-0 lg:gap-[10px] w-full max-w-[1920px] mx-auto pt-8 lg:pt-[120px] pb-5 lg:pb-[20px] bg-[#E2E8F0] text-[#334155] overflow-hidden">
       <div className="grid grid-cols-2 lg:flex lg:flex-row w-full max-w-[1298px] items-start gap-x-4 lg:gap-x-8 gap-y-6 lg:gap-[48px] mb-6 lg:mb-16 px-4 sm:px-6 xl:px-0">
         {/* Column 1: Logo & Intro */}
         <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start space-y-4 lg:space-y-6 text-center lg:text-left">
@@ -219,7 +219,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-1.5 lg:space-y-3">
               {solutions.map((item, idx) => (
-               <li key={idx} className={idx > 2 ? "hidden lg:block" : ""}>
+                <li key={idx} className={idx > 2 ? "hidden lg:block" : ""}>
                   <Link
                     href={item.href}
                     className="text-[#334155] hover:text-[#006FB3] transition-colors text-sm lg:text-[15px] leading-tight block"
