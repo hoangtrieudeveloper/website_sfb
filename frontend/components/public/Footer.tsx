@@ -105,7 +105,7 @@ export function Footer() {
   const solutions = parseLinks(settings.footer_solutions || '');
 
   return (
-    <footer className="relative flex flex-col items-center gap-0 lg:gap-[10px] w-full max-w-[1920px] mx-auto pt-8 lg:pt-[120px] pb-5 lg:pb-[20px] bg-[#E2E8F0] text-[#334155] overflow-hidden">
+    <footer className="relative flex flex-col items-center gap-0 lg:gap-[10px] w-full max-w-[1920px] mx-auto pt-8 lg:pt-[120px] pb-5 lg:pb-[20px] bg-[#f9f9f9] text-[#334155] overflow-hidden">
       <div className="grid grid-cols-2 lg:flex lg:flex-row w-full max-w-[1298px] items-start gap-x-4 lg:gap-x-8 gap-y-6 lg:gap-[48px] mb-6 lg:mb-16 px-4 sm:px-6 xl:px-0">
         {/* Column 1: Logo & Intro */}
         <div className="col-span-2 lg:flex-1 flex flex-col items-center lg:items-start space-y-4 lg:space-y-6 text-center lg:text-left">

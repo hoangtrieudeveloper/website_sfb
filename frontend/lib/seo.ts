@@ -9,6 +9,7 @@ interface SeoData {
   title?: string | Record<Locale, string>;
   description?: string | Record<Locale, string>;
   keywords?: string | Record<Locale, string>;
+  image?: string;
   og_title?: string | Record<Locale, string>;
   og_description?: string | Record<Locale, string>;
   og_image?: string;
@@ -147,9 +148,9 @@ export async function generateSeoMetadata(
       siteName: 'SFB Technology',
       title: ogTitle,
       description: ogDescription,
-      images: (seoData?.og_image || defaultData?.og_image) ? [
+      images: (seoData?.og_image || defaultData?.og_image || seoData?.image || defaultData?.image) ? [
         {
-          url: seoData?.og_image || defaultData?.og_image || PLACEHOLDER_NOT_AVAILABLE,
+          url: seoData?.og_image || defaultData?.og_image || seoData?.image || defaultData?.image || PLACEHOLDER_NOT_AVAILABLE,
           width: 1200,
           height: 630,
           alt: title,
@@ -162,7 +163,7 @@ export async function generateSeoMetadata(
       card: (seoData?.twitter_card || defaultData?.twitter_card || 'summary_large_image') as 'summary' | 'summary_large_image',
       title: twitterTitle,
       description: twitterDescription,
-      images: (seoData?.twitter_image || defaultData?.twitter_image) ? [seoData?.twitter_image || defaultData?.twitter_image || PLACEHOLDER_NOT_AVAILABLE] : [],
+      images: (seoData?.twitter_image || defaultData?.twitter_image || seoData?.image || defaultData?.image) ? [seoData?.twitter_image || defaultData?.twitter_image || seoData?.image || defaultData?.image || PLACEHOLDER_NOT_AVAILABLE] : [],
     },
 
     // Robots

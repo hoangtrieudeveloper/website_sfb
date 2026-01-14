@@ -80,20 +80,88 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                             </div>
                         </div>
 
-                        {/* RIGHT (Ảnh đúng kích thước Figma) */}
+                        {/* RIGHT (Ảnh/Video đúng kích thước Figma) */}
                         <div className="w-full lg:w-auto shrink-0 flex justify-center lg:justify-start min-w-0 max-w-full">
                             <div
                                 className="w-full max-w-[701px] aspect-[701/511] lg:w-[701px] lg:h-[511px] rounded-[24px] border-[6px] lg:border-[10px] border-white bg-white
                           shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden relative box-border"
                             >
-                                <ImageWithFallback
-                                    src={product.heroImage || "/images/no_cover.jpeg"}
-                                    alt={product.name}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
-                                    loading="lazy"
-                                    objectFit="cover"
-                                />
+                                {(() => {
+                                    if (!product.heroImage) {
+                                        return (
+                                            <ImageWithFallback
+                                                src="/images/no_cover.jpeg"
+                                                alt={product.name}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                                loading="lazy"
+                                                objectFit="cover"
+                                            />
+                                        );
+                                    }
+
+                                    let mediaUrl = product.heroImage;
+                                    const lower = mediaUrl.toLowerCase();
+                                    const isYouTube = lower.includes('youtube.com') || lower.includes('youtu.be');
+
+                                    // Thêm protocol nếu thiếu (youtube.com -> https://youtube.com)
+                                    if (!mediaUrl.startsWith('http')) {
+                                        mediaUrl = `https://${mediaUrl}`;
+                                    }
+
+                                    if (isYouTube) {
+                                        // Chuyển link watch / short sang embed
+                                        let videoId = '';
+                                        try {
+                                            const urlObj = new URL(mediaUrl);
+                                            if (urlObj.hostname.includes('youtu.be')) {
+                                                videoId = urlObj.pathname.replace('/', '');
+                                            } else if (urlObj.searchParams.get('v')) {
+                                                videoId = urlObj.searchParams.get('v') || '';
+                                            }
+                                        } catch {
+                                            // ignore parse error, fallback bên dưới
+                                        }
+
+                                        const embedSrc = videoId
+                                            ? `https://www.youtube.com/embed/${videoId}`
+                                            : mediaUrl;
+
+                                        return (
+                                            <iframe
+                                                src={embedSrc}
+                                                className="w-full h-full"
+                                                title={product.name}
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                allowFullScreen
+                                            />
+                                        );
+                                    }
+
+                                    const isVideoFile =
+                                        mediaUrl.match(/\.(mp4|webm|ogg|mov|avi|mkv)$/i) || mediaUrl.includes('/video/');
+
+                                    return isVideoFile ? (
+                                        <video
+                                            src={mediaUrl}
+                                            controls
+                                            className="w-full h-full object-cover"
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                        />
+                                    ) : (
+                                        <ImageWithFallback
+                                            src={mediaUrl}
+                                            alt={product.name}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
+                                            loading="lazy"
+                                            objectFit="cover"
+                                        />
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>

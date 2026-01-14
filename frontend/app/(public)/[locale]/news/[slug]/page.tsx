@@ -176,13 +176,26 @@ export async function generateMetadata({
     ? article.seoKeywords 
     : (article.seoKeywords ? getLocalizedText(article.seoKeywords, locale) : '');
   
+  // Fetch SEO data for this page path
+  let seoData = null;
+  try {
+    seoData = await publicApiCall<{ data?: any }>(
+      PublicEndpoints.seo.getByPath(`/news/${slug}`),
+      {},
+      locale
+    );
+  } catch (error) {
+    // Silently fail, use defaults
+  }
+
   return await generateSeoMetadata(`/${locale}${pagePath}`, {
     title: seoTitle,
     description: seoDescription,
     keywords: seoKeywords,
     og_title: seoTitle,
     og_description: seoDescription,
-    og_image: article.imageUrl,
+    og_image: article.imageUrl || seoData?.data?.og_image || seoData?.data?.image,
+    image: seoData?.data?.image || undefined,
     og_type: 'article',
     canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://sfb.vn'}/${locale}${pagePath}`,
   }, locale);

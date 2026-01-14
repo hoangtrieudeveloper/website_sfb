@@ -129,7 +129,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         ? 'Latest news about technology, products and activities of SFB Technology'
         : 'SFB Technologyのテクノロジー、製品、活動に関する最新ニュース';
 
-  const metadata = await generateSeoMetadata(`/${locale}/news`, { title, description }, locale);
+  const metadata = await generateSeoMetadata(`/${locale}/news`, { 
+    title, 
+    description,
+    image: seoData?.data?.image || undefined,
+  }, locale);
   
   return {
     ...metadata,

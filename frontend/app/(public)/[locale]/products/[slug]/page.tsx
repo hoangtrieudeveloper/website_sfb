@@ -240,13 +240,26 @@ export async function generateMetadata({
   const seoDescription = product.seoDescription || product.heroDescription || "";
   const seoKeywords = product.seoKeywords || "";
 
+  // Fetch SEO data for this page path
+  let seoData = null;
+  try {
+    seoData = await publicApiCall<{ data?: any }>(
+      PublicEndpoints.seo.getByPath(`/products/${slug}`),
+      {},
+      locale
+    );
+  } catch (error) {
+    // Silently fail, use defaults
+  }
+
   const metadata = await generateSeoMetadata(pagePath, {
     title: seoTitle,
     description: seoDescription,
     keywords: seoKeywords,
     og_title: seoTitle,
     og_description: seoDescription,
-    og_image: product.heroImage || product.image || "",
+    og_image: product.heroImage || product.image || seoData?.data?.og_image || seoData?.data?.image || "",
+    image: seoData?.data?.image || undefined,
     og_type: 'website',
     canonical_url: `${baseUrl}${pagePath}`,
   }, locale);

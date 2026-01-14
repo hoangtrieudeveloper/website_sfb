@@ -237,6 +237,19 @@ export default function AdminSeoPage() {
                     hãy đặt canonical là <code className="text-xs bg-gray-100 px-1 rounded">https://sfb.vn/products</code>
                   </p>
                 </div>
+
+                <div className="space-y-2">
+                  <Label>Ảnh SEO</Label>
+                  <ImageUpload
+                    currentImage={(seoData as any).image || ''}
+                    onImageSelect={(imageUrl) => setSeoData({ ...seoData, image: imageUrl } as Partial<SeoPageData>)}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Ảnh SEO chung cho trang này. Sẽ được dùng làm fallback cho OG Image và Twitter Image nếu chưa được cấu hình riêng.
+                    <br />
+                    Kích thước khuyến nghị: 1200x630px
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

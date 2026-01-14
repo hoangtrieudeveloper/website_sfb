@@ -3044,9 +3044,10 @@ export default function AdminProductsPage() {
               {/* Filters */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                    <div className="relative flex-1 w-full sm:flex-[3] sm:max-w-none">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <div className="flex flex-row flex-nowrap gap-3 items-center overflow-x-auto">
+                    {/* Ô tìm kiếm - chiếm phần còn lại */}
+                    <div className="relative flex-1 min-w-[200px]">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Tìm kiếm sản phẩm..."
                         value={search}
@@ -3055,58 +3056,69 @@ export default function AdminProductsPage() {
                       />
                     </div>
 
-                    <Select
-                      value={categoryFilter === "all" ? "all" : String(categoryFilter)}
-                      onValueChange={(value) =>
-                        setCategoryFilter(value === "all" ? "all" : Number(value))
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[140px]">
-                        <SelectValue placeholder="Danh mục" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tất cả danh mục</SelectItem>
-                        {categories
-                          .filter((c) => c.isActive)
-                          .map((category) => (
-                            <SelectItem key={category.id} value={String(category.id)}>
-                              {typeof category.name === 'string' ? category.name : getLocalizedText(category.name, globalLocale)}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Filter danh mục */}
+                    <div className="flex-shrink-0 w-[180px]">
+                      <Select
+                        value={categoryFilter === "all" ? "all" : String(categoryFilter)}
+                        onValueChange={(value) =>
+                          setCategoryFilter(value === "all" ? "all" : Number(value))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Danh mục" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả danh mục</SelectItem>
+                          {categories
+                            .filter((c) => c.isActive)
+                            .map((category) => (
+                              <SelectItem key={category.id} value={String(category.id)}>
+                                {typeof category.name === 'string'
+                                  ? category.name
+                                  : getLocalizedText(category.name, globalLocale)}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select
-                      value={featuredFilter}
-                      onValueChange={(value) =>
-                        setFeaturedFilter(value as "all" | "featured" | "normal")
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[120px]">
-                        <SelectValue placeholder="Nổi bật" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="featured">Nổi bật</SelectItem>
-                        <SelectItem value="normal">Bình thường</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {/* Filter nổi bật */}
+                    <div className="flex-shrink-0 w-[140px]">
+                      <Select
+                        value={featuredFilter}
+                        onValueChange={(value) =>
+                          setFeaturedFilter(value as "all" | "featured" | "normal")
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Nổi bật" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả</SelectItem>
+                          <SelectItem value="featured">Nổi bật</SelectItem>
+                          <SelectItem value="normal">Bình thường</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <Select
-                      value={activeFilter}
-                      onValueChange={(value) =>
-                        setActiveFilter(value as "all" | "active" | "inactive")
-                      }
-                    >
-                      <SelectTrigger className="w-full sm:w-[140px]">
-                        <SelectValue placeholder="Trạng thái" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tất cả</SelectItem>
-                        <SelectItem value="active">Đang hoạt động</SelectItem>
-                        <SelectItem value="inactive">Đã ẩn</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {/* Filter trạng thái */}
+                    <div className="flex-shrink-0 w-[160px]">
+                      <Select
+                        value={activeFilter}
+                        onValueChange={(value) =>
+                          setActiveFilter(value as "all" | "active" | "inactive")
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Trạng thái" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả</SelectItem>
+                          <SelectItem value="active">Đang hoạt động</SelectItem>
+                          <SelectItem value="inactive">Đã ẩn</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

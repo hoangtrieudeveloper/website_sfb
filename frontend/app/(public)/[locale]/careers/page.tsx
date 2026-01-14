@@ -44,7 +44,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         : 'SFB Technologyでのキャリア機会';
 
   return {
-    ...await generateSeoMetadata(`/${locale}/careers`, { title, description }, locale),
+    ...await generateSeoMetadata(`/${locale}/careers`, { 
+      title, 
+      description,
+      image: seoData?.data?.image || undefined,
+    }, locale),
     alternates: {
       languages: {
         'vi': 'https://sfb.vn/vi/careers',

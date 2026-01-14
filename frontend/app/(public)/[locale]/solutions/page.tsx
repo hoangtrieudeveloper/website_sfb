@@ -44,7 +44,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         : 'SFB Technologyのテクノロジーソリューション';
 
   return {
-    ...await generateSeoMetadata(`/${locale}/solutions`, { title, description }, locale),
+    ...await generateSeoMetadata(`/${locale}/solutions`, { 
+      title, 
+      description,
+      image: seoData?.data?.image || undefined,
+    }, locale),
     alternates: {
       languages: {
         'vi': 'https://sfb.vn/vi/solutions',

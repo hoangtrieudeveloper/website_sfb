@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import ImageUpload from "@/components/admin/ImageUpload";
+import MediaUpload from "@/components/admin/MediaUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { HeroWidget } from "@/components/admin/ProductWidgets/HeroWidget";
@@ -1271,12 +1272,13 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     />
                                   </div>
                                   <div>
-                                    <Label className="mb-2">Ảnh Hero</Label>
-                                    <ImageUpload
-                                      currentImage={detailData.heroImage || ""}
-                                      onImageSelect={(url: string) => {
+                                    <Label className="mb-2">Ảnh/Video Hero Chi tiết</Label>
+                                    <MediaUpload
+                                      currentMedia={detailData.heroImage || ""}
+                                      onMediaSelect={(url: string) => {
                                         setDetailData({ ...detailData, heroImage: url });
                                       }}
+                                      fileTypeFilter="image,video"
                                     />
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">
@@ -2122,12 +2124,13 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                     />
                                   </div>
                                   <div>
-                                    <Label className="mb-2">Ảnh Hero</Label>
-                                    <ImageUpload
-                                      currentImage={detailData.heroImage || ""}
-                                      onImageSelect={(url: string) => {
+                                    <Label className="mb-2">Ảnh/Video Hero Chi tiết</Label>
+                                    <MediaUpload
+                                      currentMedia={detailData.heroImage || ""}
+                                      onMediaSelect={(url: string) => {
                                         setDetailData({ ...detailData, heroImage: url });
                                       }}
+                                      fileTypeFilter="image,video"
                                     />
                                   </div>
                                   <div className="grid grid-cols-2 gap-4">

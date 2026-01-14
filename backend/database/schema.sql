@@ -722,6 +722,17 @@ CREATE TABLE IF NOT EXISTS product_details (
 CREATE INDEX IF NOT EXISTS idx_product_details_product_id ON product_details(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_details_slug ON product_details(slug);
 
+-- Bổ sung cột hero_image_detail cho product_details (nếu chưa tồn tại)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'product_details' AND column_name = 'hero_image_detail'
+  ) THEN
+    ALTER TABLE product_details DROP COLUMN hero_image_detail;
+  END IF;
+END $$;
+
 -- Trigger cập nhật updated_at cho product_details
 DROP TRIGGER IF EXISTS update_product_details_updated_at ON product_details;
 CREATE TRIGGER update_product_details_updated_at
@@ -2747,6 +2758,7 @@ CREATE TABLE IF NOT EXISTS seo_pages (
   title TEXT,                               -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   description TEXT,                         -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
   keywords TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
+  image TEXT,                               -- Ảnh SEO chung (dùng làm fallback cho og_image và twitter_image)
   
   -- Open Graph (Lưu JSON string cho đa ngôn ngữ)
   og_title TEXT,                            -- Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."}
@@ -2814,6 +2826,14 @@ BEGIN
     AND data_type = 'character varying'
   ) THEN
     ALTER TABLE seo_pages ALTER COLUMN twitter_title TYPE TEXT;
+  END IF;
+
+  -- Bổ sung cột image cho seo_pages (nếu chưa tồn tại)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'seo_pages' AND column_name = 'image'
+  ) THEN
+    ALTER TABLE seo_pages ADD COLUMN image TEXT NULL;
   END IF;
 
   -- Migrate existing string data to JSON locale object format

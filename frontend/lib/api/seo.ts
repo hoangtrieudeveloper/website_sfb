@@ -9,6 +9,7 @@ export interface SeoPageData {
   title?: string | Record<Locale, string>;
   description?: string | Record<Locale, string>;
   keywords?: string | Record<Locale, string>;
+  image?: string;
   og_title?: string | Record<Locale, string>;
   og_description?: string | Record<Locale, string>;
   og_image?: string;

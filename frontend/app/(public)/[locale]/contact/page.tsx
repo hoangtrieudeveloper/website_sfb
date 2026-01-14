@@ -50,7 +50,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         ? 'Contact SFB Technology for technology solution consultation'
         : 'テクノロジーソリューションのご相談はSFB Technologyにお問い合わせください';
 
-  const metadata = await generateSeoMetadata(`/${locale}/contact`, { title, description }, locale);
+  const metadata = await generateSeoMetadata(`/${locale}/contact`, { 
+    title, 
+    description,
+    image: seoData?.data?.image || undefined,
+  }, locale);
   
   return {
     ...metadata,

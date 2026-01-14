@@ -67,7 +67,7 @@ export type ProductDetail = {
     meta?: string;
     name: string;
     heroDescription: string;
-    heroImage: string;
+    heroImage: string; // Dùng cho ảnh hoặc video hero (URL)
 
     // OVERVIEW
     overviewKicker: string;
