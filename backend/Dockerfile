@@ -11,8 +11,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-# Use npm install (more flexible than npm ci)
-RUN npm install --only=production --no-audit --no-fund
+# Install all dependencies (not just production) to ensure dev dependencies are available if needed
+RUN npm install --no-audit --no-fund
 
 # Copy application code
 COPY . .
