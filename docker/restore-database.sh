@@ -73,15 +73,24 @@ echo ""
 echo "4. Restore database từ file backup..."
 echo "   (Sẽ mất vài phút tùy vào kích thước file...)"
 
-# Restore database
-docker-compose exec -T postgres psql -U postgres -d sfb_db < "$BACKUP_FILE"
+# Restore database với ON_ERROR_STOP để dừng khi gặp lỗi và hiển thị lỗi
+docker-compose exec -T postgres psql -U postgres -d sfb_db -v ON_ERROR_STOP=1 < "$BACKUP_FILE" 2>&1 | tee restore.log
 
-if [ $? -eq 0 ]; then
+RESTORE_EXIT_CODE=${PIPESTATUS[0]}
+
+if [ $RESTORE_EXIT_CODE -eq 0 ]; then
     echo "   ✅ Database đã được restore thành công"
 else
-    echo "   ❌ Có lỗi khi restore database"
-    echo "   💡 Kiểm tra file backup và thử lại"
-    exit 1
+    echo "   ⚠️  Có lỗi trong quá trình restore (exit code: $RESTORE_EXIT_CODE)"
+    echo "   💡 Kiểm tra file restore.log để xem chi tiết lỗi"
+    echo ""
+    echo "   Các lỗi phổ biến:"
+    grep -i "error\|violation\|duplicate\|constraint\|foreign key" restore.log | head -20 || echo "   Không tìm thấy lỗi rõ ràng trong log"
+    echo ""
+    echo "   💡 Có thể do:"
+    echo "   1. Foreign key constraint: news.category_id reference đến news_categories.code"
+    echo "   2. Thứ tự restore: news được restore trước news_categories"
+    echo "   3. Dữ liệu đã tồn tại (duplicate key)"
 fi
 
 echo ""
@@ -90,12 +99,39 @@ TABLE_COUNT=$(docker-compose exec -T postgres psql -U postgres -d sfb_db -tAc "S
 echo "   Số bảng: $TABLE_COUNT"
 
 echo ""
-echo "6. Kiểm tra một số bảng quan trọng..."
+echo "6. Kiểm tra news_categories (phải có trước news)..."
+NEWS_CAT_COUNT=$(docker-compose exec -T postgres psql -U postgres -d sfb_db -tAc "SELECT COUNT(*) FROM news_categories;" 2>/dev/null)
+echo "   Số categories: $NEWS_CAT_COUNT"
+docker-compose exec -T postgres psql -U postgres -d sfb_db -c "SELECT code, name FROM news_categories;" 2>/dev/null || echo "   ⚠️  Không thể đọc news_categories"
+
+echo ""
+echo "7. Kiểm tra news (sau news_categories)..."
+NEWS_COUNT=$(docker-compose exec -T postgres psql -U postgres -d sfb_db -tAc "SELECT COUNT(*) FROM news;" 2>/dev/null)
+echo "   Số bài viết: $NEWS_COUNT"
+
+# Kiểm tra các ID cụ thể từ file backup (1-22)
+echo ""
+echo "8. Kiểm tra các bài viết có ID từ 1-22..."
+MISSING_IDS=""
+for id in {1..22}; do
+    EXISTS=$(docker-compose exec -T postgres psql -U postgres -d sfb_db -tAc "SELECT COUNT(*) FROM news WHERE id = $id;" 2>/dev/null)
+    if [ "$EXISTS" = "0" ]; then
+        MISSING_IDS="$MISSING_IDS $id"
+    fi
+done
+
+if [ -z "$MISSING_IDS" ]; then
+    echo "   ✅ Tất cả bài viết ID 1-22 đều có trong database"
+else
+    echo "   ⚠️  Thiếu các bài viết với ID:$MISSING_IDS"
+    echo "   💡 Có thể do foreign key constraint hoặc lỗi trong quá trình restore"
+fi
+
+echo ""
+echo "9. Kiểm tra một số bảng quan trọng khác..."
 docker-compose exec -T postgres psql -U postgres -d sfb_db -c "
 SELECT 
     'users' as table_name, COUNT(*) as row_count FROM users
-UNION ALL
-SELECT 'news', COUNT(*) FROM news
 UNION ALL
 SELECT 'products', COUNT(*) FROM products
 UNION ALL
