@@ -69,6 +69,44 @@ async function setupAll() {
     await client.query(schemaSQL);
     console.log('✅ Complete schema executed (includes: products_sections, products_section_items, contact_sections, contact_section_items)\n');
 
+    // Bước 3.1: Seed REAL data từ dump (seeds-from-dump.sql)
+    console.log('📥 Step 3.1/6: Seeding REAL data from dump (seeds-from-dump.sql)...');
+    const seedsPath = path.join(__dirname, '..', 'database', 'seeds-from-dump.sql');
+    if (fs.existsSync(seedsPath)) {
+      console.log('   🔄 Truncating existing data in main content tables (if any)...');
+      // TRUNCATE các bảng dữ liệu chính để seed lại sạch
+      const truncateTables = [
+        'about_section_items', 'about_sections',
+        'career_section_items', 'career_sections',
+        'contact_requests', 'contact_section_items', 'contact_sections',
+        'homepage_blocks',
+        'industries', 'industries_section_items', 'industries_sections',
+        'media_files', 'media_folders',
+        'menus',
+        'news', 'news_categories',
+        'permissions', 'role_permissions', 'roles',
+        'product_categories', 'product_details', 'products', 'products_section_items', 'products_sections',
+        'seo_pages',
+        'site_settings',
+        'testimonials',
+        'users'
+      ].map(t => `"${t}"`).join(', ');
+      
+      try {
+        await client.query(`TRUNCATE ${truncateTables} RESTART IDENTITY CASCADE;`);
+        console.log('   ✅ Truncated main tables. Now seeding data from dump...');
+      } catch (truncateErr) {
+        console.log(`   ⚠️  Truncate warning (may be normal if tables are empty): ${truncateErr.message}`);
+      }
+
+      const seedsSQL = fs.readFileSync(seedsPath, 'utf8');
+      await client.query(seedsSQL);
+      console.log('   ✅ Seeded real data from seeds-from-dump.sql\n');
+    } else {
+      console.log(`   ⚠️  Warning: seeds-from-dump.sql not found at ${seedsPath}`);
+      console.log('   Skipping seed data step. You can manually import seeds-from-dump.sql later.\n');
+    }
+
     // Bước 3.5: Đảm bảo cột features tồn tại trong products table (cho database cũ)
     console.log('🔧 Step 3.5/6: Ensuring products.features column exists...');
     try {
