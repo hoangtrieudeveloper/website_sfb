@@ -15,7 +15,7 @@ interface AboutHeroProps {
 export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
     const { locale: contextLocale } = useLocale();
     const locale = (propLocale || contextLocale || 'vi') as 'vi' | 'en' | 'ja';
-    
+
     // Chỉ sử dụng data từ API, không có fallback static data
     if (!data || !data.data) {
         return null;
@@ -30,7 +30,7 @@ export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
     const buttonTextRaw = displayData.buttonText || displayData.button?.text;
     const buttonLink = displayData.buttonLink || displayData.button?.link;
     const image = displayData.image;
-    
+
     // Localize fields
     const titleLine1 = typeof titleLine1Raw === 'string' ? titleLine1Raw : getLocalizedText(titleLine1Raw, locale);
     const titleLine2 = typeof titleLine2Raw === 'string' ? titleLine2Raw : getLocalizedText(titleLine2Raw, locale);
@@ -89,11 +89,12 @@ export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
                             <FadeIn>
                                 <h1
                                     ref={titleRef}
-                                    className="inline-block max-w-full text-2xl min-[375px]:text-[28px] sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-6"
+                                    className="inline-block max-w-full text-3xl min-[375px]:text-4xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-3 sm:mb-6"
                                 >
                                     {titleLine1}
-                                    <span className="block mt-1 sm:mt-2 text-white font-medium text-xl min-[375px]:text-[22px] sm:text-3xl md:text-4xl lg:text-4xl xl:text-[56px] leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
+                                    <span className="block mt-2 sm:mt-4 text-white font-medium text-2xl min-[375px]:text-3xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-[56px] leading-relaxed sm:leading-[normal] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans']">
                                         {titleLine2}
+                                        {" "}
                                         <br className="hidden sm:block" />
                                         {titleLine3}
                                     </span>
@@ -102,7 +103,7 @@ export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
 
                             <FadeIn delay={0.2}>
                                 <p
-                                    className="max-w-full text-sm min-[410px]:text-[15px] sm:text-base text-white/90 mb-6 sm:mb-10 leading-relaxed font-light line-clamp-3 sm:line-clamp-none px-2 sm:px-0"
+                                    className="max-w-full text-base min-[410px]:text-lg sm:text-base text-white/90 mb-6 sm:mb-10 leading-relaxed font-light line-clamp-3 sm:line-clamp-none px-2 sm:px-0"
                                     style={titleWidth ? { width: `${titleWidth}px` } : undefined}
                                 >
                                     {description}
@@ -113,7 +114,7 @@ export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
                         <FadeIn delay={0.4}>
                             <a
                                 href={buttonLink}
-                                className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-15px sm:text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md whitespace-nowrap"
+                                className="inline-flex items-center gap-[12px] px-6 sm:px-[30px] py-[7px] h-12 sm:h-[56px] rounded-[12px] border border-white bg-[linear-gradient(73deg,#1D8FCF_32.85%,#2EABE2_82.8%)] text-white font-medium text-base sm:text-sm transition-transform hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] shadow-md whitespace-nowrap"
                             >
                                 {buttonText}
                                 <ArrowRight size={20} />
@@ -127,11 +128,11 @@ export function AboutHero({ data, locale: propLocale }: AboutHeroProps) {
                             <div className="w-full h-full rounded-[10px] lg:rounded-[14px] overflow-hidden relative">
                                 <ImageWithFallback
                                     src={image}
-                                    alt={titleLine1 && titleLine2 
-                                        ? `${titleLine1} ${titleLine2}` 
+                                    alt={titleLine1 && titleLine2
+                                        ? `${titleLine1} ${titleLine2}`
                                         : titleLine3
-                                        ? `${titleLine1} ${titleLine3}`
-                                        : "About Hero"}
+                                            ? `${titleLine1} ${titleLine3}`
+                                            : "About Hero"}
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 851px"
                                     priority={true}
