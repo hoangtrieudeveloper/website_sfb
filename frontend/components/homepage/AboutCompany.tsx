@@ -25,12 +25,12 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
   const titleRaw = data?.title;
   const title = titleRaw && typeof titleRaw === 'object' && !Array.isArray(titleRaw)
     ? {
-        part1: getLocalizedText(titleRaw.part1, locale),
-        highlight1: getLocalizedText(titleRaw.highlight1, locale),
-        part2: getLocalizedText(titleRaw.part2, locale),
-        highlight2: getLocalizedText(titleRaw.highlight2, locale),
-        part3: getLocalizedText(titleRaw.part3, locale),
-      }
+      part1: getLocalizedText(titleRaw.part1, locale),
+      highlight1: getLocalizedText(titleRaw.highlight1, locale),
+      part2: getLocalizedText(titleRaw.part2, locale),
+      highlight2: getLocalizedText(titleRaw.highlight2, locale),
+      part3: getLocalizedText(titleRaw.part3, locale),
+    }
     : titleRaw;
   const description = typeof data?.description === 'string' ? data.description : getLocalizedText(data?.description, locale);
   const slidesData = data?.slides || [];
@@ -117,10 +117,10 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                 "
               >
                 <span className="xl:whitespace-nowrap">
-                  {title.part1}
+                  {title.part1}{" "}
                   <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
                     {title.highlight1}
-                  </span>
+                  </span>{" "}
                   <span
                     className="text-[var(--Dark-Blue,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[inherit] lg:text-[56px] font-normal leading-[inherit] lg:leading-normal"
                   >
@@ -130,7 +130,7 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                 <br className="hidden xl:block" />
                 <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
                   {title.highlight2}
-                </span>
+                </span>{" "}
                 {title.part3}
               </h2>
             </div>
@@ -176,8 +176,8 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                         >
                           {/* IMAGE + RGB LED FRAME */}
                           <div className="relative w-full flex-shrink-0">
-                              <div className="rgb-frame p-[3px] rounded-[14px] overflow-hidden">
-                                <div className="relative w-full max-w-full h-[234px] max-[1279px]:h-[200px] overflow-hidden rounded-lg bg-white">
+                            <div className="rgb-frame p-[3px] rounded-[14px] overflow-hidden">
+                              <div className="relative w-full max-w-full h-[234px] max-[1279px]:h-[200px] overflow-hidden rounded-lg bg-white">
                                 <ImageWithFallback
                                   src={slide.image || "/images/card-consulting.jpg"}
                                   alt={slide.title || "About Company Slide"}
@@ -194,13 +194,13 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                           {/* Content */}
                           <div className="flex-1 w-full flex flex-col items-start text-left gap-4">
                             <h3
-                              className="text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg sm:text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF]"
+                              className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg sm:text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF] lg:text-center"
                             >
                               {typeof slide.title === 'string' ? slide.title : getLocalizedText(slide.title, locale)}
                             </h3>
 
                             <p
-                              className="flex-1 line-clamp-4 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px]"
+                              className="flex-1 w-full line-clamp-4 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] lg:text-center"
                             >
                               {typeof slide.description === 'string' ? slide.description : getLocalizedText(slide.description, locale)}
                             </p>
@@ -223,7 +223,7 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                               "
                             >
                               <span className="relative z-10 flex items-center gap-2">
-                                {typeof (slide.buttonText || slide.button?.text) === 'string' 
+                                {typeof (slide.buttonText || slide.button?.text) === 'string'
                                   ? (slide.buttonText || slide.button?.text || "Xem thêm")
                                   : getLocalizedText(slide.buttonText || slide.button?.text, locale) || "Xem thêm"}
                               </span>

@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useMemo, useState } from "react";
 import { adminApiCall, AdminEndpoints, uploadFile, uploadFiles } from "@/lib/api/admin";
 import { toast } from "sonner";
@@ -106,13 +105,11 @@ const MediaLibraryPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
-
   // Dialogs
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [newFolderParent, setNewFolderParent] = useState<number | null>(null);
-
   // Breadcrumbs
   const breadcrumbs = useMemo(() => {
     if (selectedFolder === null) return [{ id: null as number | null, name: "Root" }];

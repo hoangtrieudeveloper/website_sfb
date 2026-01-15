@@ -267,11 +267,14 @@ export function HeroBanner({ data, locale: propLocale }: HeroBannerProps) {
             className="relative mx-auto overflow-hidden mask-fade-x w-full max-w-[1120px]"
             style={{ height: "64px", flexShrink: 0 }}
           >
-            <div className="flex items-center gap-16 animate-partner-marquee hover:[animation-play-state:paused] h-full">
-              {[...partnersList, ...partnersList].map((logo, idx) => (
+            <div
+              className="flex items-center animate-partner-marquee hover:[animation-play-state:paused] h-full"
+              style={{ animationDuration: '100s' }}
+            >
+              {[...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList].map((logo, idx) => (
                 <div
                   key={`${logo}-${idx}`}
-                  className="flex items-center justify-center h-full"
+                  className="flex items-center justify-center h-full pr-16"
                 >
                   <ImageWithFallback
                     src={logo}
@@ -289,25 +292,23 @@ export function HeroBanner({ data, locale: propLocale }: HeroBannerProps) {
       {secondaryButton?.link && secondaryButton?.type === 'video' && (
         <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
           <DialogContent
-            className="p-0 flex flex-col data-[state=open]:duration-700 data-[state=open]:zoom-in-0"
+            className="p-0 overflow-hidden data-[state=open]:duration-700 data-[state=open]:zoom-in-0"
             style={{
-              maxWidth: "95vw",
+              maxWidth: "1000px",
               width: "90vw",
-              maxHeight: "95vh",
-              height: "95vh",
-              animationTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)", // Flower bloom / bouncy effect
+              maxHeight: "90vh", // Prevent overflowing screen on crazy tall usage, but mainly rely on aspect-video
+              animationTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
             }}
           >
-            <DialogHeader className="p-6 pb-4 flex-shrink-0">
+            <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-4 flex-shrink-0">
               <DialogTitle>
                 {secondaryButtonText || "Video"}
               </DialogTitle>
             </DialogHeader>
-            <div className="px-6 pb-6 flex-1 flex items-center justify-center min-h-0">
-              <div className="relative w-full h-full bg-black rounded-lg overflow-hidden">
-                {isYouTubeOrVimeo(secondaryButton.link) ? (
-                  // YouTube or Vimeo embed
-                  (() => {
+            <div className="px-4 sm:px-6 pb-4 sm:pb-6 w-full flex justify-center">
+              {isYouTubeOrVimeo(secondaryButton.link) ? (
+                <div className="relative w-full h-[65vh] sm:h-auto sm:aspect-video bg-black rounded-lg overflow-hidden shadow-xl">
+                  {(() => {
                     const youtubeId = getYouTubeVideoId(secondaryButton.link);
                     const vimeoId = getVimeoVideoId(secondaryButton.link);
 
@@ -317,7 +318,7 @@ export function HeroBanner({ data, locale: propLocale }: HeroBannerProps) {
                           src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
-                          className="w-full h-full"
+                          className="absolute inset-0 w-full h-full"
                         />
                       );
                     } else if (vimeoId) {
@@ -326,24 +327,25 @@ export function HeroBanner({ data, locale: propLocale }: HeroBannerProps) {
                           src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1`}
                           allow="autoplay; fullscreen; picture-in-picture"
                           allowFullScreen
-                          className="w-full h-full"
+                          className="absolute inset-0 w-full h-full"
                         />
                       );
                     }
                     return null;
-                  })()
-                ) : (
-                  // Direct video file
+                  })()}
+                </div>
+              ) : (
+                <div className="relative w-full bg-black rounded-lg overflow-hidden shadow-xl flex justify-center items-center">
                   <video
                     src={getVideoUrl(secondaryButton.link)}
                     controls
                     autoPlay
-                    className="w-full h-full"
+                    className="max-w-full max-h-[80vh] w-auto h-auto"
                   >
                     Trình duyệt của bạn không hỗ trợ video.
                   </video>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </DialogContent>
         </Dialog>

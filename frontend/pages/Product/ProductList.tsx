@@ -2,7 +2,7 @@
 
 
 import { Fragment, useState, useMemo } from "react";
-import { CheckCircle2, ArrowRight, Package, X } from "lucide-react";
+import { CheckCircle2, ArrowRight, Package, X, ChevronDown, ChevronUp } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import Link from "next/link";
 import * as LucideIcons from "lucide-react";
@@ -334,6 +334,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
     const { locale } = useLocale();
     const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
     const [mobilePage, setMobilePage] = useState(1);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const MOBILE_ITEMS_PER_PAGE = 3;
 
     // Chỉ sử dụng data từ API, không fallback static data
@@ -354,7 +355,7 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
             return [
                 { id: "all", name: allProductsText, icon: Package, slug: "all" },
                 ...categories
-                    .filter((cat: any) => cat.isActive !== false)
+                    .filter((cat: any) => cat.isActive !== false && cat.slug !== 'all' && cat.id !== 'all')
                     .sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0))
                     .map((cat: any) => {
                         const IconComponent = (LucideIcons as any)[cat.iconName] || Package;
@@ -462,8 +463,54 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                         )}
                     </div>
 
-                    {/* Pills filter ngay dưới description */}
-                    <div className="w-full mx-auto max-w-[720px] sm:max-w-[900px] lg:max-w-[1244px] flex flex-wrap items-center justify-center gap-3 mt-8 lg:mt-10 mb-14">
+                    {/* Mobile Dropdown Filter */}
+                    <div className="lg:hidden w-full px-6 mt-8 mb-8 relative z-30">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="w-full flex items-center justify-between px-4 py-3 bg-[#EAF5FF] text-[#0870B4] rounded-xl font-semibold border border-[#0870B4]/20"
+                        >
+                            <div className="flex items-center gap-2">
+                                {(() => {
+                                    const activeCat = categoriesWithIcons.find((c: any) => c.id === selectedCategory) || categoriesWithIcons[0];
+                                    const Icon = activeCat.icon;
+                                    return (
+                                        <>
+                                            <Icon size={18} />
+                                            <span className="truncate">{activeCat.name}</span>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                            {isDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+
+                        {isDropdownOpen && (
+                            <div className="absolute top-full left-6 right-6 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden flex flex-col max-h-[300px] overflow-y-auto">
+                                {categoriesWithIcons.map((category: any) => {
+                                    const Icon = category.icon;
+                                    const active = selectedCategory === category.id;
+                                    return (
+                                        <button
+                                            key={category.id}
+                                            onClick={() => {
+                                                setSelectedCategory(category.id);
+                                                setIsDropdownOpen(false);
+                                            }}
+                                            className={`flex items-center gap-3 px-4 py-3 text-left transition-colors
+                                                ${active ? 'bg-[#EAF5FF] text-[#0870B4]' : 'text-gray-600 hover:bg-gray-50'}
+                                            `}
+                                        >
+                                            <Icon size={18} className="shrink-0" />
+                                            <span className="text-sm font-medium">{category.name}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Desktop Pills Filter (Hidden on Mobile) */}
+                    <div className="hidden lg:flex w-full mx-auto max-w-[1244px] flex-wrap items-center justify-center gap-3 mt-10 mb-14">
                         {categoriesWithIcons.map((category: any) => {
                             const Icon = category.icon;
                             const active = selectedCategory === category.id;
@@ -472,14 +519,14 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                                 <button
                                     key={category.id}
                                     onClick={() => setSelectedCategory(category.id)}
-                                    className={`px-4 sm:px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2 min-w-0 max-w-[220px] sm:max-w-[280px] lg:max-w-none
+                                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all inline-flex items-center gap-2
                                         ${active
                                             ? "bg-[#0870B4] text-white shadow-md"
                                             : "bg-[#EAF5FF] text-[#0870B4] hover:bg-[#DCEFFF]"
                                         }`}
                                 >
                                     <Icon size={16} className="shrink-0" />
-                                    <span className="min-w-0 whitespace-normal break-words text-center leading-snug line-clamp-2">
+                                    <span className="text-center leading-snug">
                                         {category.name}
                                     </span>
                                 </button>

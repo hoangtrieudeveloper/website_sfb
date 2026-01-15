@@ -191,7 +191,7 @@ export function Footer() {
 
         {/* Column 2: Links */}
         {quickLinks.length > 0 && (
-          <nav className="col-span-1 lg:flex-1" aria-label="Quick links">
+          <nav className="col-span-1 lg:flex-1 pl-5 lg:pl-0" aria-label="Quick links">
             <h4 className="text-[#0F172A] font-bold text-base lg:text-lg mb-3 lg:mb-6">
               {locale === 'vi' ? 'Liên kết' : locale === 'en' ? 'Links' : 'リンク'}
             </h4>

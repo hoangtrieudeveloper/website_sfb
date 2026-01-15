@@ -13,11 +13,12 @@ function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
       <ImageWithFallback
         src={src}
         alt={alt}
-
+        width={701}
+        height={511}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
         loading="lazy"
         objectFit="cover"
-        className="transition-transform duration-700 hover:scale-105"
+        className="w-full h-full transition-transform duration-700 hover:scale-105"
       />
     </div>
   );
@@ -75,7 +76,7 @@ interface FeaturesProps {
 export function Features({ data, locale: propLocale }: FeaturesProps) {
   const { locale: contextLocale } = useLocale();
   const locale = (propLocale || contextLocale) as 'vi' | 'en' | 'ja';
-  
+
   // Chỉ sử dụng data từ API, không có fallback static data
   if (!data) {
     return null;
@@ -83,7 +84,7 @@ export function Features({ data, locale: propLocale }: FeaturesProps) {
 
   const header = data?.header;
   const blocks = data?.blocks || [];
-  
+
   // Localize header
   const headerSub = header?.sub
     ? (typeof header.sub === 'string' ? header.sub : getLocalizedText(header.sub, locale))
@@ -121,7 +122,7 @@ export function Features({ data, locale: propLocale }: FeaturesProps) {
     const imageElement = block.image ? (
       <FeatureImageFrame src={block.image} alt={`Feature ${index + 1}`} />
     ) : null;
-    
+
     // Localize block fields
     const blockText = block.text
       ? (typeof block.text === 'string' ? block.text : getLocalizedText(block.text, locale))
@@ -158,17 +159,17 @@ export function Features({ data, locale: propLocale }: FeaturesProps) {
                   {block.list.map((t: any, idx: number) => {
                     const listItemText = typeof t === 'string' ? t : getLocalizedText(t, locale);
                     return (
-                    <ScrollAnimation
-                      key={idx}
-                      variant="slide-left"
-                      delay={0.1 + idx * 0.15}
-                      className="flex items-start gap-2 sm:gap-3 p-1 sm:p-2 rounded-lg hover:bg-white/50 transition-colors"
-                    >
-                      <FeaturesTickIcon className="mt-0.5 sm:mt-[5px]" />
-                      <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-tight sm:leading-[30px]">
-                        {listItemText}
-                      </span>
-                    </ScrollAnimation>
+                      <ScrollAnimation
+                        key={idx}
+                        variant="slide-left"
+                        delay={0.1 + idx * 0.15}
+                        className="flex items-start gap-2 sm:gap-3 p-1 sm:p-2 rounded-lg hover:bg-white/50 transition-colors"
+                      >
+                        <FeaturesTickIcon className="mt-0.5 sm:mt-[5px]" />
+                        <span className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-tight sm:leading-[30px]">
+                          {listItemText}
+                        </span>
+                      </ScrollAnimation>
                     );
                   })}
                 </div>
@@ -208,22 +209,22 @@ export function Features({ data, locale: propLocale }: FeaturesProps) {
                     const itemTitle = typeof item.title === 'string' ? item.title : getLocalizedText(item.title, locale);
                     const itemText = typeof item.text === 'string' ? item.text : getLocalizedText(item.text, locale);
                     return (
-                    <ScrollAnimation
-                      key={idx}
-                      variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
-                      delay={idx * 0.15}
-                      className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
-                    >
-                      <FeaturesTickIcon className="mt-0.5 sm:mt-[5px]" />
-                      <div className="flex flex-col items-start">
-                        <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-semibold leading-tight sm:leading-[30px]">
-                          {itemTitle}
-                        </p>
-                        <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-snug sm:leading-[26px]">
-                          {itemText}
-                        </p>
-                      </div>
-                    </ScrollAnimation>
+                      <ScrollAnimation
+                        key={idx}
+                        variant={imageSide === 'right' ? 'slide-right' : 'slide-left'}
+                        delay={idx * 0.15}
+                        className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl hover:bg-slate-50 transition-all duration-300 hover:scale-[1.02]"
+                      >
+                        <FeaturesTickIcon className="mt-0.5 sm:mt-[5px]" />
+                        <div className="flex flex-col items-start">
+                          <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm sm:text-[20px] font-semibold leading-tight sm:leading-[30px]">
+                            {itemTitle}
+                          </p>
+                          <p className="self-stretch text-[var(--Color-2,#0F172A)] font-['Plus_Jakarta_Sans'] text-xs sm:text-[16px] font-normal leading-snug sm:leading-[26px]">
+                            {itemText}
+                          </p>
+                        </div>
+                      </ScrollAnimation>
                     );
                   })}
                 </div>

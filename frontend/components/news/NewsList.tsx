@@ -49,7 +49,7 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       layout
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-[45px]"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-6 md:gap-y-[45px]"
     >
       <AnimatePresence>
         {news.map((article, index) => {
@@ -98,8 +98,8 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
                     borderColor: "rgba(29, 143, 207, 0.4)"
                   }}
                   className={[
-                    "flex flex-col items-start gap-6 flex-[1_0_0] pb-6",
-                    "h-[530px]",
+                    "flex flex-col items-start gap-4 md:gap-6 flex-[1_0_0] pb-5 md:pb-6",
+                    "h-auto md:h-[530px]",
                     "rounded-[24px] bg-[var(--Color-7,#FFF)]",
                     "border border-transparent", // Adjusted for animation
                     "shadow-[0_12px_36px_0_rgba(59,90,136,0.12)]",
@@ -122,9 +122,9 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
                   </div>
 
                   {/* CONTENT */}
-                  <div className="w-full px-6 flex flex-col flex-1 min-h-0">
+                  <div className="w-full px-4 md:px-6 flex flex-col flex-1 min-h-0">
                     <h3
-                      className="h-[60px] self-stretch line-clamp-2 font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] text-[var(--Color-2,#0F172A)] group-hover:text-[#1D8FCF] transition-colors"
+                      className="md:h-[60px] self-stretch line-clamp-2 font-['Plus_Jakarta_Sans'] text-[18px] md:text-[20px] font-semibold leading-[28px] md:leading-[30px] text-[var(--Color-2,#0F172A)] group-hover:text-[#1D8FCF] transition-colors"
                       style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                     >
                       {title}
@@ -132,7 +132,7 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
 
                     {excerpt && (
                       <p
-                        className="mt-3 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px] text-[var(--Color-2,#0F172A)]"
+                        className="mt-1.5 md:mt-3 overflow-hidden line-clamp-3 font-['Plus_Jakarta_Sans'] text-[15px] md:text-[16px] font-normal leading-[26px] md:leading-[30px] text-[var(--Color-2,#0F172A)]"
                         style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                       >
                         {excerpt}
@@ -140,7 +140,7 @@ export function NewsList({ news, locale: propLocale }: NewsListProps) {
                     )}
 
                     {/* ICON ROW giống ảnh */}
-                    <div className="mt-auto pt-4 flex items-center gap-5 text-[13px] text-gray-500">
+                    <div className="mt-3 md:mt-auto md:pt-4 flex items-center gap-3 md:gap-5 text-[12px] md:text-[13px] text-gray-500">
                       <div className="flex items-center gap-2">
                         <Heart size={16} className="text-red-500" />
                         <span>{likes}</span>

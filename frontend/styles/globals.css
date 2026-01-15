@@ -246,5 +246,6 @@ html {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(73deg, #1879B0 32.85%, #2590BF 82.8%); /* Slightly darker for hover effect if desired, or keep same */
+  background: linear-gradient(73deg, #1879B0 32.85%, #2590BF 82.8%);
+  /* Slightly darker for hover effect if desired, or keep same */
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     Briefcase,
     MapPin,
@@ -12,9 +12,10 @@ import {
 import { positions } from "./data";
 import { FadeIn, StaggerContainer } from "../../components/ui/motion";
 import { motion } from "framer-motion";
+import { CustomPagination } from "../../components/common/CustomPagination";
 
 interface CareerPositionsProps {
-  data?: any;
+    data?: any;
 }
 
 export const CareerPositions = ({ data }: CareerPositionsProps) => {
@@ -23,6 +24,40 @@ export const CareerPositions = ({ data }: CareerPositionsProps) => {
     const headerTitle = displayData.headerTitle || "Vị trí đang tuyển";
     const headerDescription = displayData.headerDescription || "Tìm vị trí phù hợp với bạn và ứng tuyển ngay hôm nay";
     const items = displayData.items || positions;
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        // Initial check
+        handleResize();
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Filter active items
+    const activeItems = items.filter((item: any) => item.isActive !== false);
+
+    // Calculate pagination
+    const itemsPerPage = 2;
+    const totalPages = Math.ceil(activeItems.length / itemsPerPage);
+
+    const currentItems = isMobile
+        ? activeItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+        : activeItems;
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        const section = document.getElementById('positions');
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
 
     return (
         <section id="positions" className="py-20 bg-white">
@@ -39,30 +74,32 @@ export const CareerPositions = ({ data }: CareerPositionsProps) => {
                 </FadeIn>
 
                 <StaggerContainer className="grid lg:grid-cols-2 gap-8">
-                    {items.filter((item: any) => item.isActive !== false).map((position: any) => (
+                    {currentItems.map((position: any) => (
                         <FadeIn key={position.id} className="h-full">
                             <motion.div
                                 whileHover={{ y: -5, boxShadow: "0 20px 40px -5px rgba(0, 0, 0, 0.1)" }}
-                                className="group bg-white rounded-[24px] p-8 border border-gray-100 hover:border-[#0870B4]/30 transition-all duration-300 h-full flex flex-col shadow-sm"
+                                className="group bg-white rounded-[24px] p-4 md:p-8 border border-gray-100 hover:border-[#0870B4]/30 transition-all duration-300 h-full flex flex-col shadow-sm"
                             >
                                 {/* Header */}
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="flex-1">
-                                        <h4 className="text-[#0F172A] text-2xl font-bold mb-2 group-hover:text-[#0870B4] transition-colors">
+                                <div className="flex items-start justify-between mb-4 md:mb-6 gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-[#0F172A] text-xl md:text-2xl font-bold mb-2 group-hover:text-[#0870B4] transition-colors truncate">
                                             {position.title}
                                         </h4>
-                                        <div className="flex items-center gap-2 text-gray-500 text-sm font-medium">
-                                            <Briefcase size={16} className="text-[#0870B4]" />
-                                            <span>{position.department}</span>
+                                        <div className="flex items-center gap-3 text-gray-500 text-xs md:text-sm font-medium flex-wrap">
+                                            <div className="flex items-center gap-2">
+                                                <Briefcase size={16} className="text-[#0870B4]" />
+                                                <span>{position.department}</span>
+                                            </div>
+                                            <span className="px-2 md:px-4 py-1 md:py-1.5 bg-blue-50 text-[#0870B4] rounded-full text-xs md:text-sm font-semibold whitespace-nowrap">
+                                                {position.type}
+                                            </span>
                                         </div>
                                     </div>
-                                    <span className="px-4 py-1.5 bg-blue-50 text-[#0870B4] rounded-full text-sm font-semibold whitespace-nowrap">
-                                        {position.type}
-                                    </span>
                                 </div>
 
                                 {/* Info Grid */}
-                                <div className="grid grid-cols-2 gap-y-4 gap-x-8 mb-8 p-6 bg-gray-50/80 rounded-2xl border border-gray-100">
+                                <div className="grid grid-cols-2 gap-y-4 gap-x-4 md:gap-x-8 mb-6 md:mb-8 p-4 md:p-6 bg-gray-50/80 rounded-2xl border border-gray-100">
                                     <div className="flex items-start gap-3">
                                         <MapPin className="text-gray-400 mt-0.5" size={18} />
                                         <div>
@@ -127,6 +164,16 @@ export const CareerPositions = ({ data }: CareerPositionsProps) => {
                         </FadeIn>
                     ))}
                 </StaggerContainer>
+
+                {isMobile && totalPages > 1 && (
+                    <div className="mt-8 md:hidden">
+                        <CustomPagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
+                )}
             </div>
         </section>
     );
