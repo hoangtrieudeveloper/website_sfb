@@ -1,11 +1,18 @@
 import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { NumberedSection } from "./data";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface ProductFeatureSectionProps {
     section: NumberedSection;
+    locale?: 'vi' | 'en' | 'ja';
 }
 
-export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
+export function ProductFeatureSection({ section, locale = 'vi' }: ProductFeatureSectionProps) {
+    // Localize section title
+    const localizedTitle = getLocalizedText(section.title, locale);
+    
+    // Localize imageAlt
+    const localizedImageAlt = section.imageAlt ? getLocalizedText(section.imageAlt, locale) : localizedTitle;
     return (
         <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[90px]">
             <div
@@ -23,7 +30,9 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                             <ImageWithFallback
                                 src={section.overlay?.back.src ?? section.image ?? "/images/no_cover.jpeg"}
                                 alt={
-                                    section.overlay?.back.alt ?? section.imageAlt ?? section.title
+                                    section.overlay?.back.alt 
+                                        ? getLocalizedText(section.overlay.back.alt, locale)
+                                        : localizedImageAlt
                                 }
                                 className={`w-full h-full ${section.overlay?.back.objectClass ?? "object-cover"
                                     }`}
@@ -45,9 +54,9 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
                                 <ImageWithFallback
                                     src={section.overlay.front.src || "/images/no_cover.jpeg"}
                                     alt={
-                                        section.overlay.front.alt ??
-                                        section.imageAlt ??
-                                        section.title
+                                        section.overlay.front.alt
+                                            ? getLocalizedText(section.overlay.front.alt, locale)
+                                            : localizedImageAlt
                                     }
                                     className={`w-full h-full ${section.overlay.front.objectClass ?? "object-cover"
                                         }`}
@@ -65,29 +74,47 @@ export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
             >
                 <div className="flex w-full max-w-[549px] flex-col items-start gap-6">
                     <div className="text-gray-900 text-xl md:text-2xl font-bold">
-                        {section.no}. {section.title}
+                        {section.no}. {localizedTitle}
                     </div>
                     {section.paragraphs.map((p, i) => {
+                        // 1) Đoạn văn chỉ có nội dung (string)
                         if (typeof p === "string") {
-                            // Đoạn văn đơn giản: chỉ hiển thị nội dung, không có tiêu đề riêng
+                            const localizedParagraph = getLocalizedText(p, locale);
                             return (
                                 <p
                                     key={`${section.no}-${i}`}
                                     className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]"
                                 >
-                                    {p}
+                                    {localizedParagraph}
                                 </p>
                             );
                         }
 
-                        // Đoạn văn có tiêu đề riêng
+                        // 2) Đoạn văn có cấu trúc { title, text } giống phía admin
+                        const localizedParagraphTitle = getLocalizedText(p.title, locale);
+                        const localizedParagraphText = getLocalizedText(p.text, locale);
+                        const hasTitle = localizedParagraphTitle && localizedParagraphTitle.trim().length > 0;
+
+                        // Nếu không có tiêu đề, hiển thị như đoạn văn thường (giống thiết kế admin)
+                        if (!hasTitle) {
+                            return (
+                                <p
+                                    key={`${section.no}-${i}`}
+                                    className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]"
+                                >
+                                    {localizedParagraphText}
+                                </p>
+                            );
+                        }
+
+                        // Có tiêu đề riêng: hiển thị tiêu đề + nội dung giống layout admin
                         return (
                             <div key={`${section.no}-${i}`} className="flex flex-col self-stretch gap-2">
                                 <div className="self-stretch text-[var(--Color-3,#29A3DD)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px]">
-                                    {p.title}
+                                    {localizedParagraphTitle}
                                 </div>
                                 <p className="self-stretch text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[16px] font-normal leading-[30px]">
-                                    {p.text}
+                                    {localizedParagraphText}
                                 </p>
                             </div>
                         );

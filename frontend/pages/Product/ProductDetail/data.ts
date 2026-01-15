@@ -68,6 +68,10 @@ export type ProductDetail = {
     name: string;
     heroDescription: string;
     heroImage: string; // Dùng cho ảnh hoặc video hero (URL)
+    ctaContactText?: string;
+    ctaContactHref?: string;
+    ctaDemoText?: string;
+    ctaDemoHref?: string;
 
     // OVERVIEW
     overviewKicker: string;

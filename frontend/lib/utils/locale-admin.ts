@@ -156,6 +156,7 @@ export function setLocaleValue(
  */
 export function isTranslatableField(fieldName: string): boolean {
   const nonTranslatableFields = [
+    'demolinktype', 'demo_link_type', // Added demoLinkType
     // Icon fields
     'icon', 'iconname',
     // Link fields

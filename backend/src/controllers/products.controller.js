@@ -104,6 +104,7 @@ const mapProduct = (row) => ({
   statsRating: row.stats_rating || 0,
   statsDeploy: parseLocaleField(row.stats_deploy),
   demoLink: row.demo_link || '',
+  demoLinkType: row.demo_link_type || 'link',
   sortOrder: row.sort_order || 0,
   isFeatured: row.is_featured || false,
   isActive: row.is_active !== undefined ? row.is_active : true,
@@ -175,6 +176,7 @@ exports.getProducts = async (req, res, next) => {
         p.stats_rating,
         p.stats_deploy,
         p.demo_link,
+        p.demo_link_type,
         ${featuresSelect}
         p.seo_title,
         p.seo_description,
@@ -238,6 +240,8 @@ exports.getProductById = async (req, res, next) => {
           p.stats_users,
           p.stats_rating,
           p.stats_deploy,
+          p.demo_link,
+          p.demo_link_type,
           ${featuresSelect}
           p.seo_title,
           p.seo_description,
@@ -360,24 +364,25 @@ exports.createProduct = async (req, res, next) => {
       const hasFeaturesColumn = columnCheck.length > 0;
 
       const insertFields = hasFeaturesColumn
-        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, features, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active, published_at'
-        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active, published_at';
+        ? 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, demo_link_type, features, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active, published_at'
+        : 'category_id, slug, name, tagline, meta, description, image, gradient, pricing, badge, stats_users, stats_rating, stats_deploy, demo_link, demo_link_type, seo_title, seo_description, seo_keywords, sort_order, is_featured, is_active, published_at';
       
       const insertValues = hasFeaturesColumn
-        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22'
-        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21';
+        ? '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23'
+        : '$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22';
 
-      const { demoLink } = req.body;
+      const { demoLink, demoLinkType } = req.body;
+      const safeDemoLinkType = (demoLinkType === 'video' ? 'video' : 'link');
       const insertParams = hasFeaturesColumn
         ? [
             categoryId || null, finalSlug, processLocaleField(name, 255), processLocaleField(tagline, 500), processLocaleField(meta, 255), processLocaleField(description), image, gradient,
-            processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null, JSON.stringify(featureTexts),
+            processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null, safeDemoLinkType, JSON.stringify(featureTexts),
             processLocaleField(seoTitle, 255), processLocaleField(seoDescription), processLocaleField(seoKeywords),
             sortOrder, isFeatured, isActive, publishedAt || null,
           ]
         : [
             categoryId || null, finalSlug, processLocaleField(name, 255), processLocaleField(tagline, 500), processLocaleField(meta, 255), processLocaleField(description), image, gradient,
-            processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null,
+            processLocaleField(pricing, 255), processLocaleField(badge, 255), processLocaleField(statsUsers, 255), statsRating, processLocaleField(statsDeploy, 255), demoLink || null, safeDemoLinkType,
             processLocaleField(seoTitle, 255), processLocaleField(seoDescription), processLocaleField(seoKeywords),
             sortOrder, isFeatured, isActive, publishedAt || null,
           ];
@@ -420,6 +425,8 @@ exports.createProduct = async (req, res, next) => {
             p.stats_users,
             p.stats_rating,
             p.stats_deploy,
+            p.demo_link,
+            p.demo_link_type,
             ${featuresSelect2}
             p.seo_title,
             p.seo_description,
@@ -477,6 +484,7 @@ exports.updateProduct = async (req, res, next) => {
       statsRating,
       statsDeploy,
       demoLink,
+      demoLinkType,
       sortOrder,
       isFeatured,
       isActive,
@@ -588,7 +596,17 @@ exports.updateProduct = async (req, res, next) => {
       addField('stats_users', processLocaleField(statsUsers, 255)); // VARCHAR(255)
       addField('stats_rating', statsRating);
       addField('stats_deploy', processLocaleField(statsDeploy, 255)); // VARCHAR(255)
-      addField('demo_link', demoLink ? (typeof demoLink === 'string' ? demoLink.substring(0, 500) : String(demoLink).substring(0, 500)) : null); // VARCHAR(500)
+      // Xử lý demo_link: luôn thêm vào UPDATE, cho phép null hoặc empty string
+      // Không dùng addField vì addField skip khi value === undefined, nhưng ta muốn update cả khi là empty string
+      const finalDemoLink = demoLink !== undefined 
+        ? (demoLink ? (typeof demoLink === 'string' ? demoLink.substring(0, 500) : String(demoLink).substring(0, 500)) : '')
+        : null;
+      params.push(finalDemoLink);
+      fields.push(`demo_link = $${params.length}`);
+      // Luôn update demo_link_type, mặc định là 'link' nếu không được gửi hoặc undefined
+      const finalDemoLinkType = (demoLinkType === 'video' ? 'video' : 'link');
+      params.push(finalDemoLinkType);
+      fields.push(`demo_link_type = $${params.length}`);
       addField('seo_title', processLocaleField(seoTitle, 255)); // VARCHAR(255)
       addField('seo_description', processLocaleField(seoDescription)); // TEXT - không giới hạn
       addField('seo_keywords', processLocaleField(seoKeywords)); // TEXT - không giới hạn
@@ -667,6 +685,8 @@ exports.updateProduct = async (req, res, next) => {
             p.stats_users,
             p.stats_rating,
             p.stats_deploy,
+            p.demo_link,
+            p.demo_link_type,
             ${featuresSelect3}
             p.seo_title,
             p.seo_description,

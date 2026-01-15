@@ -16,9 +16,18 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import ImageUpload from "@/components/admin/ImageUpload";
 import MediaUpload from "@/components/admin/MediaUpload";
+import MediaLibraryPicker from "@/app/(admin)/admin/news/MediaLibraryPicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { HeroWidget } from "@/components/admin/ProductWidgets/HeroWidget";
@@ -57,6 +66,7 @@ interface ProductFormData {
   isActive: boolean;
   features: (string | Record<Locale, string>)[];
   demoLink: string;
+  demoLinkType: 'link' | 'video';
   seoTitle: string | Record<Locale, string>;
   seoDescription: string | Record<Locale, string>;
   seoKeywords: string | Record<Locale, string>;
@@ -118,6 +128,8 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [galleryUploadKey, setGalleryUploadKey] = useState(0);
   const [contentHtmlEditorKey, setContentHtmlEditorKey] = useState(0);
+  const [showDemoLinkDialog, setShowDemoLinkDialog] = useState(false);
+  const [demoLinkTab, setDemoLinkTab] = useState<"url" | "media">("url");
 
   const [formData, setFormData] = useState<ProductFormData>(() => ({
     categoryId: "",
@@ -138,6 +150,7 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     isActive: true,
     features: [],
     demoLink: "",
+    demoLinkType: 'link' as 'link' | 'video',
     seoTitle: { vi: "", en: "", ja: "" },
     seoDescription: { vi: "", en: "", ja: "" },
     seoKeywords: { vi: "", en: "", ja: "" },
@@ -318,12 +331,24 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
               imageFront: section.imageFront || "",
               imageSide: section.imageSide || "left",
               paragraphs: (section.paragraphs || []).map((para: any) => {
+                // Trường hợp 1: backend trả về string đơn giản
                 if (typeof para === 'string') {
                   return { title: { vi: "", en: "", ja: "" }, text: migrateObjectToLocale(para) };
                 }
+                // Trường hợp 2: backend trả về locale object trực tiếp { vi, en, ja }
+                if (para && typeof para === 'object' && !Array.isArray(para)) {
+                  const hasLocaleKeys = 'vi' in para || 'en' in para || 'ja' in para;
+                  if (hasLocaleKeys) {
+                    return {
+                      title: { vi: "", en: "", ja: "" },
+                      text: migrateObjectToLocale(para),
+                    };
+                  }
+                }
+                // Trường hợp 3: object dạng { title, text }
                 return {
-                  title: migrateObjectToLocale(para.title || ""),
-                  text: migrateObjectToLocale(para.text || ""),
+                  title: migrateObjectToLocale(para?.title || ""),
+                  text: migrateObjectToLocale(para?.text || ""),
                 };
               }),
               overlay: section.overlay || {},
@@ -437,15 +462,21 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     }
   };
 
-  const fetchProduct = async () => {
+  const fetchProduct = async (forceReload = false) => {
     try {
       setLoadingData(true);
+      const endpoint = AdminEndpoints.products.detail(productId!);
+      // Thêm cache-busting parameter để tránh 304 Not Modified
+      const url = forceReload ? `${endpoint}?_t=${Date.now()}` : endpoint;
       const data = await adminApiCall<{ success: boolean; data?: any }>(
-        AdminEndpoints.products.detail(productId!),
+        url,
       );
       if (data.data) {
         // Normalize dữ liệu để đảm bảo các field luôn là locale object
         const normalizedData = migrateObjectToLocale(data.data);
+        // Lấy demoLink và demoLinkType trực tiếp từ data.data trước khi normalize để tránh bị convert
+        const rawDemoLink = data.data.demoLink || data.data.demo_link || "";
+        const rawDemoLinkType = data.data.demoLinkType || data.data.demo_link_type || 'link';
         // Nếu đang edit và đã có slug từ DB, không tự động generate nữa
         const hasSlug = !!(normalizedData.slug);
         setSlugManuallyEdited(hasSlug);
@@ -469,7 +500,8 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           features: (normalizedData.features || []).map((f: any) => 
             typeof f === 'string' ? { vi: f, en: "", ja: "" } : migrateObjectToLocale(f)
           ),
-          demoLink: normalizedData.demoLink || "",
+          demoLink: typeof rawDemoLink === 'string' ? rawDemoLink : (rawDemoLink || ""),
+          demoLinkType: (rawDemoLinkType === 'video' ? 'video' : 'link') as 'link' | 'video',
           seoTitle: normalizedData.seoTitle || { vi: "", en: "", ja: "" },
           seoDescription: normalizedData.seoDescription || { vi: "", en: "", ja: "" },
           seoKeywords: normalizedData.seoKeywords || { vi: "", en: "", ja: "" },
@@ -481,6 +513,35 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
     } finally {
       setLoadingData(false);
     }
+  };
+
+  // Chuẩn hóa detailData trước khi gửi lên API backend
+  const buildDetailPayloadForSave = (detail: any) => {
+    if (!detail) return detail;
+
+    return {
+      ...detail,
+      // Giữ cả title và text cho từng paragraph để backend lưu đầy đủ
+      numberedSections: (detail.numberedSections || []).map((section: any) => ({
+        ...section,
+        paragraphs: (section.paragraphs || []).map((para: any) => {
+          // Trường hợp chỉ là string: xem như chỉ có text
+          if (typeof para === 'string') {
+            return {
+              title: '',
+              text: para,
+            };
+          }
+          if (para && typeof para === 'object') {
+            return {
+              title: para.title !== undefined ? para.title : '',
+              text: para.text !== undefined ? para.text : '',
+            };
+          }
+          return { title: '', text: '' };
+        }),
+      })),
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -509,8 +570,9 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         categoryId: formData.categoryId || null,
         statsRating: Number(formData.statsRating) || 0,
         sortOrder: Number(formData.sortOrder) || 0,
+        demoLink: formData.demoLink || "", // Đảm bảo demoLink luôn được gửi
+        demoLinkType: formData.demoLinkType || 'link', // Đảm bảo demoLinkType luôn được gửi
       };
-
       if (productId) {
         // Cập nhật thông tin cơ bản
         await adminApiCall(AdminEndpoints.products.detail(productId), {
@@ -522,10 +584,11 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         if (detailData) {
           try {
             // Đảm bảo contentMode được set đúng từ detailData
-            const detailToSave = {
+            const rawDetailToSave = {
               ...detailData,
               contentMode: detailData.contentMode || (activeContentModeTab === "content" ? "content" : "config"),
             };
+            const detailToSave = buildDetailPayloadForSave(rawDetailToSave);
             await adminApiCall(AdminEndpoints.products.detailPage(productId), {
               method: "PUT",
               body: JSON.stringify(detailToSave),
@@ -537,10 +600,10 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
         }
 
         toast.success("Đã cập nhật sản phẩm");
-        // Reload lại data để cập nhật UI
+        // Reload lại data để cập nhật UI (force reload để bypass cache)
         await Promise.all([
-          fetchProduct(),
-          productId ? fetchProductDetail() : Promise.resolve(),
+          fetchProduct(true), // Force reload để bypass cache
+          productId ? fetchProductDetail(true) : Promise.resolve(),
         ]);
       } else {
         // Tạo sản phẩm mới
@@ -779,16 +842,67 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="demoLink" className="text-gray-900">Link Demo nhanh</Label>
-                  <Input
-                    id="demoLink"
-                    value={formData.demoLink}
-                    onChange={(e) => setFormData({ ...formData, demoLink: e.target.value })}
-                    placeholder="Ví dụ: /demo hoặc https://demo.example.com"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Link đến trang demo của sản phẩm
-                  </p>
+                  <Label className="text-gray-900">Link Demo nhanh</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                      <div className="flex flex-col">
+                        <Label className="text-sm font-medium">
+                          {formData.demoLinkType === 'video'
+                            ? 'Video/Media (Mở popup)'
+                            : 'Nhập link (Redirect)'}
+                        </Label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formData.demoLinkType === 'video'
+                            ? 'Video sẽ mở trong popup khi click'
+                            : 'Link sẽ redirect đến trang đích khi click'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-sm ${formData.demoLinkType === 'link' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                          Link
+                        </span>
+                        <Switch
+                          checked={formData.demoLinkType === 'video'}
+                          onCheckedChange={(checked) =>
+                            setFormData({ ...formData, demoLinkType: checked ? 'video' : 'link' })
+                          }
+                        />
+                        <span className={`text-sm ${formData.demoLinkType === 'video' ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
+                          Video
+                        </span>
+                      </div>
+                    </div>
+                    {formData.demoLinkType === 'link' && (
+                      <Input
+                        value={formData.demoLink}
+                        onChange={(e) => setFormData({ ...formData, demoLink: e.target.value })}
+                        placeholder="/page hoặc https://example.com/..."
+                      />
+                    )}
+
+                    {formData.demoLinkType === 'video' && (
+                      <div className="flex gap-2">
+                        <Input
+                          value={formData.demoLink}
+                          onChange={(e) => setFormData({ ...formData, demoLink: e.target.value })}
+                          placeholder="/video hoặc https://youtube.com/..."
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setDemoLinkTab("media");
+                            setShowDemoLinkDialog(true);
+                          }}
+                          title="Chọn video từ Media Library"
+                        >
+                          <ImageIcon className="w-4 h-4 mr-2" />
+                          Chọn Media
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sortOrder" className="text-gray-900">Thứ tự sắp xếp</Label>
@@ -1848,10 +1962,27 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                           <Label className="mb-2">Các đoạn văn (Paragraphs)</Label>
                                           <div className="space-y-2">
                                             {(section.paragraphs || []).map((para: any, paraIndex: number) => {
-                                              const paraObj =
-                                                typeof para === "string"
-                                                  ? { title: "", text: para }
-                                                  : para || { title: "", text: "" };
+                                              // Normalize paragraph object để đảm bảo luôn có format đúng
+                                              let paraObj: any;
+                                              if (typeof para === "string") {
+                                                // Nếu là string, convert thành object với title rỗng và text là string đã normalize
+                                                paraObj = { 
+                                                  title: { vi: "", en: "", ja: "" }, 
+                                                  text: migrateObjectToLocale(para) 
+                                                };
+                                              } else if (para && typeof para === 'object') {
+                                                // Nếu đã là object, đảm bảo title và text đều là locale objects
+                                                paraObj = {
+                                                  title: migrateObjectToLocale(para.title || ""),
+                                                  text: migrateObjectToLocale(para.text || ""),
+                                                };
+                                              } else {
+                                                // Fallback: tạo object mới với locale objects rỗng
+                                                paraObj = { 
+                                                  title: { vi: "", en: "", ja: "" }, 
+                                                  text: { vi: "", en: "", ja: "" } 
+                                                };
+                                              }
 
                                               return (
                                                 <div key={paraIndex} className="space-y-2 rounded-lg border border-gray-200 p-3">
@@ -1863,7 +1994,9 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                                         onChange={(value) => {
                                                           const newSections = [...detailData.numberedSections];
                                                           const newParagraphs = [...(section.paragraphs || [])];
-                                                          const updatedPara = setLocaleValue(paraObj, 'title', value);
+                                                          // Đảm bảo paragraph object có đầy đủ structure
+                                                          const currentPara = newParagraphs[paraIndex] || { title: { vi: "", en: "", ja: "" }, text: { vi: "", en: "", ja: "" } };
+                                                          const updatedPara = setLocaleValue(currentPara, 'title', value);
                                                           newParagraphs[paraIndex] = updatedPara;
                                                           newSections[index] = { ...section, paragraphs: newParagraphs };
                                                           setDetailData({ ...detailData, numberedSections: newSections });
@@ -1880,7 +2013,9 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
                                                         onChange={(value) => {
                                                           const newSections = [...detailData.numberedSections];
                                                           const newParagraphs = [...(section.paragraphs || [])];
-                                                          const updatedPara = setLocaleValue(paraObj, 'text', value);
+                                                          // Đảm bảo paragraph object có đầy đủ structure
+                                                          const currentPara = newParagraphs[paraIndex] || { title: { vi: "", en: "", ja: "" }, text: { vi: "", en: "", ja: "" } };
+                                                          const updatedPara = setLocaleValue(currentPara, 'text', value);
                                                           newParagraphs[paraIndex] = updatedPara;
                                                           newSections[index] = { ...section, paragraphs: newParagraphs };
                                                           setDetailData({ ...detailData, numberedSections: newSections });
@@ -2809,6 +2944,84 @@ export default function ProductForm({ productId, onSuccess }: ProductFormProps) 
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Dialog for Demo Link */}
+      <Dialog open={showDemoLinkDialog} onOpenChange={setShowDemoLinkDialog}>
+        <DialogContent style={{ maxWidth: '1200px', maxHeight: '95vh', display: 'flex', flexDirection: 'column' }}>
+          <DialogHeader>
+            <DialogTitle>Chọn link demo</DialogTitle>
+            <DialogDescription>
+              Bạn có thể nhập link thủ công hoặc chọn file từ thư viện Media
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <div className="inline-flex rounded-xl border bg-gray-100 p-1 gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={demoLinkTab === "url" ? "default" : "ghost"}
+                  className="px-4"
+                  onClick={() => setDemoLinkTab("url")}
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Nhập link
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={demoLinkTab === "media" ? "default" : "ghost"}
+                  className="px-4"
+                  onClick={() => setDemoLinkTab("media")}
+                >
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Chọn từ Media Library
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-col overflow-y-auto">
+              {demoLinkTab === "url" ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label>Nhập URL hoặc đường dẫn</Label>
+                    <Input
+                      value={formData.demoLink}
+                      onChange={(e) => setFormData({ ...formData, demoLink: e.target.value })}
+                      placeholder="/video hoặc https://youtube.com/..."
+                      className="mt-2"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Ví dụ: /video, https://youtube.com/watch?v=..., /uploads/media/file.mp4
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <MediaLibraryPicker
+                  fileTypeFilter="video,audio"
+                  onSelectImage={(url) => {
+                    setFormData({ ...formData, demoLink: url });
+                    setShowDemoLinkDialog(false);
+                    toast.success("Đã chọn file từ Media Library");
+                  }}
+                />
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDemoLinkDialog(false)}>
+              Đóng
+            </Button>
+            {demoLinkTab === "url" && (
+              <Button onClick={() => setShowDemoLinkDialog(false)}>
+                Xác nhận
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

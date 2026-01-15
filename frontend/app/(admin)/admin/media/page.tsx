@@ -244,6 +244,12 @@ const MediaLibraryPage: React.FC = () => {
     if (!fileList || fileList.length === 0) return;
     const fileArray = Array.from(fileList);
 
+    // Giới hạn tối đa 6 file
+    if (fileArray.length > 6) {
+      toast.error("Chỉ có thể upload tối đa 6 file cùng lúc");
+      return;
+    }
+
     try {
       setUploading(true);
       if (fileArray.length === 1) {
@@ -720,6 +726,14 @@ const MediaLibraryPage: React.FC = () => {
                           className="w-full h-48 object-cover"
                           onClick={() => setPreviewFile(file)}
                         />
+                      ) : file.file_type === "video" ? (
+                        <video
+                          src={imageUrl}
+                          className="w-full h-48 object-cover"
+                          preload="metadata"
+                          muted
+                          onClick={() => setPreviewFile(file)}
+                        />
                       ) : (
                         <div
                           className="w-full h-48 bg-gray-50 flex items-center justify-center"
@@ -802,6 +816,14 @@ const MediaLibraryPage: React.FC = () => {
                           src={imageUrl}
                           alt={file.alt_text || file.original_name}
                           className="w-14 h-14 object-cover rounded"
+                          onClick={() => setPreviewFile(file)}
+                        />
+                      ) : file.file_type === "video" ? (
+                        <video
+                          src={imageUrl}
+                          className="w-14 h-14 object-cover rounded"
+                          preload="metadata"
+                          muted
                           onClick={() => setPreviewFile(file)}
                         />
                       ) : (
@@ -891,10 +913,22 @@ const MediaLibraryPage: React.FC = () => {
             <Input
               type="file"
               multiple
-              onChange={(e) => handleFileUpload(e.target.files)}
+              accept="image/*,video/*,audio/*"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 6) {
+                  toast.error("Chỉ có thể chọn tối đa 6 file cùng lúc");
+                  e.target.value = ""; // Reset input
+                  return;
+                }
+                handleFileUpload(files);
+              }}
               disabled={uploading}
             />
             {uploading && <div className="text-sm text-gray-500">Đang upload...</div>}
+            <p className="text-xs text-gray-500">
+              Chỉ chấp nhận file ảnh, video và audio. Tối đa 6 file cùng lúc.
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUpload(false)}>
@@ -930,6 +964,18 @@ const MediaLibraryPage: React.FC = () => {
                     alt={previewFile.alt_text || previewFile.original_name}
                     className="max-h-[400px] object-contain"
                   />
+                ) : previewFile.file_type === "video" ? (
+                  <video
+                    src={
+                      previewFile.file_url.startsWith("/")
+                        ? buildUrl(previewFile.file_url)
+                        : previewFile.file_url
+                    }
+                    controls
+                    className="max-h-[400px] max-w-full object-contain"
+                  >
+                    Trình duyệt của bạn không hỗ trợ video.
+                  </video>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-gray-500">
                     {(() => {

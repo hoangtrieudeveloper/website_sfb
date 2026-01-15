@@ -343,10 +343,14 @@ export default function AdminHomepagePage() {
         if (!obj || typeof obj !== 'object') return targetObj;
         
         // Skip các fields không cần dịch
-        const skipFields = ['image', 'link', 'href', 'url', 'icon', 'gradient', 'color', 
-                           'partners', 'heroImage', 'backgroundImage', 'imageUrl', 'slug',
-                           'id', 'sortOrder', 'isActive', 'iconName', 'rating', 'type', 'imageSide',
-                           'buttonLink', 'imageSide'];
+        const skipFields = [
+          'image', 'link', 'href', 'url', 'icon', 'gradient', 'color',
+          'partners', 'heroImage', 'backgroundImage', 'imageUrl', 'slug',
+          'id', 'sortOrder', 'isActive', 'iconName', 'rating', 'type', 'imageSide',
+          'buttonLink', 'imageSide',
+          // Các field không nên dịch
+          'author' // tên khách hàng trong testimonials
+        ];
         
         for (const [key, value] of Object.entries(obj)) {
           // Skip các fields không cần dịch
@@ -1897,8 +1901,12 @@ export default function AdminHomepagePage() {
                                     </CardHeader>
                                     <CardContent>
                                       <div className="space-y-2">
-                                        <p className="font-medium text-sm">{review.author || 'Chưa có tác giả'}</p>
-                                        <p className="text-xs text-gray-600 line-clamp-2">{getLocalizedText(review.quote, globalLocale) || 'Chưa có nội dung'}</p>
+                                        <p className="font-medium text-sm">
+                                          {getLocalizedText(review.author as any, globalLocale) || 'Chưa có tác giả'}
+                                        </p>
+                                        <p className="text-xs text-gray-600 line-clamp-2">
+                                          {getLocalizedText(review.quote as any, globalLocale) || 'Chưa có nội dung'}
+                                        </p>
                                         <div className="flex gap-1">
                                           {[...Array(review.rating || 5)].map((_, i) => (
                                             <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />

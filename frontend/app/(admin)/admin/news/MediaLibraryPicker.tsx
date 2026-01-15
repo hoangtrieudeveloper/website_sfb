@@ -37,16 +37,26 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [typeFilter, setTypeFilter] = useState<"all" | "image" | "video" | "audio">("all");
 
-  const loadFiles = async () => {
+  const loadFiles = async (overrideType?: "all" | "image" | "video" | "audio") => {
     try {
       setLoading(true);
-      const fileTypes = fileTypeFilter.split(',').map(t => t.trim());
-      
+      const baseTypes = fileTypeFilter.split(",").map((t) => t.trim());
+      // Nếu chọn "all" thì dùng đúng các type được truyền từ props (mặc định image hoặc image,video,...)
+      // Nếu chọn cụ thể (image, video, audio) thì filter lại theo lựa chọn này (nếu có trong baseTypes)
+      const currentType = overrideType ?? typeFilter;
+      const effectiveTypes =
+        currentType === "all"
+          ? baseTypes
+          : baseTypes.includes(currentType)
+          ? [currentType]
+          : baseTypes;
+
       let allFiles: MediaFileItem[] = [];
-      
+
       // Load từng loại file riêng và gộp lại
-      for (const fileType of fileTypes) {
+      for (const fileType of effectiveTypes) {
         const params = new URLSearchParams();
         params.append("file_type", fileType);
         if (search) {
@@ -60,19 +70,19 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
         const resp = await adminApiCall<{ data: MediaFileItem[]; pagination: any }>(
           `${AdminEndpoints.media.files.list}?${params.toString()}`
         );
-        
+
         if (resp.data) {
           allFiles = [...allFiles, ...resp.data];
         }
       }
-      
+
       // Sắp xếp lại theo created_at (mới nhất trước)
       allFiles.sort((a, b) => {
         const dateA = new Date(a.created_at).getTime();
         const dateB = new Date(b.created_at).getTime();
         return dateB - dateA;
       });
-      
+
       setFiles(allFiles);
     } catch (err: any) {
       const msg = err?.message || "Không thể tải thư viện media";
@@ -105,13 +115,59 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
               className="pl-9"
             />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={loadFiles}
-          >
-            Tìm
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => loadFiles()}
+            >
+              Tìm
+            </Button>
+            <Button
+              type="button"
+              variant={typeFilter === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setTypeFilter("all");
+                loadFiles("all");
+              }}
+            >
+              Tất cả
+            </Button>
+            <Button
+              type="button"
+              variant={typeFilter === "image" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setTypeFilter("image");
+                loadFiles("image");
+              }}
+            >
+              Ảnh
+            </Button>
+            <Button
+              type="button"
+              variant={typeFilter === "video" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setTypeFilter("video");
+                loadFiles("video");
+              }}
+            >
+              Video
+            </Button>
+            <Button
+              type="button"
+              variant={typeFilter === "audio" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => {
+                setTypeFilter("audio");
+                loadFiles("audio");
+              }}
+            >
+              Audio
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
           <Button
@@ -167,7 +223,12 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
                       />
                     ) : file.file_type === "video" ? (
-                      <Video className="w-12 h-12 text-blue-500" />
+                      <video
+                        src={src}
+                        className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                        preload="metadata"
+                        muted
+                      />
                     ) : file.file_type === "audio" ? (
                       <Music className="w-12 h-12 text-purple-500" />
                     ) : (
@@ -214,7 +275,12 @@ const MediaLibraryPicker: React.FC<MediaLibraryPickerProps> = ({ onSelectImage, 
                         className="w-full h-full object-cover"
                       />
                     ) : file.file_type === "video" ? (
-                      <Video className="w-8 h-8 text-blue-500" />
+                      <video
+                        src={src}
+                        className="w-full h-full object-cover"
+                        preload="metadata"
+                        muted
+                      />
                     ) : file.file_type === "audio" ? (
                       <Music className="w-8 h-8 text-purple-500" />
                     ) : (

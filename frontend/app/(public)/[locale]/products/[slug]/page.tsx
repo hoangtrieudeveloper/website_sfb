@@ -50,30 +50,52 @@ function transformProductData(apiData: any, locale: Locale): any {
   const expand = detail.expand || {};
 
   // Transform numberedSections - data đã được localize từ backend
-  const numberedSections = (detail.numberedSections || []).map((section: any) => ({
-    no: section.sectionNo || section.no || 0,
-    title: section.title || '',
-    paragraphs: section.paragraphs || [],
-    image: section.image || section.imageBack || '',
-    imageAlt: section.imageAlt || '',
-    imageSide: section.imageSide || 'left',
-    overlay: section.imageBack || section.imageFront ? {
-      back: {
-        src: section.imageBack || section.image || '',
-        alt: section.imageAlt || '',
-        sizeClass: 'w-[701px] h-[511px]',
-        frameClass: 'rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)]',
-      },
-      ...(section.imageFront ? {
-        front: {
-          src: section.imageFront,
-          alt: section.imageAlt || '',
-          sizeClass: 'w-[400px] h-[300px]',
-          frameClass: 'rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)]',
+  // Nhưng vẫn cần đảm bảo xử lý đúng locale objects nếu có
+  const numberedSections = (detail.numberedSections || []).map((section: any) => {
+    // Localize title và imageAlt
+    const localizedTitle = getLocalizedText(section.title || '', locale);
+    const localizedImageAlt = getLocalizedText(section.imageAlt || '', locale);
+    
+    // Localize paragraphs - có thể là string hoặc object với title và text
+    const localizedParagraphs = (section.paragraphs || []).map((p: any) => {
+      if (typeof p === 'string') {
+        return getLocalizedText(p, locale);
+      }
+      // Nếu là object với title và text
+      if (p && typeof p === 'object') {
+        return {
+          title: getLocalizedText(p.title || '', locale),
+          text: getLocalizedText(p.text || '', locale),
+        };
+      }
+      return p;
+    });
+    
+    return {
+      no: section.sectionNo || section.no || 0,
+      title: localizedTitle,
+      paragraphs: localizedParagraphs,
+      image: section.image || section.imageBack || '',
+      imageAlt: localizedImageAlt,
+      imageSide: section.imageSide || 'left',
+      overlay: section.imageBack || section.imageFront ? {
+        back: {
+          src: section.imageBack || section.image || '',
+          alt: localizedImageAlt,
+          sizeClass: 'w-[701px] h-[511px]',
+          frameClass: 'rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)]',
         },
-      } : {}),
-    } : undefined,
-  }));
+        ...(section.imageFront ? {
+          front: {
+            src: section.imageFront,
+            alt: localizedImageAlt,
+            sizeClass: 'w-[400px] h-[300px]',
+            frameClass: 'rounded-[24px] bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)]',
+          },
+        } : {}),
+      } : undefined,
+    };
+  });
 
   // Transform overviewCards - data đã được localize từ backend
   const overviewCards = (detail.overviewCards || []).map((card: any) => ({
@@ -121,6 +143,11 @@ function transformProductData(apiData: any, locale: Locale): any {
     name: apiData.name || '',
     heroDescription: detail.heroDescription || '',
     heroImage: detail.heroImage || '',
+    // CTA hero từ product detail
+    ctaContactText: detail.ctaContactText || '',
+    ctaContactHref: detail.ctaContactHref || '',
+    ctaDemoText: detail.ctaDemoText || '',
+    ctaDemoHref: detail.ctaDemoHref || '',
     seoTitle: apiData.seoTitle || '',
     seoDescription: apiData.seoDescription || '',
     seoKeywords: apiData.seoKeywords || '',

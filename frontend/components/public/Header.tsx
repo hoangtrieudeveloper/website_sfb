@@ -253,6 +253,27 @@ export function Header() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Helper function to add locale prefix to href
+  const addLocalePrefix = (href: string): string => {
+    if (!href) return `/${language}`;
+    
+    // Nếu href đã có locale prefix (vi, en, ja), thay thế bằng locale hiện tại
+    const locales = ['vi', 'en', 'ja'];
+    for (const loc of locales) {
+      if (href.startsWith(`/${loc}/`) || href === `/${loc}`) {
+        return href.replace(`/${loc}`, `/${language}`);
+      }
+    }
+    
+    // Nếu href bắt đầu bằng /, thêm locale prefix
+    if (href.startsWith('/')) {
+      return `/${language}${href === '/' ? '' : href}`;
+    }
+    
+    // Nếu href không bắt đầu bằng /, giữ nguyên (có thể là external link hoặc hash)
+    return href;
+  };
+
   const isActivePath = (path: string) => {
     if (!pathname) return false;
 
@@ -385,7 +406,7 @@ export function Header() {
                     onMouseLeave={handleDropdownLeave}
                   >
                     <Link
-                      href={link.href}
+                      href={addLocalePrefix(link.href)}
                       className={`px-2.5 xl:px-3 min-[1920px]:px-4 py-2 transition-all duration-500 relative group text-[11px] xl:text-xs font-bold uppercase tracking-wide flex items-center gap-1 whitespace-nowrap ${isActivePath(link.href)
                         ? useDarkText
                           ? "text-[#006FB3]"
@@ -443,7 +464,7 @@ export function Header() {
                                   transition={{ delay: idx * 0.05 }}
                                 >
                                   <Link
-                                    href={child.href}
+                                    href={addLocalePrefix(child.href)}
                                     className="block p-4 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 transition-all group border border-transparent hover:border-blue-100 hover:shadow-md"
                                     prefetch={true}
                                   >
@@ -546,7 +567,7 @@ export function Header() {
                       transition={{ delay: idx * 0.05 }}
                     >
                       <Link
-                        href={link.href}
+                        href={addLocalePrefix(link.href)}
                         className={`block py-3 px-4 rounded-xl transition-all ${isActivePath(link.href)
                           ? "bg-blue-50 text-[#006FB3] font-semibold"
                           : "text-gray-700 hover:bg-gray-50 hover:text-[#006FB3]"
@@ -562,7 +583,7 @@ export function Header() {
                           {link.children.map((child) => (
                             <Link
                               key={child.href}
-                              href={child.href}
+                              href={addLocalePrefix(child.href)}
                               className="block py-2 px-3 text-sm text-gray-600 hover:text-[#006FB3] rounded-lg hover:bg-gray-50 transition-colors"
                               onClick={() => setMobileMenuOpen(false)}
                             >

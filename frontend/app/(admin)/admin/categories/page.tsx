@@ -181,7 +181,7 @@ export default function AdminCategoriesPage() {
       const { code, parentCode, isActive, createdAt, updatedAt, ...categoryFields } = category;
       return categoryFields;
     });
-    
+
     await translateData(
       { categories: dataToTranslate },
       (translated: any) => {
@@ -236,7 +236,7 @@ export default function AdminCategoriesPage() {
                 </Select>
               </div>
             </div>
-            
+
             {/* Translate Controls */}
             <div className="flex items-center gap-2">
               {/* Source Language Selector */}
@@ -253,7 +253,7 @@ export default function AdminCategoriesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Translate Button */}
               <Button
                 onClick={handleTranslateAll}
@@ -292,7 +292,7 @@ export default function AdminCategoriesPage() {
               Thêm danh mục
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent style={{ maxWidth: "1200px", width: "100vw", maxHeight: "98vh", overflowY: "auto" }}>
             <DialogHeader>
               <DialogTitle>
                 {editingCategory ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
@@ -427,9 +427,8 @@ export default function AdminCategoriesPage() {
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <span
-                  className={`flex items-center gap-1 text-xs ${
-                    category.isActive ? "text-green-600" : "text-gray-400"
-                  }`}
+                  className={`flex items-center gap-1 text-xs ${category.isActive ? "text-green-600" : "text-gray-400"
+                    }`}
                 >
                   {category.isActive ? (
                     <Check className="w-3 h-3" />

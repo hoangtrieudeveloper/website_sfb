@@ -2,7 +2,7 @@
 
 
 import { Fragment, useState, useMemo } from "react";
-import { CheckCircle2, ArrowRight, Package } from "lucide-react";
+import { CheckCircle2, ArrowRight, Package, X } from "lucide-react";
 import { ImageWithFallback } from "../../components/figma/ImageWithFallback";
 import Link from "next/link";
 import * as LucideIcons from "lucide-react";
@@ -11,6 +11,12 @@ import Image from "next/image";
 import { useLocale } from "@/lib/contexts/LocaleContext";
 import { getLocalizedText } from "@/lib/utils/i18n";
 import { CustomPagination } from "../../components/common/CustomPagination";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 const slugify = (s: string) =>
     s
@@ -45,6 +51,7 @@ const splitMetaParts = (meta: string) => {
 
 const ProductCard = ({ product, locale }: { product: any; locale: 'vi' | 'en' | 'ja' }) => {
     const [objectFitStyle, setObjectFitStyle] = useState<'cover' | 'contain'>('contain');
+    const [showVideoDialog, setShowVideoDialog] = useState(false);
     const productLink = `/${locale}/products/${product.slug || slugify(product.name || '')}`;
 
     // Localize all product fields
@@ -67,151 +74,253 @@ const ProductCard = ({ product, locale }: { product: any; locale: 'vi' | 'en' | 
     const detailsLabel = locale === 'vi' ? 'Chi tiết' : locale === 'en' ? 'Details' : '詳細';
 
     return (
-        <div
-            className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] lg:h-[786px] lg:max-w-[606px]"
-        >
-            {/* Image kiểu ảnh: có padding + khung */}
-            {product.image && (
-                <div className="w-full self-stretch">
-                    <Link href={productLink} className="block w-full">
-                        <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden hover:opacity-90 transition-opacity">
-                            <ImageWithFallback
-                                src={product.image}
-                                alt={localizedName || PLACEHOLDER_TITLE}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
-                                loading="lazy"
-                                objectFit={objectFitStyle}
-                                onLoad={(e) => {
-                                    const img = e.currentTarget;
-                                    const ratio = img.naturalWidth / img.naturalHeight;
-                                    // Reversed logic as requested
-                                    if (ratio > (3 / 2)) {
-                                        setObjectFitStyle('contain');
-                                    } else {
-                                        setObjectFitStyle('cover');
-                                    }
-                                }}
-                                className="rounded-[8px]"
-                            />
-                        </div>
-                    </Link>
-                </div>
-            )}
+        <>
+            <div
+                className="flex w-full h-full p-5 lg:p-6 flex-col items-start gap-4 lg:gap-6 flex-[1_0_0] rounded-[24px] bg-[var(--Color-7,#FFF)] shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] lg:h-[786px] lg:max-w-[606px]"
+            >
+                {/* Image kiểu ảnh: có padding + khung */}
+                {product.image && (
+                    <div className="w-full self-stretch">
+                        <Link href={productLink} className="block w-full">
+                            <div className="relative w-full h-[300px] rounded-[8px] bg-white overflow-hidden hover:opacity-90 transition-opacity">
+                                <ImageWithFallback
+                                    src={product.image}
+                                    alt={localizedName || PLACEHOLDER_TITLE}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+                                    loading="lazy"
+                                    objectFit={objectFitStyle}
+                                    onLoad={(e) => {
+                                        const img = e.currentTarget;
+                                        const ratio = img.naturalWidth / img.naturalHeight;
+                                        // Reversed logic as requested
+                                        if (ratio > (3 / 2)) {
+                                            setObjectFitStyle('contain');
+                                        } else {
+                                            setObjectFitStyle('cover');
+                                        }
+                                    }}
+                                    className="rounded-[8px]"
+                                />
+                            </div>
+                        </Link>
+                    </div>
+                )}
 
-            {/* Content */}
-            <div className="w-full flex-1 flex flex-col">
-                {localizedMeta && (() => {
-                    const { parts, separator } = splitMetaParts(localizedMeta);
+                {/* Content */}
+                <div className="w-full flex-1 flex flex-col">
+                    {localizedMeta && (() => {
+                        const { parts, separator } = splitMetaParts(localizedMeta);
 
-                    if (parts.length <= 1) {
+                        if (parts.length <= 1) {
+                            return (
+                                <div className="text-xs text-gray-500 mb-2 truncate">
+                                    {localizedMeta}
+                                </div>
+                            );
+                        }
+
                         return (
-                            <div className="text-xs text-gray-500 mb-2 truncate">
-                                {localizedMeta}
+                            <div className="flex items-center gap-1 text-xs text-gray-500 mb-2 whitespace-nowrap overflow-hidden">
+                                {parts.map((part, idx) => (
+                                    <Fragment key={`${part}-${idx}`}>
+                                        <span className="truncate">{part}</span>
+                                        {idx !== parts.length - 1 && (
+                                            <span className="shrink-0" aria-hidden="true">{separator}</span>
+                                        )}
+                                    </Fragment>
+                                ))}
                             </div>
                         );
-                    }
+                    })()}
 
-                    return (
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2 whitespace-nowrap overflow-hidden">
-                            {parts.map((part, idx) => (
-                                <Fragment key={`${part}-${idx}`}>
-                                    <span className="truncate">{part}</span>
-                                    {idx !== parts.length - 1 && (
-                                        <span className="shrink-0" aria-hidden="true">{separator}</span>
-                                    )}
-                                </Fragment>
-                            ))}
-                        </div>
-                    );
-                })()}
-
-                {localizedName && (
-                    <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[auto] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
-                        <Link href={productLink} className="hover:text-[#1D8FCF] transition-colors">
-                            {localizedName}
-                        </Link>
-                    </h3>
-                )}
-
-                {localizedTagline && (
-                    <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs lg:text-[13px] font-medium lg:font-[500] leading-normal lg:leading-normal">
-                        {localizedTagline}
-                    </div>
-                )}
-
-                {localizedDescription && (
-                    <p className={`self-stretch mb-4 lg:mb-5 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]
-                        ${(localizedFeatures && localizedFeatures.length > 0)
-                            ? 'line-clamp-3'
-                            : 'line-clamp-[7]'
-                        }
-                    `}>
-                        {localizedDescription}
-                    </p>
-                )}
-
-                {/* Features */}
-                {localizedFeatures && localizedFeatures.length > 0 && (
-                    <div className="space-y-2 lg:space-y-3 w-full max-w-full mt-auto flex-[1_0_0] min-w-0">
-                        {localizedFeatures.slice(0, 4).map((feature: string, i: number) => (
-                            <div key={i} className="flex items-start gap-3 w-full min-w-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-1 lg:mt-[5px] w-4 h-4 lg:w-[20px] lg:h-[20px]">
-                                    <path fillRule="evenodd" clipRule="evenodd" d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z" fill="#1D8FCF" />
-                                </svg>
-                                <span className="flex-1 min-w-0 whitespace-normal break-words line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
-                                    {feature}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-
-            <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
-                <div className="min-w-0 shrink">
-                    <div className="text-xs text-gray-500 truncate">{pricingLabel}</div>
-                    <div className="text-lg font-extrabold text-gray-900 truncate">
-                        {localizedPricing || PLACEHOLDER_PRICING}
-                    </div>
-                </div>
-
-                <div className="flex gap-2 shrink-0">
-                    {product.demoLink && (
-                        <Link
-                            href={product.demoLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            prefetch={false}
-                            className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
-                font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
-                    inline-flex items-center gap-1 sm:gap-2"
-                        >
-                            <span className="whitespace-nowrap sm:inline hidden">{demoQuickLabel}</span>
-                            <span className="whitespace-nowrap sm:hidden inline">{demoLabel}</span>
-                            <Image
-                                src="/icons/custom/product_media.svg"
-                                alt="media icon"
-                                width={24}
-                                height={24}
-                                className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
-                            />
-                        </Link>
+                    {localizedName && (
+                        <h3 className="self-stretch mb-1 min-h-[48px] lg:min-h-[auto] line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg lg:text-[20px] font-semibold lg:font-[600] leading-[28px] lg:leading-[30px]">
+                            <Link href={productLink} className="hover:text-[#1D8FCF] transition-colors">
+                                {localizedName}
+                            </Link>
+                        </h3>
                     )}
 
-                    <Link
-                        href={productLink}
-                        prefetch={true}
-                        className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-1 sm:gap-2"
-                    >
-                        <span className="whitespace-nowrap sm:inline hidden">{learnMoreLabel}</span>
-                        <span className="whitespace-nowrap sm:hidden inline">{detailsLabel}</span>
-                        <ArrowRight size={16} className="shrink-0" />
-                    </Link>
+                    {localizedTagline && (
+                        <div className="self-stretch mb-3 line-clamp-1 overflow-hidden text-ellipsis text-[var(--Color,#1D8FCF)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-xs lg:text-[13px] font-medium lg:font-[500] leading-normal lg:leading-normal">
+                            {localizedTagline}
+                        </div>
+                    )}
+
+                    {localizedDescription && (
+                        <p className={`self-stretch mb-4 lg:mb-5 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]
+                        ${(localizedFeatures && localizedFeatures.length > 0)
+                                ? 'line-clamp-3'
+                                : 'line-clamp-[7]'
+                            }
+                    `}>
+                            {localizedDescription}
+                        </p>
+                    )}
+
+                    {/* Features */}
+                    {localizedFeatures && localizedFeatures.length > 0 && (
+                        <div className="space-y-2 lg:space-y-3 w-full max-w-full mt-auto flex-[1_0_0] min-w-0">
+                            {localizedFeatures.slice(0, 4).map((feature: string, i: number) => (
+                                <div key={i} className="flex items-start gap-3 w-full min-w-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" className="flex-shrink-0 mt-1 lg:mt-[5px] w-4 h-4 lg:w-[20px] lg:h-[20px]">
+                                        <path fillRule="evenodd" clipRule="evenodd" d="M9.99996 0C4.48608 0 0 4.48493 0 9.99999C0 15.514 4.48608 19.9994 9.99996 19.9994C15.5138 19.9994 20 15.514 20 9.99999C20 4.48493 15.5138 0 9.99996 0ZM15.575 6.66503L9.42112 13.5881C9.2696 13.758 9.05846 13.8457 8.84571 13.8457C8.67691 13.8457 8.50731 13.7903 8.3654 13.6779L4.51916 10.6005C4.18761 10.3355 4.13384 9.85106 4.39921 9.5188C4.66426 9.18763 5.1488 9.13332 5.48035 9.3989L8.7561 12.0193L14.4249 5.64245C14.7066 5.32418 15.1934 5.29568 15.5107 5.57849C15.8284 5.86074 15.8573 6.34676 15.575 6.66503Z" fill="#1D8FCF" />
+                                    </svg>
+                                    <span className="flex-1 min-w-0 whitespace-normal break-words line-clamp-2 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-sm lg:text-[16px] font-normal lg:font-[400] leading-relaxed lg:leading-[30px]">
+                                        {feature}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+
+                <div className="w-full flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="min-w-0 shrink">
+                        <div className="text-xs text-gray-500 truncate">{pricingLabel}</div>
+                        <div className="text-lg font-extrabold text-gray-900 truncate">
+                            {localizedPricing || PLACEHOLDER_PRICING}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 shrink-0">
+                        {product.demoLink && (
+                            <>
+                                {product.demoLinkType === 'video' ? (
+                                    <button
+                                        onClick={() => setShowVideoDialog(true)}
+                                        className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                        font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
+                            inline-flex items-center gap-1 sm:gap-2"
+                                    >
+                                        <span className="whitespace-nowrap sm:inline hidden">{demoQuickLabel}</span>
+                                        <span className="whitespace-nowrap sm:hidden inline">{demoLabel}</span>
+                                        <Image
+                                            src="/icons/custom/product_media.svg"
+                                            alt="media icon"
+                                            width={24}
+                                            height={24}
+                                            className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
+                                        />
+                                    </button>
+                                ) : (
+                                    <Link
+                                        href={product.demoLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        prefetch={false}
+                                        className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#EAF5FF] text-[#0870B4]
+                        font-semibold text-xs lg:text-sm hover:bg-[#DCEFFF] transition
+                            inline-flex items-center gap-1 sm:gap-2"
+                                    >
+                                        <span className="whitespace-nowrap sm:inline hidden">{demoQuickLabel}</span>
+                                        <span className="whitespace-nowrap sm:hidden inline">{demoLabel}</span>
+                                        <Image
+                                            src="/icons/custom/product_media.svg"
+                                            alt="media icon"
+                                            width={24}
+                                            height={24}
+                                            className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
+                                        />
+                                    </Link>
+                                )}
+                            </>
+                        )}
+
+                        <Link
+                            href={productLink}
+                            prefetch={true}
+                            className="px-2 sm:px-4 lg:px-5 py-2 rounded-lg bg-[#0870B4] text-white font-semibold text-xs lg:text-sm hover:bg-[#075F98] transition inline-flex items-center gap-1 sm:gap-2"
+                        >
+                            <span className="whitespace-nowrap sm:inline hidden">{learnMoreLabel}</span>
+                            <span className="whitespace-nowrap sm:hidden inline">{detailsLabel}</span>
+                            <ArrowRight size={16} className="shrink-0" />
+                        </Link>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* Video Dialog */}
+            <Dialog open={showVideoDialog} onOpenChange={setShowVideoDialog}>
+                <DialogContent
+                    style={{
+                        maxWidth: "1240px",
+                        width: "95vw",
+                        maxHeight: "95vh",
+                        display: "flex",
+                        flexDirection: "column",
+                    }}
+                >
+                    <DialogHeader>
+                        <DialogTitle>Demo Video</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 flex items-center justify-center overflow-hidden">
+                        {(() => {
+                            if (!product.demoLink) return null;
+
+                            let mediaUrl = product.demoLink;
+                            const lower = mediaUrl.toLowerCase();
+                            const isYouTube = lower.includes('youtube.com') || lower.includes('youtu.be');
+
+                            if (!mediaUrl.startsWith('http')) {
+                                mediaUrl = `https://${mediaUrl}`;
+                            }
+
+                            if (isYouTube) {
+                                let videoId = '';
+                                try {
+                                    const urlObj = new URL(mediaUrl);
+                                    if (urlObj.hostname.includes('youtu.be')) {
+                                        videoId = urlObj.pathname.replace('/', '');
+                                    } else if (urlObj.searchParams.get('v')) {
+                                        videoId = urlObj.searchParams.get('v') || '';
+                                    }
+                                } catch { }
+
+                                const embedSrc = videoId
+                                    ? `https://www.youtube.com/embed/${videoId}`
+                                    : mediaUrl;
+
+                                return (
+                                    <div className="w-full aspect-video">
+                                        <iframe
+                                            src={embedSrc}
+                                            className="w-full h-full"
+                                            title={getLocalizedText(product.name, locale)}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            allowFullScreen
+                                        />
+                                    </div>
+                                );
+                            }
+
+                            const isVideoFile =
+                                mediaUrl.match(/\.(mp4|webm|ogg|mov|avi|mkv)$/i) || mediaUrl.includes('/video/');
+
+                            return isVideoFile ? (
+                                <div className="w-full aspect-video">
+                                    <video
+                                        src={mediaUrl}
+                                        controls
+                                        className="w-full h-full"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-500">
+                                    Không thể hiển thị video. Vui lòng kiểm tra lại link.
+                                </div>
+                            );
+                        })()}
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 

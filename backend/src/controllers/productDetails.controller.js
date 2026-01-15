@@ -115,7 +115,13 @@ exports.getProductDetail = async (req, res, next) => {
           if (!paragraphsMap[parentId]) {
             paragraphsMap[parentId] = [];
           }
-          paragraphsMap[parentId].push(data.paragraph_text || data.text || '');
+          // Khôi phục cả title và text (đều có thể là string hoặc JSON locale)
+          const titleRaw = data.paragraph_title || '';
+          const textRaw = data.paragraph_text || data.text || '';
+          paragraphsMap[parentId].push({
+            title: parseLocaleField(titleRaw),
+            text: parseLocaleField(textRaw),
+          });
         }
       });
     }
@@ -146,15 +152,16 @@ exports.getProductDetail = async (req, res, next) => {
     const sectionsWithParagraphs = numberedSectionsRows.map(section => ({
       id: section.id,
       sectionNo: section.data?.section_no || section.data?.sectionNo || 0,
-      title: section.data?.title || '',
+      title: parseLocaleField(section.data?.title || ''),
       // Hỗ trợ cả imageBack/imageFront (mới) và image (cũ) để backward compatible
       imageBack: section.data?.overlay_back_image || section.data?.imageBack || section.data?.image || '',
       imageFront: section.data?.overlay_front_image || section.data?.imageFront || '',
       image: section.data?.image || '', // Giữ lại để backward compatible
-      imageAlt: section.data?.image_alt || section.data?.imageAlt || '',
+      imageAlt: parseLocaleField(section.data?.image_alt || section.data?.imageAlt || ''),
       imageSide: section.data?.image_side || section.data?.imageSide || 'left',
       overlayBackImage: section.data?.overlay_back_image || section.data?.imageBack || '',
       overlayFrontImage: section.data?.overlay_front_image || section.data?.imageFront || '',
+      // paragraphs đã được parseLocaleField ở trên (có thể là string hoặc locale object)
       paragraphs: paragraphsMap[section.id] || [],
       sortOrder: section.sort_order || 0,
     }));
@@ -477,9 +484,16 @@ exports.saveProductDetail = async (req, res, next) => {
           // Thêm paragraphs cho section này
           if (section.paragraphs && section.paragraphs.length > 0) {
             // Xóa paragraphs cũ của section này
-            await client.query('DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 AND (data->>\'parent_id\')::int = $3', [detailId, 'section-paragraphs', sectionId]);
-            
+            await client.query(
+              'DELETE FROM products_section_items WHERE product_detail_id = $1 AND section_type = $2 AND (data->>\'parent_id\')::int = $3',
+              [detailId, 'section-paragraphs', sectionId],
+            );
+
             for (let j = 0; j < section.paragraphs.length; j++) {
+              const para = section.paragraphs[j] || {};
+              const paragraphTitle = para.title !== undefined ? para.title : '';
+              const paragraphText = para.text !== undefined ? para.text : para;
+
               await client.query(
                 `INSERT INTO products_section_items (product_detail_id, section_type, data, sort_order, is_active)
                  VALUES ($1, $2, $3, $4, $5)`,
@@ -489,8 +503,9 @@ exports.saveProductDetail = async (req, res, next) => {
                   JSON.stringify({
                     parent_id: sectionId,
                     numbered_section_id: sectionId,
-                    paragraph_text: processLocaleField(section.paragraphs[j]),
-                    text: processLocaleField(section.paragraphs[j]),
+                    paragraph_title: processLocaleField(paragraphTitle),
+                    paragraph_text: processLocaleField(paragraphText),
+                    text: processLocaleField(paragraphText),
                   }),
                   j,
                   true,

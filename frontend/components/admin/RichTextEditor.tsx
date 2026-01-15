@@ -44,9 +44,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Upload, Video as VideoIcon } from "lucide-react";
 import MediaLibraryPicker from "@/app/(admin)/admin/news/MediaLibraryPicker";
+import { uploadFile } from "@/lib/api/admin";
+import { buildUrl } from "@/lib/api/base";
+import { toast } from "sonner";
 
 type Locale = 'vi' | 'en' | 'ja';
+type MediaElement = HTMLImageElement | HTMLVideoElement;
 
 interface RichTextEditorProps {
   value: string;
@@ -76,7 +83,10 @@ export default function RichTextEditor({
   const [showMediaDialog, setShowMediaDialog] = useState(false);
   const [showTranslateDialog, setShowTranslateDialog] = useState(false);
   const [translateText, setTranslateText] = useState("");
-  const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
+  const [selectedImage, setSelectedImage] = useState<MediaElement | null>(null);
+  const [mediaTab, setMediaTab] = useState<"upload" | "library">("library");
+  const [uploading, setUploading] = useState(false);
+  const mediaFileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedImageRect, setSelectedImageRect] = useState<{
     top: number;
     left: number;
@@ -195,6 +205,151 @@ export default function RichTextEditor({
     const url = window.prompt("Nhập URL hình ảnh:");
     if (url) {
       execCommand("insertImage", url);
+    }
+  };
+
+  // Helper function để check xem URL là video hay image
+  const isVideoUrl = (url: string): boolean => {
+    if (!url) return false;
+    const lowerUrl = url.toLowerCase();
+    // YouTube / streaming platforms
+    if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
+      return true;
+    }
+    // Check extension
+    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
+    if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+      return true;
+    }
+    // Check path contains /video/
+    if (lowerUrl.includes('/video/')) {
+      return true;
+    }
+    return false;
+  };
+
+  // Hàm chèn media (ảnh hoặc video) vào editor
+  const insertMediaIntoEditor = (url: string) => {
+    if (!editorRef.current) return;
+
+    editorRef.current.focus();
+
+    try {
+      if (selectionRef.current) {
+        // Dùng Range API để chèn media tại đúng vị trí con trỏ
+        const range = selectionRef.current;
+        range.collapse(false);
+
+        const isVideo = isVideoUrl(url);
+        let mediaElement: HTMLElement;
+
+        if (isVideo) {
+          // Tạo video element
+          const video = document.createElement("video");
+          video.src = url;
+          video.controls = true;
+          video.style.maxWidth = "100%";
+          video.style.height = "auto";
+          mediaElement = video;
+        } else {
+          // Tạo image element
+          const img = document.createElement("img");
+          img.src = url;
+          img.alt = "";
+          img.style.maxWidth = "100%";
+          img.style.height = "auto";
+          mediaElement = img;
+        }
+
+        range.insertNode(mediaElement);
+
+        // Di chuyển caret ra sau media
+        const newRange = document.createRange();
+        newRange.setStartAfter(mediaElement);
+        newRange.setEndAfter(mediaElement);
+        const sel = window.getSelection();
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+        }
+
+        // Cập nhật selectionRef sang vị trí mới
+        selectionRef.current = newRange;
+
+        const htmlAfter = editorRef.current.innerHTML || "";
+        if (htmlAfter !== value) {
+          onChange(htmlAfter);
+        }
+        return;
+      }
+    } catch {
+      // ignore, sẽ fallback phía dưới
+    }
+
+    // Fallback: nếu không có selection (chưa click vào nội dung)
+    // thì append media vào cuối bài
+    const currentHtml =
+      (editorRef.current.innerHTML &&
+      editorRef.current.innerHTML.trim().length > 0
+        ? editorRef.current.innerHTML
+        : value) || "";
+
+    const isVideo = isVideoUrl(url);
+    const mediaHtml = isVideo
+      ? `<p><video src="${url}" controls style="max-width: 100%; height: auto;"></video></p>`
+      : `<p><img src="${url}" alt="" style="max-width: 100%; height: auto;" /></p>`;
+    const mergedHtml = currentHtml
+      ? `${currentHtml}${mediaHtml}`
+      : mediaHtml;
+
+    editorRef.current.innerHTML = mergedHtml;
+    if (mergedHtml !== value) {
+      onChange(mergedHtml);
+    }
+  };
+
+  // Hàm upload file media mới
+  const handleMediaFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const file = files[0];
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+
+    if (!isImage && !isVideo) {
+      toast.error("Vui lòng chọn file ảnh hoặc video");
+      return;
+    }
+
+    // Check file size (50MB cho video, 10MB cho ảnh)
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`File quá lớn. Kích thước tối đa là ${isVideo ? '50MB' : '10MB'}`);
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      // Upload to media library
+      const uploadedFile = await uploadFile(file);
+      const mediaUrl = uploadedFile.file_url?.startsWith("/")
+        ? buildUrl(uploadedFile.file_url)
+        : uploadedFile.file_url;
+
+      toast.success(`Upload ${isVideo ? "video" : "ảnh"} thành công`);
+      
+      // Đóng dialog và chèn media vào editor
+      setShowMediaDialog(false);
+      insertMediaIntoEditor(mediaUrl);
+    } catch (error: any) {
+      toast.error(error?.message || "Có lỗi xảy ra khi upload file");
+    } finally {
+      if (mediaFileInputRef.current) {
+        mediaFileInputRef.current.value = "";
+      }
+      setUploading(false);
     }
   };
 
@@ -784,8 +939,8 @@ export default function RichTextEditor({
         onFocus={restoreSelection}
         onMouseUp={(e) => {
           const target = e.target as HTMLElement | null;
-          if (target && target.tagName === "IMG") {
-            setSelectedImage(target as HTMLImageElement);
+          if (target && (target.tagName === "IMG" || target.tagName === "VIDEO")) {
+            setSelectedImage(target as MediaElement);
           } else {
             setSelectedImage(null);
           }
@@ -800,7 +955,7 @@ export default function RichTextEditor({
         }}
       />
 
-      {/* Khối điều khiển kích thước ảnh - hiển thị bên cạnh ảnh */}
+      {/* Khối điều khiển kích thước media (ảnh/video) - hiển thị bên cạnh media */}
       {selectedImage && controlPanelPosition && (
         <div
           className="absolute z-10 bg-white border border-gray-300 rounded-lg shadow-lg p-2 flex flex-col gap-2 min-w-[200px]"
@@ -810,7 +965,7 @@ export default function RichTextEditor({
           }}
         >
           <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">
-            Kích thước ảnh:
+            Kích thước media:
           </span>
           <div className="flex flex-wrap gap-1.5">
             <Button
@@ -891,7 +1046,7 @@ export default function RichTextEditor({
         </div>
       )}
 
-      {/* Handle kéo resize ảnh (góc dưới bên phải ảnh) */}
+      {/* Handle kéo resize media (góc dưới bên phải) */}
       {selectedImage && selectedImageRect && (
         <div
           className="absolute w-3 h-3 bg-blue-500 border border-white rounded cursor-se-resize z-20"
@@ -923,79 +1078,68 @@ export default function RichTextEditor({
           }}
         >
           <DialogHeader>
-            <DialogTitle>Chọn ảnh từ thư viện media</DialogTitle>
+            <DialogTitle>Chọn ảnh/video từ thư viện media</DialogTitle>
           </DialogHeader>
-          <div className="mt-2 overflow-y-auto" style={{ maxHeight: "calc(90vh - 100px)" }}>
-            <MediaLibraryPicker
-              onSelectImage={(url) => {
-                setShowMediaDialog(false);
-
-                if (editorRef.current) {
-                  editorRef.current.focus();
-
-                  try {
-                    if (selectionRef.current) {
-                      // Dùng Range API để chèn <img> tại đúng vị trí con trỏ
-                      const range = selectionRef.current;
-                      range.collapse(false);
-
-                      const img = document.createElement("img");
-                      img.src = url;
-                      img.alt = "";
-                      img.style.maxWidth = "100%";
-                      img.style.height = "auto";
-
-                      range.insertNode(img);
-
-                      // Di chuyển caret ra sau ảnh
-                      const newRange = document.createRange();
-                      newRange.setStartAfter(img);
-                      newRange.setEndAfter(img);
-                      const sel = window.getSelection();
-                      if (sel) {
-                        sel.removeAllRanges();
-                        sel.addRange(newRange);
-                      }
-
-                      // Cập nhật selectionRef sang vị trí mới
-                      selectionRef.current = newRange;
-
-                      const htmlAfter = editorRef.current.innerHTML || "";
-                      if (htmlAfter !== value) {
-                        onChange(htmlAfter);
-                      }
-                      return;
-                    }
-                  } catch {
-                    // ignore, sẽ fallback phía dưới
-                  }
-
-                  // Fallback: nếu không có selection (chưa click vào nội dung)
-                  // thì append ảnh vào cuối bài để luôn thấy ảnh
-                  const currentHtml =
-                    (editorRef.current.innerHTML &&
-                    editorRef.current.innerHTML.trim().length > 0
-                      ? editorRef.current.innerHTML
-                      : value) || "";
-
-                  const imgHtml = `<p><img src="${url}" alt="" /></p>`;
-                  const mergedHtml = currentHtml
-                    ? `${currentHtml}${imgHtml}`
-                    : imgHtml;
-
-                  editorRef.current.innerHTML = mergedHtml;
-                  if (mergedHtml !== value) {
-                    onChange(mergedHtml);
-                  }
-                } else {
-                  // Fallback nếu vì lý do gì đó chưa có editorRef
-                  const imgHtml = `<p><img src="${url}" alt="" /></p>`;
-                  const mergedHtml = value ? `${value}${imgHtml}` : imgHtml;
-                  onChange(mergedHtml);
-                }
-              }}
-            />
-          </div>
+          
+          <Tabs value={mediaTab} onValueChange={(v) => setMediaTab(v as "upload" | "library")} className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="library">Thư viện</TabsTrigger>
+              <TabsTrigger value="upload">Upload mới</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="library" className="flex-1 overflow-hidden flex flex-col mt-4">
+              <div className="flex-1 overflow-y-auto" style={{ maxHeight: "calc(90vh - 180px)" }}>
+                <MediaLibraryPicker
+                  fileTypeFilter="image,video"
+                  onSelectImage={(url) => {
+                    setShowMediaDialog(false);
+                    insertMediaIntoEditor(url);
+                  }}
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="upload" className="flex-1 overflow-hidden flex flex-col mt-4">
+              <div className="flex-1 overflow-y-auto" style={{ maxHeight: "calc(90vh - 180px)" }}>
+                <div className="space-y-4 p-4">
+                  <div>
+                    <Label className="mb-2 block">Upload ảnh hoặc video mới</Label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                      <input
+                        ref={mediaFileInputRef}
+                        type="file"
+                        accept="image/*,video/*"
+                        className="hidden"
+                        onChange={handleMediaFileUpload}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => mediaFileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="gap-2"
+                      >
+                        {uploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang upload...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4" />
+                            <span>Chọn file để upload</span>
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Hỗ trợ: Ảnh (JPG, PNG, GIF) tối đa 10MB, Video (MP4, WebM) tối đa 50MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

@@ -275,6 +275,7 @@ exports.getPublicProducts = async (req, res, next) => {
         p.stats_rating,
         p.stats_deploy,
         p.demo_link,
+        p.demo_link_type,
         p.sort_order,
         p.is_featured,
         p.is_active,
@@ -313,6 +314,7 @@ exports.getPublicProducts = async (req, res, next) => {
         statsRating: row.stats_rating || 0,
         statsDeploy: row.stats_deploy || '',
         demoLink: row.demo_link || '',
+        demoLinkType: row.demo_link_type || 'link',
         publishedAt: row.published_at || null,
         sortOrder: row.sort_order || 0,
         isFeatured: row.is_featured || false,
@@ -489,7 +491,18 @@ exports.getPublicProductBySlug = async (req, res, next) => {
           if (!paragraphsMap[parentId]) {
             paragraphsMap[parentId] = [];
           }
-          paragraphsMap[parentId].push(data.paragraph_text || data.text || '');
+          // Trả về object { title, text } để frontend có thể hiển thị cả tiêu đề và nội dung
+          const paragraphTitle = data.paragraph_title || '';
+          const paragraphText = data.paragraph_text || data.text || '';
+          // Nếu có title, trả về object; nếu không, chỉ trả về text (string) để backward compatible
+          if (paragraphTitle) {
+            paragraphsMap[parentId].push({
+              title: paragraphTitle,
+              text: paragraphText,
+            });
+          } else {
+            paragraphsMap[parentId].push(paragraphText);
+          }
         }
       });
     }
@@ -528,7 +541,20 @@ exports.getPublicProductBySlug = async (req, res, next) => {
         imageFront: sectionData.overlay_front_image || sectionData.imageFront || '',
         imageSide: sectionData.image_side || sectionData.imageSide || 'left',
         imageAlt: parseLocaleField(sectionData.imageAlt || sectionData.image_alt || ''),
-        paragraphs: (paragraphsMap[section.id] || []).map(p => parseLocaleField(p)),
+        paragraphs: (paragraphsMap[section.id] || []).map(p => {
+          // Nếu là string, parse locale và trả về string
+          if (typeof p === 'string') {
+            return parseLocaleField(p);
+          }
+          // Nếu là object { title, text }, parse cả hai
+          if (p && typeof p === 'object') {
+            return {
+              title: parseLocaleField(p.title || ''),
+              text: parseLocaleField(p.text || ''),
+            };
+          }
+          return p;
+        }),
       };
     });
 
@@ -556,6 +582,7 @@ exports.getPublicProductBySlug = async (req, res, next) => {
       statsRating: product.stats_rating || 0,
       statsDeploy: product.stats_deploy || '',
       demoLink: product.demo_link || '',
+      demoLinkType: product.demo_link_type || 'link',
       seoTitle: parseLocaleField(product.seo_title || ''),
       seoDescription: parseLocaleField(product.seo_description || ''),
       seoKeywords: parseLocaleField(product.seo_keywords || ''),

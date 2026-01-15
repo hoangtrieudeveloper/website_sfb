@@ -622,6 +622,7 @@ CREATE TABLE IF NOT EXISTS products (
   stats_deploy VARCHAR(255),                   -- "Triển khai Cloud/On-premise"
   features JSONB DEFAULT '[]'::jsonb,          -- Mảng các tính năng (tối ưu từ product_features)
   demo_link VARCHAR(500),                      -- Link đến trang demo của sản phẩm
+  demo_link_type VARCHAR(20) DEFAULT 'link',   -- 'link' (redirect) hoặc 'video' (mở popup)
   seo_title VARCHAR(255),                      -- Tiêu đề SEO
   seo_description TEXT,                        -- Mô tả SEO
   seo_keywords TEXT,                           -- Từ khóa SEO
@@ -640,6 +641,17 @@ BEGIN
     WHERE table_name = 'products' AND column_name = 'published_at'
   ) THEN
     ALTER TABLE products ADD COLUMN published_at TIMESTAMP NULL;
+  END IF;
+END $$;
+
+-- Bổ sung cột demo_link_type cho products (nếu chưa tồn tại)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'products' AND column_name = 'demo_link_type'
+  ) THEN
+    ALTER TABLE products ADD COLUMN demo_link_type VARCHAR(20) DEFAULT 'link';
   END IF;
 END $$;
 

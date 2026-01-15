@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { TrendingUp, Filter, Tag, Inbox } from "lucide-react";
+import { TrendingUp, Filter, Tag, Inbox, Search, X } from "lucide-react";
 import { FeaturedNews } from "../../components/news/FeaturedNews";
 import { NewsList } from "../../components/news/NewsList";
 import { publicApiCall, PublicEndpoints } from "@/lib/api/public";
@@ -39,6 +39,8 @@ export function NewsPageClient({
   locale = 'vi',
 }: NewsPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showSearch, setShowSearch] = useState<boolean>(false);
   const [news, setNews] = useState<NewsItem[]>(initialNews || []);
   const [loading, setLoading] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -55,6 +57,7 @@ export function NewsPageClient({
       articles48: "48 bài viết",
       noArticlesTitle: "Chưa có bài viết",
       noArticlesMessage: "Hiện tại chưa có bài viết nào để hiển thị. Vui lòng quay lại sau.",
+      searchPlaceholder: "Tìm kiếm bài viết...",
       latestTitle: "Bài viết mới nhất",
       latestSubtitle: "Cập nhật tin công ty, sản phẩm và công nghệ từ SFB",
       consultTitle: "Miễn phí tư vấn",
@@ -70,6 +73,7 @@ export function NewsPageClient({
       articles48: "48 articles",
       noArticlesTitle: "No articles",
       noArticlesMessage: "There are currently no articles to display. Please check back later.",
+      searchPlaceholder: "Search articles...",
       latestTitle: "Latest Articles",
       latestSubtitle: "Latest company news, products and technology updates from SFB",
       consultTitle: "Free Consultation",
@@ -85,6 +89,7 @@ export function NewsPageClient({
       articles48: "48記事",
       noArticlesTitle: "記事がありません",
       noArticlesMessage: "現在表示する記事がありません。後でもう一度確認してください。",
+      searchPlaceholder: "記事を検索...",
       latestTitle: "最新記事",
       latestSubtitle: "SFBからの最新の会社ニュース、製品、技術アップデート",
       consultTitle: "無料相談",
@@ -189,7 +194,7 @@ export function NewsPageClient({
     fetchCounts();
   }, [categories]);
 
-  // Category filter effect (no search)
+  // Filter news by category
   useEffect(() => {
     if (selectedCategory === "all") {
       setNews(initialNews);
@@ -199,10 +204,25 @@ export function NewsPageClient({
     fetchNews(selectedCategory);
   }, [selectedCategory, fetchNews, initialNews]);
 
-  // Reset to page 1 when category or pageSize changes
+  // Apply search filter (client-side) on current news list
+  const filteredNews = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return news;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return news.filter((item) => {
+      const title = (item.title || "").toLowerCase();
+      const excerpt = (item.excerpt || "").toLowerCase();
+      const categoryName = (item.categoryName || "").toLowerCase();
+      return title.includes(query) || excerpt.includes(query) || categoryName.includes(query);
+    });
+  }, [news, searchQuery]);
+
+  // Reset to page 1 when category, search, or pageSize changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, pageSize]);
+  }, [selectedCategory, searchQuery, pageSize]);
 
   // Map categories with counts
   const categoriesWithCount = useMemo(() => {
@@ -216,10 +236,10 @@ export function NewsPageClient({
   }, [categories, categoryCounts]);
 
   // Calculate pagination
-  const totalPages = Math.ceil(news.length / pageSize);
+  const totalPages = Math.ceil(filteredNews.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const paginatedNews = news.slice(startIndex, endIndex);
+  const paginatedNews = filteredNews.slice(startIndex, endIndex);
 
 
 
@@ -249,31 +269,72 @@ export function NewsPageClient({
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
-            {/* Categories */}
-            <div className="flex flex-wrap items-center gap-2 pb-0">
-              <div
-                className="p-2 sm:p-2.5 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center flex-none"
-                aria-hidden="true"
-              >
-                <img
-                  src="/icons/interface/iconnews.svg"
-                  alt=""
-                  className="w-4 h-4 sm:w-5 sm:h-5"
-                  aria-hidden="true"
-                />
-              </div>
-              {categoriesWithCount.map((category) => (
+            {/* Search and Categories */}
+            <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
+              {/* Search Input - Show/Hide */}
+              <AnimatePresence>
+                {showSearch && (
+                  <motion.div
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative flex-1 min-w-[200px] max-w-md overflow-hidden"
+                  >
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={t.searchPlaceholder}
+                      className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 transition-all"
+                      autoFocus
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <X className="h-4 w-4 text-gray-400" />
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Categories */}
+              <div className="flex flex-wrap items-center gap-2 pb-0">
                 <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
-                    ? "bg-[#0870B4] text-white shadow-md select-none"
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                    }`}
+                  onClick={() => setShowSearch(!showSearch)}
+                  className={`p-2 sm:p-2.5 rounded-lg flex items-center justify-center flex-none transition-all cursor-pointer ${
+                    showSearch
+                      ? "bg-[#0870B4] text-white hover:bg-[#0066A3]"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  }`}
+                  aria-label={showSearch ? "Ẩn tìm kiếm" : "Hiện tìm kiếm"}
+                  title={showSearch ? "Ẩn tìm kiếm" : "Hiện tìm kiếm"}
                 >
-                  {category.name} ({category.count})
+                  <Search 
+                    className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
+                      showSearch ? "text-white" : "text-gray-600"
+                    }`}
+                    aria-hidden="true"
+                  />
                 </button>
-              ))}
+                {categoriesWithCount.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
+                      ? "bg-[#0870B4] text-white shadow-md select-none"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                  >
+                    {category.name} ({category.count})
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -340,7 +401,7 @@ export function NewsPageClient({
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#0870B4]"></div>
               <p className="mt-4">{uiText.loading}</p>
             </div>
-          ) : news.length === 0 ? (
+          ) : filteredNews.length === 0 ? (
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                 <Inbox className="h-8 w-8 text-gray-400" />
@@ -364,7 +425,7 @@ export function NewsPageClient({
               </div>
 
               {/* Pagination */}
-              {news.length > 0 && (
+              {filteredNews.length > 0 && (
                 <div className="mt-8 flex justify-start">
                   <CustomPagination
                     currentPage={currentPage}

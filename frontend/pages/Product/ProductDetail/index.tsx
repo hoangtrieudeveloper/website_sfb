@@ -682,7 +682,7 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
                         <section className="w-full bg-white">
                             <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
                                 {numberedSections.map((section) => (
-                                    <ProductFeatureSection key={section.no} section={section} />
+                                    <ProductFeatureSection key={section.no} section={section} locale={locale} />
                                 ))}
                             </div>
                         </section>
