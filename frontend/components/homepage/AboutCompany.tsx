@@ -194,13 +194,13 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                           {/* Content */}
                           <div className="flex-1 w-full flex flex-col items-start text-left gap-4">
                             <h3
-                              className="text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg sm:text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF]"
+                              className="w-full text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-lg sm:text-[20px] font-semibold leading-[30px] transition-colors duration-300 group-hover:text-[#1D8FCF] lg:text-center"
                             >
                               {typeof slide.title === 'string' ? slide.title : getLocalizedText(slide.title, locale)}
                             </h3>
 
                             <p
-                              className="flex-1 line-clamp-4 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px]"
+                              className="flex-1 w-full line-clamp-4 text-[var(--Color-2,#0F172A)] [font-feature-settings:'liga'_off,'clig'_off] font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] lg:text-center"
                             >
                               {typeof slide.description === 'string' ? slide.description : getLocalizedText(slide.description, locale)}
                             </p>
