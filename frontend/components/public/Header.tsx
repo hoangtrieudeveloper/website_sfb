@@ -535,7 +535,7 @@ export function Header() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-xl p-6 max-h-[calc(100vh-80px)] overflow-y-auto"
+                className="lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-100 shadow-xl p-6 h-[calc(100dvh-100%)] overflow-y-auto"
               >
                 <nav className="flex flex-col gap-2">
                   {navLinks.map((link, idx) => (
@@ -582,21 +582,7 @@ export function Header() {
                   >
 
 
-                    {/* Search Mobile */}
-                    <button
-                      onClick={() => {
-                        setSearchOpen(true);
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 text-gray-600 hover:text-[#006FB3] rounded-xl hover:bg-gray-50 transition-all font-medium"
-                    >
-                      <Search size={18} />
-                      <span>
-                        {language === "vi" ? "Tìm kiếm" :
-                          language === "en" ? "Search" :
-                            "検索"}
-                      </span>
-                    </button>
+
 
                     <Link
                       href={`/${language}/contact`}
