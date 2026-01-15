@@ -267,11 +267,14 @@ export function HeroBanner({ data, locale: propLocale }: HeroBannerProps) {
             className="relative mx-auto overflow-hidden mask-fade-x w-full max-w-[1120px]"
             style={{ height: "64px", flexShrink: 0 }}
           >
-            <div className="flex items-center gap-16 animate-partner-marquee hover:[animation-play-state:paused] h-full">
-              {[...partnersList, ...partnersList].map((logo, idx) => (
+            <div
+              className="flex items-center animate-partner-marquee hover:[animation-play-state:paused] h-full"
+              style={{ animationDuration: '100s' }}
+            >
+              {[...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList, ...partnersList].map((logo, idx) => (
                 <div
                   key={`${logo}-${idx}`}
-                  className="flex items-center justify-center h-full"
+                  className="flex items-center justify-center h-full pr-16"
                 >
                   <ImageWithFallback
                     src={logo}
