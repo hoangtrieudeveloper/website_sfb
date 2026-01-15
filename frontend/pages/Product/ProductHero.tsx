@@ -14,9 +14,8 @@ export function ProductHero({ data }: ProductHeroProps) {
 
     return (
         <section
-            className="relative flex items-center overflow-hidden min-h-screen lg:min-h-0 lg:h-[787px]"
+            className="relative flex flex-col justify-center items-center overflow-hidden h-[100dvh] lg:h-[787px] pt-20 lg:pt-0"
             style={{
-                paddingTop: '57px',
                 background: displayData.backgroundGradient || 'linear-gradient(to bottom right, #0870B4, #2EABE2)'
             }}
         >
@@ -25,13 +24,13 @@ export function ProductHero({ data }: ProductHeroProps) {
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
             </div>
 
-            <div className="container mx-auto px-4 sm:px-6 relative z-10">
+            <div className="container mx-auto px-4 sm:px-6 relative z-10 lg:mt-[57px]">
                 <div className="max-w-4xl mx-auto text-center">
                     {displayData.title && (
-                        <h1 className="text-white mb-4 sm:mb-8 text-xl min-[400px]:text-3xl sm:text-4xl md:text-5xl lg:text-5xl leading-tight">
+                        <h1 className="text-white mb-6 min-[400px]:mb-10 sm:mb-8 text-2xl min-[400px]:text-4xl sm:text-4xl md:text-5xl lg:text-5xl leading-tight">
                             {displayData.title}
                             {displayData.subtitle && (
-                                <span className="block text-white font-extrabold text-2xl min-[400px]:text-3xl sm:text-3xl md:text-4xl lg:text-5xl mt-2 sm:mt-3">
+                                <span className="block text-white font-extrabold text-2xl min-[400px]:text-4xl sm:text-3xl md:text-4xl lg:text-5xl mt-3 min-[400px]:mt-6 sm:mt-3">
                                     {displayData.subtitle}
                                 </span>
                             )}
@@ -39,16 +38,16 @@ export function ProductHero({ data }: ProductHeroProps) {
                     )}
 
                     {displayData.description && (
-                        <p className="text-base sm:text-lg lg:text-xl text-blue-100 leading-relaxed mb-6 sm:mb-10 max-w-3xl mx-auto px-2">
+                        <p className="text-base min-[400px]:text-xl sm:text-lg lg:text-xl text-blue-100 leading-relaxed mb-8 min-[400px]:mb-14 sm:mb-10 max-w-3xl mx-auto px-2">
                             {displayData.description}
                         </p>
                     )}
 
-                    <div className="flex flex-row flex-wrap sm:flex-nowrap gap-3 sm:gap-4 justify-center">
+                    <div className="flex flex-row flex-nowrap gap-2 sm:gap-4 justify-center w-full sm:w-auto px-1 sm:px-0">
                         {displayData.primaryCtaText && (
                             <a
                                 href={displayData.primaryCtaLink || "#products"}
-                                className="group px-4 py-3 sm:px-6 sm:py-3 md:px-10 md:py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm md:text-base min-w-[140px] sm:w-auto"
+                                className="group px-3 py-3 sm:px-6 sm:py-3 md:px-10 md:py-5 bg-white text-[#006FB3] rounded-xl hover:shadow-2xl transition-all transform hover:scale-105 inline-flex items-center justify-center gap-1 sm:gap-3 font-semibold text-sm min-[400px]:text-base md:text-base min-w-[140px] sm:w-auto"
                             >
                                 <span className="truncate">{displayData.primaryCtaText}</span>
                                 <ArrowRight
@@ -60,7 +59,7 @@ export function ProductHero({ data }: ProductHeroProps) {
                         {displayData.secondaryCtaText && (
                             <a
                                 href={displayData.secondaryCtaLink || "/contact"}
-                                className="px-4 py-3 sm:px-6 sm:py-3 md:px-10 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm md:text-base min-w-[140px] sm:w-auto"
+                                className="px-3 py-3 sm:px-6 sm:py-3 md:px-10 md:py-5 bg-white/10 backdrop-blur-sm text-white rounded-xl border-2 border-white/30 hover:bg-white/20 hover:border-white/50 transition-all inline-flex items-center justify-center gap-1 sm:gap-3 font-semibold text-sm min-[400px]:text-base md:text-base min-w-[140px] sm:w-auto"
                             >
                                 <span className="truncate">{displayData.secondaryCtaText}</span>
                                 <ArrowRight
@@ -72,34 +71,38 @@ export function ProductHero({ data }: ProductHeroProps) {
                     </div>
 
                     {(displayData.stat1Value || displayData.stat2Value || displayData.stat3Value) && (
-                        <div className="grid grid-cols-3 sm:grid-cols-3 gap-2 sm:gap-8 mt-8 sm:mt-16 max-w-3xl mx-auto">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-8 mt-8 min-[400px]:mt-20 sm:mt-16 max-w-3xl mx-auto">
                             {displayData.stat1Value && (
                                 <div className="text-center">
-                                    <div className="text-xl min-[400px]:text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
+                                    <div className="text-lg min-[400px]:text-2xl sm:text-4xl font-bold text-white mb-1">
                                         {displayData.stat1Value}
                                     </div>
                                     {displayData.stat1Label && (
-                                        <div className="text-blue-200 text-xs sm:text-base">{displayData.stat1Label}</div>
+                                        <div className="text-blue-100/90 text-[10px] min-[400px]:text-sm sm:text-base font-medium leading-tight">{displayData.stat1Label}</div>
                                     )}
                                 </div>
                             )}
                             {displayData.stat2Value && (
-                                <div className="text-center">
-                                    <div className="text-xl min-[400px]:text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
+                                <div className="text-center relative">
+                                    {/* Separators for mobile */}
+                                    <div className="absolute left-0 top-1/4 bottom-1/4 w-[1px] bg-white/20 sm:hidden"></div>
+                                    <div className="absolute right-0 top-1/4 bottom-1/4 w-[1px] bg-white/20 sm:hidden"></div>
+
+                                    <div className="text-lg min-[400px]:text-2xl sm:text-4xl font-bold text-white mb-1">
                                         {displayData.stat2Value}
                                     </div>
                                     {displayData.stat2Label && (
-                                        <div className="text-blue-200 text-xs sm:text-base">{displayData.stat2Label}</div>
+                                        <div className="text-blue-100/90 text-[10px] min-[400px]:text-sm sm:text-base font-medium leading-tight">{displayData.stat2Label}</div>
                                     )}
                                 </div>
                             )}
                             {displayData.stat3Value && (
                                 <div className="text-center">
-                                    <div className="text-xl min-[400px]:text-3xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">
+                                    <div className="text-lg min-[400px]:text-2xl sm:text-4xl font-bold text-white mb-1">
                                         {displayData.stat3Value}
                                     </div>
                                     {displayData.stat3Label && (
-                                        <div className="text-blue-200 text-xs sm:text-base">{displayData.stat3Label}</div>
+                                        <div className="text-blue-100/90 text-[10px] min-[400px]:text-sm sm:text-base font-medium leading-tight">{displayData.stat3Label}</div>
                                     )}
                                 </div>
                             )}
