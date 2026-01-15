@@ -249,31 +249,33 @@ export function NewsPageClient({
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
-            {/* Categories */}
-            <div className="flex flex-wrap items-center gap-2 pb-0">
-              <div
-                className="p-2 sm:p-2.5 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center flex-none"
-                aria-hidden="true"
-              >
-                <img
-                  src="/icons/interface/iconnews.svg"
-                  alt=""
-                  className="w-4 h-4 sm:w-5 sm:h-5"
+            {/* Categories - Mobile Slider */}
+            <div className="overflow-x-auto md:overflow-visible -mx-6 md:mx-0 px-6 md:px-0">
+              <div className="flex items-center gap-2 pb-0 md:flex-wrap min-w-min md:min-w-0">
+                <div
+                  className="p-4 sm:p-2.5 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center flex-none"
                   aria-hidden="true"
-                />
-              </div>
-              {categoriesWithCount.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
-                    ? "bg-[#0870B4] text-white shadow-md select-none"
-                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                    }`}
                 >
-                  {category.name} ({category.count})
-                </button>
-              ))}
+                  <img
+                    src="/icons/interface/iconnews.svg"
+                    alt=""
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    aria-hidden="true"
+                  />
+                </div>
+                {categoriesWithCount.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${selectedCategory === category.id
+                      ? "bg-[#0870B4] text-white shadow-md select-none"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                  >
+                    {category.name} ({category.count})
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
