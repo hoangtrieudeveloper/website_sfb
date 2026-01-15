@@ -13,11 +13,12 @@ function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
       <ImageWithFallback
         src={src}
         alt={alt}
-
+        width={701}
+        height={511}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
         loading="lazy"
         objectFit="cover"
-        className="transition-transform duration-700 hover:scale-105"
+        className="w-full h-full transition-transform duration-700 hover:scale-105"
       />
     </div>
   );
