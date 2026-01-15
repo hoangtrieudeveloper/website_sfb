@@ -7,14 +7,14 @@ interface ProductFeatureSectionProps {
 
 export function ProductFeatureSection({ section }: ProductFeatureSectionProps) {
     return (
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-[90px]">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-4 sm:gap-12 lg:gap-[90px]">
             <div
                 className={
                     section.imageSide === "left" ? "order-1 lg:order-1" : "order-1 lg:order-2"
                 }
             >
                 <div className="w-full flex justify-center lg:justify-start">
-                    <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top">
+                    <div className="relative w-[701px] h-[511px] scale-[0.48] sm:scale-[0.65] md:scale-[0.85] lg:scale-100 origin-top mb-[-266px] sm:mb-[-179px] md:mb-[-77px] lg:mb-0">
                         <div
                             className={`w-[701px] h-[511px] ${section.overlay?.back.frameClass ??
                                 "rounded-[24px] border-[10px] border-white bg-white shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden"

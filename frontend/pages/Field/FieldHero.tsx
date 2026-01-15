@@ -97,7 +97,7 @@ export function FieldHero({ data }: FieldHeroProps) {
 
                         <FadeIn delay={0.2}>
                             <p
-                                className="mb-6 md:mb-8 lg:mb-10 w-full lg:max-w-[486px] text-base sm:text-lg lg:text-base mx-auto lg:mx-0"
+                                className="mb-6 md:mb-8 lg:mb-10 w-full lg:max-w-[486px] text-base sm:text-lg lg:text-[16px] mx-auto lg:mx-0"
                                 style={{
                                     color: '#FFF',
                                     fontFamily: '"Plus Jakarta Sans", sans-serif',

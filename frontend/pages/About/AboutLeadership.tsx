@@ -90,60 +90,60 @@ export function AboutLeadership({ data, locale: propLocale }: AboutLeadershipPro
                             }}
                             className="w-full"
                         >
-                            <CarouselContent className="-ml-[34px] py-4">
+                            <CarouselContent className="-ml-[12px] py-4">
                                 {items.filter((item: any) => item.isActive !== false).map((leader: any, index: number) => {
                                     const leaderName = typeof leader.name === 'string' ? leader.name : getLocalizedText(leader.name, locale);
                                     const leaderPosition = typeof leader.position === 'string' ? leader.position : getLocalizedText(leader.position, locale);
                                     const leaderDescription = typeof leader.description === 'string' ? leader.description : getLocalizedText(leader.description, locale);
 
                                     return (
-                                    <CarouselItem key={index} className="pl-[34px] basis-full md:basis-1/2 lg:basis-1/3">
-                                        <motion.div
-                                            whileHover={{ y: -8 }}
-                                            className="group flex flex-col w-full lg:w-[410px] lg:h-[523px] p-6 items-start gap-6 rounded-[24px] bg-white shadow-none lg:shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] transition-all duration-300 mx-auto"
-                                        >
-                                            <div className="relative h-[234px] flex-shrink-0 self-stretch rounded-[8px] overflow-hidden bg-gray-200 lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
-                                                <ImageWithFallback
-                                                    src={leader.image}
-                                                    alt={leaderName ? `${leaderName} - ${leaderPosition || 'Leadership'}` : "Leadership Team Member"}
+                                        <CarouselItem key={index} className="pl-[12px] basis-full md:basis-1/2 lg:basis-1/3">
+                                            <motion.div
+                                                whileHover={{ y: -8 }}
+                                                className="group flex flex-col w-full lg:h-[523px] p-6 items-start gap-6 rounded-[24px] bg-white shadow-none border border-gray-200 lg:shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] transition-all duration-300 mx-auto"
+                                            >
+                                                <div className="relative h-[234px] flex-shrink-0 self-stretch rounded-[8px] overflow-hidden bg-gray-200 lg:ml-auto min-[1920px]:w-[410px] min-[1920px]:h-[234px] min-[1920px]:aspect-auto">
+                                                    <ImageWithFallback
+                                                        src={leader.image}
+                                                        alt={leaderName ? `${leaderName} - ${leaderPosition || 'Leadership'}` : "Leadership Team Member"}
 
-                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                    loading="lazy"
-                                                    objectFit="contain"
-                                                    className="rounded-[8px] transition-opacity duration-300"
-                                                />
-                                            </div>
-
-                                            <div className="flex flex-col items-start w-full">
-                                                <h3 className="self-stretch text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] [font-feature-settings:'liga'_off,'clig'_off] mb-1">
-                                                    {leaderName}
-                                                </h3>
-
-                                                <div className="w-full max-w-[336px] self-center text-[#1D8FCF] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-medium leading-normal uppercase [font-feature-settings:'liga'_off,'clig'_off] overflow-hidden text-ellipsis line-clamp-1 mb-3">
-                                                    {leaderPosition}
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                        loading="lazy"
+                                                        objectFit="contain"
+                                                        className="rounded-[8px] transition-opacity duration-300"
+                                                    />
                                                 </div>
 
-                                                <p className="w-full max-w-[336px] self-center text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] mb-0">
-                                                    {leaderDescription}
-                                                </p>
-                                            </div>
+                                                <div className="flex flex-col items-start w-full">
+                                                    <h3 className="self-stretch text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[20px] font-semibold leading-[30px] [font-feature-settings:'liga'_off,'clig'_off] mb-1">
+                                                        {leaderName}
+                                                    </h3>
 
-                                            <div className="mt-auto flex flex-row flex-wrap sm:flex-nowrap gap-4 sm:gap-6 w-full pt-4 border-t border-gray-100 group-hover:border-blue-50 items-center justify-center">
-                                                <div className="flex items-center gap-2">
-                                                    <Phone size={16} className="text-[#2CA4E0] flex-shrink-0" />
-                                                    <a href={`tel:${leader.phone}`} className="text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] hover:text-[#2CA4E0] transition-colors whitespace-nowrap">
-                                                        {leader.phone}
-                                                    </a>
+                                                    <div className="w-full max-w-[336px] self-center text-[#1D8FCF] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-medium leading-normal uppercase [font-feature-settings:'liga'_off,'clig'_off] overflow-hidden text-ellipsis line-clamp-1 mb-3">
+                                                        {leaderPosition}
+                                                    </div>
+
+                                                    <p className="w-full max-w-[336px] self-center text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] mb-0">
+                                                        {leaderDescription}
+                                                    </p>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Mail size={16} className="text-[#2CA4E0] flex-shrink-0" />
-                                                    <a href={`mailto:${leader.email}`} className="text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] hover:text-[#2CA4E0] transition-colors whitespace-nowrap">
-                                                        {leader.email}
-                                                    </a>
+
+                                                <div className="mt-auto flex flex-row flex-wrap sm:flex-nowrap gap-4 sm:gap-6 w-full pt-4 border-t border-gray-100 group-hover:border-blue-50 items-center justify-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <Phone size={16} className="text-[#2CA4E0] flex-shrink-0" />
+                                                        <a href={`tel:${leader.phone}`} className="text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] hover:text-[#2CA4E0] transition-colors whitespace-nowrap">
+                                                            {leader.phone}
+                                                        </a>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail size={16} className="text-[#2CA4E0] flex-shrink-0" />
+                                                        <a href={`mailto:${leader.email}`} className="text-[#0F172A] text-center font-['Plus_Jakarta_Sans'] text-[13px] font-normal leading-[26px] [font-feature-settings:'liga'_off,'clig'_off] hover:text-[#2CA4E0] transition-colors whitespace-nowrap">
+                                                            {leader.email}
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </motion.div>
-                                    </CarouselItem>
+                                            </motion.div>
+                                        </CarouselItem>
                                     );
                                 })}
                             </CarouselContent>

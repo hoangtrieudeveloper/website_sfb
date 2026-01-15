@@ -176,7 +176,7 @@ export function FeaturedNews({ article }: FeaturedNewsProps) {
         >
           <Link
             href={`/${locale}/news/${article.slug}`}
-            className={`inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white text-white font-semibold shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all ${gradientBg}`}
+            className={`inline-flex h-[54px] items-center gap-[12px] px-[29px] py-[7px] rounded-[12px] border border-white text-sm lg:text-[16px] font-semibold text-white shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all ${gradientBg}`}
             prefetch={true}
           >
             {locale === 'vi' ? 'Đọc ngay' : locale === 'en' ? 'Read more' : '続きを読む'}

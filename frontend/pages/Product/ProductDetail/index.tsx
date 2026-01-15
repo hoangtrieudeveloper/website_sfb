@@ -67,147 +67,145 @@ function processContentHtml({
 
 // Component Gallery Slider cho Product
 function ProductGallerySlider({ images, title, locale = 'vi' }: { images: string[]; title?: string; locale?: 'vi' | 'en' | 'ja' }) {
-  if (!images || images.length === 0) return null;
+    if (!images || images.length === 0) return null;
 
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+    const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
-  const galleryTexts = {
-    vi: { close: "Đóng", prevImage: "Ảnh trước", nextImage: "Ảnh sau" },
-    en: { close: "Close", prevImage: "Previous image", nextImage: "Next image" },
-    ja: { close: "閉じる", prevImage: "前の画像", nextImage: "次の画像" },
-  };
+    const galleryTexts = {
+        vi: { close: "Đóng", prevImage: "Ảnh trước", nextImage: "Ảnh sau" },
+        en: { close: "Close", prevImage: "Previous image", nextImage: "Next image" },
+        ja: { close: "閉じる", prevImage: "前の画像", nextImage: "次の画像" },
+    };
 
-  const gt = galleryTexts[locale];
+    const gt = galleryTexts[locale];
 
-  return (
-    <>
-      <div className="w-full max-w-7xl mx-auto">
-        {title && (
-          <div className="mb-3">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          </div>
-        )}
-        <div className="overflow-x-auto flex gap-3 pb-2">
-          {images.map((img, index) => (
-            <button
-              key={`${img}-${index}`}
-              type="button"
-              onClick={() => setPreviewIndex(index)}
-              className="flex-shrink-0 w-60 h-40 md:w-72 md:h-48 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <ImageWithFallback
-                src={
-                  img.startsWith("http")
-                    ? img
-                    : `${API_BASE_URL}${
-                        img.startsWith("/") ? "" : "/"
-                      }${img}`
-                }
-                                    alt={locale === 'vi' ? `Ảnh gallery ${index + 1}` : locale === 'en' ? `Gallery image ${index + 1}` : `ギャラリー画像 ${index + 1}`}
-                className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
-              />
-            </button>
-          ))}
-        </div>
-      </div>
+    return (
+        <>
+            <div className="w-full max-w-7xl mx-auto">
+                {title && (
+                    <div className="mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                    </div>
+                )}
+                <div className="overflow-x-auto flex gap-3 pb-2">
+                    {images.map((img, index) => (
+                        <button
+                            key={`${img}-${index}`}
+                            type="button"
+                            onClick={() => setPreviewIndex(index)}
+                            className="flex-shrink-0 w-60 h-40 md:w-72 md:h-48 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <ImageWithFallback
+                                src={
+                                    img.startsWith("http")
+                                        ? img
+                                        : `${API_BASE_URL}${img.startsWith("/") ? "" : "/"
+                                        }${img}`
+                                }
+                                alt={locale === 'vi' ? `Ảnh gallery ${index + 1}` : locale === 'en' ? `Gallery image ${index + 1}` : `ギャラリー画像 ${index + 1}`}
+                                className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+                            />
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-      {/* Full screen preview */}
-      {previewIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setPreviewIndex(null)}
-        >
-          <button
-            type="button"
-            onClick={() => setPreviewIndex(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
-            aria-label={gt.close}
-          >
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-          <div className="max-w-7xl max-h-full">
-            <ImageWithFallback
-              src={
-                images[previewIndex].startsWith("http")
-                  ? images[previewIndex]
-                  : `${API_BASE_URL}${
-                      images[previewIndex].startsWith("/") ? "" : "/"
-                    }${images[previewIndex]}`
-              }
-              alt={locale === 'vi' ? `Ảnh gallery ${previewIndex + 1}` : locale === 'en' ? `Gallery image ${previewIndex + 1}` : `ギャラリー画像 ${previewIndex + 1}`}
-              className="max-w-full max-h-[90vh] object-contain"
-            />
-          </div>
-          {images.length > 1 && (
-            <>
-              {previewIndex > 0 && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPreviewIndex(previewIndex - 1);
-                  }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
-                  aria-label={gt.prevImage}
+            {/* Full screen preview */}
+            {previewIndex !== null && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                    onClick={() => setPreviewIndex(null)}
                 >
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-              )}
-              {previewIndex < images.length - 1 && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPreviewIndex(previewIndex + 1);
-                  }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
-                  aria-label={gt.nextImage}
-                >
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </>
-  );
+                    <button
+                        type="button"
+                        onClick={() => setPreviewIndex(null)}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+                        aria-label={gt.close}
+                    >
+                        <svg
+                            className="w-8 h-8"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                    <div className="max-w-7xl max-h-full">
+                        <ImageWithFallback
+                            src={
+                                images[previewIndex].startsWith("http")
+                                    ? images[previewIndex]
+                                    : `${API_BASE_URL}${images[previewIndex].startsWith("/") ? "" : "/"
+                                    }${images[previewIndex]}`
+                            }
+                            alt={locale === 'vi' ? `Ảnh gallery ${previewIndex + 1}` : locale === 'en' ? `Gallery image ${previewIndex + 1}` : `ギャラリー画像 ${previewIndex + 1}`}
+                            className="max-w-full max-h-[90vh] object-contain"
+                        />
+                    </div>
+                    {images.length > 1 && (
+                        <>
+                            {previewIndex > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreviewIndex(previewIndex - 1);
+                                    }}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+                                    aria-label={gt.prevImage}
+                                >
+                                    <svg
+                                        className="w-8 h-8"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M15 19l-7-7 7-7"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                            {previewIndex < images.length - 1 && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreviewIndex(previewIndex + 1);
+                                    }}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+                                    aria-label={gt.nextImage}
+                                >
+                                    <svg
+                                        className="w-8 h-8"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 5l7 7-7 7"
+                                        />
+                                    </svg>
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+        </>
+    );
 }
 
 // Component được sử dụng bởi App Router
@@ -474,111 +472,111 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
 
                                 <div className="flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium hover:bg-[#166FE5] transition-colors"
-                                        onClick={shareToFacebook}
-                                        aria-label={t.shareFacebook}
-                                    >
-                                        <Facebook size={14} />
-                                        <span>{t.share}</span>
-                                    </button>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center gap-2 h-7 px-3 rounded bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors"
-                                                aria-label={t.shareOther}
-                                            >
-                                                <Share2 size={14} />
-                                                <span>{locale === 'vi' ? 'Khác' : locale === 'en' ? 'More' : 'その他'}</span>
-                                            </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="w-48">
-                                            <DropdownMenuItem
-                                                onClick={shareToTwitter}
-                                                className="cursor-pointer"
-                                            >
-                                                <Twitter size={16} className="mr-2 text-[#1DA1F2]" />
-                                                {t.shareTwitter}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={shareToLinkedIn}
-                                                className="cursor-pointer"
-                                            >
-                                                <Linkedin size={16} className="mr-2 text-[#0077B5]" />
-                                                {t.shareLinkedIn}
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                onClick={copyToClipboard}
-                                                className="cursor-pointer"
-                                            >
-                                                {linkCopied ? (
-                                                    <>
-                                                        <Check size={16} className="mr-2 text-green-600" />
-                                                        {t.copied}
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Copy size={16} className="mr-2" />
-                                                        {t.copyLink}
-                                                    </>
-                                                )}
-                                            </DropdownMenuItem>
-                                            {supportsWebShare && (
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center gap-2 h-7 px-3 rounded bg-[#1877F2] text-white text-xs font-medium hover:bg-[#166FE5] transition-colors"
+                                            onClick={shareToFacebook}
+                                            aria-label={t.shareFacebook}
+                                        >
+                                            <Facebook size={14} />
+                                            <span>{t.share}</span>
+                                        </button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex items-center gap-2 h-7 px-3 rounded bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors"
+                                                    aria-label={t.shareOther}
+                                                >
+                                                    <Share2 size={14} />
+                                                    <span>{locale === 'vi' ? 'Khác' : locale === 'en' ? 'More' : 'その他'}</span>
+                                                </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48">
                                                 <DropdownMenuItem
-                                                    onClick={shareViaWebShare}
+                                                    onClick={shareToTwitter}
                                                     className="cursor-pointer"
                                                 >
-                                                    <Share2 size={16} className="mr-2" />
-                                                    {t.shareOther}
+                                                    <Twitter size={16} className="mr-2 text-[#1DA1F2]" />
+                                                    {t.shareTwitter}
                                                 </DropdownMenuItem>
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                                <DropdownMenuItem
+                                                    onClick={shareToLinkedIn}
+                                                    className="cursor-pointer"
+                                                >
+                                                    <Linkedin size={16} className="mr-2 text-[#0077B5]" />
+                                                    {t.shareLinkedIn}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={copyToClipboard}
+                                                    className="cursor-pointer"
+                                                >
+                                                    {linkCopied ? (
+                                                        <>
+                                                            <Check size={16} className="mr-2 text-green-600" />
+                                                            {t.copied}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy size={16} className="mr-2" />
+                                                            {t.copyLink}
+                                                        </>
+                                                    )}
+                                                </DropdownMenuItem>
+                                                {supportsWebShare && (
+                                                    <DropdownMenuItem
+                                                        onClick={shareViaWebShare}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        <Share2 size={16} className="mr-2" />
+                                                        {t.shareOther}
+                                                    </DropdownMenuItem>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
 
                                     <div className="flex items-center gap-3 text-gray-400">
-                                    <button
-                                        type="button"
-                                        onClick={copyToClipboard}
-                                        aria-label={t.copyLink}
-                                        className="hover:text-gray-600 transition-colors"
-                                        title={t.copyLink}
-                                    >
-                                        {linkCopied ? (
-                                            <Check size={18} className="text-green-600" />
-                                        ) : (
-                                            <LinkIcon size={18} />
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={shareToFacebook}
-                                        aria-label={t.shareFacebook}
-                                        className="hover:text-[#1877F2] transition-colors"
-                                        title={t.shareFacebook}
-                                    >
-                                        <Facebook size={18} />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={shareToTwitter}
-                                        aria-label={t.shareTwitter}
-                                        className="hover:text-[#1DA1F2] transition-colors"
-                                        title={t.shareTwitter}
-                                    >
-                                        <Twitter size={18} />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label={t.saveArticle}
-                                        className="hover:text-gray-600 transition-colors"
-                                        title={t.saveArticle}
-                                    >
-                                        <Bookmark size={18} />
-                                    </button>
-                                </div>
+                                        <button
+                                            type="button"
+                                            onClick={copyToClipboard}
+                                            aria-label={t.copyLink}
+                                            className="hover:text-gray-600 transition-colors"
+                                            title={t.copyLink}
+                                        >
+                                            {linkCopied ? (
+                                                <Check size={18} className="text-green-600" />
+                                            ) : (
+                                                <LinkIcon size={18} />
+                                            )}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={shareToFacebook}
+                                            aria-label={t.shareFacebook}
+                                            className="hover:text-[#1877F2] transition-colors"
+                                            title={t.shareFacebook}
+                                        >
+                                            <Facebook size={18} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={shareToTwitter}
+                                            aria-label={t.shareTwitter}
+                                            className="hover:text-[#1DA1F2] transition-colors"
+                                            title={t.shareTwitter}
+                                        >
+                                            <Twitter size={18} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label={t.saveArticle}
+                                            className="hover:text-gray-600 transition-colors"
+                                            title={t.saveArticle}
+                                        >
+                                            <Bookmark size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -682,7 +680,7 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
 
                     {hasNumberedSections && (
                         <section className="w-full bg-white">
-                            <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-[120px] py-[90px] space-y-[90px]">
+                            <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-[120px] py-10 lg:py-[90px] space-y-10 lg:space-y-[90px]">
                                 {numberedSections.map((section) => (
                                     <ProductFeatureSection key={section.no} section={section} />
                                 ))}
