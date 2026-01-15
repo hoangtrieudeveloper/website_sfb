@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import * as LucideIcons from "lucide-react";
 
 interface CareerBenefitsProps {
-  data?: any;
+    data?: any;
 }
 
 export const CareerBenefits = ({ data }: CareerBenefitsProps) => {
@@ -46,12 +46,14 @@ export const CareerBenefits = ({ data }: CareerBenefitsProps) => {
                                     whileHover={{ y: -10, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)" }}
                                     className="bg-white rounded-[24px] p-8 flex flex-col items-start shadow-[0_18px_36px_0_rgba(0,0,0,0.05)] transition-all duration-300 h-full border border-transparent hover:border-blue-100 group"
                                 >
-                                    <div className="mb-6 text-[#2CA4E0] p-4 bg-blue-50/50 rounded-2xl group-hover:bg-[#E0F2FE] transition-colors duration-300">
-                                        <IconComponent size={32} strokeWidth={1.5} />
+                                    <div className="w-full flex flex-row items-center md:flex-col md:items-start mb-3 md:mb-0">
+                                        <div className="mb-0 mr-4 md:mb-6 md:mr-0 text-[#2CA4E0] p-4 bg-blue-50/50 rounded-2xl group-hover:bg-[#E0F2FE] transition-colors duration-300">
+                                            <IconComponent size={32} strokeWidth={1.5} />
+                                        </div>
+                                        <h3 className="text-[#0F172A] text-xl font-bold mb-0 md:mb-3">
+                                            {benefit.title}
+                                        </h3>
                                     </div>
-                                    <h3 className="text-[#0F172A] text-xl font-bold mb-3">
-                                        {benefit.title}
-                                    </h3>
                                     <p className="text-gray-600 leading-relaxed text-sm lg:text-base">
                                         {benefit.description}
                                     </p>
