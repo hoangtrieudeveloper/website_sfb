@@ -59,11 +59,11 @@ export function Consult({ data, locale: propLocale }: ConsultProps) {
                                 {description}
                             </p>
 
-                            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch gap-3 sm:gap-4 w-full justify-center">
+                            <div className="flex flex-row flex-wrap items-stretch gap-2 sm:gap-4 w-full justify-center">
                                 <Link
                                     href={buttons.secondary.link || "#"}
                                     prefetch={true}
-                                    className="flex w-full sm:w-auto min-h-[44px] sm:h-[48px] px-4 sm:px-[29px] py-2 sm:py-[7px] justify-center items-center gap-2 sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 text-sm sm:text-base leading-tight text-center"
+                                    className="flex flex-1 sm:w-auto sm:flex-initial min-h-[40px] sm:h-[48px] px-3 sm:px-[29px] py-2 sm:py-[7px] justify-center items-center gap-1.5 sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 text-xs sm:text-base leading-tight text-center"
                                 >
                                     <span className="whitespace-normal break-words">
                                         {typeof buttons.secondary.text === 'string' 
@@ -75,7 +75,7 @@ export function Consult({ data, locale: propLocale }: ConsultProps) {
                                 <Link
                                     href={buttons.primary.link || "#"}
                                     prefetch={true}
-                                    className="group flex w-full sm:w-auto min-h-[44px] sm:h-[48px] px-4 sm:px-[29px] py-2 sm:py-[7px] justify-center items-center gap-2 sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 text-sm sm:text-base leading-tight text-center"
+                                    className="group flex flex-1 sm:w-auto sm:flex-initial min-h-[40px] sm:h-[48px] px-3 sm:px-[29px] py-2 sm:py-[7px] justify-center items-center gap-1.5 sm:gap-[12px] rounded-[12px] border border-white text-white font-medium hover:bg-white hover:text-[#29A3DD] transition-colors duration-300 text-xs sm:text-base leading-tight text-center"
                                 >
                                     <span className="whitespace-normal break-words">
                                         {typeof buttons.primary.text === 'string' 

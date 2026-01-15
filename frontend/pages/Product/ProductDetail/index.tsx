@@ -45,7 +45,7 @@ function processContentHtml({
     html: string;
     enableToc: boolean;
 }) {
-    let processed = html;
+    let processed = html.replace(/&nbsp;/gi, " ");
     const tocItems: { id: string; text: string; level: number }[] = [];
 
     // Thêm id cho H2/H3 để làm TOC
@@ -53,7 +53,10 @@ function processContentHtml({
         let counter = 1;
         processed = processed.replace(/<h([23])>(.*?)<\/h\1>/gi, (_m, level, text) => {
             const id = `toc-${counter++}`;
-            const cleanText = String(text).replace(/<[^>]+>/g, "").trim();
+            const cleanText = String(text)
+                .replace(/<[^>]+>/g, "")
+                .replace(/&nbsp;/gi, " ")
+                .trim();
             tocItems.push({ id, text: cleanText, level: Number(level) });
             return `<h${level} id="${id}">${text}</h${level}>`;
         });
@@ -461,9 +464,15 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
                     <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-[120px] py-[20px]">
                         {/* Share buttons và Meta thông tin */}
                         {enableShareButtons && (
-                            <div className="mb-6 flex items-center justify-between gap-4 pb-4 border-b border-gray-200">
-                                <div className="flex items-center gap-4">
+                            <div className="mb-6 flex flex-col gap-4 pb-4 border-b border-gray-200">
+                                {/* Meta thông tin - trên các button */}
+                                {(product.meta || product.metaTop) && (
+                                    <p className="text-sm text-gray-500 font-medium">
+                                        {product.meta || product.metaTop}
+                                    </p>
+                                )}
 
+                                <div className="flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-2">
                                     <button
                                         type="button"
@@ -528,16 +537,8 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                     </div>
-                                    {/* Meta thông tin */}
-                                    {(product.meta || product.metaTop) && (
-                                        <p className="text-sm text-gray-500 font-medium">
-                                            {product.meta || product.metaTop}
-                                        </p>
-                                    )}
-                                    {/* Share buttons */}
-                                </div>
 
-                                <div className="flex items-center gap-3 text-gray-400">
+                                    <div className="flex items-center gap-3 text-gray-400">
                                     <button
                                         type="button"
                                         onClick={copyToClipboard}
@@ -577,6 +578,7 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
                                     >
                                         <Bookmark size={18} />
                                     </button>
+                                </div>
                                 </div>
                             </div>
                         )}
