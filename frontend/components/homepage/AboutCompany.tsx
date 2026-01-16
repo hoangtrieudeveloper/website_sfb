@@ -116,7 +116,7 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                   leading-[1.2] lg:leading-[71px]
                 "
               >
-                <span className="xl:whitespace-nowrap">
+                <span>
                   {title.part1}{" "}
                   <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
                     {title.highlight1}
@@ -127,7 +127,7 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                     {title.part2}
                   </span>
                 </span>
-                <br className="hidden xl:block" />
+                {" "}{locale !== 'en' && <br className="hidden xl:block" />}
                 <span className="font-bold text-[var(--Dark-Blue,#0F172A)]">
                   {title.highlight2}
                 </span>{" "}
