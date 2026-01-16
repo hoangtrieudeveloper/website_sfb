@@ -9,7 +9,7 @@ import { getLocalizedText } from "@/lib/utils/i18n";
 
 function FeatureImageFrame({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="box-border w-full max-w-[701px] aspect-[701/511] overflow-hidden rounded-[24px] border-[10px] border-[var(--White,#FFF)] bg-[lightgray] shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] relative lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto">
+    <div className="box-border w-full max-w-[701px] aspect-[701/511] overflow-hidden rounded-[24px] border-[10px] border-[var(--White,#FFF)] bg-[lightgray] shadow-[0_18px_36px_0_rgba(0,95,148,0.12)] relative lg:ml-auto min-[1920px]:w-[701px] min-[1920px]:h-[511px] min-[1920px]:aspect-auto transform-gpu">
       <ImageWithFallback
         src={src}
         alt={alt}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { TrendingUp, Filter, Tag, Inbox, Search, X } from "lucide-react";
+import { TrendingUp, Filter, Tag, Inbox, Search, X, ChevronDown, ChevronUp } from "lucide-react";
 import { FeaturedNews } from "../../components/news/FeaturedNews";
 import { NewsList } from "../../components/news/NewsList";
 import { publicApiCall, PublicEndpoints } from "@/lib/api/public";
@@ -41,6 +41,7 @@ export function NewsPageClient({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showSearch, setShowSearch] = useState<boolean>(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [news, setNews] = useState<NewsItem[]>(initialNews || []);
   const [loading, setLoading] = useState(false);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -304,43 +305,101 @@ export function NewsPageClient({
               </AnimatePresence>
 
               {/* Categories */}
-              <div className="flex flex-wrap items-center gap-2 pb-0">
-                <button
-                  onClick={() => setShowSearch(!showSearch)}
-                  className={`p-2 sm:p-2.5 rounded-lg flex items-center justify-center flex-none transition-all cursor-pointer ${
-                    showSearch
-                      ? "bg-[#0870B4] text-white hover:bg-[#0066A3]"
-                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                  }`}
-                  aria-label={showSearch ? "Ẩn tìm kiếm" : "Hiện tìm kiếm"}
-                  title={showSearch ? "Ẩn tìm kiếm" : "Hiện tìm kiếm"}
-                >
-                  <Search 
-                    className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
-                      showSearch ? "text-white" : "text-gray-600"
-                    }`}
-                    aria-hidden="true"
-                  />
-                </button>
-                {categoriesWithCount.map((category) => (
+              <div className="flex-1 w-full">
+                {/* Mobile Dropdown & Search Button */}
+                <div className="lg:hidden flex items-stretch gap-2 relative">
+                  <div className="flex-1 relative">
+                    <button
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-[#EAF5FF] text-[#0870B4] rounded-xl font-semibold border border-[#0870B4]/20"
+                    >
+                      <div className="flex items-center gap-2 max-w-[80%]">
+                        <span className="truncate">
+                          {categoriesWithCount.find(c => c.id === selectedCategory)?.name || "All"}
+                          {categoriesWithCount.find(c => c.id === selectedCategory) ? ` (${categoriesWithCount.find(c => c.id === selectedCategory)?.count})` : ""}
+                        </span>
+                      </div>
+                      {isDropdownOpen ? <ChevronUp size={18} className="shrink-0" /> : <ChevronDown size={18} className="shrink-0" />}
+                    </button>
+
+                    <AnimatePresence>
+                      {isDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden flex flex-col max-h-[300px] overflow-y-auto z-50"
+                        >
+                          {categoriesWithCount.map((category) => (
+                            <button
+                              key={category.id}
+                              onClick={() => {
+                                setSelectedCategory(category.id);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`flex items-center justify-between px-4 py-3 text-left transition-colors
+                                                 ${selectedCategory === category.id ? 'bg-[#EAF5FF] text-[#0870B4]' : 'text-gray-600 hover:bg-gray-50'}
+                                              `}
+                            >
+                              <span className="text-sm font-medium">{category.name}</span>
+                              <span className="text-xs bg-white/50 px-2 py-0.5 rounded-full border border-gray-100">{category.count}</span>
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
-                      ? "bg-[#0870B4] text-white shadow-md select-none"
-                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    onClick={() => setShowSearch(!showSearch)}
+                    className={`px-4 rounded-xl flex items-center justify-center transition-all cursor-pointer border ${showSearch
+                      ? "bg-[#0870B4] text-white border-[#0870B4]"
+                      : "bg-[#EAF5FF] text-[#0870B4] border-[#0870B4]/20 hover:bg-[#DCEFFF]"
                       }`}
                   >
-                    {category.name} ({category.count})
+                    <Search className={`w-5 h-5 ${showSearch ? "text-white" : "text-[#0870B4]"}`} />
                   </button>
-                ))}
+                </div>
+
+                {/* Desktop Pills */}
+                <div className="hidden lg:flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => setShowSearch(!showSearch)}
+                    className={`p-2 sm:p-2.5 rounded-lg flex items-center justify-center flex-none transition-all cursor-pointer ${showSearch
+                      ? "bg-[#0870B4] text-white hover:bg-[#0066A3]"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                    aria-label={showSearch ? "Ẩn tìm kiếm" : "Hiện tìm kiếm"}
+                    title={showSearch ? "Ẩn tìm kiếm" : "Hiện tìm kiếm"}
+                  >
+                    <Search
+                      className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${showSearch ? "text-white" : "text-gray-600"
+                        }`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {categoriesWithCount.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === category.id
+                        ? "bg-[#0870B4] text-white shadow-md select-none"
+                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                        }`}
+                    >
+                      {category.name} ({category.count})
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Featured News */}
+      {/* Featured N ews */}
+
       {initialFeatured && (
         <>
           <section className="py-[45px] bg-white">
@@ -356,9 +415,10 @@ export function NewsPageClient({
             </div>
           </div>
         </>
+
       )}
 
-      {/* News Grid */}
+      {/* News G rid */}
       <section className="py-[45px] bg-white min-h-[500px]">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
           <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">

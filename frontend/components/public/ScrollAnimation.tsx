@@ -45,7 +45,7 @@ export function ScrollAnimation({
     useEffect(() => {
         setIsMounted(true);
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
+            setIsMobile(window.innerWidth < 768 || window.screen.width < 768);
         };
 
         checkMobile();
@@ -132,7 +132,7 @@ export function ScrollAnimation({
     return (
         <motion.div
             ref={ref}
-            className={className}
+            className={`${className} max-md:!opacity-100 max-md:!transform-none max-md:!filter-none`}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
             variants={variants}

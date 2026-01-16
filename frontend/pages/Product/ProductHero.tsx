@@ -14,7 +14,7 @@ export function ProductHero({ data }: ProductHeroProps) {
 
     return (
         <section
-            className="relative flex flex-col justify-center items-center overflow-hidden h-[100dvh] lg:h-[787px] pt-20 lg:pt-0"
+            className="relative flex flex-col justify-start md:justify-center items-center overflow-hidden min-h-[100dvh] lg:min-h-0 lg:h-[787px] pt-32 md:pt-24 lg:pt-0 pb-16 lg:pb-0"
             style={{
                 background: displayData.backgroundGradient || 'linear-gradient(to bottom right, #0870B4, #2EABE2)'
             }}

@@ -11,6 +11,7 @@ import Image from "next/image";
 import { useLocale } from "@/lib/contexts/LocaleContext";
 import { getLocalizedText } from "@/lib/utils/i18n";
 import { CustomPagination } from "../../components/common/CustomPagination";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Dialog,
     DialogContent,
@@ -484,29 +485,37 @@ export function ProductList({ headerData, products: dynamicProducts, categories:
                             {isDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                         </button>
 
-                        {isDropdownOpen && (
-                            <div className="absolute top-full left-6 right-6 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden flex flex-col max-h-[300px] overflow-y-auto">
-                                {categoriesWithIcons.map((category: any) => {
-                                    const Icon = category.icon;
-                                    const active = selectedCategory === category.id;
-                                    return (
-                                        <button
-                                            key={category.id}
-                                            onClick={() => {
-                                                setSelectedCategory(category.id);
-                                                setIsDropdownOpen(false);
-                                            }}
-                                            className={`flex items-center gap-3 px-4 py-3 text-left transition-colors
+                        <AnimatePresence>
+                            {isDropdownOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="absolute top-full left-6 right-6 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 overflow-hidden flex flex-col max-h-[300px] overflow-y-auto"
+                                >
+                                    {categoriesWithIcons.map((category: any) => {
+                                        const Icon = category.icon;
+                                        const active = selectedCategory === category.id;
+                                        return (
+                                            <button
+                                                key={category.id}
+                                                onClick={() => {
+                                                    setSelectedCategory(category.id);
+                                                    setIsDropdownOpen(false);
+                                                }}
+                                                className={`flex items-center gap-3 px-4 py-3 text-left transition-colors
                                                 ${active ? 'bg-[#EAF5FF] text-[#0870B4]' : 'text-gray-600 hover:bg-gray-50'}
                                             `}
-                                        >
-                                            <Icon size={18} className="shrink-0" />
-                                            <span className="text-sm font-medium">{category.name}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                            >
+                                                <Icon size={18} className="shrink-0" />
+                                                <span className="text-sm font-medium">{category.name}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Desktop Pills Filter (Hidden on Mobile) */}
