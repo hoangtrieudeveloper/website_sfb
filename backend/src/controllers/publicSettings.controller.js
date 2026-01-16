@@ -38,21 +38,29 @@ const getLocalizedText = (value, locale) => {
   return String(value);
 };
 
-// List of settings keys that should be treated as locale objects
+// List of settings keys that should be treated as locale objects and returned as localized strings
 const LOCALE_SETTINGS_KEYS = ['slogan', 'site_name', 'site_description', 'address'];
+
+// List of settings keys that should be returned as raw locale objects (JSON strings) for frontend to parse
+const RAW_LOCALE_SETTINGS_KEYS = ['announcement_title', 'announcement_message', 'announcement_cta_text'];
 
 // GET /api/public/settings
 exports.getPublicSettings = async (req, res, next) => {
   try {
-    const { keys } = req.query; // Comma-separated list of keys, e.g., ?keys=logo,phone,email
+    const { keys, locale: localeParam } = req.query; // Comma-separated list of keys, e.g., ?keys=logo,phone,email
     
-    // Get locale from Accept-Language header
-    const acceptLanguage = req.headers['accept-language'] || 'vi';
+    // Get locale from query parameter first, then fallback to Accept-Language header
     let locale = 'vi'; // default
-    if (acceptLanguage.includes('en')) {
-      locale = 'en';
-    } else if (acceptLanguage.includes('ja')) {
-      locale = 'ja';
+    if (localeParam && ['vi', 'en', 'ja'].includes(localeParam)) {
+      locale = localeParam;
+    } else {
+      // Fallback to Accept-Language header
+      const acceptLanguage = req.headers['accept-language'] || 'vi';
+      if (acceptLanguage.includes('en')) {
+        locale = 'en';
+      } else if (acceptLanguage.includes('ja')) {
+        locale = 'ja';
+      }
     }
     
     let query = 'SELECT setting_key, setting_value FROM site_settings';
@@ -77,6 +85,9 @@ exports.getPublicSettings = async (req, res, next) => {
       if (LOCALE_SETTINGS_KEYS.includes(row.setting_key)) {
         const parsed = parseLocaleField(rawValue);
         settings[row.setting_key] = getLocalizedText(parsed, locale);
+      } else if (RAW_LOCALE_SETTINGS_KEYS.includes(row.setting_key)) {
+        // For announcement fields, return raw JSON string so frontend can parse and localize dynamically
+        settings[row.setting_key] = rawValue;
       } else {
         // For non-locale fields, return as-is
         settings[row.setting_key] = rawValue;

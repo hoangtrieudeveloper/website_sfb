@@ -43,6 +43,17 @@ export function Header() {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [announcementHeight, setAnnouncementHeight] = useState(0);
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [announcementSettings, setAnnouncementSettings] = useState<{
+    enabled: boolean;
+    title?: string | Record<'vi' | 'en' | 'ja', string>;
+    message?: string | Record<'vi' | 'en' | 'ja', string>;
+    ctaText?: string | Record<'vi' | 'en' | 'ja', string>;
+    ctaLink?: string;
+    reappearHours?: number;
+  }>({
+    enabled: false,
+    reappearHours: 1,
+  });
   const [navLinks, setNavLinks] = useState<NavLink[]>([]);
   const pathname = usePathname();
   const dropdownTimeoutRef = useRef<NodeJS.Timeout>();
@@ -53,9 +64,42 @@ export function Header() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const keys = 'logo,slogan,site_name,phone,email';
+        const keys = 'logo,slogan,site_name,phone,email,announcement_enabled,announcement_title,announcement_message,announcement_cta_text,announcement_cta_link,announcement_reappear_hours';
         const data = await getPublicSettings(keys, language);
         setSettings(data);
+        
+        // Parse announcement settings
+        const enabled = data.announcement_enabled === 'true';
+        const reappearHours = parseInt(data.announcement_reappear_hours || '1', 10);
+        
+        // Parse locale fields from JSON strings to locale objects
+        const parseLocaleField = (value: string | undefined): Record<'vi' | 'en' | 'ja', string> | undefined => {
+          if (!value) return undefined;
+          try {
+            const parsed = JSON.parse(value);
+            if (parsed && typeof parsed === 'object' && ('vi' in parsed || 'en' in parsed || 'ja' in parsed)) {
+              return parsed as Record<'vi' | 'en' | 'ja', string>;
+            }
+          } catch (e) {
+            // Not JSON, treat as string and convert to locale object with vi only
+            return { vi: value, en: value, ja: value };
+          }
+          return undefined;
+        };
+        
+        setAnnouncementSettings({
+          enabled,
+          title: parseLocaleField(data.announcement_title),
+          message: parseLocaleField(data.announcement_message),
+          ctaText: parseLocaleField(data.announcement_cta_text),
+          ctaLink: data.announcement_cta_link || undefined,
+          reappearHours,
+        });
+        
+        // Nếu announcement bị tắt hoặc không có dữ liệu, không hiển thị
+        if (!enabled || !data.announcement_title || !data.announcement_message) {
+          setShowAnnouncement(false);
+        }
       } catch (error: any) {
         // Silently fail - component sẽ sử dụng giá trị mặc định từ settings state
       }
@@ -121,13 +165,32 @@ export function Header() {
     loadMenus();
   }, [language]);
 
-  // Check announcement dismissal status
+  // Check announcement dismissal status - hiển thị lại sau số giờ được cấu hình
   useEffect(() => {
-    const dismissed = localStorage.getItem("announcementDismissed");
-    if (dismissed === "true") {
+    if (!announcementSettings.enabled) {
       setShowAnnouncement(false);
+      return;
     }
-  }, []);
+    
+    const dismissedTimestamp = localStorage.getItem("announcementDismissed");
+    if (dismissedTimestamp) {
+      const dismissedTime = parseInt(dismissedTimestamp, 10);
+      const currentTime = Date.now();
+      const reappearHours = announcementSettings.reappearHours || 1;
+      const reappearMs = reappearHours * 60 * 60 * 1000; // Convert hours to milliseconds
+      
+      // Nếu đã quá thời gian cấu hình kể từ lúc dismiss, hiển thị lại
+      if (currentTime - dismissedTime >= reappearMs) {
+        localStorage.removeItem("announcementDismissed");
+        setShowAnnouncement(true);
+      } else {
+        setShowAnnouncement(false);
+      }
+    } else {
+      // Nếu chưa từng dismiss, hiển thị
+      setShowAnnouncement(true);
+    }
+  }, [announcementSettings.enabled, announcementSettings.reappearHours]);
 
   // Measure announcement bar height so header/top spacing is correct on mobile (banner can wrap to 2 lines)
   useEffect(() => {
@@ -169,7 +232,8 @@ export function Header() {
 
   const handleDismissAnnouncement = () => {
     setShowAnnouncement(false);
-    localStorage.setItem("announcementDismissed", "true");
+    // Lưu timestamp thay vì "true" để có thể hiển thị lại sau 1 giờ
+    localStorage.setItem("announcementDismissed", Date.now().toString());
   };
 
   // Detect if we're on homepage (dark background) vs other pages (light background)
@@ -317,8 +381,12 @@ export function Header() {
       {/* Announcement Bar - positioned at very top */}
       <div ref={announcementRef} className="relative z-[51]">
         <AnnouncementBar
-          isVisible={showAnnouncement}
+          isVisible={showAnnouncement && announcementSettings.enabled}
           onDismiss={handleDismissAnnouncement}
+          title={announcementSettings.title}
+          message={announcementSettings.message}
+          ctaText={announcementSettings.ctaText}
+          ctaLink={announcementSettings.ctaLink}
         />
       </div>
 

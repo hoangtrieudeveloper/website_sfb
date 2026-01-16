@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { setAuthToken } from "@/lib/auth/token";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("admin@sfb.local");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -119,7 +119,7 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#006FB3] focus:ring-1 focus:ring-[#006FB3]/40"
-                  placeholder="admin@sfb.local"
+                  placeholder="Nhập Email đăng nhập"
                   required
                 />
               </div>
@@ -132,7 +132,7 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#006FB3] focus:ring-1 focus:ring-[#006FB3]/40"
-                  placeholder="••••••••"
+                  placeholder="Nhập mật khẩu"
                   required
                 />
               </div>
@@ -150,12 +150,6 @@ export default function AdminLoginPage() {
               >
                 {loading ? "Đang xử lý..." : "Đăng nhập"}
               </button>
-
-              <p className="mt-3 text-[11px] text-slate-500 text-center">
-                Tài khoản demo:{" "}
-                <span className="font-mono">admin@sfb.local</span> /{" "}
-                <span className="font-mono">admin123</span>
-              </p>
             </form>
           </div>
         </div>

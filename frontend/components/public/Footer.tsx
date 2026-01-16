@@ -48,9 +48,7 @@ export function Footer() {
   const siteName = typeof settings.site_name === 'string'
     ? settings.site_name
     : getLocalizedText(settings.site_name, locale);
-  const siteDescription = typeof settings.site_description === 'string'
-    ? settings.site_description
-    : getLocalizedText(settings.site_description, locale);
+  const siteDescription = getLocalizedText(settings.site_description, locale);
   const phone = settings.phone;
   const email = settings.email;
   const address = typeof settings.address === 'string'
@@ -81,6 +79,27 @@ export function Footer() {
     },
   ].filter(Boolean) as Array<{ icon: typeof Facebook; href: string; label: string }>;
 
+  // Helper function to add locale prefix to href
+  const addLocalePrefix = (href: string): string => {
+    if (!href) return `/${locale}`;
+    
+    // Nếu href đã có locale prefix (vi, en, ja), thay thế bằng locale hiện tại
+    const locales = ['vi', 'en', 'ja'];
+    for (const loc of locales) {
+      if (href.startsWith(`/${loc}/`) || href === `/${loc}`) {
+        return href.replace(`/${loc}`, `/${locale}`);
+      }
+    }
+    
+    // Nếu href bắt đầu bằng /, thêm locale prefix
+    if (href.startsWith('/')) {
+      return `/${locale}${href === '/' ? '' : href}`;
+    }
+    
+    // Nếu href không bắt đầu bằng /, giữ nguyên (có thể là external link hoặc hash)
+    return href;
+  };
+
   // Parse JSON links from settings and apply locale
   const parseLinks = (jsonString: string): Array<{ name: string; href: string }> => {
     try {
@@ -88,12 +107,12 @@ export function Footer() {
       const parsed = JSON.parse(jsonString);
       if (!Array.isArray(parsed)) return [];
 
-      // Apply locale to each link's name field
+      // Apply locale to each link's name field and href
       return parsed.map((link: any) => ({
         name: typeof link.name === 'string'
           ? link.name
           : getLocalizedText(link.name, locale),
-        href: link.href || '',
+        href: link.href ? addLocalePrefix(link.href) : '',
       }));
     } catch (error: any) {
       // Silently fail - return empty array

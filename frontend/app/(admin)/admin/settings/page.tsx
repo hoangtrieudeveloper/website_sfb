@@ -43,6 +43,12 @@ interface GeneralSettings {
   google_site_verification: string;
   openai_api_key: string;
   gemini_api_key: string;
+  announcement_enabled: boolean;
+  announcement_title: string | Record<Locale, string>;
+  announcement_message: string | Record<Locale, string>;
+  announcement_cta_text: string | Record<Locale, string>;
+  announcement_cta_link: string;
+  announcement_reappear_hours: number;
 }
 
 export default function AdminSettingsPage() {
@@ -74,6 +80,12 @@ export default function AdminSettingsPage() {
     google_site_verification: '',
     openai_api_key: '',
     gemini_api_key: '',
+    announcement_enabled: false,
+    announcement_title: { vi: '', en: '', ja: '' },
+    announcement_message: { vi: '', en: '', ja: '' },
+    announcement_cta_text: { vi: '', en: '', ja: '' },
+    announcement_cta_link: '',
+    announcement_reappear_hours: 1,
   });
 
   useEffect(() => {
@@ -103,6 +115,12 @@ export default function AdminSettingsPage() {
         google_site_verification: settings.google_site_verification?.value || '',
         openai_api_key: settings.openai_api_key?.value || '',
         gemini_api_key: settings.gemini_api_key?.value || '',
+        announcement_enabled: settings.announcement_enabled?.value === 'true' || false,
+        announcement_title: migrateObjectToLocale(settings.announcement_title?.value || ''),
+        announcement_message: migrateObjectToLocale(settings.announcement_message?.value || ''),
+        announcement_cta_text: migrateObjectToLocale(settings.announcement_cta_text?.value || ''),
+        announcement_cta_link: settings.announcement_cta_link?.value || '',
+        announcement_reappear_hours: parseInt(settings.announcement_reappear_hours?.value || '1', 10),
       });
     } catch (error: any) {
       // Silently fail
@@ -135,6 +153,12 @@ export default function AdminSettingsPage() {
         google_site_verification: generalSettings.google_site_verification,
         openai_api_key: generalSettings.openai_api_key,
         gemini_api_key: generalSettings.gemini_api_key,
+        announcement_enabled: generalSettings.announcement_enabled ? 'true' : 'false',
+        announcement_title: typeof generalSettings.announcement_title === 'string' ? generalSettings.announcement_title : JSON.stringify(generalSettings.announcement_title),
+        announcement_message: typeof generalSettings.announcement_message === 'string' ? generalSettings.announcement_message : JSON.stringify(generalSettings.announcement_message),
+        announcement_cta_text: typeof generalSettings.announcement_cta_text === 'string' ? generalSettings.announcement_cta_text : JSON.stringify(generalSettings.announcement_cta_text),
+        announcement_cta_link: generalSettings.announcement_cta_link,
+        announcement_reappear_hours: generalSettings.announcement_reappear_hours.toString(),
       };
       
       await updateSettings(settingsToSave);
@@ -479,6 +503,106 @@ export default function AdminSettingsPage() {
                         <strong>Lưu ý:</strong> API keys sẽ được lưu trong database và sử dụng cho dịch thuật tự động. 
                         Đảm bảo API keys có đủ quota và quyền truy cập.
                       </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t">
+                    <Label className="text-base font-semibold">Announcement Bar (Thanh thông báo)</Label>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Bật Announcement Bar</Label>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Hiển thị thanh thông báo ở đầu trang với nội dung khuyến mãi hoặc thông báo quan trọng
+                          </p>
+                        </div>
+                        <Switch
+                          checked={generalSettings.announcement_enabled}
+                          onCheckedChange={(checked) => 
+                            setGeneralSettings({ ...generalSettings, announcement_enabled: checked })
+                          }
+                        />
+                      </div>
+
+                      {generalSettings.announcement_enabled && (
+                        <div className="space-y-4 pt-4 border-t border-blue-200">
+                          <div className="space-y-2">
+                            <LocaleInput
+                              label="Tiêu đề"
+                              value={getLocaleValue(generalSettings, 'announcement_title')}
+                              onChange={(value) => {
+                                const updated = setLocaleValue(generalSettings, 'announcement_title', value);
+                                setGeneralSettings(updated as GeneralSettings);
+                              }}
+                              placeholder="Khuyến mãi đặc biệt"
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <LocaleInput
+                              label="Nội dung thông báo"
+                              value={getLocaleValue(generalSettings, 'announcement_message')}
+                              onChange={(value) => {
+                                const updated = setLocaleValue(generalSettings, 'announcement_message', value);
+                                setGeneralSettings(updated as GeneralSettings);
+                              }}
+                              placeholder="Giảm 20% cho khách hàng mới đăng ký tư vấn trong tháng 12!"
+                              multiline={true}
+                              defaultLocale={globalLocale}
+                              aiProvider={aiProvider}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <LocaleInput
+                                label="Text nút CTA"
+                                value={getLocaleValue(generalSettings, 'announcement_cta_text')}
+                                onChange={(value) => {
+                                  const updated = setLocaleValue(generalSettings, 'announcement_cta_text', value);
+                                  setGeneralSettings(updated as GeneralSettings);
+                                }}
+                                placeholder="Nhận ưu đãi"
+                                defaultLocale={globalLocale}
+                                aiProvider={aiProvider}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="announcement_cta_link">Link CTA</Label>
+                              <Input
+                                id="announcement_cta_link"
+                                value={generalSettings.announcement_cta_link}
+                                onChange={(e) => setGeneralSettings({ ...generalSettings, announcement_cta_link: e.target.value })}
+                                placeholder="/contact hoặc /vi/contact"
+                              />
+                              <p className="text-xs text-gray-500">
+                                Đường dẫn khi click vào nút CTA (có thể dùng /contact hoặc /vi/contact)
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="announcement_reappear_hours">Thời gian hiển thị lại (giờ)</Label>
+                            <Input
+                              id="announcement_reappear_hours"
+                              type="number"
+                              min="1"
+                              max="168"
+                              value={generalSettings.announcement_reappear_hours}
+                              onChange={(e) => setGeneralSettings({ 
+                                ...generalSettings, 
+                                announcement_reappear_hours: parseInt(e.target.value) || 1 
+                              })}
+                              placeholder="1"
+                            />
+                            <p className="text-xs text-gray-500">
+                              Sau khi người dùng đóng thông báo, sẽ tự động hiển thị lại sau số giờ này (mặc định: 1 giờ)
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

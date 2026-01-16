@@ -1294,7 +1294,7 @@ export default function AdminProductsPage() {
       </td>
       <td className="p-2 align-middle">
         <Badge variant="outline">
-          {typeof product.category === 'string' ? product.category : getLocalizedText(product.category, globalLocale) || "Chưa phân loại"}
+          {getLocalizedText(product.category, globalLocale) || "Chưa phân loại"}
         </Badge>
       </td>
       <td className="p-2 text-sm text-muted-foreground align-middle">

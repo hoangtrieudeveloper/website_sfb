@@ -227,9 +227,25 @@ export function migrateObjectToLocale(obj: any): any {
   }
   
   if (typeof obj === 'string') {
-    // Nếu là string và có thể dịch được, convert thành locale object
-    // Nhưng không có context về field name, nên giữ nguyên string
-    // Chỉ normalize khi có context (trong object)
+    // Thử parse JSON string thành locale object
+    try {
+      const parsed = JSON.parse(obj);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        // Kiểm tra xem có phải là locale object không (có các key vi, en, ja)
+        const hasLocaleKeys = 'vi' in parsed || 'en' in parsed || 'ja' in parsed;
+        if (hasLocaleKeys) {
+          // Parse thành locale object với đầy đủ các key
+          return {
+            vi: parsed.vi || '',
+            en: parsed.en || '',
+            ja: parsed.ja || '',
+          };
+        }
+      }
+    } catch (e) {
+      // Không phải JSON string, giữ nguyên string
+    }
+    // Nếu không parse được hoặc không phải locale object, giữ nguyên string
     return obj;
   }
   

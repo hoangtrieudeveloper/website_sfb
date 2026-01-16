@@ -91,10 +91,21 @@ CREATE TABLE IF NOT EXISTS news_categories (
 
 CREATE INDEX IF NOT EXISTS idx_news_categories_parent_code ON news_categories(parent_code);
 
--- Migration: Migrate dữ liệu cũ sang format locale object
+-- Migration: Cập nhật news_categories hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
 DO $$
 BEGIN
-  -- Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
+  -- Bước 1: Thay đổi kiểu dữ liệu của cột name từ VARCHAR(255) sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news_categories' 
+    AND column_name = 'name' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news_categories ALTER COLUMN name TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
   -- Nếu name là string thông thường (không phải JSON), chuyển thành {"vi": "value"}
   UPDATE news_categories
   SET 
@@ -164,10 +175,48 @@ CREATE INDEX IF NOT EXISTS idx_news_category_id ON news(category_id);
 CREATE INDEX IF NOT EXISTS idx_news_slug ON news(slug);
 CREATE INDEX IF NOT EXISTS idx_news_published_date ON news(published_date);
 
--- Migration: Migrate dữ liệu cũ sang format locale object
+-- Migration: Cập nhật news hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
 DO $$
 BEGIN
-  -- Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
+  -- Bước 1: Thay đổi kiểu dữ liệu các cột từ VARCHAR sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN title TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'author' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN author TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'read_time' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN read_time TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'news' 
+    AND column_name = 'seo_title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE news ALTER COLUMN seo_title TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
   UPDATE news
   SET 
     title = CASE 
@@ -339,9 +388,19 @@ CREATE TRIGGER update_menus_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Migration: Migrate existing data to locale object format
+-- Migration: Convert title from VARCHAR to TEXT and migrate existing data to locale object format
 DO $$
 BEGIN
+  -- Alter column type if it's still VARCHAR
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'menus' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE menus ALTER COLUMN title TYPE TEXT;
+  END IF;
+
   -- Migrate existing string data to JSON locale object format
   UPDATE menus
   SET title = json_build_object(
@@ -505,10 +564,21 @@ CREATE INDEX IF NOT EXISTS idx_product_categories_slug ON product_categories(slu
 CREATE INDEX IF NOT EXISTS idx_product_categories_active ON product_categories(is_active);
 CREATE INDEX IF NOT EXISTS idx_product_categories_sort ON product_categories(sort_order);
 
--- Migration: Migrate dữ liệu cũ sang format locale object
+-- Migration: Cập nhật product_categories hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
 DO $$
 BEGIN
-  -- Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
+  -- Bước 1: Thay đổi kiểu dữ liệu của cột name từ VARCHAR(255) sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'product_categories' 
+    AND column_name = 'name' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE product_categories ALTER COLUMN name TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ: chuyển các giá trị string thành locale object
   UPDATE product_categories
   SET 
     name = CASE 
@@ -559,10 +629,31 @@ CREATE TABLE IF NOT EXISTS products (
   sort_order INTEGER DEFAULT 0,
   is_featured BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
-  published_at TIMESTAMP NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Bổ sung cột thời gian xuất bản (published_at) cho products (nếu chưa tồn tại)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'products' AND column_name = 'published_at'
+  ) THEN
+    ALTER TABLE products ADD COLUMN published_at TIMESTAMP NULL;
+  END IF;
+END $$;
+
+-- Bổ sung cột demo_link_type cho products (nếu chưa tồn tại)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'products' AND column_name = 'demo_link_type'
+  ) THEN
+    ALTER TABLE products ADD COLUMN demo_link_type VARCHAR(20) DEFAULT 'link';
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
@@ -642,6 +733,17 @@ CREATE TABLE IF NOT EXISTS product_details (
 
 CREATE INDEX IF NOT EXISTS idx_product_details_product_id ON product_details(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_details_slug ON product_details(slug);
+
+-- Bổ sung cột hero_image_detail cho product_details (nếu chưa tồn tại)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'product_details' AND column_name = 'hero_image_detail'
+  ) THEN
+    ALTER TABLE product_details DROP COLUMN hero_image_detail;
+  END IF;
+END $$;
 
 -- Trigger cập nhật updated_at cho product_details
 DROP TRIGGER IF EXISTS update_product_details_updated_at ON product_details;
@@ -1183,10 +1285,30 @@ CREATE TRIGGER update_testimonials_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Migration: Migrate dữ liệu cũ sang format locale object
+-- Migration: Cập nhật testimonials hỗ trợ đa ngôn ngữ
+-- Chuyển đổi kiểu dữ liệu và migrate dữ liệu cũ sang format locale object
 DO $$
 BEGIN
-  -- Migrate dữ liệu cũ sang locale object
+  -- Bước 1: Thay đổi kiểu dữ liệu của các cột author, company sang TEXT (nếu chưa phải TEXT)
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'testimonials'
+      AND column_name = 'author'
+      AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE testimonials ALTER COLUMN author TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'testimonials'
+      AND column_name = 'company'
+      AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE testimonials ALTER COLUMN company TYPE TEXT;
+  END IF;
+
+  -- Bước 2: Migrate dữ liệu cũ sang locale object
   UPDATE testimonials
   SET
     quote = CASE
@@ -1280,7 +1402,7 @@ ON CONFLICT (role_id, permission_id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS industries (
   id SERIAL PRIMARY KEY,
   icon_name VARCHAR(100),                    -- Tên icon từ lucide-react (ví dụ: "Code2", "MonitorSmartphone")
-  title TEXT NOT NULL,                       -- Tiêu đề lĩnh vực (Lưu JSON string cho đa ngôn ngữ: {"vi":"...","en":"...","ja":"..."})
+  title VARCHAR(255) NOT NULL,              -- Tiêu đề lĩnh vực
   short TEXT,                                -- Mô tả ngắn
   points JSONB DEFAULT '[]'::jsonb,          -- Mảng các điểm nổi bật (ví dụ: ["Điểm 1", "Điểm 2"])
   gradient VARCHAR(255),                     -- Tailwind gradient class (ví dụ: "from-blue-500 to-cyan-500")
@@ -1293,9 +1415,19 @@ CREATE TABLE IF NOT EXISTS industries (
 CREATE INDEX IF NOT EXISTS idx_industries_active ON industries(is_active);
 CREATE INDEX IF NOT EXISTS idx_industries_sort ON industries(sort_order);
 
--- Migration: Migrate existing data to locale object format
+-- Migration: Convert title from VARCHAR to TEXT and migrate existing data to locale object format
 DO $$
 BEGIN
+  -- Alter column type if it's still VARCHAR
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'industries' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE industries ALTER COLUMN title TYPE TEXT;
+  END IF;
+
   -- Migrate existing string data to JSON locale object format
   UPDATE industries
   SET title = json_build_object(
@@ -2677,9 +2809,45 @@ CREATE TRIGGER update_seo_pages_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Migration: Migrate existing data to locale object format
+-- Migration: Convert title, description, keywords, og_title, og_description, twitter_title, twitter_description from VARCHAR to TEXT and migrate existing data to locale object format
 DO $$
 BEGIN
+  -- Alter column types if they are still VARCHAR
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'seo_pages' 
+    AND column_name = 'title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE seo_pages ALTER COLUMN title TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'seo_pages' 
+    AND column_name = 'og_title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE seo_pages ALTER COLUMN og_title TYPE TEXT;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'seo_pages' 
+    AND column_name = 'twitter_title' 
+    AND data_type = 'character varying'
+  ) THEN
+    ALTER TABLE seo_pages ALTER COLUMN twitter_title TYPE TEXT;
+  END IF;
+
+  -- Bổ sung cột image cho seo_pages (nếu chưa tồn tại)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'seo_pages' AND column_name = 'image'
+  ) THEN
+    ALTER TABLE seo_pages ADD COLUMN image TEXT NULL;
+  END IF;
+
   -- Migrate existing string data to JSON locale object format
   UPDATE seo_pages
   SET 
