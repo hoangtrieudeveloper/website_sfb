@@ -259,7 +259,17 @@ export default function MediaUpload({
                   Chọn từ thư viện
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl h-[600px] flex flex-col">
+              <DialogContent
+                style={{
+                  maxWidth: "1100px",
+                  width: "1100px",
+                  maxHeight: "80vh",
+                  height: "80vh",
+                  display: "flex",
+                  flexDirection: "column",
+                  overflowY: "auto"
+                }}
+              >
                 <DialogHeader>
                   <DialogTitle>Chọn Media từ Thư viện</DialogTitle>
                 </DialogHeader>

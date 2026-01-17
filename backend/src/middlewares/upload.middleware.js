@@ -68,10 +68,11 @@ const fileFilter = (req, file, cb) => {
 };
 
 // Cấu hình multer cho media library
+// Giới hạn 50MB để hỗ trợ video (ảnh và audio vẫn có thể upload nhỏ hơn)
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 50 * 1024 * 1024, // 50MB (để hỗ trợ video)
   },
   fileFilter: fileFilter,
 });
@@ -108,9 +109,15 @@ const uploadNewsSingle = newsUpload.single('file');
 const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
+      // Kiểm tra loại file để hiển thị thông báo phù hợp
+      const file = req.file || (req.files && req.files[0]);
+      const isVideo = file && (file.mimetype?.startsWith('video/') || /mp4|webm|ogg/i.test(file.originalname));
+      
       return res.status(400).json({
         success: false,
-        message: 'File quá lớn. Kích thước tối đa là 10MB',
+        message: isVideo 
+          ? 'File video quá lớn. Kích thước tối đa là 50MB'
+          : 'File quá lớn. Kích thước tối đa là 50MB',
       });
     }
     return res.status(400).json({

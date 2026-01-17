@@ -247,6 +247,18 @@ const MediaLibraryPage: React.FC = () => {
       return;
     }
 
+    // Kiểm tra kích thước file video (giới hạn 50MB)
+    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+    const oversizedVideos = fileArray.filter(file => 
+      file.type.startsWith('video/') && file.size > MAX_VIDEO_SIZE
+    );
+
+    if (oversizedVideos.length > 0) {
+      const fileNames = oversizedVideos.map(f => `"${f.name}" (${formatFileSize(f.size)})`).join(', ');
+      toast.error(`File video vượt quá giới hạn 50MB: ${fileNames}`);
+      return;
+    }
+
     try {
       setUploading(true);
       if (fileArray.length === 1) {
@@ -924,7 +936,7 @@ const MediaLibraryPage: React.FC = () => {
             />
             {uploading && <div className="text-sm text-gray-500">Đang upload...</div>}
             <p className="text-xs text-gray-500">
-              Chỉ chấp nhận file ảnh, video và audio. Tối đa 6 file cùng lúc.
+              Chỉ chấp nhận file ảnh, video và audio. Tối đa 6 file cùng lúc. Video giới hạn 50MB.
             </p>
           </div>
           <DialogFooter>
