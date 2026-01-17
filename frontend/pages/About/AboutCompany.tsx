@@ -153,7 +153,7 @@ export function AboutCompany({ data, locale: propLocale }: AboutCompanyProps) {
                                             <div className="flex flex-col justify-center min-h-[40px]">
                                                 {item.isHighlight ? (
                                                     <h4 className="self-stretch font-bold text-gray-900 text-sm sm:text-base lg:text-[20px] lg:font-semibold lg:text-[#0F172A] lg:leading-[30px] lg:font-['Plus_Jakarta_Sans'] [font-feature-settings:'liga'_off,'clig'_off] break-words leading-relaxed">
-                                                        {itemTitle}: <span className="font-normal text-gray-600 lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">{itemTitle}</span>
+                                                        {itemTitle}: <span className="font-normal text-gray-600 lg:text-[#0F172A] lg:text-[16px] lg:leading-[26px] lg:font-normal lg:font-['Plus_Jakarta_Sans']">{itemText}</span>
                                                     </h4>
                                                 ) : (
                                                     <>

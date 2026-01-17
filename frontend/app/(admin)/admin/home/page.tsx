@@ -3057,19 +3057,20 @@ export default function AdminHomepagePage() {
             const review = reviews[editingTestimonialIndex] || { id: reviews.length + 1, quote: '', author: '', rating: 5 };
             return (
               <div className="space-y-4 py-4">
-                <div>
-                  <Label className="mb-2">Tác giả</Label>
-                  <Input
-                    value={review.author || ''}
-                    onChange={(e) => {
-                      const newReviews = [...reviews];
-                      if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
-                      newReviews[editingTestimonialIndex].author = e.target.value;
-                      updateBlockData('testimonials', 'reviews', newReviews);
-                    }}
-                    placeholder="Ông Nguyễn Văn A"
-                  />
-                </div>
+                <LocaleInput
+                  value={getLocaleValue(review, 'author')}
+                  onChange={(value) => {
+                    const newReviews = [...reviews];
+                    if (!newReviews[editingTestimonialIndex]) newReviews[editingTestimonialIndex] = {};
+                    const updatedReview = setLocaleValue(newReviews[editingTestimonialIndex], 'author', value);
+                    newReviews[editingTestimonialIndex] = updatedReview;
+                    updateBlockData('testimonials', 'reviews', newReviews);
+                  }}
+                  label="Tác giả"
+                  placeholder="Ông Nguyễn Văn A"
+                  defaultLocale={globalLocale}
+                  aiProvider={aiProvider}
+                />
                 <LocaleInput
                   value={getLocaleValue(review, 'quote')}
                   onChange={(value) => {

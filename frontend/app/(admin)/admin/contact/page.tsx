@@ -94,8 +94,9 @@ interface FormData {
 
 interface OfficeItem {
   id?: number;
-  city: string;
-  address: string;
+  title?: string | Record<Locale, string>;
+  city: string | Record<Locale, string>;
+  address: string | Record<Locale, string>;
   phone: string;
   email: string;
   sortOrder: number;
@@ -123,6 +124,7 @@ interface SidebarData {
     };
   };
   offices: OfficeItem[];
+  officesTitle?: string | Record<Locale, string>;
   socials: SocialItem[];
   isActive: boolean;
 }
@@ -216,6 +218,7 @@ export default function AdminContactPage() {
       },
     },
     offices: [],
+    officesTitle: "",
     socials: [],
     isActive: true,
   });
@@ -361,10 +364,10 @@ export default function AdminContactPage() {
             }
           };
         }
-        // Normalize offices và socials - giữ nguyên các field không cần dịch
+        // Normalize offices và socials - city và address hỗ trợ locale, phone và email giữ nguyên string
         if (normalizedSidebar.offices && Array.isArray(normalizedSidebar.offices)) {
           normalizedSidebar.offices = normalizedSidebar.offices.map((office: any) => {
-            // Đảm bảo city, address, phone, email là string, không phải locale object
+            // Đảm bảo phone và email là string
             const getStringValue = (value: any): string => {
               if (typeof value === 'string') return value;
               if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
@@ -376,8 +379,9 @@ export default function AdminContactPage() {
             };
             return {
               ...office,
-              city: getStringValue(office.city),
-              address: getStringValue(office.address),
+              title: office.title ? migrateObjectToLocale(office.title) : undefined,
+              city: migrateObjectToLocale(office.city || ''),
+              address: migrateObjectToLocale(office.address || ''),
               phone: getStringValue(office.phone),
               email: getStringValue(office.email),
               sortOrder: office.sortOrder ?? 0,
@@ -580,6 +584,7 @@ export default function AdminContactPage() {
   // Office handlers
   const handleAddOffice = () => {
     const newItem: OfficeItem = {
+      title: "",
       city: "",
       address: "",
       phone: "",
@@ -945,7 +950,14 @@ export default function AdminContactPage() {
             },
           },
         },
-        offices: sidebarData.offices.filter(item => item.isActive),
+        offices: sidebarData.offices
+          .filter((item: OfficeItem) => item.isActive)
+          .map((item: OfficeItem) => ({
+            ...item,
+            title: item.title ? getLocalizedText(item.title, globalLocale) : undefined,
+            city: getLocalizedText(item.city, globalLocale),
+            address: getLocalizedText(item.address, globalLocale),
+          })),
         socials: sidebarData.socials
           .filter(item => item.isActive)
           .map(item => ({
@@ -2167,8 +2179,11 @@ export default function AdminContactPage() {
                         <CardContent className="pt-6">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p><strong>{office.city}</strong></p>
-                              <p className="text-sm text-gray-600">{office.address}</p>
+                              {office.title && (
+                                <p className="text-xs text-blue-600 mb-1">{getLocalizedText(office.title, globalLocale)}</p>
+                              )}
+                              <p><strong>{getLocalizedText(office.city, globalLocale)}</strong></p>
+                              <p className="text-sm text-gray-600">{getLocalizedText(office.address, globalLocale)}</p>
                             </div>
                             <div className="flex gap-2">
                               <Button onClick={() => handleEditOffice(index)} size="sm" variant="outline">
@@ -2235,21 +2250,40 @@ export default function AdminContactPage() {
                   </DialogHeader>
                   {officeFormData && (
                     <div className="space-y-4">
-                      <div>
-                        <Label>City</Label>
-                        <Input
-                          value={officeFormData.city}
-                          onChange={(e) => setOfficeFormData({ ...officeFormData, city: e.target.value })}
-                        />
-                      </div>
-                      <div>
-                        <Label>Address</Label>
-                        <Textarea
-                          value={officeFormData.address}
-                          onChange={(e) => setOfficeFormData({ ...officeFormData, address: e.target.value })}
-                          rows={2}
-                        />
-                      </div>
+                      <LocaleInput
+                        value={getLocaleValue(officeFormData, 'title')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(officeFormData, 'title', value);
+                          setOfficeFormData(updated);
+                        }}
+                        label="Tiêu đề"
+                        placeholder="Văn phòng chi nhánh"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
+                      />
+                      <LocaleInput
+                        value={getLocaleValue(officeFormData, 'city')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(officeFormData, 'city', value);
+                          setOfficeFormData(updated);
+                        }}
+                        label="City"
+                        placeholder="Hà Nội"
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
+                      />
+                      <LocaleInput
+                        value={getLocaleValue(officeFormData, 'address')}
+                        onChange={(value) => {
+                          const updated = setLocaleValue(officeFormData, 'address', value);
+                          setOfficeFormData(updated);
+                        }}
+                        label="Address"
+                        placeholder="Địa chỉ..."
+                        multiline={true}
+                        defaultLocale={globalLocale}
+                        aiProvider={aiProvider}
+                      />
                       <div>
                         <Label>Phone</Label>
                         <Input

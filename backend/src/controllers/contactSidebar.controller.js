@@ -47,6 +47,7 @@ exports.getSidebar = async (req, res, next) => {
           const itemData = item.data || {};
           return {
             id: item.id,
+            title: itemData.title || '',
             city: itemData.city || '',
             address: itemData.address || '',
             phone: itemData.phone || '',
@@ -121,6 +122,7 @@ exports.updateSidebar = async (req, res, next) => {
       for (let i = 0; i < offices.length; i++) {
         const office = offices[i];
         const itemData = {
+          title: office.title || '',
           city: office.city || '',
           address: office.address || '',
           phone: office.phone || '',
@@ -173,6 +175,7 @@ exports.updateSidebar = async (req, res, next) => {
           const itemData = item.data || {};
           return {
             id: item.id,
+            title: itemData.title || '',
             city: itemData.city || '',
             address: itemData.address || '',
             phone: itemData.phone || '',

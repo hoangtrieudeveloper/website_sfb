@@ -5,16 +5,26 @@ import { Phone, Calendar, MapPin, Mail } from 'lucide-react';
 import { contactSidebarData } from './data';
 import { AppointmentModal } from './AppointmentModal';
 import * as LucideIcons from "lucide-react";
+import { useLocale } from "@/lib/contexts/LocaleContext";
+import { getLocalizedText } from "@/lib/utils/i18n";
 
 interface ContactSidebarProps {
     data?: {
         quickActions?: any;
         offices?: Array<{
-            city?: string;
-            address?: string;
+            city?: string | Record<'vi' | 'en' | 'ja', string>;
+            address?: string | Record<'vi' | 'en' | 'ja', string>;
             phone?: string;
             email?: string;
-        }>;
+        }> | {
+            title?: string | Record<'vi' | 'en' | 'ja', string>;
+            items?: Array<{
+                city?: string | Record<'vi' | 'en' | 'ja', string>;
+                address?: string | Record<'vi' | 'en' | 'ja', string>;
+                phone?: string;
+                email?: string;
+            }>;
+        };
         socials?: Array<{
             iconName?: string;
             href?: string;
@@ -25,6 +35,7 @@ interface ContactSidebarProps {
 }
 
 export function ContactSidebar({ data }: ContactSidebarProps = {}) {
+    const { locale } = useLocale();
     const sidebarConfig = data || contactSidebarData;
     const { quickActions, offices: officesData, socials: socialsData } = sidebarConfig;
 
@@ -87,16 +98,24 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
             </div>
 
             {/* Office Locations */}
-            {offices.map((office: any, idx: number) => (
+            {offices && offices.length > 0 && offices.map((office: any, idx: number) => {
+                const officeCity = typeof office.city === 'string' ? office.city : getLocalizedText(office.city, locale);
+                const officeAddress = typeof office.address === 'string' ? office.address : getLocalizedText(office.address, locale);
+                const officeTitle = office.title 
+                    ? (typeof office.title === 'string' ? office.title : getLocalizedText(office.title, locale))
+                    : officesTitle 
+                        ? (typeof officesTitle === 'string' ? officesTitle : getLocalizedText(officesTitle, locale))
+                        : undefined;
+                return (
                 <div key={idx} className="bg-gray-50 rounded-3xl p-6 sm:p-10 border border-gray-100">
-                    <h3 className="text-gray-900 mb-6">{officesTitle}</h3>
+                    {officeTitle && <h3 className="text-gray-900 mb-6">{officeTitle}</h3>}
                     <div className="space-y-6">
                         <div className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
-                            <div className="font-semibold text-gray-900 mb-3">{office.city}</div>
+                            <div className="font-semibold text-gray-900 mb-3">{officeCity}</div>
                             <div className="space-y-2 text-sm text-gray-600">
                                 <div className="flex items-start gap-2">
                                     <MapPin className="flex-shrink-0 mt-0.5" size={16} />
-                                    <span>{office.address}</span>
+                                    <span>{officeAddress}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Phone className="flex-shrink-0" size={16} />
@@ -114,7 +133,8 @@ export function ContactSidebar({ data }: ContactSidebarProps = {}) {
                         </div>
                     </div>
                 </div>
-            ))}
+                );
+            })}
             {/* Social Media */}
             <div className="bg-white rounded-3xl p-6 sm:p-10 border-2 border-gray-100">
                 <h4 className="text-gray-900 mb-6">{socialsTitle}</h4>

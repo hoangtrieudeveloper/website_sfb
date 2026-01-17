@@ -71,6 +71,7 @@ exports.getContact = async (req, res, next) => {
           offices: offices.map(item => {
             const itemData = item.data || {};
             return {
+              title: itemData.title || '',
               city: itemData.city || '',
               address: itemData.address || '',
               phone: itemData.phone || '',
