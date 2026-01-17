@@ -37,10 +37,10 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
     return (
         <section className="w-full max-w-[100vw] overflow-hidden">
             <div className="bg-[linear-gradient(31deg,#0870B4_51.21%,#2EABE2_97.73%)]">
-                <div className="mx-auto w-full max-w-[1400px] px-6 lg:px-[120px] pb-[60px] pt-[100px] sm:py-[110px] lg:py-[127.5px] min-[1920px]:py-0">
-                    <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-[56px] min-[1920px]:gap-[98px] min-[1920px]:h-[760px]">
+                <div className="mx-auto w-full max-w-[1400px] px-6 lg:px-10 xl:px-[120px] pb-[60px] pt-[100px] sm:py-[110px] lg:py-[127.5px] min-[1920px]:py-0">
+                    <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-10 xl:gap-[56px] min-[1920px]:gap-[98px] min-[1920px]:h-[760px]">
                         {/* LEFT */}
-                        <div className="text-white flex flex-col items-start gap-[29px] w-full lg:w-[543px] lg:shrink-0 max-w-full min-w-0">
+                        <div className="text-white flex flex-col items-start gap-[29px] w-full lg:flex-1 xl:w-[543px] xl:flex-none max-w-full min-w-0">
                             <Link
                                 href="/products"
                                 className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white text-[#0B78B8] text-xs sm:text-sm font-semibold shadow-sm hover:bg-white/90 transition-all group -mb-1 sm:-mb-2"
@@ -57,7 +57,7 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                             </div>
 
                             <h1
-                                className="text-[32px] sm:text-[44px] lg:text-[56px] leading-[normal] font-extrabold w-full break-words"
+                                className="text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.1] font-extrabold w-full break-words"
                                 style={{ fontFeatureSettings: "'liga' off, 'clig' off" }}
                             >
                                 {product.name}
@@ -104,9 +104,9 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                         </div>
 
                         {/* RIGHT (Ảnh/Video đúng kích thước Figma) */}
-                        <div className="w-full lg:w-auto shrink-0 flex justify-center lg:justify-center min-w-0 max-w-full">
+                        <div className="w-full lg:w-[450px] xl:w-auto shrink-0 flex justify-center lg:justify-center min-w-0 max-w-full">
                             <div
-                                className="w-full max-w-[620px] aspect-[701/511] lg:w-[620px] lg:h-[500px] rounded-[24px] border-[6px] lg:border-[10px] border-white bg-white
+                                className="w-full max-w-[620px] aspect-[701/511] lg:w-full lg:h-auto xl:w-[620px] xl:h-[500px] rounded-[24px] border-[6px] lg:border-[10px] border-white bg-white
                           shadow-[0_18px_36px_rgba(15,23,42,0.12)] overflow-hidden relative box-border"
                             >
                                 {(() => {
