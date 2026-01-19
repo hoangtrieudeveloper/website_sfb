@@ -8,6 +8,13 @@ type Locale = typeof LOCALES[number];
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Rewrite /{locale}/robots.txt -> /robots.txt (Next chỉ tạo robots.txt ở root)
+  if (pathname.match(/^\/(vi|en|ja)\/robots\.txt$/)) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/robots.txt";
+    return NextResponse.rewrite(url);
+  }
+
   // Bảo vệ tất cả route /admin (trừ /admin/login)
   if (pathname.startsWith("/admin")) {
     const token = req.cookies.get("cms_sfb_token")?.value;
