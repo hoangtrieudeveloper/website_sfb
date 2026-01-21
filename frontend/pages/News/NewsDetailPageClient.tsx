@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Calendar,
   ChevronRight,
@@ -78,23 +78,6 @@ export function NewsDetailPageClient({
 
   const [linkCopied, setLinkCopied] = useState(false);
   const [supportsWebShare, setSupportsWebShare] = useState(false);
-  const [imageRatio, setImageRatio] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleImageLoad = (e: any) => {
-    const { naturalWidth, naturalHeight } = e.target;
-    if (naturalHeight > 0) {
-      setImageRatio(naturalWidth / naturalHeight);
-    }
-  };
-
-  useEffect(() => {
-    // Check if image is already loaded (cached)
-    const img = containerRef.current?.querySelector("img");
-    if (img && img.complete && img.naturalHeight > 0) {
-      setImageRatio(img.naturalWidth / img.naturalHeight);
-    }
-  }, []);
 
   // Localize article fields - getLocalizedText now handles JSON strings automatically
   const articleTitle = getLocalizedText(article.title, locale);
@@ -308,25 +291,19 @@ export function NewsDetailPageClient({
           </nav>
 
           {/* Banner image */}
-          <div
-            ref={containerRef}
-            className="w-full md:w-4/5 md:mx-auto rounded-2xl overflow-hidden bg-white relative"
-            style={{ backgroundColor: '#ffffff' }}
-          >
+          <div className="w-full rounded-2xl overflow-hidden bg-gray-100 relative h-[220px] md:h-[420px]">
             <ImageWithFallback
               src={featuredImageSrc}
               alt={articleTitle}
-              className={`w-full ${imageRatio !== null && imageRatio < 1.34
-                ? "aspect-video object-cover"
-                : "h-auto"
-                }`}
-              onLoad={handleImageLoad}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               loading="lazy"
+              objectFit="cover"
             />
           </div>
 
           {/* Title + meta */}
-          <div className="mt-10 w-full md:w-4/5 md:mx-auto">
+          <div className="mt-10">
             {/* Row 1: Like/Share (left) + share icons (right) */}
             {enableShareButtons && (
               <div className="flex items-center justify-between gap-4">
@@ -485,62 +462,60 @@ export function NewsDetailPageClient({
       {/* Main Content */}
       <section className="pb-20 bg-white">
         <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
-          <div className="w-full md:w-4/5 md:mx-auto">
-            {/* Gallery phía trên nội dung nếu chọn TOP */}
-            {galleryImages.length > 0 && galleryPosition === "top" && (
-              <div className="mb-8">
-                <NewsGallerySlider
-                  images={galleryImages}
-                  title={galleryTitle || undefined}
-                />
-              </div>
-            )}
-
-            {/* Table of Contents */}
-            {showTableOfContents && (
-              <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm font-semibold text-gray-900 mb-2">Mục lục</p>
-                {tocItems.length > 0 ? (
-                  <ol className="space-y-1 text-sm text-blue-700">
-                    {tocItems.map((item) => (
-                      <li
-                        key={item.id}
-                        className={item.level === 3 ? "pl-4 text-blue-600" : ""}
-                      >
-                        <a href={`#${item.id}`} className="hover:underline">
-                          {item.text}
-                        </a>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="text-xs text-gray-500">
-                    Chưa có tiêu đề
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div>
-              <div className="prose prose-lg max-w-none">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: processedHtml,
-                  }}
-                />
-              </div>
+          {/* Gallery phía trên nội dung nếu chọn TOP */}
+          {galleryImages.length > 0 && galleryPosition === "top" && (
+            <div className="mb-8">
+              <NewsGallerySlider
+                images={galleryImages}
+                title={galleryTitle || undefined}
+              />
             </div>
+          )}
 
-            {/* Gallery phía dưới nội dung nếu chọn BOTTOM */}
-            {galleryImages.length > 0 && galleryPosition === "bottom" && (
-              <div className="mt-10">
-                <NewsGallerySlider
-                  images={galleryImages}
-                  title={galleryTitle || undefined}
-                />
-              </div>
-            )}
+          {/* Table of Contents */}
+          {showTableOfContents && (
+            <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <p className="text-sm font-semibold text-gray-900 mb-2">Mục lục</p>
+              {tocItems.length > 0 ? (
+                <ol className="space-y-1 text-sm text-blue-700">
+                  {tocItems.map((item) => (
+                    <li
+                      key={item.id}
+                      className={item.level === 3 ? "pl-4 text-blue-600" : ""}
+                    >
+                      <a href={`#${item.id}`} className="hover:underline">
+                        {item.text}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Chưa có tiêu đề
+                </p>
+              )}
+            </div>
+          )}
+
+          <div>
+            <div className="prose prose-lg max-w-none">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: processedHtml,
+                }}
+              />
+            </div>
           </div>
+
+          {/* Gallery phía dưới nội dung nếu chọn BOTTOM */}
+          {galleryImages.length > 0 && galleryPosition === "bottom" && (
+            <div className="mt-10">
+              <NewsGallerySlider
+                images={galleryImages}
+                title={galleryTitle || undefined}
+              />
+            </div>
+          )}
         </div>
       </section>
 
@@ -549,7 +524,7 @@ export function NewsDetailPageClient({
         <section className="pb-16 bg-white">
           <div className="mx-auto max-w-[1340px] px-6 2xl:px-0">
             {articleAuthor && (
-              <div className="w-full md:w-4/5 md:mx-auto rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-start gap-3 shadow-sm">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 flex items-start gap-3 shadow-sm">
                 <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
                   {articleAuthor.charAt(0).toUpperCase()}
                 </div>
