@@ -27,6 +27,12 @@ import {
   Languages,
   Sparkles,
   Loader2,
+  Indent,
+  Outdent,
+  Subscript,
+  Superscript,
+  Minus,
+  RemoveFormatting,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -664,17 +670,52 @@ export default function RichTextEditor({
         >
           <Strikethrough className="w-4 h-4" />
         </Button>
-
-        <div className="w-px h-8 bg-gray-300 mx-1" />
-
-        {/* Headings */}
         <Button
           type="button"
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => execCommand("formatBlock", "h1")}
-          title="Tiêu đề 1"
+          onClick={() => execCommand("subscript")}
+          title="Chỉ số dưới"
+        >
+          <Subscript className="w-4 h-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => execCommand("superscript")}
+          title="Chỉ số trên"
+        >
+          <Superscript className="w-4 h-4" />
+        </Button>
+
+        <div className="w-px h-8 bg-gray-300 mx-1" />
+
+        {/* Headings - Buttons riêng lẻ cho quick access */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          title="Heading 1 (Ctrl+Alt+1)"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.focus();
+              restoreSelection();
+              try {
+                document.execCommand("formatBlock", false, "h1");
+                onChange(editorRef.current.innerHTML);
+              } catch (e) {
+                console.error("Error applying h1:", e);
+              }
+            }
+          }}
         >
           <Heading1 className="w-4 h-4" />
         </Button>
@@ -683,8 +724,23 @@ export default function RichTextEditor({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => execCommand("formatBlock", "h2")}
-          title="Tiêu đề 2"
+          title="Heading 2 (Ctrl+Alt+2)"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.focus();
+              restoreSelection();
+              try {
+                document.execCommand("formatBlock", false, "h2");
+                onChange(editorRef.current.innerHTML);
+              } catch (e) {
+                console.error("Error applying h2:", e);
+              }
+            }
+          }}
         >
           <Heading2 className="w-4 h-4" />
         </Button>
@@ -693,8 +749,23 @@ export default function RichTextEditor({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => execCommand("formatBlock", "h3")}
-          title="Tiêu đề 3"
+          title="Heading 3 (Ctrl+Alt+3)"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.focus();
+              restoreSelection();
+              try {
+                document.execCommand("formatBlock", false, "h3");
+                onChange(editorRef.current.innerHTML);
+              } catch (e) {
+                console.error("Error applying h3:", e);
+              }
+            }
+          }}
         >
           <Heading3 className="w-4 h-4" />
         </Button>
@@ -703,21 +774,310 @@ export default function RichTextEditor({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => execCommand("formatBlock", "h4")}
-          title="Tiêu đề 4"
+          title="Heading 4 (Ctrl+Alt+4)"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.focus();
+              restoreSelection();
+              try {
+                document.execCommand("formatBlock", false, "h4");
+                onChange(editorRef.current.innerHTML);
+              } catch (e) {
+                console.error("Error applying h4:", e);
+              }
+            }
+          }}
         >
           <Heading4 className="w-4 h-4" />
         </Button>
+
+        {/* Normal Paragraph button */}
         <Button
           type="button"
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => execCommand("formatBlock", "p")}
-          title="Đoạn văn"
+          title="Đoạn văn thường"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveSelection();
+          }}
+          onClick={() => {
+            if (editorRef.current) {
+              editorRef.current.focus();
+              restoreSelection();
+              try {
+                document.execCommand("formatBlock", false, "p");
+                onChange(editorRef.current.innerHTML);
+              } catch (e) {
+                console.error("Error applying paragraph:", e);
+              }
+            }
+          }}
         >
           <Type className="w-4 h-4" />
         </Button>
+
+        <div className="w-px h-8 bg-gray-300 mx-1" />
+
+        {/* Font Family */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 px-2 text-xs"
+              title="Font chữ"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                saveSelection();
+              }}
+            >
+              <Type className="w-3 h-3 mr-1" />
+              Font
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56">
+            <div className="space-y-1">
+              <Label className="text-xs">Chọn font chữ</Label>
+              {[
+                { name: "Arial", value: "Arial, sans-serif" },
+                { name: "Times New Roman", value: "Times New Roman, serif" },
+                { name: "Georgia", value: "Georgia, serif" },
+                { name: "Courier New", value: "Courier New, monospace" },
+                { name: "Verdana", value: "Verdana, sans-serif" },
+                { name: "Tahoma", value: "Tahoma, sans-serif" },
+                { name: "Comic Sans MS", value: "Comic Sans MS, cursive" },
+                { name: "Impact", value: "Impact, fantasy" },
+                { name: "Trebuchet MS", value: "Trebuchet MS, sans-serif" },
+              ].map((font) => (
+                <Button
+                  key={font.value}
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-start h-auto py-2 text-sm"
+                  style={{ fontFamily: font.value }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (editorRef.current) {
+                      editorRef.current.focus();
+                      restoreSelection();
+                      
+                      const selection = window.getSelection();
+                      if (selection && selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const span = document.createElement("span");
+                        span.style.fontFamily = font.value;
+                        
+                        try {
+                          range.surroundContents(span);
+                        } catch (e) {
+                          const fragment = range.extractContents();
+                          span.appendChild(fragment);
+                          range.insertNode(span);
+                        }
+                        
+                        onChange(editorRef.current.innerHTML);
+                        setTimeout(() => saveSelection(), 0);
+                      }
+                    }
+                  }}
+                >
+                  {font.name}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Font Size */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 px-2 text-xs"
+              title="Cỡ chữ"
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevent losing focus
+                saveSelection();
+              }}
+            >
+              <Type className="w-3 h-3 mr-1" />
+              Size
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48">
+            <div className="space-y-2">
+              <Label className="text-xs">Cỡ chữ</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {[10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 64].map((size) => (
+                  <Button
+                    key={size}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      if (editorRef.current) {
+                        editorRef.current.focus();
+                        restoreSelection();
+                        
+                        const selection = window.getSelection();
+                        if (selection && selection.rangeCount > 0) {
+                          const range = selection.getRangeAt(0);
+                          const span = document.createElement("span");
+                          span.style.fontSize = `${size}px`;
+                          
+                          try {
+                            range.surroundContents(span);
+                          } catch (e) {
+                            // Nếu surroundContents fail, dùng cách khác
+                            const fragment = range.extractContents();
+                            span.appendChild(fragment);
+                            range.insertNode(span);
+                          }
+                          
+                          onChange(editorRef.current.innerHTML);
+                          
+                          // Save selection sau khi apply
+                          setTimeout(() => saveSelection(), 0);
+                        }
+                      }
+                    }}
+                  >
+                    {size}px
+                  </Button>
+                ))}
+              </div>
+              <div className="pt-2 border-t">
+                <Label className="text-xs mb-1 block">Tùy chỉnh (px)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="Size"
+                    min="8"
+                    max="200"
+                    className="h-8 text-xs"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const input = e.target as HTMLInputElement;
+                        const customSize = parseInt(input.value);
+                        
+                        if (customSize && customSize >= 8 && customSize <= 200) {
+                          if (editorRef.current) {
+                            editorRef.current.focus();
+                            restoreSelection();
+                            
+                            const selection = window.getSelection();
+                            if (selection && selection.rangeCount > 0) {
+                              const range = selection.getRangeAt(0);
+                              const span = document.createElement("span");
+                              span.style.fontSize = `${customSize}px`;
+                              
+                              try {
+                                range.surroundContents(span);
+                              } catch (e) {
+                                const fragment = range.extractContents();
+                                span.appendChild(fragment);
+                                range.insertNode(span);
+                              }
+                              
+                              onChange(editorRef.current.innerHTML);
+                              
+                              // Clear input and save selection
+                              input.value = "";
+                              setTimeout(() => saveSelection(), 0);
+                            }
+                          }
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Nhấn Enter để áp dụng (8-200)</p>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* Line Height */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 px-2 text-xs"
+              title="Khoảng cách dòng"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                saveSelection();
+              }}
+            >
+              <AlignJustify className="w-3 h-3 mr-1" />
+              Line
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48">
+            <div className="space-y-1">
+              <Label className="text-xs">Khoảng cách dòng</Label>
+              {[
+                { name: "Đơn (1.0)", value: "1" },
+                { name: "1.15", value: "1.15" },
+                { name: "1.5", value: "1.5" },
+                { name: "Đôi (2.0)", value: "2" },
+                { name: "2.5", value: "2.5" },
+                { name: "3.0", value: "3" },
+              ].map((lineHeight) => (
+                <Button
+                  key={lineHeight.value}
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-start h-auto py-2"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    if (editorRef.current) {
+                      editorRef.current.focus();
+                      restoreSelection();
+                      
+                      const selection = window.getSelection();
+                      if (selection && selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        
+                        // Tìm parent block element
+                        let parentBlock = range.commonAncestorContainer;
+                        if (parentBlock.nodeType === Node.TEXT_NODE) {
+                          parentBlock = parentBlock.parentElement!;
+                        }
+                        
+                        // Tìm block element gần nhất (p, div, h1-h6, li, etc.)
+                        while (parentBlock && parentBlock !== editorRef.current) {
+                          const tag = (parentBlock as HTMLElement).tagName?.toLowerCase();
+                          if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote'].includes(tag)) {
+                            (parentBlock as HTMLElement).style.lineHeight = lineHeight.value;
+                            break;
+                          }
+                          parentBlock = parentBlock.parentElement!;
+                        }
+                        
+                        onChange(editorRef.current.innerHTML);
+                        setTimeout(() => saveSelection(), 0);
+                      }
+                    }
+                  }}
+                >
+                  {lineHeight.name}
+                </Button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <div className="w-px h-8 bg-gray-300 mx-1" />
 
@@ -786,6 +1146,26 @@ export default function RichTextEditor({
         >
           <ListOrdered className="w-4 h-4" />
         </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => execCommand("indent")}
+          title="Thụt lề vào"
+        >
+          <Indent className="w-4 h-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => execCommand("outdent")}
+          title="Thụt lề ra"
+        >
+          <Outdent className="w-4 h-4" />
+        </Button>
 
         <div className="w-px h-8 bg-gray-300 mx-1" />
 
@@ -809,6 +1189,26 @@ export default function RichTextEditor({
           title="Code block"
         >
           <Code className="w-4 h-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => execCommand("insertHorizontalRule")}
+          title="Đường kẻ ngang"
+        >
+          <Minus className="w-4 h-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => execCommand("removeFormat")}
+          title="Xóa định dạng"
+        >
+          <RemoveFormatting className="w-4 h-4" />
         </Button>
 
         <div className="w-px h-8 bg-gray-300 mx-1" />
