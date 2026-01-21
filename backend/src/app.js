@@ -99,8 +99,14 @@ app.get('/', (req, res) => {
 // Health check route
 app.use('/api', healthRoutes);
 
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger UI - Chỉ bật trên development hoặc yêu cầu xác thực trên production
+if (process.env.NODE_ENV !== 'production') {
+  // Development: Swagger không cần auth
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+} else {
+  // Production: Swagger yêu cầu Bearer token (giống admin routes)
+  app.use('/api-docs', requireAuth, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // RESTful routes
 app.use('/api/auth', authRoutes);
