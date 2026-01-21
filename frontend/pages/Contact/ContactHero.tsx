@@ -41,17 +41,15 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
                 : heroData.image.includes("images/")
                     ? heroData.image.startsWith("/") ? heroData.image : `/${heroData.image}`
                     : `${apiBase}${heroData.image.startsWith("/") ? "" : "/"}${heroData.image}`
-        : "/images/no_cover.jpeg";
+        : "/images/contact-hero.png";
 
     // Fallback if imageSrc is still invalid or empty
-    const finalImageSrc = imageSrc || "/images/no_cover.jpeg";
+    const finalImageSrc = imageSrc || "/images/contact-hero.png";
 
     return (
         <section
             className="relative flex items-center overflow-hidden pt-20 md:pt-24 lg:pt-0 pb-10 md:pb-16 lg:pb-0 lg:h-[847px] lg:pt-[87px]"
             style={{
-                minHeight: 'auto',
-                height: 'auto',
                 background: 'linear-gradient(to bottom right, #0870B4, #2EABE2)'
             }}
         >
@@ -88,30 +86,26 @@ export function ContactHero({ data }: ContactHeroProps = {}) {
                     </div>
 
                     {/* Right Column: Image */}
+                    {/* Right Column: Image */}
                     <div className="w-full lg:w-1/2 flex justify-center lg:justify-end relative order-1 lg:order-2 mb-6 lg:mb-0">
                         {/* Decorative background elements for image */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-br from-[#ffffff30] to-transparent rounded-full blur-3xl -z-10 opacity-60 pointer-events-none" />
 
-                        <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[400px] lg:max-w-lg aspect-square 
-                                        bg-white/10 backdrop-blur-md rounded-[32px] overflow-hidden border border-white/20 
-                                        shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] 
-                                        transition-all duration-500 hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.3)] hover:-translate-y-2">
+                        <div className="relative z-10 transition-transform duration-500 hover:-translate-y-2">
                             {/* Inner glow */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none rounded-[50px] z-20" />
 
-                            <div className="relative z-10 w-full h-full flex items-center justify-center p-8">
-                                <ImageWithFallback
-                                    src={finalImageSrc}
-                                    alt={heroData.title?.prefix && heroData.title?.highlight
-                                        ? `${heroData.title.prefix} ${heroData.title.highlight}`
-                                        : "Contact Support"}
-                                    fill
-                                    sizes="(max-width: 320px) 280px, (max-width: 400px) 320px, 400px"
-                                    priority={true}
-                                    objectFit="contain"
-                                    className="drop-shadow-2xl transition-transform duration-700 hover:scale-110"
-                                />
-                            </div>
+                            <ImageWithFallback
+                                src={finalImageSrc}
+                                alt={heroData.title?.prefix && heroData.title?.highlight
+                                    ? `${heroData.title.prefix} ${heroData.title.highlight}`
+                                    : "Contact Support"}
+                                className="w-auto h-auto max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px]
+                                         bg-white/10 backdrop-blur-md rounded-[50px] border border-white/20 
+                                         shadow-[0_8px_32px_0_rgba(0,0,0,0.2)] 
+                                         hover:shadow-[0_16px_48px_0_rgba(0,0,0,0.3)]
+                                         transition-all duration-700 hover:scale-105 p-3"
+                            />
                         </div>
                     </div>
                 </div>
