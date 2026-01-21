@@ -89,12 +89,25 @@ function getLocale(request: NextRequest): Locale {
   // 2. Check Accept-Language header
   const acceptLanguage = request.headers.get('accept-language');
   if (acceptLanguage) {
-    if (acceptLanguage.includes('ja')) return 'ja';
-    if (acceptLanguage.includes('en')) return 'en';
-    if (acceptLanguage.includes('vi')) return 'vi';
+    // Parse Accept-Language header để lấy ngôn ngữ có độ ưu tiên cao nhất
+    const languages = acceptLanguage
+      .split(',')
+      .map(lang => {
+        const [locale, qValue] = lang.trim().split(';q=');
+        const q = qValue ? parseFloat(qValue) : 1.0;
+        return { locale: locale.toLowerCase().split('-')[0], q };
+      })
+      .sort((a, b) => b.q - a.q);
+
+    // Tìm locale đầu tiên khớp với LOCALES
+    for (const { locale } of languages) {
+      if (locale === 'vi') return 'vi';
+      if (locale === 'ja') return 'ja';
+      if (locale === 'en') return 'en';
+    }
   }
 
-  // 3. Default
+  // 3. Default - Ưu tiên Tiếng Việt
   return DEFAULT_LOCALE;
 }
 

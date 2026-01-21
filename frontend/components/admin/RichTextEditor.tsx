@@ -871,7 +871,7 @@ export default function RichTextEditor({
                       if (selection && selection.rangeCount > 0) {
                         const range = selection.getRangeAt(0);
                         const span = document.createElement("span");
-                        span.style.fontFamily = font.value;
+                        span.style.setProperty('font-family', font.value, 'important');
                         
                         try {
                           range.surroundContents(span);
@@ -932,7 +932,7 @@ export default function RichTextEditor({
                         if (selection && selection.rangeCount > 0) {
                           const range = selection.getRangeAt(0);
                           const span = document.createElement("span");
-                          span.style.fontSize = `${size}px`;
+                          span.style.setProperty('font-size', `${size}px`, 'important');
                           
                           try {
                             range.surroundContents(span);
@@ -943,7 +943,9 @@ export default function RichTextEditor({
                             range.insertNode(span);
                           }
                           
-                          onChange(editorRef.current.innerHTML);
+                          // Trigger input event để update state
+                          const newValue = editorRef.current.innerHTML;
+                          onChange(newValue);
                           
                           // Save selection sau khi apply
                           setTimeout(() => saveSelection(), 0);
@@ -979,7 +981,7 @@ export default function RichTextEditor({
                             if (selection && selection.rangeCount > 0) {
                               const range = selection.getRangeAt(0);
                               const span = document.createElement("span");
-                              span.style.fontSize = `${customSize}px`;
+                              span.style.setProperty('font-size', `${customSize}px`, 'important');
                               
                               try {
                                 range.surroundContents(span);
@@ -989,7 +991,9 @@ export default function RichTextEditor({
                                 range.insertNode(span);
                               }
                               
-                              onChange(editorRef.current.innerHTML);
+                              // Trigger input event để update state
+                              const newValue = editorRef.current.innerHTML;
+                              onChange(newValue);
                               
                               // Clear input and save selection
                               input.value = "";
@@ -1060,13 +1064,15 @@ export default function RichTextEditor({
                         while (parentBlock && parentBlock !== editorRef.current) {
                           const tag = (parentBlock as HTMLElement).tagName?.toLowerCase();
                           if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote'].includes(tag)) {
-                            (parentBlock as HTMLElement).style.lineHeight = lineHeight.value;
+                            (parentBlock as HTMLElement).style.setProperty('line-height', lineHeight.value, 'important');
                             break;
                           }
                           parentBlock = parentBlock.parentElement!;
                         }
                         
-                        onChange(editorRef.current.innerHTML);
+                        // Trigger input event để update state
+                        const newValue = editorRef.current.innerHTML;
+                        onChange(newValue);
                         setTimeout(() => saveSelection(), 0);
                       }
                     }
@@ -1347,7 +1353,7 @@ export default function RichTextEditor({
           saveSelection();
         }}
         onKeyUp={saveSelection}
-        className="min-h-[300px] p-4 focus:outline-none prose prose-sm max-w-none"
+        className="min-h-[300px] p-4 focus:outline-none prose prose-lg max-w-none"
         suppressContentEditableWarning
         data-placeholder={placeholder}
         style={{

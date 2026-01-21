@@ -249,3 +249,206 @@ html {
   background: linear-gradient(73deg, #1879B0 32.85%, #2590BF 82.8%);
   /* Slightly darker for hover effect if desired, or keep same */
 }
+
+/* Rich Text Editor - Đồng bộ style giữa editor và frontend */
+
+/* 
+  QUAN TRỌNG: @tailwindcss/typography đã được cài đặt
+  Các inline styles từ RichTextEditor có specificity 1,0,0,0 (cao nhất)
+  Các rules dưới đây để:
+  1. Đảm bảo prose không override inline styles
+  2. Set defaults cho elements KHÔNG có inline styles
+*/
+
+/* Base prose styles - defaults khi KHÔNG có inline style */
+.prose {
+  max-width: none;
+}
+
+/* Chỉ áp dụng white-space: pre-wrap cho content view, KHÔNG áp dụng cho editor */
+/* Giữ nguyên khoảng trắng liên tiếp khi hiển thị ở frontend */
+.prose:not([contenteditable="true"]) {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.prose p {
+  line-height: 1.7;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose h1 {
+  line-height: 1.2;
+  font-size: 2.25em;
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 0.8em;
+}
+
+.prose h2 {
+  line-height: 1.25;
+  font-size: 1.875em;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+.prose h3 {
+  line-height: 1.3;
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.625em;
+}
+
+.prose h4 {
+  line-height: 1.4;
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* Đảm bảo khoảng cách nhất quán cho bullet points giữa editor và view */
+.prose ul {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.prose ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.75em;
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+.prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 0.5em;
+  margin-left: 0;
+}
+
+/* Images và Videos - luôn responsive */
+.prose img,
+.prose video {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* Ảnh có margin inline style - để căn chỉnh hoạt động đúng */
+.prose img[style*="margin-left"],
+.prose img[style*="margin-right"] {
+  display: block !important;
+}
+
+/* Wrapper div cho ảnh căn giữa/phải/trái */
+.prose div[style*="text-align"] {
+  width: 100%;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose div[style*="text-align"] img {
+  display: block !important;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* List với indent custom (từ indent/outdent buttons) */
+.prose ul[style*="margin-left"],
+.prose ol[style*="margin-left"] {
+  padding-left: 0 !important;
+}
+
+/* Blockquote */
+.prose blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1em;
+  font-style: italic;
+  color: #6b7280;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+/* Code blocks */
+.prose pre {
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1em;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.prose code {
+  background-color: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 1em;
+}
+
+/* Links */
+.prose a {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  color: #1d4ed8;
+}
+
+/* Horizontal rule */
+.prose hr {
+  border-color: #e5e7eb;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5em 1em;
+  text-align: left;
+}
+
+.prose th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+/* CRITICAL: Đảm bảo inline styles KHÔNG bị override */
+/* Khi element có inline style, prose defaults sẽ KHÔNG áp dụng */
+/* Inline styles có specificity cao nhất nên sẽ tự động override các rules trên */
+
+/* 
+  GIẢI PHÁP CUỐI CÙNG: Reset prose styles khi có inline styles
+  Sử dụng all: revert để cho phép inline styles hoạt động
+*/
+
+/* CRITICAL: Inline styles với !important sẽ luôn được ưu tiên */
+/* JavaScript đã thêm !important vào inline styles nên không cần rules đặc biệt */
