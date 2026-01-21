@@ -72,8 +72,8 @@ export function Testimonials({ data, locale: propLocale }: TestimonialsProps) {
   const titleRaw = data?.title;
   const reviewsData = data?.reviews || [];
 
-  // Localize title
-  const title = typeof titleRaw === 'string' ? titleRaw : getLocalizedText(titleRaw, locale);
+  // Localize title - getLocalizedText handles both strings and JSON strings
+  const title = getLocalizedText(titleRaw, locale, '');
 
   // Random-like widths for visual interest
   const widthClasses = [

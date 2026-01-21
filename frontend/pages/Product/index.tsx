@@ -93,7 +93,7 @@ export function ProductsPage({ locale: initialLocale }: { locale?: 'vi' | 'en' |
                     categories={categoriesData}
                 />
             )}
-            {testimonialsData.length > 0 && <Testimonials data={{ title: "Khách hàng nói gì về SFB ?", reviews: testimonialsData }} />}
+            {testimonialsData.length > 0 && <Testimonials data={{ title: { vi: "Khách hàng nói gì về SFB ?", en: "What do customers say about SFB?", ja: "SFBについてお客様の声" }, reviews: testimonialsData }} />}
             {shouldRender(ctaData) && (
                 <Consult
                     data={{
