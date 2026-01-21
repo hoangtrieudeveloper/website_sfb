@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Save, MessageCircle, MapPin, Phone, Mail, Clock, Facebook, Linkedin, Twitter, Youtube, CheckCircle2, ChevronDown, ChevronUp, Languages, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import { getLocaleValue, setLocaleValue, migrateObjectToLocale } from "@/lib/uti
 import { getLocalizedText } from "@/lib/utils/i18n";
 import { useTranslationControls } from "@/lib/hooks/useTranslationControls";
 import { AIProviderSelector } from "@/components/admin/AIProviderSelector";
-
 type Locale = 'vi' | 'en' | 'ja';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as LucideIcons from "lucide-react";
@@ -40,7 +38,6 @@ import { ContactInfoCards } from "@/pages/Contact/ContactInfoCards";
 import { ContactForm } from "@/pages/Contact/ContactForm";
 import { ContactSidebar } from "@/pages/Contact/ContactSidebar";
 import { ContactMap } from "@/pages/Contact/ContactMap";
-
 // Interfaces
 interface HeroData {
   id?: number;
@@ -673,10 +670,10 @@ export default function AdminContactPage() {
     } else {
       serviceText = String(newService || '');
     }
-    
+
     // Đảm bảo serviceText là string trước khi gọi trim
     serviceText = String(serviceText || '');
-    
+
     if (serviceText && serviceText.trim()) {
       setFormData({
         ...formData,
@@ -943,8 +940,8 @@ export default function AdminContactPage() {
             },
             appointment: {
               label: getLocalizedText(sidebarData.quickActions.buttons.appointment.label, globalLocale),
-              value: typeof sidebarData.quickActions.buttons.appointment.value === 'string' 
-                ? sidebarData.quickActions.buttons.appointment.value 
+              value: typeof sidebarData.quickActions.buttons.appointment.value === 'string'
+                ? sidebarData.quickActions.buttons.appointment.value
                 : getLocalizedText(sidebarData.quickActions.buttons.appointment.value, globalLocale),
               href: sidebarData.quickActions.buttons.appointment.href,
             },
@@ -997,7 +994,7 @@ export default function AdminContactPage() {
               const Icon = tab.icon;
               const isActive = activeMainTab === tab.value;
               const isCompleted = tabsConfig.findIndex(t => t.value === activeMainTab) > index;
-              
+
               return (
                 <div key={tab.value} className="flex items-center flex-1">
                   <button
@@ -1072,7 +1069,7 @@ export default function AdminContactPage() {
                         </Select>
                       </div>
                     </div>
-                    
+
                     {/* Translate Controls */}
                     <div className="flex items-center gap-2">
                       {/* Source Language Selector */}
@@ -1089,7 +1086,7 @@ export default function AdminContactPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       {/* Translate Button */}
                       <Button
                         onClick={() => handleTranslateSection('hero')}
@@ -1470,7 +1467,7 @@ export default function AdminContactPage() {
                         </Select>
                       </div>
                     </div>
-                    
+
                     {/* Translate Controls */}
                     <div className="flex items-center gap-2">
                       {/* Source Language Selector */}
@@ -1487,7 +1484,7 @@ export default function AdminContactPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       {/* Translate Button */}
                       <Button
                         onClick={() => handleTranslateSection('form')}
@@ -1831,7 +1828,7 @@ export default function AdminContactPage() {
                         let viText = '';
                         let enText = '';
                         let jaText = '';
-                        
+
                         if (typeof service === 'string') {
                           // Nếu là string, hiển thị cho tất cả ngôn ngữ
                           viText = service;
@@ -1854,11 +1851,11 @@ export default function AdminContactPage() {
                             }
                           }
                         }
-                        
+
                         return (
                           <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white hover:bg-gray-50 transition-colors relative">
-                            <Button 
-                              onClick={() => handleDeleteService(index)} 
+                            <Button
+                              onClick={() => handleDeleteService(index)}
                               size="icon"
                               variant="ghost"
                               className="absolute top-2 right-2 h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -1949,7 +1946,7 @@ export default function AdminContactPage() {
                         </Select>
                       </div>
                     </div>
-                    
+
                     {/* Translate Controls */}
                     <div className="flex items-center gap-2">
                       {/* Source Language Selector */}
@@ -1966,7 +1963,7 @@ export default function AdminContactPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       {/* Translate Button */}
                       <Button
                         onClick={() => handleTranslateSection('sidebar')}
@@ -2344,8 +2341,8 @@ export default function AdminContactPage() {
                       <div>
                         <Label>Label</Label>
                         <Input
-                          value={typeof socialFormData.label === 'string' 
-                            ? socialFormData.label 
+                          value={typeof socialFormData.label === 'string'
+                            ? socialFormData.label
                             : (socialFormData.label?.vi || socialFormData.label?.en || socialFormData.label?.ja || '')}
                           onChange={(e) => setSocialFormData({ ...socialFormData, label: e.target.value })}
                           placeholder="Label"
@@ -2443,7 +2440,7 @@ export default function AdminContactPage() {
                   <div>
                     <LocaleInput
                       label="Address"
-                      value={typeof mapData.address === 'string' 
+                      value={typeof mapData.address === 'string'
                         ? { vi: mapData.address, en: '', ja: '' }
                         : mapData.address}
                       onChange={(value) => {
