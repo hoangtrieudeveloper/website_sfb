@@ -109,6 +109,15 @@ export default function RichTextEditor({
     startX: number;
     startWidth: number;
   } | null>(null);
+  const [floatingToolbarPosition, setFloatingToolbarPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
+  const [headingPopoverOpen, setHeadingPopoverOpen] = useState(false);
+  const [fontFamilyPopoverOpen, setFontFamilyPopoverOpen] = useState(false);
+  const [fontSizePopoverOpen, setFontSizePopoverOpen] = useState(false);
+  const [lineHeightPopoverOpen, setLineHeightPopoverOpen] = useState(false);
 
   // Lưu selection trước khi update
   const saveSelection = () => {
@@ -116,10 +125,39 @@ export default function RichTextEditor({
     if (selection && selection.rangeCount > 0 && editorRef.current?.contains(selection.anchorNode)) {
       try {
         selectionRef.current = selection.getRangeAt(0).cloneRange();
+        
+        // Kiểm tra và hiển thị floating toolbar nếu có text được chọn
+        const selectedText = selection.toString().trim();
+        if (selectedText.length > 0 && editorRef.current) {
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          const editorRect = editorRef.current.getBoundingClientRect();
+          
+          // Tính toán vị trí floating toolbar (ở trên selection)
+          const toolbarHeight = 60; // Ước tính chiều cao toolbar
+          const toolbarWidth = 600; // Ước tính chiều rộng toolbar (có thể scroll)
+          const toolbarTop = rect.top - editorRect.top - toolbarHeight - 10; // 10px spacing phía trên
+          const toolbarLeft = rect.left - editorRect.left + (rect.width / 2) - (toolbarWidth / 2); // Center toolbar
+          
+          // Đảm bảo toolbar không tràn ra ngoài editor
+          const finalTop = Math.max(10, Math.min(toolbarTop, editorRect.height - toolbarHeight - 10));
+          const finalLeft = Math.max(10, Math.min(toolbarLeft, editorRect.width - toolbarWidth - 10));
+          
+          setFloatingToolbarPosition({
+            top: finalTop,
+            left: finalLeft
+          });
+          setShowFloatingToolbar(true);
+        } else {
+          setShowFloatingToolbar(false);
+        }
+        
         return true;
       } catch (e) {
         // Ignore nếu không thể clone
       }
+    } else {
+      setShowFloatingToolbar(false);
     }
     return false;
   };
@@ -171,6 +209,27 @@ export default function RichTextEditor({
       }
     }
   }, [value]);
+
+  // Ẩn floating toolbar khi click ra ngoài editor
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (editorRef.current && !editorRef.current.contains(target)) {
+        // Kiểm tra xem có phải click vào floating toolbar không
+        const floatingToolbar = document.querySelector('[data-floating-toolbar]');
+        if (!floatingToolbar || !floatingToolbar.contains(target)) {
+          setShowFloatingToolbar(false);
+        }
+      }
+    };
+
+    if (showFloatingToolbar) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showFloatingToolbar]);
 
   const execCommand = (command: string, commandValue?: string) => {
     if (editorRef.current) {
@@ -603,7 +662,7 @@ export default function RichTextEditor({
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden relative">
-      {/* Toolbar */}
+      {/* Toolbar chính */}
       <div className="flex flex-wrap gap-1 p-2 bg-gray-50 border-b border-gray-200">
         {/* Undo/Redo */}
         <Button
@@ -1360,6 +1419,701 @@ export default function RichTextEditor({
           minHeight: "300px",
         }}
       />
+
+      {/* Floating Toolbar - Hiển thị khi có text được chọn */}
+      {showFloatingToolbar && floatingToolbarPosition && (
+        <div
+          data-floating-toolbar
+          className="absolute z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-2 max-w-[90vw] overflow-x-auto"
+          style={{
+            top: `${floatingToolbarPosition.top}px`,
+            left: `${floatingToolbarPosition.left}px`,
+          }}
+          onMouseDown={(e) => {
+            // Chỉ preventDefault cho các element không phải button/input/PopoverTrigger
+            const target = e.target as HTMLElement;
+            if (!target.closest('button') && !target.closest('input') && !target.closest('[role="button"]')) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <div className="flex items-center gap-1 flex-wrap">
+            {/* Text Formatting */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("bold");
+                setShowFloatingToolbar(false);
+              }}
+              title="Đậm (Ctrl+B)"
+            >
+              <Bold className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("italic");
+                setShowFloatingToolbar(false);
+              }}
+              title="Nghiêng (Ctrl+I)"
+            >
+              <Italic className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("underline");
+                setShowFloatingToolbar(false);
+              }}
+              title="Gạch chân (Ctrl+U)"
+            >
+              <Underline className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("strikeThrough");
+                setShowFloatingToolbar(false);
+              }}
+              title="Gạch ngang"
+            >
+              <Strikethrough className="w-4 h-4" />
+            </Button>
+
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Headings */}
+            <Popover
+              open={headingPopoverOpen}
+              onOpenChange={(open) => {
+                setHeadingPopoverOpen(open);
+                if (open) {
+                  saveSelection();
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  title="Heading"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    saveSelection();
+                  }}
+                >
+                  <Heading1 className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-48 p-2" 
+                style={{ zIndex: 9999 }}
+                onInteractOutside={(e) => {
+                  // Không đóng khi click vào button bên trong
+                  const target = e.target as HTMLElement;
+                  if (target.closest('button')) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <div className="space-y-1">
+                  {[
+                    { label: "Heading 1", tag: "h1", icon: Heading1 },
+                    { label: "Heading 2", tag: "h2", icon: Heading2 },
+                    { label: "Heading 3", tag: "h3", icon: Heading3 },
+                    { label: "Heading 4", tag: "h4", icon: Heading4 },
+                    { label: "Paragraph", tag: "p", icon: Type },
+                  ].map(({ label, tag, icon: Icon }) => (
+                    <Button
+                      key={tag}
+                      type="button"
+                      variant="ghost"
+                      className="w-full justify-start h-auto py-2 text-sm"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (selectionRef.current) {
+                          // Khôi phục selection ngay khi mouse down
+                          const selection = window.getSelection();
+                          if (selection && selectionRef.current) {
+                            try {
+                              selection.removeAllRanges();
+                              selection.addRange(selectionRef.current.cloneRange());
+                            } catch (err) {
+                              // Ignore
+                            }
+                          }
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (editorRef.current && selectionRef.current) {
+                          editorRef.current.focus();
+                          // Khôi phục selection trước khi apply
+                          const selection = window.getSelection();
+                          if (selection && selectionRef.current) {
+                            try {
+                              selection.removeAllRanges();
+                              selection.addRange(selectionRef.current.cloneRange());
+                            } catch (err) {
+                              restoreSelection();
+                            }
+                          }
+                          
+                          try {
+                            document.execCommand("formatBlock", false, tag);
+                            onChange(editorRef.current.innerHTML);
+                            setHeadingPopoverOpen(false);
+                            // Delay để đảm bảo command được thực thi
+                            setTimeout(() => {
+                              setShowFloatingToolbar(false);
+                            }, 100);
+                          } catch (err) {
+                            console.error(`Error applying ${tag}:`, err);
+                          }
+                        }
+                      }}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {label}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Font Family */}
+            <Popover
+              open={fontFamilyPopoverOpen}
+              onOpenChange={(open) => {
+                setFontFamilyPopoverOpen(open);
+                if (open) {
+                  saveSelection();
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  title="Font chữ"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    saveSelection();
+                  }}
+                >
+                  <Type className="w-3 h-3 mr-1" />
+                  Font
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-56" 
+                style={{ zIndex: 9999 }}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (target.closest('button')) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <div className="space-y-1">
+                  <Label className="text-xs">Chọn font chữ</Label>
+                  {[
+                    { name: "Arial", value: "Arial, sans-serif" },
+                    { name: "Times New Roman", value: "Times New Roman, serif" },
+                    { name: "Georgia", value: "Georgia, serif" },
+                    { name: "Courier New", value: "Courier New, monospace" },
+                    { name: "Verdana", value: "Verdana, sans-serif" },
+                    { name: "Tahoma", value: "Tahoma, sans-serif" },
+                    { name: "Comic Sans MS", value: "Comic Sans MS, cursive" },
+                    { name: "Impact", value: "Impact, fantasy" },
+                    { name: "Trebuchet MS", value: "Trebuchet MS, sans-serif" },
+                  ].map((font) => (
+                    <Button
+                      key={font.value}
+                      type="button"
+                      variant="ghost"
+                      className="w-full justify-start h-auto py-2 text-sm"
+                      style={{ fontFamily: font.value }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (selectionRef.current) {
+                          const selection = window.getSelection();
+                          if (selection && selectionRef.current) {
+                            try {
+                              selection.removeAllRanges();
+                              selection.addRange(selectionRef.current.cloneRange());
+                            } catch (err) {
+                              // Ignore
+                            }
+                          }
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (editorRef.current && selectionRef.current) {
+                          editorRef.current.focus();
+                          // Khôi phục selection
+                          const selection = window.getSelection();
+                          if (selection && selectionRef.current) {
+                            try {
+                              selection.removeAllRanges();
+                              selection.addRange(selectionRef.current.cloneRange());
+                            } catch (err) {
+                              restoreSelection();
+                            }
+                          }
+                          
+                          const currentSelection = window.getSelection();
+                          if (currentSelection && currentSelection.rangeCount > 0) {
+                            const range = currentSelection.getRangeAt(0);
+                            const span = document.createElement("span");
+                            span.style.setProperty('font-family', font.value, 'important');
+                            
+                            try {
+                              range.surroundContents(span);
+                            } catch (err) {
+                              const fragment = range.extractContents();
+                              span.appendChild(fragment);
+                              range.insertNode(span);
+                            }
+                            
+                            onChange(editorRef.current.innerHTML);
+                            setFontFamilyPopoverOpen(false);
+                            setTimeout(() => {
+                              saveSelection();
+                              setShowFloatingToolbar(false);
+                            }, 100);
+                          }
+                        }
+                      }}
+                    >
+                      {font.name}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Font Size */}
+            <Popover
+              open={fontSizePopoverOpen}
+              onOpenChange={(open) => {
+                setFontSizePopoverOpen(open);
+                if (open) {
+                  saveSelection();
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  title="Cỡ chữ"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    saveSelection();
+                  }}
+                >
+                  <Type className="w-3 h-3 mr-1" />
+                  Size
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-48" 
+                style={{ zIndex: 9999 }}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (target.closest('button')) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <div className="space-y-2">
+                  <Label className="text-xs">Cỡ chữ</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[12, 14, 16, 18, 20, 24, 28, 32, 36].map((size) => (
+                      <Button
+                        key={size}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (selectionRef.current) {
+                            const selection = window.getSelection();
+                            if (selection && selectionRef.current) {
+                              try {
+                                selection.removeAllRanges();
+                                selection.addRange(selectionRef.current.cloneRange());
+                              } catch (err) {
+                                // Ignore
+                              }
+                            }
+                          }
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (editorRef.current && selectionRef.current) {
+                            editorRef.current.focus();
+                            // Khôi phục selection
+                            const selection = window.getSelection();
+                            if (selection && selectionRef.current) {
+                              try {
+                                selection.removeAllRanges();
+                                selection.addRange(selectionRef.current.cloneRange());
+                              } catch (err) {
+                                restoreSelection();
+                              }
+                            }
+                            
+                            const currentSelection = window.getSelection();
+                            if (currentSelection && currentSelection.rangeCount > 0) {
+                              const range = currentSelection.getRangeAt(0);
+                              const span = document.createElement("span");
+                              span.style.setProperty('font-size', `${size}px`, 'important');
+                              
+                              try {
+                                range.surroundContents(span);
+                              } catch (err) {
+                                const fragment = range.extractContents();
+                                span.appendChild(fragment);
+                                range.insertNode(span);
+                              }
+                              
+                              onChange(editorRef.current.innerHTML);
+                              setFontSizePopoverOpen(false);
+                              setTimeout(() => {
+                                saveSelection();
+                                setShowFloatingToolbar(false);
+                              }, 100);
+                            }
+                          }
+                        }}
+                      >
+                        {size}px
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Line Height */}
+            <Popover
+              open={lineHeightPopoverOpen}
+              onOpenChange={(open) => {
+                setLineHeightPopoverOpen(open);
+                if (open) {
+                  saveSelection();
+                }
+              }}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 px-2 text-xs"
+                  title="Khoảng cách dòng"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    saveSelection();
+                  }}
+                >
+                  <AlignJustify className="w-3 h-3 mr-1" />
+                  Line
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-48" 
+                style={{ zIndex: 9999 }}
+                onInteractOutside={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (target.closest('button')) {
+                    e.preventDefault();
+                  }
+                }}
+              >
+                <div className="space-y-1">
+                  <Label className="text-xs">Khoảng cách dòng</Label>
+                  {[
+                    { name: "Đơn (1.0)", value: "1" },
+                    { name: "1.15", value: "1.15" },
+                    { name: "1.5", value: "1.5" },
+                    { name: "Đôi (2.0)", value: "2" },
+                    { name: "2.5", value: "2.5" },
+                    { name: "3.0", value: "3" },
+                  ].map((lineHeight) => (
+                    <Button
+                      key={lineHeight.value}
+                      type="button"
+                      variant="ghost"
+                      className="w-full justify-start h-auto py-2"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (selectionRef.current) {
+                          const selection = window.getSelection();
+                          if (selection && selectionRef.current) {
+                            try {
+                              selection.removeAllRanges();
+                              selection.addRange(selectionRef.current.cloneRange());
+                            } catch (err) {
+                              // Ignore
+                            }
+                          }
+                        }
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (editorRef.current && selectionRef.current) {
+                          editorRef.current.focus();
+                          // Khôi phục selection
+                          const selection = window.getSelection();
+                          if (selection && selectionRef.current) {
+                            try {
+                              selection.removeAllRanges();
+                              selection.addRange(selectionRef.current.cloneRange());
+                            } catch (err) {
+                              restoreSelection();
+                            }
+                          }
+                          
+                          const currentSelection = window.getSelection();
+                          if (currentSelection && currentSelection.rangeCount > 0) {
+                            const range = currentSelection.getRangeAt(0);
+                            
+                            // Tìm parent block element
+                            let parentBlock = range.commonAncestorContainer;
+                            if (parentBlock.nodeType === Node.TEXT_NODE) {
+                              parentBlock = parentBlock.parentElement!;
+                            }
+                            
+                            // Tìm block element gần nhất (p, div, h1-h6, li, etc.)
+                            while (parentBlock && parentBlock !== editorRef.current) {
+                              const tag = (parentBlock as HTMLElement).tagName?.toLowerCase();
+                              if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'blockquote'].includes(tag)) {
+                                (parentBlock as HTMLElement).style.setProperty('line-height', lineHeight.value, 'important');
+                                break;
+                              }
+                              parentBlock = parentBlock.parentElement!;
+                            }
+                            
+                            onChange(editorRef.current.innerHTML);
+                            setLineHeightPopoverOpen(false);
+                            setTimeout(() => {
+                              saveSelection();
+                              setShowFloatingToolbar(false);
+                            }, 100);
+                          }
+                        }
+                      }}
+                    >
+                      {lineHeight.name}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Alignment */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("justifyLeft");
+                setShowFloatingToolbar(false);
+              }}
+              title="Căn trái"
+            >
+              <AlignLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("justifyCenter");
+                setShowFloatingToolbar(false);
+              }}
+              title="Căn giữa"
+            >
+              <AlignCenter className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("justifyRight");
+                setShowFloatingToolbar(false);
+              }}
+              title="Căn phải"
+            >
+              <AlignRight className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("justifyFull");
+                setShowFloatingToolbar(false);
+              }}
+              title="Căn đều"
+            >
+              <AlignJustify className="w-4 h-4" />
+            </Button>
+
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Lists */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("insertUnorderedList");
+                setShowFloatingToolbar(false);
+              }}
+              title="Danh sách không đánh số"
+            >
+              <List className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("insertOrderedList");
+                setShowFloatingToolbar(false);
+              }}
+              title="Danh sách có số"
+            >
+              <ListOrdered className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("indent");
+                setShowFloatingToolbar(false);
+              }}
+              title="Thụt lề vào"
+            >
+              <Indent className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("outdent");
+                setShowFloatingToolbar(false);
+              }}
+              title="Thụt lề ra"
+            >
+              <Outdent className="w-4 h-4" />
+            </Button>
+
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Subscript/Superscript */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("subscript");
+                setShowFloatingToolbar(false);
+              }}
+              title="Chỉ số dưới"
+            >
+              <Subscript className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("superscript");
+                setShowFloatingToolbar(false);
+              }}
+              title="Chỉ số trên"
+            >
+              <Superscript className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                execCommand("removeFormat");
+                setShowFloatingToolbar(false);
+              }}
+              title="Xóa định dạng"
+            >
+              <RemoveFormatting className="w-4 h-4" />
+            </Button>
+
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Link */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                addLink();
+                setShowFloatingToolbar(false);
+              }}
+              title="Thêm liên kết"
+            >
+              <Link className="w-4 h-4" />
+            </Button>
+
+          </div>
+        </div>
+      )}
 
       {/* Khối điều khiển kích thước media (ảnh/video) - hiển thị bên cạnh media */}
       {selectedImage && controlPanelPosition && (
