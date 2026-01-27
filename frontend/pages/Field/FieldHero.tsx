@@ -84,7 +84,7 @@ export function FieldHero({ data }: FieldHeroProps) {
                     <div className="order-2 lg:order-2 text-white w-full lg:w-1/2 xl:w-1/2 2xl:w-auto text-center lg:text-left z-20">
                         <SlideIn direction="right">
                             <h1
-                                className="text-white mb-4 md:mb-5 lg:mb-6 w-full lg:max-w-[543px] text-3xl sm:text-4xl lg:text-[44px] xl:text-[48px] 2xl:text-[56px] leading-tight lg:leading-normal mx-auto lg:mx-0"
+                                className="text-white mb-4 md:mb-5 lg:mb-6 w-full lg:max-w-[640px] xl:max-w-[720px] text-3xl sm:text-4xl lg:text-[44px] xl:text-[48px] 2xl:text-[56px] leading-tight lg:leading-normal mx-auto lg:mx-0"
                                 style={{
                                     fontFamily: '"Plus Jakarta Sans", sans-serif',
                                     fontFeatureSettings: "'liga' off, 'clig' off"
