@@ -109,7 +109,6 @@ interface SocialItem {
   sortOrder: number;
   isActive: boolean;
 }
-
 interface SidebarData {
   id?: number;
   quickActions: {
