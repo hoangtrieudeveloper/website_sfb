@@ -143,7 +143,7 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
                                                 loading="lazy"
-                                                objectFit="cover"
+                                                objectFit="contain"
                                             />
                                         );
                                     }
@@ -193,7 +193,7 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                                         <video
                                             src={mediaUrl}
                                             controls
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-contain"
                                             autoPlay
                                             loop
                                             muted
@@ -206,7 +206,7 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                                             fill
                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 701px"
                                             loading="lazy"
-                                            objectFit="cover"
+                                            objectFit="contain"
                                         />
                                     );
                                 })()}
