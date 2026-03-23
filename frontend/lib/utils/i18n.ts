@@ -48,15 +48,20 @@ export function getLocalizedText(
 }
 
 /**
- * Chuỗi hiển thị form liên hệ: ưu tiên object locale / JSON locale; chuỗi thuần (thường là tiếng Việt từ CMS)
- * khi locale khác vi thì nếu trùng bản mặc định tiếng Việt thì thay bằng fallback theo ngôn ngữ.
+ * Chuỗi hiển thị form liên hệ: ưu tiên object locale / JSON locale; chuỗi thuần (thường là tiếng Việt từ CMS).
+ * Nếu trùng viBaseline hoặc legacyViBaselines (ví dụ CMS còn "Công ty" sau khi đổi copy mặc định) → dùng fallback theo locale.
  */
 export function resolveContactFieldText(
   value: unknown,
   locale: Locale,
-  options: { fallback: string; viBaseline: string }
+  options: {
+    fallback: string;
+    viBaseline: string;
+    /** Chuỗi tiếng Việt cũ từ CMS cần map sang fallback (mọi locale, kể cả vi) */
+    legacyViBaselines?: string[];
+  }
 ): string {
-  const { fallback, viBaseline } = options;
+  const { fallback, viBaseline, legacyViBaselines = [] } = options;
   const norm = (s: string) => s.trim();
 
   if (
@@ -86,8 +91,11 @@ export function resolveContactFieldText(
     } catch {
       /* plain string */
     }
-    if (locale === "vi") return value;
-    if (norm(value) === norm(viBaseline)) return fallback;
+    const n = norm(value);
+    const matchesKnownVi =
+      n === norm(viBaseline) ||
+      legacyViBaselines.some((s) => n === norm(s));
+    if (matchesKnownVi) return fallback;
     return value;
   }
 

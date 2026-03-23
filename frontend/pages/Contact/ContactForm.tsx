@@ -12,6 +12,10 @@ import {
     type Locale,
 } from '@/lib/utils/i18n';
 
+/** CMS có thể vẫn lưu label/placeholder cũ "Công ty" sau khi đổi mặc định sang Đơn vị */
+const COMPANY_LABEL_LEGACY_VI = ['Công ty'];
+const COMPANY_PLACEHOLDER_LEGACY_VI = ['Tên công ty'];
+
 function resolveServiceOption(
     item: unknown,
     locale: Locale,
@@ -122,14 +126,17 @@ export function ContactForm({
         const viF = contactFormData.fields[key];
         const i18nF = i18n.fields[key];
         const rawF = fieldsRaw?.[key] || {};
+        const isCompany = key === 'company';
         fields[key] = {
             label: resolveContactFieldText(rawF.label, locale, {
                 fallback: i18nF.label,
                 viBaseline: viF.label,
+                ...(isCompany && { legacyViBaselines: COMPANY_LABEL_LEGACY_VI }),
             }),
             placeholder: resolveContactFieldText(rawF.placeholder, locale, {
                 fallback: i18nF.placeholder,
                 viBaseline: viF.placeholder,
+                ...(isCompany && { legacyViBaselines: COMPANY_PLACEHOLDER_LEGACY_VI }),
             }),
         };
     }
