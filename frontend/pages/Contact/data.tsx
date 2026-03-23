@@ -90,7 +90,7 @@ export const contactFormData = {
         name: { label: "Họ và tên", placeholder: "Nguyễn Văn A" },
         email: { label: "Email", placeholder: "email@example.com" },
         phone: { label: "Số điện thoại", placeholder: "0901234567" },
-        company: { label: "Công ty", placeholder: "Tên công ty" },
+        company: { label: "Đơn vị", placeholder: "Tên đơn vị" },
         service: { label: "Dịch vụ quan tâm", placeholder: "Chọn dịch vụ" },
         message: { label: "Nội dung", placeholder: "Mô tả chi tiết nhu cầu của bạn..." }
     },

@@ -19,7 +19,7 @@ const en: ContactFormI18nBundle = {
     name: { label: "Full name", placeholder: "John Smith" },
     email: { label: "Email", placeholder: "email@example.com" },
     phone: { label: "Phone number", placeholder: "+84 901 234 567" },
-    company: { label: "Company", placeholder: "Company name" },
+    company: { label: "Organization", placeholder: "Organization name" },
     service: { label: "Service of interest", placeholder: "Select a service" },
     message: {
       label: "Message",
@@ -48,7 +48,7 @@ const ja: ContactFormI18nBundle = {
     name: { label: "お名前", placeholder: "山田 太郎" },
     email: { label: "メール", placeholder: "email@example.com" },
     phone: { label: "電話番号", placeholder: "090-1234-5678" },
-    company: { label: "会社名", placeholder: "会社名" },
+    company: { label: "所属・団体", placeholder: "所属・団体名" },
     service: { label: "ご関心のサービス", placeholder: "サービスを選択" },
     message: {
       label: "お問い合わせ内容",

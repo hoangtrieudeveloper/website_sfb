@@ -6,6 +6,27 @@ import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { ProductDetail } from "./data";
 import { getLocalizedText } from "@/lib/utils/i18n";
 
+type HeroLocale = "vi" | "en" | "ja";
+
+/** Gắn /{locale} vào path nội bộ từ CMS; bỏ qua URL tuyệt đối, hash, mailto, tel, đã có locale */
+function prefixLocaleToHref(href: string, locale: HeroLocale): string {
+    const t = href.trim();
+    if (!t || t === "#") return t || "#";
+    if (t.startsWith("#")) return t;
+    if (
+        /^https?:\/\//i.test(t) ||
+        t.startsWith("//") ||
+        /^mailto:/i.test(t) ||
+        /^tel:/i.test(t) ||
+        /^javascript:/i.test(t)
+    ) {
+        return t;
+    }
+    if (/^\/(vi|en|ja)(\/|$)/.test(t)) return t;
+    const path = t.startsWith("/") ? t : `/${t}`;
+    return `/${locale}${path}`;
+}
+
 interface HeroSectionProps {
     product: ProductDetail;
     locale?: 'vi' | 'en' | 'ja';
@@ -73,12 +94,16 @@ export function HeroSection({ product, locale = 'vi' }: HeroSectionProps) {
                                 const contactLabel = product.ctaContactText
                                     ? getLocalizedText(product.ctaContactText, locale)
                                     : t.contactNow;
-                                const contactHref = product.ctaContactHref || `/${locale}/contact`;
+                                const contactHref = product.ctaContactHref
+                                    ? prefixLocaleToHref(product.ctaContactHref, locale)
+                                    : `/${locale}/contact`;
 
                                 const demoLabel = product.ctaDemoText
                                     ? getLocalizedText(product.ctaDemoText, locale)
                                     : t.demoSystem;
-                                const demoHref = product.ctaDemoHref || "#";
+                                const demoHref = product.ctaDemoHref
+                                    ? prefixLocaleToHref(product.ctaDemoHref, locale)
+                                    : "#";
 
                                 return (
                                     <div className="flex flex-row items-stretch justify-start gap-1.5 sm:gap-4 w-full max-w-full">
