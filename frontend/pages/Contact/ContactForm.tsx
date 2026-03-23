@@ -3,7 +3,7 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { Send, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { services as servicesViBaseline, contactFormData } from './data';
-import { CONTACT_FORM_I18N } from './contactFormI18n';
+import { CONTACT_FORM_I18N } from '@/lib/contact/contactFormI18n';
 import { PublicEndpoints } from '@/lib/api/public/endpoints';
 import { baseFetch } from '@/lib/api/base';
 import {

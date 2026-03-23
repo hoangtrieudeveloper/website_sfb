@@ -1,5 +1,5 @@
 import type { Locale } from "@/lib/utils/i18n";
-import { contactFormData, services as servicesVi } from "./data";
+import { contactFormData, services as servicesVi } from "@/pages/Contact/data";
 
 export type ContactFormI18nBundle = {
   header: string;
