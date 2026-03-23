@@ -27,7 +27,12 @@ export function ContactPage({ contactData, locale }: ContactPageProps) {
             <section className="py-28 bg-white">
                 <div className="container mx-auto px-6">
                     <div className="grid lg:grid-cols-2 gap-16 items-start">
-                        {contactData?.form && <ContactForm data={contactData.form} />}
+                        {contactData?.form && (
+                            <ContactForm
+                                data={contactData.form}
+                                locale={locale ?? "vi"}
+                            />
+                        )}
                         {contactData?.sidebar && <ContactSidebar data={contactData.sidebar} />}
                     </div>
                 </div>

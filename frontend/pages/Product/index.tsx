@@ -6,6 +6,7 @@ import { ProductBenefits } from "./ProductBenefits";
 import { ProductList } from "./ProductList";
 import { Testimonials } from "../../components/homepage/Testimonials";
 import { Consult } from "../../components/public/Consult";
+import { ProductTrialFloatingCta } from "../../components/public/ProductTrialFloatingCta";
 import { publicApiCall } from "@/lib/api/public/client";
 import { PublicEndpoints } from "@/lib/api/public/endpoints";
 import { useLocale } from "@/lib/contexts/LocaleContext";
@@ -113,6 +114,8 @@ export function ProductsPage({ locale: initialLocale }: { locale?: 'vi' | 'en' |
                     }}
                 />
             )}
+
+            <ProductTrialFloatingCta locale={locale} />
         </div>
     );
 }

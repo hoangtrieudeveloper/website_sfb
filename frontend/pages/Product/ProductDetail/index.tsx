@@ -31,6 +31,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollActionButton } from "@/components/public/ScrollActionButton";
+import { ProductTrialFloatingCta } from "@/components/public/ProductTrialFloatingCta";
 import { useLocale } from "@/lib/contexts/LocaleContext";
 interface ProductDetailViewProps {
     product: ProductDetail | null;
@@ -694,6 +695,10 @@ export function ProductDetailView({ product, locale: propLocale }: ProductDetail
 
             <div id="demo" />
             <Consult locale={locale} />
+            <ProductTrialFloatingCta
+                locale={locale}
+                buttonPositionClassName="bottom-24 right-8"
+            />
             {/* Scroll Action Button */}
             <ScrollActionButton />
         </div>

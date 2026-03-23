@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SelectMountGuard } from "@/components/ui/select-mount-guard";
 import {
   Dialog,
   DialogContent,
@@ -178,18 +179,31 @@ export default function AdminContactRequestsPage() {
                   className="pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Lọc theo trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="pending">Chờ xử lý</SelectItem>
-                  <SelectItem value="processing">Đang xử lý</SelectItem>
-                  <SelectItem value="completed">Hoàn thành</SelectItem>
-                  <SelectItem value="cancelled">Đã hủy</SelectItem>
-                </SelectContent>
-              </Select>
+              <SelectMountGuard
+                fallback={
+                  <div
+                    className="flex h-9 w-48 shrink-0 items-center rounded-md border border-input bg-input-background px-3 text-sm text-muted-foreground"
+                    aria-hidden
+                  >
+                    {statusFilter === "all"
+                      ? "Tất cả trạng thái"
+                      : statusLabels[statusFilter]}
+                  </div>
+                }
+              >
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Lọc theo trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="pending">Chờ xử lý</SelectItem>
+                    <SelectItem value="processing">Đang xử lý</SelectItem>
+                    <SelectItem value="completed">Hoàn thành</SelectItem>
+                    <SelectItem value="cancelled">Đã hủy</SelectItem>
+                  </SelectContent>
+                </Select>
+              </SelectMountGuard>
             </div>
           </div>
         </CardHeader>
@@ -386,17 +400,28 @@ export default function AdminContactRequestsPage() {
             <div className="space-y-4">
               <div>
                 <Label>Trạng thái</Label>
-                <Select value={editStatus} onValueChange={(v) => setEditStatus(v as RequestStatus)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Chờ xử lý</SelectItem>
-                    <SelectItem value="processing">Đang xử lý</SelectItem>
-                    <SelectItem value="completed">Hoàn thành</SelectItem>
-                    <SelectItem value="cancelled">Đã hủy</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SelectMountGuard
+                  fallback={
+                    <div
+                      className="mt-2 flex h-9 w-full items-center rounded-md border border-input bg-input-background px-3 text-sm text-muted-foreground"
+                      aria-hidden
+                    >
+                      {statusLabels[editStatus]}
+                    </div>
+                  }
+                >
+                  <Select value={editStatus} onValueChange={(v) => setEditStatus(v as RequestStatus)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Chờ xử lý</SelectItem>
+                      <SelectItem value="processing">Đang xử lý</SelectItem>
+                      <SelectItem value="completed">Hoàn thành</SelectItem>
+                      <SelectItem value="cancelled">Đã hủy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </SelectMountGuard>
               </div>
               <div>
                 <Label>Ghi chú</Label>

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { API_BASE_URL } from "@/lib/api/base";
 import ScrollToTop from "@/components/common/ScrollToTop";
@@ -122,6 +123,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${plusJakarta.className} min-h-screen bg-white antialiased`}
       >
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18035372440"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-aw-18035372440" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18035372440');
+          `}
+        </Script>
         <ScrollToTop />
         {children}
       </body>

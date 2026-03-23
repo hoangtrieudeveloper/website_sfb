@@ -1907,7 +1907,10 @@ export default function AdminContactPage() {
                 <CardContent>
                   {formData.isActive && (
                     <div className="border rounded-lg p-4">
-                      <ContactForm data={getPreviewData().form} />
+                      <ContactForm
+                        data={getPreviewData().form}
+                        locale={globalLocale}
+                      />
                     </div>
                   )}
                 </CardContent>

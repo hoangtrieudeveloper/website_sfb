@@ -1,4 +1,4 @@
-type Locale = 'vi' | 'en' | 'ja';
+export type Locale = 'vi' | 'en' | 'ja';
 
 /**
  * Lấy text từ field có thể là string hoặc object locale
@@ -44,6 +44,53 @@ export function getLocalizedText(
     return typeof firstValue === 'string' ? firstValue : fallback;
   }
   
+  return fallback;
+}
+
+/**
+ * Chuỗi hiển thị form liên hệ: ưu tiên object locale / JSON locale; chuỗi thuần (thường là tiếng Việt từ CMS)
+ * khi locale khác vi thì nếu trùng bản mặc định tiếng Việt thì thay bằng fallback theo ngôn ngữ.
+ */
+export function resolveContactFieldText(
+  value: unknown,
+  locale: Locale,
+  options: { fallback: string; viBaseline: string }
+): string {
+  const { fallback, viBaseline } = options;
+  const norm = (s: string) => s.trim();
+
+  if (
+    value === undefined ||
+    value === null ||
+    (typeof value === "string" && value.trim() === "")
+  ) {
+    return fallback;
+  }
+
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    if ("vi" in value || "en" in value || "ja" in value) {
+      return getLocalizedText(value as Record<Locale, string>, locale, fallback);
+    }
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        ("vi" in parsed || "en" in parsed || "ja" in parsed)
+      ) {
+        return getLocalizedText(parsed, locale, fallback);
+      }
+    } catch {
+      /* plain string */
+    }
+    if (locale === "vi") return value;
+    if (norm(value) === norm(viBaseline)) return fallback;
+    return value;
+  }
+
   return fallback;
 }
 
