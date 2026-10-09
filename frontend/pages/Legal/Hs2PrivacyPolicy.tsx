@@ -274,3 +274,5 @@ export function Hs2PrivacyPolicy() {
     </article>
   );
 }
+
+export default Hs2PrivacyPolicy;
