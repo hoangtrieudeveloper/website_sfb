@@ -59,7 +59,7 @@ export default async function sitemap(
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
   // Static pages for this locale
-  const staticPages = ["", "/products", "/about", "/contact", "/news", "/industries", "/careers"];
+  const staticPages = ["", "/products", "/about", "/contact", "/news", "/industries", "/careers", "/chinh-sach-quyen-rieng-tu-hs2"];
 
   staticPages.forEach((page) => {
     sitemapEntries.push({

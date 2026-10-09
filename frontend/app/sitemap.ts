@@ -49,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
   // Static pages với tất cả locales
-  const staticPages = ['', '/products', '/about', '/contact', '/news', '/industries', '/careers'];
+  const staticPages = ['', '/products', '/about', '/contact', '/news', '/industries', '/careers', '/chinh-sach-quyen-rieng-tu-hs2'];
   
   staticPages.forEach((page) => {
     LOCALES.forEach((locale) => {
